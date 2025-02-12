@@ -3,10 +3,41 @@
 # Guide d'installation pour Kotaemon / Ollama (en local)
 
 
-## - Avec docker (pour les 2 services)
+## 1) Installation + simple : avec le docker-compose
+
+*** Intérêt du docker compose : le docker compose paralyse le lancement de l'app Kotaemon... qui sera lancée "à la main".
+
+Cela peut faliciter la tâche pour faire du développement en mode test de l'app globale ***
+
+Ollama va être le service d'hébergement / inférence des modèles de llm hébergés en local.
+
+Si vous souhaitez utiliser le GPU de votre ordinateur, suivez scrupuleusement la doc officielle ici en lien : https://hub.docker.com/r/ollama/ollama
+
+[sans lancer le container à la fin ... car cela sera fait avec le docker compose]
 
 
-### 1) Lancer le service Ollama
+Créer votre dossier de travail.
+
+Faite un <code> git clone https://github.com/Cinnamon/kotaemon.git</code>
+
+afin de cloner le repo git officiel de Kotaemon
+
+(par la suite, on clonera plutôt notre propre version du projet forké)
+ 
+Placer le fichier docker-compose donné en example (dans ce même dossier) à la racine de votre projet.
+
+Attention , pas dans le dossier "kotaemon" qui a été créé avec le git clone, mais plutôt "à côté" dans votre dossier de travail...
+
+![image](./illustr/archi-folder.png)
+
+Depuis votre dossier de travail,
+faite simplement <code> docker compose up </code>
+
+
+## 1 alt.) Installation alternative (dissociées) avec docker
+
+
+#### a) Lancer le service Ollama
 
 Ollama va être le service d'hébergement / inférence des modèles de llm hébergés en local.
 
@@ -19,40 +50,7 @@ Example sans GPU (uniquement CPU) :
 <code> docker run -d -v ollama:/root/.ollama -p 11434:11434 --name ollama ollama/ollama </code>
 
 
-
-### 2) Vérifier que le service Ollama fonctionne avec un modèle
-
-Se rendre à l'intérieur du container (plus simple je trouve) avec :
-
-<code> docker ps </code>
-
-Repérer l'ID du container puis :
-
-<code> docker exec -it [CONTAINER_ID] bash </code>
-
-Une fois dedans, faire :
-
-<code> ollama pull llama3.2:1b </code>
-
-par exemple avec le modèle llama3.2:1b à 1 milliard de paramètres.
-(Eh oui, ça peut être bien de commencer avec un modèle léger dans la tranche 1B -> 8B pour voir déjà comment votre poste accueille la charge , surtout si vous faites l'installation sans GPU !...)
-
-Allez boire un café pendant le "pull" du modèle... :coffee:
-
-Ensuite, tester l'inférence (rentrer dans une conversation avec le llm) avec :
-
-<code> ollama run llama3.2:1b </code>
-
-Tips : Pour quitter la conversation il faut taper "/bye"... (sinon, le llm s'accroche et il est coriace... inutile de lui dire "exit" il va rebondir dessus !....)
-
-Commande pratique :
-On peut lister les modèles qui ont été pull/run avec "ollama list"
-
-=> Faire ensuite de même avec les embeddings : lien vers la librairie d'Ollama : https://ollama.com/search?q=embedding
-
-
-
-### 3) Lancer le service Kotaemon
+#### b) Lancer le service Kotaemon
 
 Extrait de la doc d'installation dans le README : https://github.com/Cinnamon/kotaemon?tab=readme-ov-file#with-docker-recommended
 
@@ -90,26 +88,63 @@ Se rendre ensuite à l'adresse indiqué dans les logs de run : http://0.0.0.0:78
 
 
 
-### 4) Premiers pas dans l'app Kotaemon (et paramètres pour Ollama)
+
+## 2) Créer un registre de modèles avec Ollama
+
+Se rendre à l'intérieur du container de Ollama (plus simple je trouve) avec :
+
+<code> docker ps </code>
+
+Repérer l'ID du container puis :
+
+<code> docker exec -it [CONTAINER_ID] bash </code>
+
+Une fois dedans, faire :
+
+<code> ollama pull llama3.2:1b </code>
+
+par exemple avec le modèle llama3.2:1b à 1 milliard de paramètres.
+(Eh oui, ça peut être bien de commencer avec un modèle léger dans la tranche 1B -> 8B pour voir déjà comment votre poste accueille la charge , surtout si vous faites l'installation sans GPU !...)
+
+Allez boire un café pendant le "pull" du modèle... :coffee:
+
+Ensuite, tester l'inférence (rentrer dans une conversation avec le llm) avec :
+
+<code> ollama run llama3.2:1b </code>
+
+Tips : Pour quitter la conversation il faut taper "/bye"... (sinon, le llm s'accroche et il est coriace... inutile de lui dire "exit" il va rebondir dessus !....)
+
+Commande pratique :
+On peut lister les modèles qui ont été pull/run avec "ollama list"
+
+=> Faire ensuite de même avec les embeddings : lien vers la librairie d'Ollama : https://ollama.com/search?q=embedding
+
+
+
+## 3) Premiers pas dans l'app Kotaemon (et paramètres pour Ollama)
 
 -> Si un mot de passe est demandé à l'entrée : "admin" / "admin" marchera !...
 
 -> Pour paramétrer le llm de Ollama local comme llm utilisé par défaut :
 
 Aller dans Ressources -> LLM et cliquer sur "ollama" :
+
 ![image](./illustr/params_ressources_llm.png)
 
 Dans la fenêtre de paramétrage, indiquer :
 
 <code>
 api_key: ollama
+
 base_url: http://172.17.0.1:11434/v1/
+
 model: llama3.2:1b
 </code>
 
 Attention !!! Il faut aussi cliquer sur la petite case "Set default" pour faire passer ce llm comme étant le llm par défaut...
 
 Contrairement à la doc officielle ou l'adresse est "localhost" on va ici mettre une adresse réseau pour faire dialoguer deux containers docker par l'intermédiaire du localhost.
+
 Pour les utilisateurs Windows, cela risque de ne pas marcher et il faut tester :
 host.docker.internal à la place de "172.17.0.1"
 
@@ -129,7 +164,9 @@ Et dans la fenêtre de paramétrage qui s'ouvre :
 
 <code>
 api_key: ollama
+
 base_url: http://172.17.0.1:11434/v1/
+
 model: nomic-embed-text
 </code>
 
