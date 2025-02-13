@@ -26,12 +26,29 @@ afin de cloner le repo git officiel de Kotaemon
  
 Placer le fichier docker-compose donné en example (dans ce même dossier) à la racine de votre projet.
 
-Attention , pas dans le dossier "kotaemon" qui a été créé avec le git clone, mais plutôt "à côté" dans votre dossier de travail...
+Attention , ne pas mettre ce fichier docker-compose dans le dossier "kotaemon" qui a été créé avec le git clone, mais plutôt "à côté" dans votre dossier de travail...
 
 ![image](./illustr/archi-folder.png)
 
 Depuis votre dossier de travail,
 faite simplement <code> docker compose up </code>
+
+
+A titre d'example avec ce set up en docker compose, un service Qdrant (dtabase vectostore) est déployé aux côté de Kotaemon.
+
+Vous pouvez le retirer du docker compose ou le laisser pour tester. Si vous le laissez, il faut changer le fichier flowsettings.py dans le dossier kotaemon. A la place de la variable KH_VECTORSTORE, il faut indiquer ceci :
+
+<code>
+KH_VECTORSTORE = {
+
+    "__type__": "kotaemon.storages.QdrantVectorStore",
+
+    "url": "http://172.17.0.1:6333",
+
+    "api_key": "None"
+}
+
+</code>
 
 
 ## 1 alt.) Installation alternative (dissociées) avec docker
