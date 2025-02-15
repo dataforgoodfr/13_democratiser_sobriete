@@ -2,18 +2,6 @@
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
-[project]
-name = "13_democratiser_sobriete"
-version = "0.1.0"
-description = "Projet Démocratiser la sobriété porté par le World Sufficiency Lab et DataForGood saison 13"
-authors = [
-    {name="World Sufficiency Lab"},
-    {name="DataForGood"},
-]
-license = " MIT"
-readme = "README.md"
-
-
 [tool.ruff]
 # Same as Black.
 line-length = 96
