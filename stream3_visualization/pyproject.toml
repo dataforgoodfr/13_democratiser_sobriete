@@ -1,0 +1,17 @@
+[project]
+name = "stream3-visualization"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "geopandas>=1.0.1",
+    "matplotlib>=3.10.0",
+    "openpyxl>=3.1.5",
+    "pandas>=2.2.3",
+]
+
+[tool.uv]
+dev-dependencies = [
+    "ipykernel>=6.29.5",
+]
