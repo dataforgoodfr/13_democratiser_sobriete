@@ -16,13 +16,19 @@ Si vous souhaitez utiliser le GPU de votre ordinateur, suivez scrupuleusement la
 [sans lancer le container à la fin ... car cela sera fait avec le docker compose]
 
 
-Créer votre dossier de travail.
+### Partir de notre projet Kotaemon custom
+
+Rien à faire, tout est déjà là : le fichier docker compose a été créé pour éviter de vous embêter la life...
+
+
+
+### Repartir du projet kotaemon initial (si besoin)
+
+Créer votre dossier de travail "kotaemon" où vous le souhaitez...
 
 Faite un <code> git clone https://github.com/Cinnamon/kotaemon.git</code>
 
 afin de cloner le repo git officiel de Kotaemon
-
-(par la suite, on clonera plutôt notre propre version du projet forké)
  
 Placer le fichier docker-compose donné en example (dans ce même dossier) à la racine de votre projet.
 
@@ -51,7 +57,7 @@ KH_VECTORSTORE = {
 </code>
 
 
-## 1 alt.) Installation alternative (dissociées) avec docker
+## 1 alternative au docker compose (si besoin) : installation dissociée
 
 
 #### a) Lancer le service Ollama
