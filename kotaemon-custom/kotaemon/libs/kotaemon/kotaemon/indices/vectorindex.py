@@ -83,9 +83,6 @@ class VectorIndexing(BaseIndexing):
 
     def add_to_vectorstore(self, docs: list[Document], metadatas: list[dict] = None):
         # in case we want to skip embedding
-
-        import pdb
-        pdb.set_trace()
         if self.vector_store:
             if metadatas:
                 print(f"Getting embeddings for {len(docs)} nodes with {len(metadatas)} metadatas")
