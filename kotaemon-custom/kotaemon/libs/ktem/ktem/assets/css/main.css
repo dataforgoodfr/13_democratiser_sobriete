@@ -1,0 +1,458 @@
+:root {
+  --main-area-height: calc(100vh - 110px);
+}
+
+/* no footer */
+footer {
+  display: none !important;
+}
+
+/* customize scrollbar */
+::-webkit-scrollbar {
+  background: var(--background-fill-primary);
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--border-color-primary);
+  border: 4px solid transparent;
+  border-radius: 100px;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-corner {
+  background: var(--background-fill-primary);
+}
+
+.gradio-container {
+  max-width: 100% !important;
+  /* overflow: scroll !important;
+  height: 100% !important; */
+}
+
+/* styling for header bar */
+.header-bar {
+  background-color: transparent;
+  margin: 0px 0px 20px;
+  overflow-x: scroll;
+  display: block !important;
+  text-wrap: nowrap;
+  border: none;
+}
+.header-bar button.selected {
+  border: none;
+
+  /* an alternative header bar style with rounded background */
+  /* background-color: var(--background-fill-primary);
+  border: 4px solid transparent;
+  border-radius: var(--radius-lg);
+  background-clip: padding-box; */
+}
+
+/* selected buttons have highlighted text */
+button.selected {
+  color: var(--block-label-text-color);
+  font-weight: bold;
+}
+
+.message-row.bubble.bot-row{
+  overflow-x: auto;
+}
+
+.flex-wrap.bot {
+  overflow-x: inherit;
+}
+
+#chat-tab,
+#indices-tab,
+#settings-tab,
+#help-tab,
+#resources-tab,
+#login-tab {
+  border: none !important;
+}
+
+#help-tab,
+#settings-tab {
+  /* text-dense view should not be wide for readability */
+  max-width: max(56vw, 900px) !important;
+  margin: 0 auto !important;
+}
+
+.indices-tab,
+#resources-tab {
+  /* Other view should not be too wide */
+  border: none !important;
+  max-width: max(70vw, 1200px) !important;
+  margin: 0 auto !important;
+}
+
+#main-chat-bot {
+  background: var(--background-fill-primary);
+  flex: auto;
+}
+
+#chat-area {
+  height: var(--main-area-height) !important;
+  column-gap: 2px !important;
+}
+
+#chat-info-panel {
+  max-height: var(--main-area-height) !important;
+  overflow: auto !important;
+  transition: all 0.4s;
+}
+
+body.dark #chat-info-panel figure>img{
+  filter: invert(100%);
+}
+
+#conv-settings-panel {
+  max-height: var(--main-area-height) !important;
+  flex-wrap: unset;
+  overflow-y: scroll !important;
+  position: sticky;
+  column-gap: 2px !important;
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* Internet Explorer 10+ */
+  transition: all 0.3s;
+}
+
+#conv-settings-panel::-webkit-scrollbar {
+  /* WebKit */
+  width: 0;
+  height: 0;
+}
+
+td {
+  /* Fix for Firefox Gradio table overflow display */
+  overflow: hidden;
+}
+
+.setting-answer-mode-description {
+  margin: 5px 5px 2px !important;
+}
+
+.message-buttons-right {
+  display: none !important;
+}
+
+mark {
+  background-color: #10b981;
+}
+
+/* clpse */
+.clpse {
+  background-color: var(--background-fill-secondary);
+  font-weight: bold;
+  cursor: pointer;
+  padding: 3px;
+  width: 100%;
+  border: none;
+  text-align: left;
+  outline: none;
+}
+
+/* for setting transparent background for elements */
+.no-background {
+  background-color: transparent;
+  border: none;
+}
+
+/* for setting bold text for elements */
+.bold-text {
+  font-weight: bold;
+}
+
+/* for setting highlighted text for elements */
+.body-text-color {
+  color: var(--body-text-color);
+}
+
+/* for setting right-aligned buttons */
+.right-button {
+  min-width: 200px !important;
+  width: fit-content;
+  padding-left: 20px;
+  padding-right: 20px;
+  margin: 0px 0px 0px auto;
+}
+
+/* for setting height limit for buttons */
+.cap-button-height {
+  max-height: 42px;
+}
+
+/* Hide sort buttons at gr.DataFrame */
+.sort-button {
+  display: none !important;
+}
+
+/* Show sort button only in File list*/
+#file_list_view .sort-button {
+  display: block !important;
+}
+
+#toggle-dark-button {
+  position: fixed;
+  top: 6px;
+  right: 30px;
+}
+
+#info-expand-button {
+  position: absolute;
+  top: 6px;
+  right: 15px;
+}
+
+/* prevent overflow of html info panel */
+#html-info-panel {
+  overflow-x: auto !important;
+}
+
+#chat-expand-button {
+  position: absolute;
+  top: 6px;
+  right: -10px;
+  z-index: 1;
+}
+
+#save-setting-btn {
+  width: 150px;
+  height: 30px;
+  min-width: 100px !important;
+}
+
+#quick-setting-labels {
+  margin-top: 5px;
+  margin-bottom: -10px;
+}
+
+#use-mindmap-checkbox {
+  position: absolute;
+  width: 110px;
+  top: 10px;
+  right: 25px;
+}
+
+#citation-dropdown {
+  width: min(25%, 100px);
+  position: absolute;
+  top: 2px;
+  left: 120px;
+  height: 35px;
+}
+
+#quick-url textarea {
+  resize: none;
+  background: transparent;
+  margin-top: 0px;
+}
+
+#quick-url textarea::placeholder {
+  text-align: center;
+}
+
+#quick-file {
+  height: 110px;
+}
+
+span.icon {
+  color: #cecece;
+}
+
+.upload-button {
+  display: none;
+}
+
+.scrollable {
+  overflow-y: auto;
+}
+
+.fill-main-area-height {
+  max-height: var(--main-area-height);
+}
+
+.unset-overflow {
+  overflow: unset !important;
+}
+
+pdfjs-viewer-element {
+  height: 100dvh;
+}
+
+/* Modal styles */
+
+.modal {
+  display: none;
+  position: relative;
+  z-index: 2;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 85dvh;
+  overflow: hidden;
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.modal-header {
+  padding: 0px 10px
+}
+
+.modal-content {
+  background-color: #fefefe;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.close {
+  color: #aaa;
+  align-self: flex-end;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.modal-body {
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Switch checkbox styles */
+
+/* #is-public-checkbox {
+  position: relative;
+  top: 4px;
+} */
+
+#suggest-chat-checkbox {
+  position: relative;
+  top: 4px;
+}
+
+.switch input {
+  position: absolute;
+  opacity: 0;
+}
+
+.switch {
+  display: inline-block;
+  /* 1 */
+  height: 1em;
+  width: 2em;
+  background: #8f8f8f;
+  border-radius: 1em;
+  position: relative;
+  top: 2px;
+  margin-right: 1em;
+}
+
+.switch div {
+  height: 1em;
+  width: 1em;
+  border-radius: 1em;
+  background: #FFF;
+  box-shadow: 0 0.1em 0.3em rgba(0, 0, 0, 0.3);
+  -webkit-transition: all 300ms;
+  -moz-transition: all 300ms;
+  transition: all 300ms;
+}
+
+.switch input:checked+div {
+  -webkit-transform: translate3d(100%, 0, 0);
+  -moz-transform: translate3d(100%, 0, 0);
+  transform: translate3d(100%, 0, 0);
+  background: #12df9a;
+}
+
+.switch:has(> input:checked) {
+  background: #0c895f;
+}
+
+/* Bot animation */
+
+.message.bot {
+  animation: fadein 1.0s ease-in-out forwards;
+}
+
+details.evidence {
+  animation: fadein 0.3s ease-in-out forwards;
+}
+
+@keyframes fadein {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 100%;
+  }
+}
+
+.message a.citation {
+  color: #10b981;
+  text-decoration: none;
+}
+
+/* pop-up for file tag in chat input*/
+.tribute-container ul {
+  background-color: var(--background-fill-primary) !important;
+  color: var(--body-text-color) !important;
+  font-family: var(--font);
+  font-size: var(--text-md);
+}
+
+.tribute-container li.highlight {
+  background-color: var(--border-color-primary) !important;
+}
+
+/* a fix for flickering background in Gradio DataFrame */
+tbody:not(.row_odd) {
+  background: var(--table-even-background-fill);
+}
+
+#chat-suggestion {
+  max-height: 350px;
+}
+
+#chat-suggestion table {
+  overflow: hidden;
+}
+
+#chat-suggestion table thead {
+  display: none;
+}
+
+#paper-suggestion table {
+  overflow: hidden;
+}
+
+svg.markmap {
+  width: 100%;
+  height: 100%;
+  font-family: Quicksand, sans-serif;
+  font-size: 15px;
+}
+
+div.markmap {
+  height: 400px;
+}
+
+#google-login {
+  max-width: 450px;
+}
+
+#user-api-key-wrapper {
+  max-width: 450px;
+}
+
+#login-row {
+  display: grid;
+  place-items: center;
+}
