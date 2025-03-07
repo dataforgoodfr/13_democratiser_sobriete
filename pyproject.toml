@@ -82,3 +82,6 @@ exclude = [
 
 [tool.ruff.mccabe]
 max-complexity = 10
+
+[tool.uv.workspace]
+members = ["stream3_visualization"]
