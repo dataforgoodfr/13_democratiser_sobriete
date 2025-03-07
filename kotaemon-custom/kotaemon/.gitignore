@@ -477,3 +477,12 @@ doc_env/
 # application data
 ktem_app_data/
 gradio_tmp/
+
+
+# dev folder apparition
+docstore/
+ktem_app_data/
+tmp/
+__pycache__/
+.theflow/
+docstore.json
