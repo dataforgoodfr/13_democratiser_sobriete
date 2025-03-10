@@ -1,0 +1,62 @@
+{
+    "title": "Brownstone and Golob (2009) Analysis of Residential Density Impact on Vehicle Use",
+    "authors": [
+        {
+            "name": "D. Brownstone",
+            "gender": "Male"
+        },
+        {
+            "name": "T.F. Golob",
+            "gender": "Male"
+        }
+    ],
+    "abstract": "This paper examines the impact of residential density on household vehicle use and fuel consumption, considering self-selection effects through a simultaneous equation model. The study uses data from the California portion of the National Household Travel Survey (NHTS) to analyze how density influences vehicle miles traveled (VMT) and fuel consumption directly and indirectly through fleet fuel economy changes due to vehicle choice. Key findings include: a 40% increase in density leads to approximately 1200 fewer vehicle miles annually and 65 fewer gallons of fuel consumed, with the effect decomposed into reduced mileage and improved fuel efficiency from different vehicle choices. The paper also discusses challenges in achieving significant density increases in urban areas and suggests future research directions such as incorporating geographic data for public transit accessibility and expanding the study nationally.",
+    "year_of_publication": 2009,
+    "peer_reviewed": true,
+    "grey_literature": false,
+    "publication_type": "Research article",
+    "sufficiency_mentioned": false,
+    "science_type": "Social science",
+    "scientific_discipline": "Economics",
+    "regional_group": "North America",
+    "geographical_scope": "Local areas",
+    "studied_country": [
+        "United States"
+    ],
+    "human_needs": [],
+    "studied_sector": [],
+    "studied_policy_area": [
+        "Social Rights",
+        "Health"
+    ],
+    "natural_ressource": [],
+    "wellbeing": [],
+    "justice_consideration": [
+        "Procedural",
+        "Distributional"
+    ],
+    "planetary_boundaries": [],
+    "keywords": [
+        "Urban density",
+        "Vehicle use",
+        "Fuel consumption",
+        "Simultaneous equation model",
+        "Self-selection effects",
+        "Residential transportation energy consumption"
+    ],
+    "url": "https://doi.org/10.1016/j.jue.2008.04.007",
+    "doi": "10.1016/j.jue.2008.04.007",
+    "source": "Journal Article",
+    "source_type": "Research Paper",
+    "source_url": null,
+    "source_doi": null,
+    "source_publication_date": "2009-01-01",
+    "source_access_date": "2023-10-05",
+    "source_publication_type": "Journal Article",
+    "source_language": "English",
+    "source_publisher": "Elsevier BV",
+    "source_publisher_location": "Amsterdam, Netherlands",
+    "source_publisher_country": "Netherlands",
+    "source_publisher_contact": "https://www.elsevier.com/",
+    "source_publisher_contact_email": null
+}
