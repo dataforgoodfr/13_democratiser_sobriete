@@ -8,12 +8,12 @@ from wsl_library.domain.publication_taxonomy import (
     Science_type,
     Scientif_discipline,
 )
-from src.wsl_library.domain.geographical_taxonomy import (
+from wsl_library.domain.geographical_taxonomy import (
     Regional_group,
     Geographical_scope,
     Studied_country,
 )
-from src.wsl_library.domain.themes_taxonomy import (
+from wsl_library.domain.themes_taxonomy import (
     Human_needs,
     Studied_sector,
     Studied_policy_area,

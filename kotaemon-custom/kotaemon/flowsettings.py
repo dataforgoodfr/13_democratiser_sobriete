@@ -68,12 +68,8 @@ KH_DOC_DIR = this_dir / "docs"
 KH_MODE = "dev"
 KH_SSO_ENABLED = config("KH_SSO_ENABLED", default=False, cast=bool)
 
-KH_FEATURE_CHAT_SUGGESTION = config(
-    "KH_FEATURE_CHAT_SUGGESTION", default=False, cast=bool
-)
-KH_FEATURE_USER_MANAGEMENT = config(
-    "KH_FEATURE_USER_MANAGEMENT", default=True, cast=bool
-)
+KH_FEATURE_CHAT_SUGGESTION = config("KH_FEATURE_CHAT_SUGGESTION", default=False, cast=bool)
+KH_FEATURE_USER_MANAGEMENT = config("KH_FEATURE_USER_MANAGEMENT", default=True, cast=bool)
 KH_USER_CAN_SEE_PUBLIC = None
 KH_FEATURE_USER_MANAGEMENT_ADMIN = str(
     config("KH_FEATURE_USER_MANAGEMENT_ADMIN", default="admin")
@@ -107,7 +103,9 @@ KH_DOCSTORE = {
 KH_VECTORSTORE = {
     "__type__": "kotaemon.storages.QdrantVectorStore",
     "url": "http://172.17.0.1:6333",
-    "api_key": "None"
+    "api_key": "None",
+    # For debuging
+    "path": str(KH_USER_DATA_DIR / "vectorstore"),
 }
 
 KH_LLMS = {}
@@ -115,9 +113,7 @@ KH_EMBEDDINGS = {}
 KH_RERANKINGS = {}
 
 # populate options from config
-if config("AZURE_OPENAI_API_KEY", default="") and config(
-    "AZURE_OPENAI_ENDPOINT", default=""
-):
+if config("AZURE_OPENAI_API_KEY", default="") and config("AZURE_OPENAI_ENDPOINT", default=""):
     if config("AZURE_OPENAI_CHAT_DEPLOYMENT", default=""):
         KH_LLMS["azure"] = {
             "spec": {
@@ -125,8 +121,7 @@ if config("AZURE_OPENAI_API_KEY", default="") and config(
                 "temperature": 0,
                 "azure_endpoint": config("AZURE_OPENAI_ENDPOINT", default=""),
                 "api_key": config("AZURE_OPENAI_API_KEY", default=""),
-                "api_version": config("OPENAI_API_VERSION", default="")
-                or "2024-02-15-preview",
+                "api_version": config("OPENAI_API_VERSION", default="") or "2024-02-15-preview",
                 "azure_deployment": config("AZURE_OPENAI_CHAT_DEPLOYMENT", default=""),
                 "timeout": 20,
             },
@@ -138,11 +133,8 @@ if config("AZURE_OPENAI_API_KEY", default="") and config(
                 "__type__": "kotaemon.embeddings.AzureOpenAIEmbeddings",
                 "azure_endpoint": config("AZURE_OPENAI_ENDPOINT", default=""),
                 "api_key": config("AZURE_OPENAI_API_KEY", default=""),
-                "api_version": config("OPENAI_API_VERSION", default="")
-                or "2024-02-15-preview",
-                "azure_deployment": config(
-                    "AZURE_OPENAI_EMBEDDINGS_DEPLOYMENT", default=""
-                ),
+                "api_version": config("OPENAI_API_VERSION", default="") or "2024-02-15-preview",
+                "azure_deployment": config("AZURE_OPENAI_EMBEDDINGS_DEPLOYMENT", default=""),
                 "timeout": 10,
             },
             "default": False,
@@ -158,8 +150,7 @@ if OPENAI_API_KEY:
         "spec": {
             "__type__": "kotaemon.llms.ChatOpenAI",
             "temperature": 0,
-            "base_url": config("OPENAI_API_BASE", default="")
-            or "https://api.openai.com/v1",
+            "base_url": config("OPENAI_API_BASE", default="") or "https://api.openai.com/v1",
             "api_key": OPENAI_API_KEY,
             "model": config("OPENAI_CHAT_MODEL", default="gpt-4o-mini"),
             "timeout": 20,
@@ -171,9 +162,7 @@ if OPENAI_API_KEY:
             "__type__": "kotaemon.embeddings.OpenAIEmbeddings",
             "base_url": config("OPENAI_API_BASE", default="https://api.openai.com/v1"),
             "api_key": OPENAI_API_KEY,
-            "model": config(
-                "OPENAI_EMBEDDINGS_MODEL", default="text-embedding-3-large"
-            ),
+            "model": config("OPENAI_EMBEDDINGS_MODEL", default="text-embedding-3-large"),
             "timeout": 10,
             "context_length": 8191,
         },
@@ -345,8 +334,7 @@ KH_INDEX_TYPES = [
 
 GRAPHRAG_INDICES = [
     {
-        "name": graph_type.split(".")[-1].replace("Index", "")
-        + " Collection",  # get last name
+        "name": graph_type.split(".")[-1].replace("Index", "") + " Collection",  # get last name
         "config": {
             "supported_file_types": (
                 ".png, .jpeg, .jpg, .tiff, .tif, .pdf, .xls, .xlsx, .doc, .docx, "
@@ -379,76 +367,81 @@ from enum import Enum
 
 # WSL Taxonomy
 
+
 class author_gender(str, Enum):
-    male = 'Male'
-    female = 'Female'
-    unknown = 'Unknown'
+    male = "Male"
+    female = "Female"
+    unknown = "Unknown"
+
 
 class author(BaseModel):
     name: str
     gender: Optional[author_gender]
 
+
 class publication_type(str, Enum):
-    research_article  = 'Research article'
-    article_in_press  = 'Article-in-Press (AiP)'
-    book              = 'Book'
-    case_study        = 'Case study'
-    chapter           = 'Chapter'
-    conference_paper  = 'Conference Paper'
-    data_paper        = 'Data paper'
-    editorial         = 'Editorial'
-    erratum           = 'Erratum'
-    letter            = 'Letter'
-    note              = 'Note'
-    retracted_article = 'Retracted article'
-    review            = 'Review'
-    short_survey      = 'Short survey'
-    commentary        = 'Commentary '
-    presentation      = 'Presentation'
-    technical_report  = 'Technical report'
-    policy_report     = 'Policy report'
-    policy_brief      = 'Policy brief'
-    factsheet         = 'Factsheet'
+    research_article = "Research article"
+    article_in_press = "Article-in-Press (AiP)"
+    book = "Book"
+    case_study = "Case study"
+    chapter = "Chapter"
+    conference_paper = "Conference Paper"
+    data_paper = "Data paper"
+    editorial = "Editorial"
+    erratum = "Erratum"
+    letter = "Letter"
+    note = "Note"
+    retracted_article = "Retracted article"
+    review = "Review"
+    short_survey = "Short survey"
+    commentary = "Commentary "
+    presentation = "Presentation"
+    technical_report = "Technical report"
+    policy_report = "Policy report"
+    policy_brief = "Policy brief"
+    factsheet = "Factsheet"
+
 
 class science_type(str, Enum):
-    natural_science = 'Natural science'
-    social_science  = 'Social science'
-    formal_science  = 'Formal science'
+    natural_science = "Natural science"
+    social_science = "Social science"
+    formal_science = "Formal science"
+
 
 class scientif_discipline(str, Enum):
     # Social science
-    anthropology         = 'Anthropology'
-    criminology          = 'Criminology'
-    geography            = 'Geography'
-    economics            = 'Economics'
-    education_sciences   = 'Education sciences'
-    linguistics          = 'Linguistics'
-    military_science     = 'Military science'
-    management_science   = 'Management science'
-    organization_studies = 'Organization studies'
-    political_science    = 'Political science'
-    public_health        = 'Public health'
-    psychology           = 'Psychology'
-    religious_studies    = 'Religious studies'
-    sociology            = 'Sociology'
+    anthropology = "Anthropology"
+    criminology = "Criminology"
+    geography = "Geography"
+    economics = "Economics"
+    education_sciences = "Education sciences"
+    linguistics = "Linguistics"
+    military_science = "Military science"
+    management_science = "Management science"
+    organization_studies = "Organization studies"
+    political_science = "Political science"
+    public_health = "Public health"
+    psychology = "Psychology"
+    religious_studies = "Religious studies"
+    sociology = "Sociology"
 
     # Natural science
-    biology           = 'Biology'
-    earth_science     = 'Earth science'
-    chemistry         = 'Chemistry'
-    physics           = 'Physics'
-    astronomy         = 'Astronomy'
-    materials_science = 'Materials science'
+    biology = "Biology"
+    earth_science = "Earth science"
+    chemistry = "Chemistry"
+    physics = "Physics"
+    astronomy = "Astronomy"
+    materials_science = "Materials science"
 
     # Formal science
-    logic               = 'Logic'
-    mathematics         = 'Mathematics'
-    statistics          = 'Statistics'
-    systems_science     = 'Systems science'
-    data_science        = 'Data science'
-    information_science = 'Information science'
-    computer_science    = 'Computer science'
-    cryptography        = 'Cryptography'
+    logic = "Logic"
+    mathematics = "Mathematics"
+    statistics = "Statistics"
+    systems_science = "Systems science"
+    data_science = "Data science"
+    information_science = "Information science"
+    computer_science = "Computer science"
+    cryptography = "Cryptography"
 
 
 class paper(BaseModel):
