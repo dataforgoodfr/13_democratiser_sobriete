@@ -4,6 +4,7 @@ from kotaemon.indices import VectorIndexing
 from kotaemon.storages import ChromaVectorStore, LanceDBDocumentStore
 from theflow.settings import settings
 
+from kotaemon.storages.vectorstores.qdrant import QdrantVectorStore
 from wsl_library.pdfextraction import TAXS
 from wsl_library.pdfextraction.llm import prompts
 from wsl_library.pdfextraction.llm.ollama_extraction import extract_ollama_from_paper
@@ -16,16 +17,12 @@ TAXS_NAME = list(TAXS.keys())
 class IndexingPipeline(VectorIndexing):
     COLLECTION_NAME = "default"
 
-    # vector_store: QdrantVectorStore = Param(
-    #     lazy(QdrantVectorStore).withx(
-    #         collection_name=COLLECTION_NAME,
-    #         url="http://localhost:6333",
-    #         api_key="None",
-    #     ),
-    #     ignore_ui=True,
-    # )
-    vector_store: ChromaVectorStore = Param(
-        lazy(ChromaVectorStore).withx(path=settings.KH_VECTORSTORE["path"]),
+    vector_store: QdrantVectorStore = Param(
+        lazy(QdrantVectorStore).withx(
+            collection_name=COLLECTION_NAME,
+            url="http://localhost:6333",
+            api_key="None",
+        ),
         ignore_ui=True,
     )
     doc_store: LanceDBDocumentStore = Param(
@@ -73,7 +70,7 @@ class IndexingPipeline(VectorIndexing):
         # Final ingestion (=> to 3 databases)
         super().run(text, metadatas)
 
-        return Document(self.vector_store._collection.count())
+        return Document(self.vector_store.count())
 
     def run_pdf(self, pdf_name: str) -> Document:
         """
@@ -81,6 +78,8 @@ class IndexingPipeline(VectorIndexing):
         1. Extract text and taxonomy from pdf
         2. Transform taxonomy (flattening)
         3. Ingest text and taxonomy into the vector store
+
+        For demonstration, we want it to return something, so let's return the number of documents in the vector store
         """
 
         # get the text from the pdf
@@ -95,31 +94,18 @@ class IndexingPipeline(VectorIndexing):
         # extract the taxonomy from the extracted texts
         paper_tax = extract_ollama_from_paper(
             prompt, self.model_name, self.taxonomy
-        ).model_dump(mode="json")
-
-        # Transforms the paper taxonomy into a dict to be ingested
-        # Metadata dict values can only be int, str, float or None
-        # In case of list[str], it will be transformed into a single string
-        # For now I drop the gender of authors
-        # TODO: Better solution for flattening metadata, is this what we want ?
-        paper_tax["authors"] = " \n ".join([author["name"] for author in paper_tax["authors"]])
-        for key, value in paper_tax.items():
-            if isinstance(value, list):
-                if len(value) == 0:
-                    paper_tax[key] = None
-                elif isinstance(value[0], str):  # Should always be the case for the current tax
-                    paper_tax[key] = " \n ".join(value)
+        ).model_dump(mode="json")  #  Python dict
 
         # Final ingestion (=> to 3 databases)
         # Later we want to downscale this ingestion to paragraph level
         # Yet it's at paper level
         super().run([text], [paper_tax])
 
-        return Document(self.vector_store._collection.count())
+        return Document(self.vector_store.count())
 
     def run_saved():
         """
-        ETL pipeline that reuses the extracted text and taxonomy from wsl_library.pdfextraction.main
+        ETL pipeline that reuses the saved extracted text and taxonomy from wsl_library.pdfextraction.main
         """
         # TODO
         pass
@@ -128,12 +114,12 @@ class IndexingPipeline(VectorIndexing):
 if __name__ == "__main__":
     pipeline = IndexingPipeline(pdf_path="./tests/pdfextraction/pdf/")
 
-    # pipeline.run(
-    #     text=[
-    #         "feedback to further \nimprove his skills and knowledge",
-    #         "yes ok yes it's a test ok",
-    #     ],
-    #     metadatas=[{"key_1": "test"}, {"key_1": "test"}],
-    # )
+    pipeline.run(
+        text=[
+            "feedback to further \nimprove his skills and knowledge",
+            "yes ok yes it's a test ok",
+        ],
+        metadatas=[{"key_1": "test"}, {"key_1": "test"}],
+    )
 
     pipeline.run_pdf("1-s2.0-S2211467X23001748-main.pdf")
