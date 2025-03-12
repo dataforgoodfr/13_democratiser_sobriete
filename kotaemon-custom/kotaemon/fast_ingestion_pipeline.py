@@ -1,10 +1,15 @@
+from typing import List
+
 from kotaemon.base import Document, Param, lazy
+from kotaemon.base.component import BaseComponent
+from kotaemon.base.schema import LLMInterface
 from kotaemon.embeddings import OpenAIEmbeddings
 from kotaemon.indices import VectorIndexing
-from kotaemon.storages import ChromaVectorStore, LanceDBDocumentStore
-from theflow.settings import settings
-
+from kotaemon.indices.vectorindex import VectorRetrieval
+from kotaemon.llms.chats.openai import ChatOpenAI
+from kotaemon.storages import LanceDBDocumentStore
 from kotaemon.storages.vectorstores.qdrant import QdrantVectorStore
+
 from wsl_library.pdfextraction import TAXS
 from wsl_library.pdfextraction.llm import prompts
 from wsl_library.pdfextraction.llm.ollama_extraction import extract_ollama_from_paper
@@ -15,19 +20,17 @@ TAXS_NAME = list(TAXS.keys())
 
 
 class IndexingPipeline(VectorIndexing):
-    COLLECTION_NAME = "default"
-
     vector_store: QdrantVectorStore = Param(
         lazy(QdrantVectorStore).withx(
-            collection_name=COLLECTION_NAME,
             url="http://localhost:6333",
             api_key="None",
+            collection_name="default",
         ),
-        ignore_ui=True,
+        ignore_ui=True,  # usefull ?
     )
     doc_store: LanceDBDocumentStore = Param(
         lazy(LanceDBDocumentStore).withx(
-            path="./ktem_app_data/user_data/docstore", collection_name=COLLECTION_NAME
+            path="./kotaemon-custom/kotaemon/ktem_app_data/user_data/docstore",
         ),
         ignore_ui=True,
     )
@@ -111,15 +114,32 @@ class IndexingPipeline(VectorIndexing):
         pass
 
 
-if __name__ == "__main__":
-    pipeline = IndexingPipeline(pdf_path="./tests/pdfextraction/pdf/")
+class Pipeline(BaseComponent):
+    """
+    from simple_pipeline.py, a better RAG pipeline must exist somewhere
+    """
 
-    pipeline.run(
-        text=[
-            "feedback to further \nimprove his skills and knowledge",
-            "yes ok yes it's a test ok",
-        ],
-        metadatas=[{"key_1": "test"}, {"key_1": "test"}],
+    llm: ChatOpenAI = ChatOpenAI.withx(
+        base_url="http://localhost:11434/v1/",
+        model="gemma2:2b",
+        api_key="ollama",
     )
 
-    pipeline.run_pdf("1-s2.0-S2211467X23001748-main.pdf")
+    retrieval_pipeline: VectorRetrieval
+
+    def run(self, text: str) -> LLMInterface:
+        matched_texts: List[Document] = self.retrieval_pipeline(text)
+        return self.llm("\n".join(map(str, matched_texts)))
+
+
+if __name__ == "__main__":
+    indexing_pipeline = IndexingPipeline(pdf_path="./tests/pdfextraction/pdf/")
+    indexing_pipeline.run_pdf("1-s2.0-S2211467X23001748-main.pdf")
+    indexing_pipeline.run_pdf("1-s2.0-S0094119008001095-main.pdf")
+
+    rag_pipeline = Pipeline(retrieval_pipeline=indexing_pipeline.to_retrieval_pipeline())
+    print(
+        rag_pipeline.run(
+            "Who wrote research papers abouts the impacts of digitalization and societal changes on energy transition ?"
+        )
+    )
