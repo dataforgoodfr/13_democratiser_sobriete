@@ -1,0 +1,21 @@
+### Query Generation Config File
+
+source_folder: "./pdfs_samples/density"
+output_folder: "./outputs"
+output_filename: "qa_pairs_density.json"
+
+llm_provider: "ollama"  # LLM provider
+llm_model: "llama3.2:1b"  # Model name
+api_key: null  # Enter API key if necessary, or keep null if not needed
+
+num_files_limit: -1  # Number of files to consider (set to null or -1 for unlimited)
+chunk_size: 2048  # Chunk size for text splitting
+chunk_overlap: 0  # Chunk overlap for text splitting
+
+num_questions_per_chunk: 1  # Number of generated queries per chunk
+verbose: false
+on_failure: "continue"  # Define behavior on failure: "continue" or "fail"
+
+filters:
+  - "syntax" # filter out generated queries with simple syntaxic rules
+#- "llm-as-a-judge" use a LLM to filter out generated queries 

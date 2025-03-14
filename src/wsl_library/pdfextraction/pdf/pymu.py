@@ -38,6 +38,7 @@ def get_pymupdf4llm(
     pdf_path: str,
     bool_write_images: bool = False,
     bool_embed_images: bool = False,
+    page_chunks: bool = True 
 ) -> list[dict]:
     """
     Extract the content from a PDF file using pymupdf4llm.
@@ -45,6 +46,7 @@ def get_pymupdf4llm(
         pdf_path (str): The path to the PDF file.
         bool_write_images (bool): Whether to write images to disk.
         bool_embed_images (bool): Whether to embed images in the markdown.
+        page_chunks (bool) : chunk pages or return a full string
     Returns:
         list[dict]: The extracted content.
     """
@@ -54,7 +56,7 @@ def get_pymupdf4llm(
     # Extract the content from the PDF
     content_md = pymupdf4llm.to_markdown(
         doc=pdf_path,
-        page_chunks=True,
+        page_chunks=page_chunks,
         write_images=bool_write_images,
         embed_images=bool_embed_images,
         image_path=os.path.join("images_pdf", file_name),

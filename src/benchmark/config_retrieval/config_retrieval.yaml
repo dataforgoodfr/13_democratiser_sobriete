@@ -1,0 +1,61 @@
+### Retrieval Evaluation Config File  
+
+source_folder: "./pdfs_samples/density"
+config_name: "config 2"
+
+embedding_spec:
+  provider: "HuggingFace" # or "ollama" or "fast_embed"
+  model: "BAAI/bge-base-en-v1.5" # 512 context window size
+  base_url:  null # ollama url "http://localhost:11434/v1/"
+  api_key: null # ollama api key : "ollama"
+
+reranker_spec:
+  provider: null # "HuggingFace" 
+  model: null #"cross-encoder/ms-marco-MiniLM-L-6-v2" 
+  base_url: null 
+  api_key: null
+  
+vector_db_path: "./chromadb"  # Matches Python default
+doc_db_path: "./docstore" # document store
+query_file_path: "./outputs/qa_pairs_density.json"
+output_folder: "./outputs"
+output_filename: "evaluation.csv"
+
+chunk_size: 512  # Matches Python default
+chunk_overlap: 20  # Matches Python default
+num_files_limit: -1
+verbose: false
+
+# retrieval hyperparameters
+first_round_top_k_mult : 2
+top_k: 10
+retrieval_mode: "vector" # vector, text, hybrid
+do_extend : true # retrieval phase returns top_k*first_round_top_k_mult chunks instead of top_k
+thumbnail_count : 0 
+
+evaluation_spec: 
+  metrics: 
+    - "hit_rate"
+    - "mrr"
+    - "precision"
+    - "recall"
+    - "ap"
+    - "ndcg"
+  k_values: 
+    - 1
+    - 2
+    - 3
+    - 5
+    - 10
+    - 15
+    - 20
+    - 25
+    - 30
+    - 35
+    - 40
+    - 45
+    - 50
+
+# reranker : null
+# "Snowflake/snowflake-arctic-embed-m-v2.0" # 8192 context window size 
+# "intfloat/e5-small-v2" # 512 context window size
