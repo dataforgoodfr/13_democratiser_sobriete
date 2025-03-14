@@ -26,7 +26,7 @@ from ...utils.commands import WEB_SEARCH_COMMAND
 from ...utils.rate_limit import check_rate_limit
 from .utils import download_arxiv_pdf, is_arxiv_url
 
-from ...taxonomy.document import paper
+from ...taxonomy_test.document import paper
 
 
 KH_DEMO_MODE = getattr(flowsettings, "KH_DEMO_MODE", False)
@@ -318,10 +318,6 @@ class FileIndexPage(BasePage):
                             self.reindex = gr.Checkbox(
                                 value=False, label="Force reindex file", container=False
                             )
-
-                        with gr.Accordion("Apply metadata (according to the taxonomy)", open=True):
-                            with gr.Row():
-                                self.choice = gr.CheckboxGroup(["USA", "Japan", "Pakistan"], label="Countries", info="Where are they from?"),
                         
                         self.metadatas_values = []
                         self.metadatas_keys = []

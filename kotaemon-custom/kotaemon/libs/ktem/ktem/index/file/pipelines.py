@@ -607,9 +607,6 @@ class IndexPipeline(BaseComponent):
         self, file_path: str | Path, reindex: bool, metadatas: dict = None, **kwargs
     ) -> Generator[Document, None, tuple[str, list[Document]]]:
         
-        import pdb
-        pdb.set_trace()
-
         # check if the file is already indexed
         if isinstance(file_path, Path):
             file_path = file_path.resolve()

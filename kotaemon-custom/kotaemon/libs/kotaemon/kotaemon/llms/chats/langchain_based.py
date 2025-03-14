@@ -104,8 +104,6 @@ class LCChatMixin:
                 additional_kwargs={"tool_calls": tool_calls},
             )
         else:
-            import pdb
-            pdb.set_trace()
 
             pred = self._obj.generate(messages=[input_], **kwargs)
             output = self.prepare_response(pred)
