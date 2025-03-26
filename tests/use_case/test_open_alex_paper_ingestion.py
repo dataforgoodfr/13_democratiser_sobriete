@@ -13,8 +13,10 @@ my_instance = OpenAlexPaperIngestionUseCase(
 )
 
 my_instance.ingest_papers_with_query(
-    query="construction", limit=2, model="smollm:135m"
-    , prompt_type="basic"
+    query="construction", # requete complexe sur la construction
+    limit=2,
+    model="smollm:135m",
+    prompt_type="basic"
     # , prompt_type="main_parts"
 )
 

@@ -21,6 +21,7 @@ OLLAMA_DEPLOYMENT = os.getenv("OLLAMA_DEPLOYMENT", "docker")
 VECTOR_STORE_DEPLOYMENT = os.getenv("VECTOR_STORE_DEPLOYMENT", "docker")
 
 PDF_FOLDER = os.getenv("PDF_FOLDER", "./pipeline_scripts/pdf_test/")
+api_key = os.getenv("PDF_FOLDER", "None")
 
 # ---- Do not touch (temporary) ------------- #
 
@@ -53,7 +54,7 @@ class IndexingPipeline(VectorIndexing):
     vector_store: QdrantVectorStore = Param(
         lazy(QdrantVectorStore).withx(
             url=f"http://{qdrant_host}:6333",
-            api_key="None",
+            api_key=api_key,
             collection_name="default",
         ),
         ignore_ui=True,  # usefull ?
