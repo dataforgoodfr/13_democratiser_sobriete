@@ -255,7 +255,7 @@ def scrape_all_urls(driver: webdriver.Chrome,
 
 def get_papers(query_requested:str, limitation:int)-> List[OpenAlexPaper]:
     # TODO : Expose usage of other parameters
-    raw_papers_paths_dict = main(query=query_requested, stop_criterion=limitation)
+    raw_papers_paths_dict = main(query=query_requested, stop_criterion=limitation, from_dois=True)
     papers = []
     for filename, paths in raw_papers_paths_dict.items():
         metadata = pkl.load(open(paths["pkl_file_path"], "rb"))
