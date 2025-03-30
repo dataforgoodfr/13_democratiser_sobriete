@@ -9,13 +9,13 @@ from wsl_library.pdfextraction.pdf import extract_pdf_content as PDFExtractor
 from wsl_library.infra import JSON_STORAGE_FOLDER, PDF_STORAGE_FOLDER # noqa: F401
 
 my_instance = OpenAlexPaperIngestionUseCase(
-    OpenAlexClient, LlmClient, PDF_STORAGE_FOLDER, PDFExtractor
+    OpenAlexClient, LlmClient, PDFExtractor, JSON_STORAGE_FOLDER
 )
 
 my_instance.ingest_papers_with_query(
     query="construction", # requete complexe sur la construction
-    limit=2,
-    model="smollm:135m",
+    limit=None,
+    model="mistral-small:latest",
     prompt_type="basic"
     # , prompt_type="main_parts"
 )
