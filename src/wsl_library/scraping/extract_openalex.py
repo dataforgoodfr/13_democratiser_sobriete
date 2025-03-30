@@ -3,26 +3,30 @@ import pandas as pd
 import pickle as pkl 
 import requests
 import time
-from typing import List
+from typing import List, Optional
+from pathlib import Path
 from wsl_library.domain.paper_taxonomy import OpenAlexPaper
 
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
-
 
 from wsl_library.scraping.parse_metadata import (
     # get_all_results,
     # remove_unnecessary_fields,
     clean_result_fields,
 )
-
-from wsl_library.infra import PDF_STORAGE_FOLDER
+from wsl_library.infra import PDF_STORAGE_FOLDER, PROJECT_DIR
 # Set directory where PDFs are saved
 # !!! SPECIFY DIRECTORY PATH FROM ROOT !!!
+
+DOI_PATH = Path(PROJECT_DIR) / "resources" / "doi_csv.csv"
+
 output_dir = os.path.join(PDF_STORAGE_FOLDER, "ingested_articles")
 dummy_dir = os.path.join(PDF_STORAGE_FOLDER, "dummy_dir")
+
 
 # Request OpenAlex API
 def search_openalex(query: str, cursor="*", per_page:int = 50, from_dois:bool = False, dois:list = None) -> dict:
@@ -67,7 +71,21 @@ def get_urls_to_fetch(query_data: dict) :
 # Start Selenium webdriver for scraping
 def start_webdriver() -> webdriver.Chrome:
     chrome_options = webdriver.ChromeOptions()
-    #chrome_options.add_argument("--headless=new")
+    # Setup chrome for distant server
+    try:
+        driver = webdriver.Chrome()
+        service = Service(ChromeDriverManager().install())
+
+    except Exception as e:
+        print(f"Default Chrome setup failed.\nSetting manually")    
+        # setup chrome bin path
+        CHROME_PATH = "/raid/home/guevel/.local/bin/google-chrome" # put your path
+        chrome_options.binary_location = CHROME_PATH
+        chrome_options.add_argument("--headless=new")
+    
+        # setup chromedriver bin path
+        service = Service("/raid/home/guevel/.local/bin/chromedriver") # put your path
+    
     prefs = {
         "download.default_directory": dummy_dir, #change default directory for downloads
         "savefile.default_directory": dummy_dir, 
@@ -76,9 +94,9 @@ def start_webdriver() -> webdriver.Chrome:
         "plugins.always_open_pdf_externally": True #it will not show PDF directly in chrome
     }
     chrome_options.add_experimental_option('prefs', prefs)
-    service = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(options = chrome_options, service = service)
     driver.set_page_load_timeout(30) #to ensure script doesn't hang in the event of a bad url
+    print("Chrome setup succesful")
     return driver
 
 # Function to empty a directory (mostly to make sure dummy_dir stays empty)
@@ -117,13 +135,15 @@ def download_pdf(url: str, driver: webdriver.Chrome, output_file_path: str, maxw
         return None
 
 # Function that puts everything together to extract all pdf files and metadata from a single query
-def scrape_all_urls(driver: webdriver.Chrome, 
-                    query: str, 
-                    per_page:int = 50, 
-                    start_from_scratch:bool = False, 
-                    stop_criterion=None, 
-                    maxwait:int = 60, 
-                    from_dois:bool = False) -> dict:
+def scrape_all_urls(
+    driver: webdriver.Chrome, 
+    query: str, 
+    per_page:int = 50, 
+    start_from_scratch:bool = False, 
+    stop_criterion=None, 
+    maxwait:int = 60, 
+    from_dois:Optional[str] = None
+) -> dict:
     """
     - driver : chromedriver instance initialized from start_webdriver function
     - query : a query passed to the OpenAlex API if not downloading from a list of DOIs
@@ -132,7 +152,7 @@ def scrape_all_urls(driver: webdriver.Chrome,
     If True, starts from last saved checkpoint (checkpoints should be handled automatically)
     - stop_criterion : number of articles to ingest before exiting the while loop (leave it as None if you want to download all obtained results)
     - maxwait : maximum time allowed for the download of a single PDF before moving on to the next one
-    - from dois : if True, get list of DOIs from file list_dois.csv and ingest related articles. 
+    - from dois : if not None, get list of DOIs from file indicated by a path and ingest related articles. 
     Checkpoint management probably doesn't work in that case, better to just trim list_dois.csv before calling this function  
     """
 
@@ -144,8 +164,22 @@ def scrape_all_urls(driver: webdriver.Chrome,
     os.makedirs(dummy_dir, exist_ok=True)
     clear_directory(dummy_dir)
 
-    all_files = os.listdir(os.path.join(output_dir, "pkl_files"))
-    parsed_files = len(all_files)
+    # find the already scrapped files
+    all_files = set(
+        f.replace(".pkl", "")
+        for f in os.listdir(os.path.join(output_dir, "pkl_files"))
+    )
+    
+    # Create dict to get with pdf filenames as keys, pkl_file_path (metadata) and pdf_file_path (optional) as values
+    scrapped_files = {
+        f: {
+            "pkl_file_path": os.path.join(output_dir, "pkl_files", f) + ".pkl",
+            "pdf_file_path": pdf_path if os.path.isfile(pdf_path := os.path.join(output_dir, "pdf_files", f) + ".pdf") else None,
+        }
+        for f in all_files
+    }
+
+    total_filecount = parsed_files = len(all_files)
     
     start_time = time.time()
     failed_downloads = 0
@@ -168,14 +202,15 @@ def scrape_all_urls(driver: webdriver.Chrome,
     
     # get dois from file, can probably be improved
     if from_dois :
-        assert os.path.isfile("./list_dois.csv"), "'list_dois.csv' not found in current directory"
-        dois = pd.read_csv('list_dois.csv')["dois"].tolist()
+        assert os.path.isfile(from_dois), f"{from_dois} is not a file"
+        dois = pd.read_csv(from_dois)["dois"].tolist()
         query = ""
     else :
         dois = []
     doi_idx = 0
     
     first_pass = True
+    
     # extracting pdfs until stop_criterion is reached or until end of query is reached (last cursor)
     while parsed_files < stop_criterion : # TODO : check if this is the correct condition or merge with the one below
     # while successfull_downloads < stop_criterion :
@@ -185,7 +220,7 @@ def scrape_all_urls(driver: webdriver.Chrome,
             sub_dois = dois[doi_idx:doi_idx+per_page]
         else :
             sub_dois = []
-        query_data = search_openalex(query, cursor = cursor, per_page = per_page, from_dois = from_dois, dois = sub_dois)
+        query_data = search_openalex(query, cursor = cursor, per_page = per_page, from_dois = from_dois is not None, dois = sub_dois)
         urls_to_fetch, filenames = get_urls_to_fetch(query_data)
         
         # on first iteration, see how many files will need to be parsed
@@ -197,10 +232,7 @@ def scrape_all_urls(driver: webdriver.Chrome,
             print(f"Preparing to download {total_filecount} articles...")
             first_pass = False
         
-        # Extraction starts here :
-        # Create dict to get with pdf filenames as keys, pkl_file_path (metadata) and pdf_file_path (optional) as values
-        scrapped_files = {}
-        
+        # Extraction starts here :        
         # first save all article metadata with same filename as pdf file
         for i in range(len(query_data["results"])) :
             data = query_data["results"][i]
@@ -209,18 +241,15 @@ def scrape_all_urls(driver: webdriver.Chrome,
             scrapped_files[filename] = {"pkl_file_path" : pkl_file_path}
             with open(pkl_file_path, "wb") as outfile :
                 pkl.dump(data, outfile)
-            outfile.close()
         
         # then save all pdf files with new filename
-        for i in range(len(urls_to_fetch)) :
-            url = urls_to_fetch[i]
-            filename = filenames[i]
+        for i, (url, filename) in enumerate(zip(urls_to_fetch, filenames)) :
             print(f"\rRetrieving article {doi_idx + i}/{total_filecount}", end = "")
             # catch empty urls, move on to the next one if empty
             if not url :
                 failed_downloads += 1
                 continue
-            ## Check here if file already exists, if so, skip download
+            # Check here if file already exists, if so, skip download
             pdf_file_path = os.path.join(output_dir, "pdf_files", f"{filename}.pdf")
             if os.path.isfile(pdf_file_path):
                 continue
@@ -253,28 +282,34 @@ def scrape_all_urls(driver: webdriver.Chrome,
 
     return scrapped_files
 
-def get_papers(query_requested:str, limitation:int)-> List[OpenAlexPaper]:
+def get_papers(
+    query_requested: str,
+    limit: Optional[int] = None,
+    dois: Optional[str] = DOI_PATH
+)-> List[OpenAlexPaper]:
     # TODO : Expose usage of other parameters
-    raw_papers_paths_dict = main(query=query_requested, stop_criterion=limitation, from_dois=True)
+    raw_papers_paths_dict = main(query=query_requested, stop_criterion=limit, from_dois=DOI_PATH)
     papers = []
     for filename, paths in raw_papers_paths_dict.items():
         metadata = pkl.load(open(paths["pkl_file_path"], "rb"))
         metadata_cleaned = clean_result_fields(metadata)
         paper = OpenAlexPaper(
-            paper_name    = filename,
-            metadata_path = paths["pkl_file_path"],
-            pdf_path      = paths["pdf_file_path"] if "pdf_file_path" in paths.keys() else None,
-            metadata      = metadata_cleaned
-            )
+            paper_name=filename,
+            metadata_path=paths["pkl_file_path"],
+            pdf_path=paths["pdf_file_path"] if "pdf_file_path" in paths.keys() else None,
+            metadata=metadata_cleaned,
+        )
         papers.append(paper)
     return papers
 
-def main(query:str = "", 
-         from_dois:bool = False,
-         per_page:int = 100,
-         stop_criterion = None, 
-         maxwait:int = 60, 
-         start_from_scratch:bool = False) -> dict:
+def main(
+    query: str = "", 
+    from_dois: Optional[str] = None,
+    per_page: int = 100,
+    stop_criterion: Optional[int] = None, 
+    maxwait: int = 60, 
+    start_from_scratch: bool = False
+) -> dict:
 
     print(f"""Downloading results to path : {output_dir}.
           Make sure to give the full path (from root), otherwise automatic file renaming won't be functional.""")
