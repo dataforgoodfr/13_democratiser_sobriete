@@ -21,7 +21,7 @@ OLLAMA_DEPLOYMENT = os.getenv("OLLAMA_DEPLOYMENT", "docker")
 VECTOR_STORE_DEPLOYMENT = os.getenv("VECTOR_STORE_DEPLOYMENT", "docker")
 
 PDF_FOLDER = os.getenv("PDF_FOLDER", "./pipeline_scripts/pdf_test/")
-api_key = os.getenv("PDF_FOLDER", "None")
+api_key = os.getenv("VECTOR_STORE_API", "None")
 
 # ---- Do not touch (temporary) ------------- #
 
