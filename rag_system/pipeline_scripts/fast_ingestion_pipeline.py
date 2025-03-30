@@ -1,5 +1,4 @@
 import os
-from pathlib import Path
 from typing import List
 
 from kotaemon.base import Document, Param, lazy
@@ -15,6 +14,7 @@ from pipelineblocks.extraction.pdfextractionblock.pdf_to_markdown import (
     PdfExtractionToMarkdownBlock,
 )
 from pipelineblocks.llm.ingestionblock.openai import OpenAIMetadatasLLMInference
+from pydantic_core._pydantic_core import ValidationError
 from taxonomy.paper_taxonomy import PaperTaxonomy
 
 OLLAMA_DEPLOYMENT = os.getenv("OLLAMA_DEPLOYMENT", "docker")
@@ -67,7 +67,6 @@ class IndexingPipeline(VectorIndexing):
     )
     embedding: OpenAIEmbeddings = Param(
         lazy(OpenAIEmbeddings).withx(
-            # base_url="http://172.17.0.1:11434/v1/",
             base_url=f"http://{ollama_host}:11434/v1/",
             model="snowflake-arctic-embed2",
             api_key="ollama",
@@ -77,7 +76,7 @@ class IndexingPipeline(VectorIndexing):
 
     pdf_path: str
 
-    def run(self, pdf_name: str) -> None:
+    def run(self, pdf_path: str) -> None:
         """
         ETL pipeline for a single pdf file
         1. Extract text and taxonomy from pdf
@@ -87,19 +86,21 @@ class IndexingPipeline(VectorIndexing):
         Return nothing
         """
 
-        text_md = self.pdf_extraction_block.run(
-            Path(self.pdf_path, pdf_name), method="group_all"
-        )
+        text_md = self.pdf_extraction_block.run(pdf_path, method="group_all")
 
-        metadatas = self.metadatas_llm_inference_block.run(
-            text_md, doc_type="entire_doc", inference_type="scientific"
-        )
+        try:
+            metadatas = self.metadatas_llm_inference_block.run(
+                text_md, doc_type="entire_doc", inference_type="scientific"
+            )
+        except ValidationError as e:
+            print(e)
+            return (False, str(pdf_path))
 
         metadatas_json = metadatas.model_dump()
 
         super().run(text=[text_md], metadatas=[metadatas_json])
 
-        return None
+        return (True, str(pdf_path))
 
 
 # ----------------Retrive (Crash) version -------------- #
