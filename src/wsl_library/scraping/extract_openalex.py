@@ -88,7 +88,7 @@ def clear_directory(directory: str) -> None:
         os.remove(os.path.join(directory, file))
 
 # Tell driver to navigate to the given url, download the pdf and then rename the last downloaded file
-def download_pdf(url: str, driver: webdriver.Chrome, output_file_path: str, maxwait=30) -> str:
+def download_pdf(url: str, driver: webdriver.Chrome, output_file_path: str, maxwait:int =30) -> str:
     def get_last_downloaded_file_path(dummy_dir) -> str:
         """ Return the last modified -in this case last downloaded- file path.
             This function is going to loop as long as the directory is empty.
@@ -116,6 +116,49 @@ def download_pdf(url: str, driver: webdriver.Chrome, output_file_path: str, maxw
     except WebDriverException :
         return None
 
+def scrape_list_urls(urls_to_fetch:list, 
+                     filenames:list, 
+                     driver:webdriver.Chrome, 
+                     scrapped_files:dict, 
+                     failed_downloads:int, 
+                     successfull_downloads:int, 
+                     maxwait:int, 
+                     stop_criterion:int) -> tuple[int, int, dict]:
+    
+    for i in range(len(urls_to_fetch)) :
+        url = urls_to_fetch[i]
+        filename = filenames[i]
+        # catch empty urls, move on to the next one if empty
+        if not url :
+            failed_downloads += 1
+            continue
+        ## Check here if file already exists, if so, skip download
+        pdf_file_path = os.path.join(output_dir, "pdf_files", f"{filename}.pdf")
+        if os.path.isfile(pdf_file_path) :
+            continue
+        else:
+            downloaded_pdf_path = download_pdf(url, driver, pdf_file_path, maxwait)
+            if downloaded_pdf_path is None :
+                failed_downloads += 1
+            else :
+                successfull_downloads += 1
+                scrapped_files[filename]["pdf_file_path"] = downloaded_pdf_path
+                if successfull_downloads >= stop_criterion :
+                    return failed_downloads, successfull_downloads, scrapped_files
+                
+    return failed_downloads, successfull_downloads, scrapped_files
+
+def save_article_metadata(query_data:dict, filenames:list) -> None:
+    for i in range(len(query_data["results"])) :
+        data = query_data["results"][i]
+        filename = filenames[i]
+        pkl_file_path = f"{os.path.join(output_dir, 'pkl_files', filename)}.pkl"
+        scrapped_files[filename] = {"pkl_file_path" : pkl_file_path}
+        with open(pkl_file_path, "wb") as outfile :
+            pkl.dump(data, outfile)
+        outfile.close()
+
+
 # Function that puts everything together to extract all pdf files and metadata from a single query
 def scrape_all_urls(driver: webdriver.Chrome, 
                     query: str, 
@@ -135,7 +178,6 @@ def scrape_all_urls(driver: webdriver.Chrome,
     - from dois : if True, get list of DOIs from file list_dois.csv and ingest related articles. 
     Checkpoint management probably doesn't work in that case, better to just trim list_dois.csv before calling this function  
     """
-
 
     # initialize and clean output directories
     os.makedirs(output_dir, exist_ok=True)
@@ -166,7 +208,7 @@ def scrape_all_urls(driver: webdriver.Chrome,
     if not stop_criterion :
         stop_criterion = 1e10 # effectively infinite number, call API until all query results have been handled
     
-    # get dois from file, can probably be improved
+    # get dois from file, format can probably be improved
     if from_dois :
         assert os.path.isfile("./list_dois.csv"), "'list_dois.csv' not found in current directory"
         dois = pd.read_csv('list_dois.csv')["dois"].tolist()
@@ -179,7 +221,7 @@ def scrape_all_urls(driver: webdriver.Chrome,
     # extracting pdfs until stop_criterion is reached or until end of query is reached (last cursor)
     while parsed_files < stop_criterion : # TODO : check if this is the correct condition or merge with the one below
     # while successfull_downloads < stop_criterion :
-        # limit of 100 dois that can be passed in one API call, creating chunks for each iteration
+        # limit of 100 dois that can be passed in one API call, creating batches for each iteration
         if from_dois :
             assert per_page <= 100, "Can only call the API with up to 100 DOIs in a single call, set per_page to 100 or lower"
             sub_dois = dois[doi_idx:doi_idx+per_page]
@@ -202,37 +244,12 @@ def scrape_all_urls(driver: webdriver.Chrome,
         scrapped_files = {}
         
         # first save all article metadata with same filename as pdf file
-        for i in range(len(query_data["results"])) :
-            data = query_data["results"][i]
-            filename = filenames[i]
-            pkl_file_path = f"{os.path.join(output_dir, 'pkl_files', filename)}.pkl"
-            scrapped_files[filename] = {"pkl_file_path" : pkl_file_path}
-            with open(pkl_file_path, "wb") as outfile :
-                pkl.dump(data, outfile)
-            outfile.close()
+        save_article_metadata(query_data, filenames)
         
         # then save all pdf files with new filename
-        for i in range(len(urls_to_fetch)) :
-            url = urls_to_fetch[i]
-            filename = filenames[i]
-            print(f"\rRetrieving article {doi_idx + i}/{total_filecount}", end = "")
-            # catch empty urls, move on to the next one if empty
-            if not url :
-                failed_downloads += 1
-                continue
-            ## Check here if file already exists, if so, skip download
-            pdf_file_path = os.path.join(output_dir, "pdf_files", f"{filename}.pdf")
-            if os.path.isfile(pdf_file_path):
-                continue
-            else:
-                downloaded_pdf_path = download_pdf(url, driver, pdf_file_path, maxwait)
-                if downloaded_pdf_path is None :
-                    failed_downloads += 1
-                else :
-                    successfull_downloads += 1
-                    scrapped_files[filename]["pdf_file_path"] = downloaded_pdf_path
-                    if successfull_downloads >= stop_criterion :
-                        break
+        failed_downloads, successfull_downloads = scrape_list_urls(urls_to_fetch, filenames, driver, scrapped_files, failed_downloads, successfull_downloads, maxwait)
+        if successfull_downloads > stop_criterion :
+            break 
 
         # navigate to next page of query results from OpenAlex
         cursor = query_data["meta"]["next_cursor"]
