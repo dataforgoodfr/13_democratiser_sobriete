@@ -134,6 +134,48 @@ def download_pdf(url: str, driver: webdriver.Chrome, output_file_path: str, maxw
     except WebDriverException :
         return None
 
+def scrape_list_urls(urls_to_fetch:list, 
+                     filenames:list, 
+                     driver:webdriver.Chrome, 
+                     scrapped_files:dict, 
+                     failed_downloads:int, 
+                     successfull_downloads:int, 
+                     maxwait:int, 
+                     stop_criterion:int) -> tuple[int, int, dict]:
+    
+    for i, (url, filename) in enumerate(zip(urls_to_fetch, filenames)) :
+        # catch empty urls, move on to the next one if empty
+        if not url :
+            failed_downloads += 1
+            continue
+        ## Check here if file already exists, if so, skip download
+        pdf_file_path = os.path.join(output_dir, "pdf_files", f"{filename}.pdf")
+        if os.path.isfile(pdf_file_path) :
+            continue
+        else:
+            downloaded_pdf_path = download_pdf(url, driver, pdf_file_path, maxwait)
+            if downloaded_pdf_path is None :
+                failed_downloads += 1
+            else :
+                successfull_downloads += 1
+                scrapped_files[filename]["pdf_file_path"] = downloaded_pdf_path
+                if successfull_downloads >= stop_criterion :
+                    return failed_downloads, successfull_downloads, scrapped_files
+                
+    return failed_downloads, successfull_downloads, scrapped_files
+
+
+def save_article_metadata(query_data:dict, filenames:list, scrapped_files:dict) -> None:
+    for i in range(len(query_data["results"])) :
+        data = query_data["results"][i]
+        filename = filenames[i]
+        pkl_file_path = f"{os.path.join(output_dir, 'pkl_files', filename)}.pkl"
+        scrapped_files[filename] = {"pkl_file_path" : pkl_file_path}
+        with open(pkl_file_path, "wb") as outfile :
+            pkl.dump(data, outfile)
+        outfile.close()
+
+
 # Function that puts everything together to extract all pdf files and metadata from a single query
 def scrape_all_urls(
     driver: webdriver.Chrome, 
@@ -234,39 +276,22 @@ def scrape_all_urls(
         
         # Extraction starts here :        
         # first save all article metadata with same filename as pdf file
-        for i in range(len(query_data["results"])) :
-            data = query_data["results"][i]
-            filename = filenames[i]
-            pkl_file_path = f"{os.path.join(output_dir, 'pkl_files', filename)}.pkl"
-            scrapped_files[filename] = {"pkl_file_path" : pkl_file_path}
-            with open(pkl_file_path, "wb") as outfile :
-                pkl.dump(data, outfile)
-        
+        save_article_metadata(query_data, filenames, scrapped_files)
+
         # then save all pdf files with new filename
-        for i, (url, filename) in enumerate(zip(urls_to_fetch, filenames)) :
-            print(f"\rRetrieving article {doi_idx + i}/{total_filecount}", end = "")
-            # catch empty urls, move on to the next one if empty
-            if not url :
-                failed_downloads += 1
-                continue
-            # Check here if file already exists, if so, skip download
-            pdf_file_path = os.path.join(output_dir, "pdf_files", f"{filename}.pdf")
-            if os.path.isfile(pdf_file_path):
-                continue
-            else:
-                downloaded_pdf_path = download_pdf(url, driver, pdf_file_path, maxwait)
-                if downloaded_pdf_path is None :
-                    failed_downloads += 1
-                else :
-                    successfull_downloads += 1
-                    scrapped_files[filename]["pdf_file_path"] = downloaded_pdf_path
-                    if successfull_downloads >= stop_criterion :
-                        break
+        failed_downloads, successfull_downloads, scrapped_files = scrape_list_urls(urls_to_fetch, filenames, driver, scrapped_files, 
+                                                                                   failed_downloads, successfull_downloads, maxwait, stop_criterion)
+        if successfull_downloads > stop_criterion :
+            break
 
         # navigate to next page of query results from OpenAlex
-        cursor = query_data["meta"]["next_cursor"]
-        if not cursor :
-            break
+        if not from_dois :
+            cursor = query_data["meta"]["next_cursor"]
+            if not cursor :
+                break
+        else :
+            if doi_idx + per_page >= total_filecount :
+                break
         all_files = os.listdir(os.path.join(output_dir, "pkl_files"))
         parsed_files = len(all_files)
         doi_idx += per_page
