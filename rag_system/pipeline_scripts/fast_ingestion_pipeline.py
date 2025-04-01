@@ -22,6 +22,9 @@ VECTOR_STORE_DEPLOYMENT = os.getenv("VECTOR_STORE_DEPLOYMENT", "docker")
 
 PDF_FOLDER = os.getenv("PDF_FOLDER", "./pipeline_scripts/pdf_test/")
 
+DOCSTORE_PATH = "/app/ktem_app_data/user_data/docstore"
+COLLECTION_NAME= 'index_1' 
+
 # ---- Do not touch (temporary) ------------- #
 
 ollama_host = "172.17.0.1" if OLLAMA_DEPLOYMENT == "docker" else "localhost"
@@ -54,13 +57,14 @@ class IndexingPipeline(VectorIndexing):
         lazy(QdrantVectorStore).withx(
             url=f"http://{qdrant_host}:6333",
             api_key="None",
-            collection_name="default",
+            collection_name=COLLECTION_NAME,
         ),
         ignore_ui=True,  # usefull ?
     )
     doc_store: LanceDBDocumentStore = Param(
         lazy(LanceDBDocumentStore).withx(
-            path="./kotaemon-custom/kotaemon/ktem_app_data/user_data/docstore",
+            path=DOCSTORE_PATH,
+            collection_name = COLLECTION_NAME
         ),
         ignore_ui=True,
     )
