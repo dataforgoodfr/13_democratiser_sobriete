@@ -1,0 +1,99 @@
+This is the prompt created with Claude Sonnet 3.7 based on the extensive definition of sufficiency
+
+
+# Prompt for Classification of Scientific Papers on Sufficiency
+
+## Task
+Analyze the abstract of scientific papers and classify them as either "About Sufficiency" or "Not About Sufficiency" based on the definition and criteria provided below.
+
+## Definition of Sufficiency
+Sufficiency is a set of policy measures and daily practices which avoid the demand for energy, materials, land, water, and other natural resources, while delivering well-being for all within planetary boundaries.
+
+## Classification Criteria
+A paper should be classified as "About Sufficiency" if it meets EITHER of these combinations:
+
+### Combination 1:
+- **Policy Measures & Practices** (required): Mentions at least one concrete policy, lifestyle choice, public policy, private action, or system designed to reduce resource consumption
+  AND
+- **Resource Demand Avoidance** (required): Explicitly addresses avoiding or reducing upfront demand for resources (not merely efficiency improvements or renewable substitution)
+
+### Combination 2:
+- **Policy Measures & Practices** (required): Mentions at least one concrete policy, lifestyle choice, public policy, private action, or system
+  AND
+- **Well-being Delivery** (required): Explicitly addresses maintaining or improving human well-being for all
+  AND
+- **Additional Context** (required for this combination): The paper must contain contextual elements suggesting the policies/practices help stay within planetary boundaries or manage natural resources sustainably
+
+### Dimension Details
+1. **Policy Measures & Practices**:
+   - Keywords: practice, choice, lifestyle, public policy, private action, property, feature, technological device, system, service, regulation, initiative, intervention, standard, restriction
+   
+2. **Resource Demand Avoidance**:
+   - Energy
+   - Materials
+   - Land
+   - Water
+   - Other natural resources
+   - Keywords: reduction, avoidance, lowering consumption, minimizing use, decreasing demand, prevention, limits, caps, quotas
+
+3. **Well-being Delivery**:
+   - Well-being dimensions: Housing, Jobs, Education, Civic Engagement, Life Satisfaction, Work-Life Balance, Income, Community, Environment, Health, Safety
+   - Justice dimensions: Distributional, Procedural, Corrective, Recognitional, Transitional
+   - Keywords: equity, quality of life, social welfare, human needs, prosperity, thriving communities, social benefits, shared resources
+
+### Additional Context (Critical for Combination 2)
+- **Planetary Boundaries Consideration**:
+  - Climate change
+  - Novel entities
+  - Stratospheric ozone depletion
+  - Atmospheric aerosol loading
+  - Ocean acidification
+  - Modification of biogeochemical flows
+  - Freshwater change
+  - Land system change
+  - Biosphere integrity
+  - Keywords: ecological limits, carrying capacity, environmental thresholds, sustainability boundaries, safe operating space
+
+- **Specific Resources**:
+  - Freshwater
+  - Marine Resources
+  - Wetlands
+  - Metals and Ores
+  - Non-Metallic Minerals
+  - Fossil Fuels
+  - Agricultural Land
+  - Forests
+  - Urban Land
+  - Biomass
+
+- **Conceptual Framework**:
+  - COP 26 Sufficiency Framework (Saheb, 2021)
+  - IPCC Climate Mitigation Report (2022)
+  - IPCC Synthesis Report (2023)
+  - Doughnut Economics
+  - Degrowth
+  - Post-growth
+  - Circular economy (when focused on reducing total resource use)
+  - Keywords: sustainable consumption, footprint reduction, resource caps, carrying capacity
+
+## Classification Guidelines
+- "About Sufficiency": The paper must meet EITHER Combination 1 OR Combination 2 criteria above
+- "Not About Sufficiency": The paper fails to meet either combination of criteria
+- Papers can be classified as "About Sufficiency" even if they also discuss efficiency, technological solutions, or other topics
+- The entire paper does not need to focus exclusively on sufficiency to qualify
+
+## Examples for Clarity
+
+### Example 1: "About Sufficiency" via Combination 1
+"This study evaluates urban car-free zone policies (Policy Measure) as a strategy to reduce urban transportation energy consumption and associated emissions (Resource Demand Avoidance). We analyze implementation strategies in three European cities and identify factors that influence public acceptance."
+
+### Example 2: "About Sufficiency" via Combination 2
+"This research examines community-based urban garden initiatives (Policy/Practice) that enhance food security for low-income neighborhoods while building social cohesion (Well-being). The study evaluates how these initiatives contribute to reducing land and water footprints compared to conventional supply chains, helping communities operate within local ecological constraints (Additional Context: planetary boundaries)."
+
+### Example 3: "Not About Sufficiency"
+"This analysis focuses on next-generation battery technology and its potential to accelerate renewable energy adoption. We model cost reductions and efficiency improvements expected over the next decade and their impact on grid stability."
+[Missing: No focus on demand reduction or specific policies/practices for sufficiency]
+
+## Output Format
+Classification: [About Sufficiency / Not About Sufficiency]
+Reasoning: [Brief explanation citing which combination criteria were met or not met, with specific evidence from the abstract]
