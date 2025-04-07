@@ -82,6 +82,7 @@ def start_webdriver() -> webdriver.Chrome:
         CHROME_PATH = "/raid/home/guevel/.local/bin/google-chrome" # put your path
         chrome_options.binary_location = CHROME_PATH
         chrome_options.add_argument("--headless=new")
+        chrome_options.add_argument("--disable-popup-blocking")
     
         # setup chromedriver bin path
         service = Service("/raid/home/guevel/.local/bin/chromedriver") # put your path
@@ -112,19 +113,19 @@ def download_pdf(url: str, driver: webdriver.Chrome, output_file_path: str, maxw
             This function is going to loop as long as the directory is empty.
         """
         while not os.listdir(dummy_dir):
-            time.sleep(1)
+            time.sleep(10)
         return max([os.path.join(dummy_dir, f) for f in os.listdir(dummy_dir)], key=os.path.getctime)
 
     try : 
         driver.get(url)
-        time.sleep(1)
+        time.sleep(10)
         # if download doesn't start for some reason, exit the function
         if not os.listdir(dummy_dir) :
             return None
         waittime = 0
         # fix filename by waiting for file in dummy_dir to be correctly downloaded, then rename it and put it in output_dir
         while not get_last_downloaded_file_path(dummy_dir).endswith(".pdf") :
-            time.sleep(1)
+            time.sleep(10)
             waittime += 1
             if waittime > maxwait :
                 clear_directory(dummy_dir)
@@ -273,6 +274,8 @@ def scrape_all_urls(
                 total_filecount = query_data["meta"]["count"]
             print(f"Preparing to download {total_filecount} articles...")
             first_pass = False
+
+        print(len(filenames))
         
         # Extraction starts here :        
         # first save all article metadata with same filename as pdf file

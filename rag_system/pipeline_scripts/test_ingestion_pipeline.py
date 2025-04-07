@@ -4,7 +4,7 @@ from pathlib import PosixPath
 
 from fast_ingestion_pipeline import IndexingPipeline
 
-PDF_FOLDER = os.getenv("PDF_FOLDER", "./pipeline_scripts/pdf_test/")
+PDF_FOLDER = os.getenv("PDF_FOLDER", "./test_pdf/pdf_files/")
 
 if __name__ == "__main__":
     indexing_pipeline = IndexingPipeline(pdf_path=PDF_FOLDER)

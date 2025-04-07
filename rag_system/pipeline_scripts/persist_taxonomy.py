@@ -5,7 +5,7 @@ from taxonomy.paper_taxonomy import PaperTaxonomy
 
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    None
+    "postgresql://u4axloluqibskgvdikuy:g2rXgpHSbztokCbFxSyR@bk8htvifqendwt1wlzat-postgresql.services.clever-cloud.com:7327/bk8htvifqendwt1wlzat"
 )
 
 

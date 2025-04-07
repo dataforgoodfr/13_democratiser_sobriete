@@ -100,7 +100,9 @@ class VectorIndexing(BaseIndexing):
 
     def run(self, text: str | list[str] | Document | list[Document], metadatas: list[dict]=None):
         input_: list[Document] = []
+
         if not isinstance(text, list):
+            
             text = [text]
 
         for item in cast(list, text):
