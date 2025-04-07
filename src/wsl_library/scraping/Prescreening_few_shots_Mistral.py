@@ -4,22 +4,22 @@ dotenv.load_dotenv()
 import os
 import requests
 import pandas as pd
+import random
 
-# Load environment variables
+# Load Mistral API key
 MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY")
 MISTRAL_API_URL = "https://api.mistral.ai/v1/chat/completions"
 
-# Define a base path and load data
+# Load data
 BASE_DIR = "/Users/louistronel/Desktop/D4G_WSL/13_democratiser_sobriete/data"
 
 non_pertinent_upper = pd.read_excel(os.path.join(BASE_DIR, "extract1000_article_non-pertinent_upperlim.xlsx")).sample(10, random_state=42)
 non_pertinent_lower = pd.read_excel(os.path.join(BASE_DIR, "extract1000_article_non-pertinent_lowerlim.xlsx")).sample(10, random_state=42)
 df_mobility = pd.read_csv(os.path.join(BASE_DIR, "df_mobility_all_articles_copy_for_classification_test_subset.csv")).sample(20, random_state=42)
 
-# Merge the subsets
 data_subset = pd.concat([non_pertinent_upper, non_pertinent_lower, df_mobility], ignore_index=True)
 
-# Define the few-shot prompt template
+# Improved few-shot prompt with real examples
 FEW_SHOT_PROMPT_TEMPLATE = """
 You are a scientific research analyst. Your task is to classify abstracts based on the following sufficiency framework.
 
@@ -43,14 +43,19 @@ A paper should be classified as **"About Sufficiency"** if it meets EITHER of th
 ## Examples
 
 ### Example 1
-**Title**: Sharing Vehicles: A Path to Sustainable Urban Transport  
-**Abstract**: This paper examines the rise of car-sharing initiatives in European cities as a means to reduce private car ownership...  
+**Title**: Sustainable Urban Transport Planning
+**Abstract**: This study discusses strategies such as walking, cycling, and public transportation integration to reduce urban car usage and associated emissions.
 **Label**: About Sufficiency
 
-### Example 2  
-**Title**: Advances in Battery Storage for Grid Efficiency  
-**Abstract**: The study evaluates the efficiency improvements in lithium-ion battery storage...  
+### Example 2
+**Title**: Smart Grids for Better Electricity Distribution
+**Abstract**: This paper presents technical advancements in smart grids to enhance electricity efficiency without discussing demand-side reduction or behavior change.
 **Label**: Not About Sufficiency
+
+### Example 3
+**Title**: Low-consumption Lifestyles in Households
+**Abstract**: We analyze how voluntary simplicity, energy-saving practices, and community initiatives contribute to reduced energy and material use in residential settings.
+**Label**: About Sufficiency
 
 ---
 ## Now, classify the following abstract:
@@ -62,7 +67,7 @@ A paper should be classified as **"About Sufficiency"** if it meets EITHER of th
 **Label**:
 """
 
-# Function to classify an abstract using Mistral
+# Function to classify using Mistral API
 def classify_abstract(title, abstract):
     prompt = FEW_SHOT_PROMPT_TEMPLATE.format(title=title, abstract=abstract)
     headers = {
@@ -70,7 +75,7 @@ def classify_abstract(title, abstract):
         "Content-Type": "application/json"
     }
     data = {
-        "model": "mistral-large-latest",  # Adjust if necessary based on your subscription
+        "model": "mistral-large-latest",
         "temperature": 0.2,
         "messages": [{"role": "user", "content": prompt}]
     }
@@ -78,24 +83,30 @@ def classify_abstract(title, abstract):
     response = requests.post(MISTRAL_API_URL, headers=headers, json=data)
 
     try:
-        response.raise_for_status()
         response_data = response.json()
-        return response_data['choices'][0]['message']['content'].strip()
-    except requests.exceptions.HTTPError as e:
-        print("❌ HTTPError:", e)
-        print("Status Code:", response.status_code)
-        print("Response Text:", response.text)
     except Exception as e:
-        print("❌ Other error:", e)
-        print("Raw response:", response.text)
+        print("Failed to decode JSON response:", e)
+        print(response.text)
+        return "Error"
 
-    return "API Error"
+    if "choices" not in response_data:
+        print("Unexpected API response (no 'choices'):")
+        print(response_data)
+        return "Error"
 
-# Apply classification to the subset
-data_subset['Mistral_Classification'] = data_subset.apply(
-    lambda row: classify_abstract(row['title'], row['abstract']),
-    axis=1
-)
+    return response_data['choices'][0]['message']['content'].strip()
+
+# Safe classification with logging
+def safe_classify(row):
+    try:
+        print(f"Classifying: {row['title'][:60]}...")
+        return classify_abstract(row['title'], row['abstract'])
+    except Exception as e:
+        print(f"❌ Error while classifying: {e}")
+        return "Error"
+
+# Run the classification
+data_subset['Mistral_Classification'] = data_subset.apply(safe_classify, axis=1)
 
 # Save results
 output_path = os.path.join(BASE_DIR, "classified_subset_results_mistral.csv")
