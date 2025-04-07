@@ -101,7 +101,11 @@ class IndexingPipeline(VectorIndexing):
             return (False, str(pdf_path))
 
         # Persist metadata to PostgreSQL
-        persist_article_metadata(metadatas)
+        try:
+            persist_article_metadata(metadatas)
+        except Exception as e:
+            print(e)
+            return (False, str(pdf_path))
         
         metadatas_json = metadatas.model_dump()
         try:

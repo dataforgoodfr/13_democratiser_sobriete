@@ -1,6 +1,6 @@
 import os
 from sqlmodel import SQLModel, Field, create_engine, Session
-from sqlalchemy import JSON, Column
+from sqlalchemy import JSON, Column, ARRAY, String
 from taxonomy.paper_taxonomy import PaperTaxonomy
 
 DATABASE_URL = os.getenv(
@@ -25,7 +25,15 @@ class ArticleMetadata(SQLModel, table=True):
     scientific_discipline: str
     regional_group: str
     geographical_scope: str
-    keywords: list = Field(sa_column=Column(JSON))
+    studied_country: list = Field(sa_column=Column(ARRAY(String)))
+    human_needs: list = Field(sa_column=Column(ARRAY(String)))
+    studied_sector: list = Field(sa_column=Column(ARRAY(String)))
+    studied_policy_area: list = Field(sa_column=Column(ARRAY(String)))
+    natural_ressource: list = Field(sa_column=Column(ARRAY(String)))
+    wellbeing: list = Field(sa_column=Column(ARRAY(String)))
+    justice_consideration: list | None = Field(default=None, sa_column=Column(ARRAY(String)))
+    planetary_boundaries: list | None = Field(default=None, sa_column=Column(ARRAY(String)))
+    keywords: list = Field(sa_column=Column(ARRAY(String)))
     url: str | None = None
     doi: str | None = None
     source: str | None = None
