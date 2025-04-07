@@ -1,5 +1,5 @@
 from typing import Optional, Any
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from taxonomy.publication_taxonomy import (
     Author,
@@ -19,6 +19,12 @@ from taxonomy.themes_taxonomy import Human_needs, Studied_sector, Studied_policy
 
 
 class PaperTaxonomy(BaseModel):
+    model_config = ConfigDict(
+        json_encoders={
+            set: list,  # Convert all sets to lists when serializing to JSON
+        }
+    )
+    
     title: str
     authors: list[Author]
     abstract: str

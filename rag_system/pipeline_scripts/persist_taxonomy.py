@@ -33,7 +33,7 @@ class ArticleMetadata(SQLModel, table=True):
     wellbeing: list = Field(sa_column=Column(ARRAY(String)))
     justice_consideration: list | None = Field(default=None, sa_column=Column(ARRAY(String)))
     planetary_boundaries: list | None = Field(default=None, sa_column=Column(ARRAY(String)))
-    keywords: list = Field(sa_column=Column(ARRAY(String)))
+    keywords: list = Field(sa_column=Column(JSON))    
     url: str | None = None
     doi: str | None = None
     source: str | None = None
