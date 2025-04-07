@@ -13,7 +13,7 @@ class ArticleMetadata(SQLModel, table=True):
     __tablename__ = "article_metadata"
 
     id: int = Field(default=None, primary_key=True)
-    title: str
+    title: str = Field(unique=True)
     authors: list = Field(sa_column=Column(JSON))
     abstract: str
     year_of_publication: int

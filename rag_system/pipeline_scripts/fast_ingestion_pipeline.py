@@ -86,7 +86,11 @@ class IndexingPipeline(VectorIndexing):
         Return nothing
         """
 
-        text_md = self.pdf_extraction_block.run(pdf_path, method="group_all")
+        try:
+            text_md = self.pdf_extraction_block.run(pdf_path, method="group_all")
+        except Exception as e:
+            print(e)
+            return (False, str(pdf_path))
 
         try:
             metadatas = self.metadatas_llm_inference_block.run(
@@ -100,8 +104,11 @@ class IndexingPipeline(VectorIndexing):
         persist_article_metadata(metadatas)
         
         metadatas_json = metadatas.model_dump()
-
-        super().run(text=[text_md], metadatas=[metadatas_json])
+        try:
+            super().run(text=[text_md], metadatas=[metadatas_json])
+        except Exception as e:
+            print(e)
+            return (False, str(pdf_path))
 
         return (True, str(pdf_path))
 
