@@ -97,6 +97,7 @@ class IndexingPipeline(VectorIndexing):
                 text_md, doc_type="entire_doc", inference_type="scientific"
             )
         except ValidationError as e:
+            print("Error happening during the text extraction")
             print(e)
             return (False, str(pdf_path))
 
@@ -104,6 +105,7 @@ class IndexingPipeline(VectorIndexing):
         try:
             persist_article_metadata(metadatas)
         except Exception as e:
+            print("Error happening during the metadata ingestion")
             print(e)
             return (False, str(pdf_path))
         
@@ -111,6 +113,7 @@ class IndexingPipeline(VectorIndexing):
         try:
             super().run(text=[text_md], metadatas=[metadatas_json])
         except Exception as e:
+            print("Error happening during the vector ingestion")
             print(e)
             return (False, str(pdf_path))
 
