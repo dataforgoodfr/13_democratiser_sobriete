@@ -16,6 +16,7 @@ from pipelineblocks.extraction.pdfextractionblock.pdf_to_markdown import (
 from pipelineblocks.llm.ingestionblock.openai import OpenAIMetadatasLLMInference
 from pydantic_core._pydantic_core import ValidationError
 from taxonomy.paper_taxonomy import PaperTaxonomy
+from .persist_taxonomy import persist_article_metadata
 
 OLLAMA_DEPLOYMENT = os.getenv("OLLAMA_DEPLOYMENT", "docker")
 VECTOR_STORE_DEPLOYMENT = os.getenv("VECTOR_STORE_DEPLOYMENT", "docker")
@@ -27,7 +28,6 @@ api_key = os.getenv("VECTOR_STORE_API", "None")
 
 ollama_host = "172.17.0.1" if OLLAMA_DEPLOYMENT == "docker" else "localhost"
 qdrant_host = "172.17.0.1" if VECTOR_STORE_DEPLOYMENT == "docker" else "localhost"
-
 
 class IndexingPipeline(VectorIndexing):
     # --- Different blocks (pipeline blocks library) ---
@@ -96,6 +96,9 @@ class IndexingPipeline(VectorIndexing):
             print(e)
             return (False, str(pdf_path))
 
+        # Persist metadata to PostgreSQL
+        persist_article_metadata(metadatas)
+        
         metadatas_json = metadatas.model_dump()
 
         super().run(text=[text_md], metadatas=[metadatas_json])
