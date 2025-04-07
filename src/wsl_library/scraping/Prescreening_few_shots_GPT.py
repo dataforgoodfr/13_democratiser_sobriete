@@ -1,16 +1,24 @@
 # example of few-shot learning script with GPT
+import dotenv
+dotenv.load_dotenv()
+import os
+from openai import OpenAI
 
-import openai
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 import pandas as pd
 import random
 
-# Set up OpenAI API key
-openai.api_key = "YOUR_OPENAI_API_KEY"
+# Set up OpenAI API key/opt/anaconda3/bin/python your_script.py
+
 
 # Load a subset of the provided files
-non_pertinent_upper = pd.read_excel("extract1000_article_non-pertinent_upperlim.xlsx").sample(10, random_state=42)
-non_pertinent_lower = pd.read_excel("extract1000_article_non-pertinent_lowerlim.xlsx").sample(10, random_state=42)
-df_mobility = pd.read_csv("df_mobility_all_articles_copy_for_classification_test_subset - df_mobility_all_articles.csv").sample(10, random_state=42)
+
+# Define a base path
+BASE_DIR = "/Users/louistronel/Desktop/D4G_WSL/13_democratiser_sobriete/data"
+
+non_pertinent_upper = pd.read_excel(os.path.join(BASE_DIR, "extract1000_article_non-pertinent_upperlim.xlsx")).sample(10, random_state=42)
+non_pertinent_lower = pd.read_excel(os.path.join(BASE_DIR, "extract1000_article_non-pertinent_lowerlim.xlsx")).sample(10, random_state=42)
+df_mobility = pd.read_csv(os.path.join(BASE_DIR, "df_mobility_all_articles_copy_for_classification_test_subset - df_mobility_all_articles.csv")).sample(20, random_state=42)
 
 # Merge the subsets
 data_subset = pd.concat([non_pertinent_upper, non_pertinent_lower, df_mobility], ignore_index=True)
@@ -61,12 +69,10 @@ A paper should be classified as **"About Sufficiency"** if it meets EITHER of th
 # Function to classify an abstract using GPT-4
 def classify_abstract(title, abstract):
     prompt = FEW_SHOT_PROMPT_TEMPLATE.format(title=title, abstract=abstract)
-    response = openai.ChatCompletion.create(
-        model="gpt-4",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.2
-    )
-    return response['choices'][0]['message']['content'].strip()
+    response = client.chat.completions.create(model="gpt-4",
+    messages=[{"role": "user", "content": prompt}],
+    temperature=0.2)
+    return response.choices[0].message.content.strip()
 
 # Apply classification to the subset
 data_subset['GPT_Classification'] = data_subset.apply(lambda row: classify_abstract(row['primary_title'], row['abstract']), axis=1)

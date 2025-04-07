@@ -1,49 +1,40 @@
-# approach provided by Mistral, using regression models and sentence transformers
-
-
+import os
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report, confusion_matrix
 from sentence_transformers import SentenceTransformer
 
-# Load the data
-non_pertinent_lowerlim_df = pd.read_excel('extract1000_article_non-pertinent_lowerlim.xlsx')
-non_pertinent_upperlim_df = pd.read_excel('extract1000_article_non-pertinent_upperlim.xlsx')
-df_mobility_df = pd.read_csv('df_mobility_all_articles_copy_for_classification_test_subset - df_mobility_all_articles.csv')
+# Define a base path and load data
+BASE_DIR = "/Users/louistronel/Desktop/D4G_WSL/13_democratiser_sobriete/data"
 
-# Add manual filter column
-non_pertinent_lowerlim_df['manual filter'] = 'No'
-non_pertinent_upperlim_df['manual filter'] = 'No'
-df_mobility_df['manual filter'] = 'Yes'
+non_pertinent_upperlim_df = pd.read_excel(os.path.join(BASE_DIR, "extract1000_article_non-pertinent_upperlim.xlsx"))
+non_pertinent_lowerlim_df = pd.read_excel(os.path.join(BASE_DIR, "extract1000_article_non-pertinent_lowerlim.xlsx"))
+df_mobility_df = pd.read_csv(os.path.join(BASE_DIR, "df_mobility_all_articles_copy_for_classification_test_subset.csv"))
 
 # Select relevant columns and combine the data
-non_pertinent_lowerlim_df = non_pertinent_lowerlim_df[['abstract', 'primary_title', 'manual filter']]
-non_pertinent_upperlim_df = non_pertinent_upperlim_df[['abstract', 'primary_title', 'manual filter']]
-df_mobility_df = df_mobility_df[['abstract', 'title', 'manual filter']]
-
-# Rename columns to match
-non_pertinent_lowerlim_df.rename(columns={'primary_title': 'title'}, inplace=True)
-non_pertinent_upperlim_df.rename(columns={'primary_title': 'title'}, inplace=True)
+non_pertinent_lowerlim_df = non_pertinent_lowerlim_df[['abstract', 'manual filter']]
+non_pertinent_upperlim_df = non_pertinent_upperlim_df[['abstract', 'manual filter']]
+df_mobility_df = df_mobility_df[['abstract', 'manual filter']]
 
 # Combine all dataframes
 combined_df = pd.concat([non_pertinent_lowerlim_df, non_pertinent_upperlim_df, df_mobility_df], ignore_index=True)
 
-# Combine abstract and title into a single text column
-combined_df['text'] = combined_df['abstract'].fillna('') + " " + combined_df['title'].fillna('')
-
-# Map manual filter to binary labels
-combined_df['label'] = combined_df['manual filter'].map({'Yes': 1, 'No': 0})
-
 # Split the data into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(combined_df['text'], combined_df['label'], test_size=0.2, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(combined_df['abstract'], combined_df['manual filter'], test_size=0.2, random_state=42)
+
+# Ensure no missing values in X_train and X_test
+X_train = X_train.dropna()
+X_test = X_test.dropna()
+y_train = y_train.loc[X_train.index]
+y_test = y_test.loc[X_test.index]
 
 # Load the Sentence Transformer model
 model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
 
 # Encode the sentences
-X_train_embeddings = model.encode(X_train)
-X_test_embeddings = model.encode(X_test)
+X_train_embeddings = model.encode(X_train.astype(str).tolist())
+X_test_embeddings = model.encode(X_test.astype(str).tolist())
 
 # Train a Logistic Regression model
 classifier = LogisticRegression(max_iter=1000)
@@ -55,5 +46,17 @@ report = classification_report(y_test, y_pred)
 conf_matrix = confusion_matrix(y_test, y_pred)
 
 print("Classification Report:\n", report)
-print("Confusion Matrix:\n", conf_matrix)
 
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Assuming y_test and y_pred are already defined
+conf_matrix = confusion_matrix(y_test, y_pred)
+
+# Plot the confusion matrix as a heatmap
+plt.figure(figsize=(8, 6))
+sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Blues', xticklabels=['Not About Sufficiency', 'About Sufficiency'], yticklabels=['Not About Sufficiency', 'About Sufficiency'])
+plt.xlabel('Predicted')
+plt.ylabel('Actual')
+plt.title('Confusion Matrix')
+plt.show()
