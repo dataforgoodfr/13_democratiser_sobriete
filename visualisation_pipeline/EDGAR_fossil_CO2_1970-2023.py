@@ -1,69 +1,16 @@
 from sqlmodel import SQLModel, Field, create_engine, Session
-from sqlalchemy import Column, String, Float
+import pandas as pd
 
-DB_URL = "xxx"
-
-
-class VizMart(SQLModel, table=True):
-    __tablename__ = "EDGAR_fossil_CO2_1970-2023"
-
-    Substance = Column(String)
-    EDGAR Country Code  = Column(String)
-    Country = Column(String, primary_key=True)
-    1970 = Column(Float)
-    1971 = Column(Float)
-    1972 = Column(Float)
-    1973 = Column(Float)
-    1974 = Column(Float)
-    1975 = Column(Float)
-    1976 = Column(Float)
-    1977 = Column(Float)
-    1978 = Column(Float)
-    1979 = Column(Float)
-    1980 = Column(Float)
-    1981 = Column(Float)
-    1982 = Column(Float)
-    1983 = Column(Float)
-    1984 = Column(Float)
-    1985 = Column(Float)
-    1986 = Column(Float)
-    1987 = Column(Float)
-    1988 = Column(Float)
-    1989 = Column(Float)
-    1990 = Column(Float)
-    1991 = Column(Float)
-    1992 = Column(Float)
-    1993 = Column(Float)
-    1994 = Column(Float)
-    1995 = Column(Float)
-    1996 = Column(Float)
-    1997 = Column(Float)
-    1998 = Column(Float)
-    1999 = Column(Float)
-    2000 = Column(Float)
-    2001 = Column(Float)
-    2002 = Column(Float)
-    2003 = Column(Float)
-    2004 = Column(Float)
-    2005 = Column(Float)
-    2006 = Column(Float)
-    2007 = Column(Float)
-    2008 = Column(Float)
-    2009 = Column(Float)
-    2010 = Column(Float)
-    2011 = Column(Float)
-    2012 = Column(Float)
-    2013 = Column(Float)
-    2014 = Column(Float)
-    2015 = Column(Float)
-    2016 = Column(Float)
-    2017 = Column(Float)
-    2018 = Column(Float)
-    2019 = Column(Float)
-    2020 = Column(Float)
-    2021 = Column(Float)
-    2022 = Column(Float)
-    2023 = Column(Float)
+DB_URL = "postgresql://u4axloluqibskgvdikuy:g2rXgpHSbztokCbFxSyR@bk8htvifqendwt1wlzat-postgresql.services.clever-cloud.com:7327/bk8htvifqendwt1wlzat"
 
 engine = create_engine(DB_URL)
 SQLModel.metadata.create_all(engine)
+
+file = pd.read_csv("visualisation_pipeline/data/EDGAR_fossil_CO2_1970-2023.csv", delimiter=';')
+file.drop(columns=["Substance", "EDGAR Country Code"], inplace=True)
+file_t = file.set_index('Country')
+file_t = file_t.transpose().reset_index().rename(columns={'index': 'year'})
+file_t.columns.name = None
+file_t.index.name = None
+file_t.dropna(how='all', axis=1, inplace=True)
+file_t.to_sql(name="EDGAR_fossil_CO2_1970-2023", con=engine, if_exists="replace", index=False)
