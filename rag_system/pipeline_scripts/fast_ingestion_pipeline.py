@@ -1,4 +1,7 @@
+import json
 import os
+import time
+from pathlib import PosixPath
 from typing import List
 
 from kotaemon.base import Document, Param, lazy
@@ -22,7 +25,10 @@ OLLAMA_DEPLOYMENT = os.getenv("OLLAMA_DEPLOYMENT", "localhost")
 VECTOR_STORE_DEPLOYMENT = os.getenv("VECTOR_STORE_DEPLOYMENT", "docker")
 
 PDF_FOLDER = os.getenv("PDF_FOLDER", "./pipeline_scripts/pdf_test/")
-api_key = os.getenv("VECTOR_STORE_API", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3MiOiJtIn0.I_EqOaeyavYPy4DC2ZFtXlx4C1oi13ecAEFXtedCEGA")
+with open("secret.json") as f:
+    config = json.load(f)
+
+api_key = os.getenv("VECTOR_STORE_API", config["api_key"])
 
 # ---- Do not touch (temporary) ------------- #
 
@@ -85,7 +91,7 @@ class IndexingPipeline(VectorIndexing):
 
         Return nothing
         """
-
+        tic = time.time()
         try:
             text_md = self.pdf_extraction_block.run(pdf_path, method="group_all")
         except Exception as e:
@@ -116,7 +122,9 @@ class IndexingPipeline(VectorIndexing):
             print("Error happening during the vector ingestion")
             print(e)
             return (False, str(pdf_path))
+        tac = time.time()
 
+        print(f"Time taken: {tac - tic:.1f}")
         return (True, str(pdf_path))
 
 
@@ -147,15 +155,10 @@ class RetrievePipeline(BaseComponent):
 
 
 if __name__ == "__main__":
-    indexing_pipeline = IndexingPipeline(pdf_path=PDF_FOLDER)
-    indexing_pipeline.run("1-s2.0-S2211467X23001748-main.pdf")
-    indexing_pipeline.run("1-s2.0-S0094119008001095-main.pdf")
+    path = PosixPath("test_pdf") / "folder1"
+    indexing_pipeline = IndexingPipeline(pdf_path=path)
+    indexing_pipeline.run(path / "W1506923129.pdf")
 
     rag_pipeline = RetrievePipeline(
         retrieval_pipeline=indexing_pipeline.to_retrieval_pipeline()
-    )
-    print(
-        rag_pipeline.run(
-            "Who wrote research papers abouts the impacts of digitalization and societal changes on energy transition ?"
-        )
     )
