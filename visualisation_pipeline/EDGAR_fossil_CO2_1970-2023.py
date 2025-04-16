@@ -6,7 +6,7 @@ DB_URL = "postgresql://u4axloluqibskgvdikuy:g2rXgpHSbztokCbFxSyR@bk8htvifqendwt1
 engine = create_engine(DB_URL)
 SQLModel.metadata.create_all(engine)
 
-file = pd.read_csv("visualisation_pipeline/data/EDGAR_fossil_CO2_1970-2023.csv", delimiter=';', decimal=",")
+file = pd.read_csv("visualisation_pipeline/data/EDGAR_fossil_CO2_1970-2023.csv", delimiter=';')
 file.drop(columns=["Substance", "EDGAR Country Code"], inplace=True)
 file_t = file.set_index('Country')
 file_t = file_t.transpose().reset_index().rename(columns={'index': 'year'})
