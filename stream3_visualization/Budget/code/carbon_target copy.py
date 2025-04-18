@@ -1,37 +1,22 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
-
 import pandas as pd
 import numpy as np
 
+# Define the directory containing the data files
+data_directory = '/Users/louistronel/Desktop/D4G_WSL/13_democratiser_sobriete-1/stream3_visualization/Budget/Data'
+output_directory = '/Users/louistronel/Desktop/D4G_WSL/13_democratiser_sobriete-1/stream3_visualization/Budget/Output'
 
-# # CO2
+# Load the datasets
+emissions_file = f"{data_directory}/EDGAR- Total fossil_CO2.csv"
+population_file = f"{data_directory}/UN population projections.csv"
+consumption_file = f"{data_directory}/EORA_consumption_CO2_1990-2022.csv"
 
-# In[ ]:
-
-
-emissions = pd.read_csv("C:/Users/valentin.stuhlfauth/OneDrive - univ-lyon2.fr/Bureau/climate_neutrality_target/EDGAR- Total fossil_CO2.csv",sep=';', encoding='latin1')
-
-
-# In[ ]:
-
-
-emissions[emissions["Country"]=="France and Monaco"]["1990"]
-
-
-# In[ ]:
-
-
-# EDGAR- Total fossil_CO2.csv
-emissions = pd.read_csv("C:/Users/valentin.stuhlfauth/OneDrive - univ-lyon2.fr/Bureau/climate_neutrality_target/EDGAR- Total fossil_CO2.csv",sep=';', encoding='latin1')
-# UN population projections.csv
-population = pd.read_csv("C:/Users/valentin.stuhlfauth/OneDrive - univ-lyon2.fr/Bureau/climate_neutrality_target/UN population projections.csv",sep=';', encoding='latin1')
-
-
-# In[ ]:
-
+# Read the datasets
+emissions = pd.read_csv(emissions_file, sep=';', encoding='latin1')
+population = pd.read_csv(population_file, sep=';', encoding='latin1')
+consumption = pd.read_csv(consumption_file, sep=';', encoding='latin1')
 
 # Convert emission columns to numeric
 emission_cols = [str(year) for year in range(1990, 2024)]
@@ -41,118 +26,82 @@ for col in emission_cols:
 # Convert population['2050'] to numeric safely
 population['2050'] = pd.to_numeric(population['2050'].astype(str).str.replace(',', '.'), errors='coerce')
 
-# Step 2: Sum the numeric values
-POP_GLOBAL_2050 = population['2050'].sum()
-
-
-# ## Correct country names
-
-# In[ ]:
-
-
 # Standardize column names
 pop_col = "Region, subregion, country or area *"
 emis_col = "Country"
 
-# Get unique country names
-pop_countries = set(population[pop_col].unique())
-emis_countries = set(emissions[emis_col].unique())
-
-# Find mismatches
-unmatched_emis = emis_countries - pop_countries
-unmatched_pop = pop_countries - emis_countries
-
-
-# In[ ]:
-
-
-from fuzzywuzzy import process
-
-# Fuzzy matching function (handling NaN and converting to string)
-def get_best_match(country, choices, threshold=80):
-    if pd.isna(country):  # Ignore NaN values
-        return None
-    country = str(country)  # Ensure it's a string
-    match, score = process.extractOne(country, [str(choice) for choice in choices])  # Convert choices to strings
-    return match if score >= threshold else None
-
-# Find closest matches
-emis_matches = {country: get_best_match(country, pop_countries) for country in unmatched_emis}
-pop_matches = {country: get_best_match(country, emis_countries) for country in unmatched_pop}
-
-# Create a DataFrame for manual correction
-emis_unmatched_df = pd.DataFrame(list(emis_matches.items()), columns=["Original", "Suggested"])
-emis_unmatched_df["Manual_Correction"] = ""  # Column for manual edits
-
-pop_unmatched_df = pd.DataFrame(list(pop_matches.items()), columns=["Original", "Suggested"])
-pop_unmatched_df["Manual_Correction"] = ""  # Column for manual edits
-
-
-# In[ ]:
-
-
-emis_unmatched_df.to_csv("C:/Users/valentin.stuhlfauth/Downloads/emis_unmatched_df.csv", index=False)
-pop_unmatched_df.to_csv("C:/Users/valentin.stuhlfauth/Downloads/pop_unmatched_df.csv", index=False)
-
-
-# ## Preparing data
-
-# In[ ]:
-
-
-pop_matched = pd.read_csv(
-    "C:/Users/valentin.stuhlfauth/OneDrive - univ-lyon2.fr/Bureau/climate_neutrality_target/pop_matched_df_eora.csv",
-    sep=";"
-)
-
-
-# In[ ]:
-
-
-# Extract relevant columns
-pop_col = "Region, subregion, country or area *"
-population = population[[pop_col, "2050"]]
-
-# Drop NaN values in Manual_Correction
-pop_matched = pop_matched.dropna(subset=["Manual_Correction"], how='all')
-
-# Create a mapping dictionary
-correction_map = {}
-for _, row in pop_matched.iterrows():
-    if row["Manual_Correction"] == "OK":
-        correction_map[row["Original"]] = row["Suggested"]
-    else:
-        correction_map[row["Original"]] = row["Manual_Correction"]
+# Create a mapping dictionary for manual correction based on the base file
+correction_map_base = {
+    'Bolivia (Plurinational State of)': 'Bolivia',
+    'Brunei Darussalam': 'Brunei',
+    'China, Hong Kong SAR': 'Hong Kong',
+    'China, Macao SAR': 'Macao',
+    'China, Taiwan Province of China': 'Taiwan',
+    "Côte d'Ivoire": 'Côte d\x92Ivoire',
+    "Dem. People's Republic of Korea": 'North Korea',
+    'Falkland Islands (Malvinas)': 'Falkland Islands',
+    'Faroe Islands': 'Faroes',
+    'France': 'France and Monaco',
+    'Gambia': 'The Gambia',
+    'Guam': 'Guam',
+    'Guernsey': 'Guernsey',
+    'Holy See': 'Italy, San Marino and the Holy See',
+    'Iran (Islamic Republic of)': 'Iran',
+    'Isle of Man': 'Isle of Man',
+    'Israel': 'Israel and Palestine, State of',
+    'Italy': 'Italy, San Marino and the Holy See',
+    'Jersey': 'Jersey',
+    'Kosovo (under UNSC res. 1244)': 'Kosovo',
+    "Lao People's Democratic Republic": 'Laos',
+    'Liechtenstein': 'Switzerland and Liechtenstein',
+    'Marshall Islands': 'Marshall Islands',
+    'Mayotte': 'Mayotte',
+    'Micronesia (Fed. States of)': 'Micronesia',
+    'Monaco': 'France and Monaco',
+    'Montenegro': 'Serbia and Montenegro',
+    'Montserrat': 'Montserrat',
+    'Myanmar': 'Myanmar/Burma',
+    'Nauru': 'Nauru',
+    'Niue': 'Niue',
+    'Northern Mariana Islands': 'Northern Mariana Islands',
+    'Republic of Korea': 'South Korea',
+    'Republic of Moldova': 'Moldova',
+    'Russian Federation': 'Russia',
+    'Saint Barthélemy': 'Saint Barthélemy',
+    'Saint Helena': 'Saint Helena, Ascension and Tristan da Cunha',
+    'Saint Martin (French part)': 'Saint Martin',
+    'San Marino': 'Italy, San Marino and the Holy See',
+    'Sao Tome and Principe': 'São Tomé and Príncipe',
+    'Serbia': 'Serbia and Montenegro',
+    'Sint Maarten (Dutch part)': 'Sint Maarten',
+    'South Sudan': 'Sudan and South Sudan',
+    'Spain': 'Spain and Andorra',
+    'State of Palestine': 'Israel and Palestine, State of',
+    'Sudan': 'Sudan and South Sudan',
+    'Switzerland': 'Switzerland and Liechtenstein',
+    'Syrian Arab Republic': 'Syria',
+    'Tokelau': 'Tokelau',
+    'Tuvalu': 'Tuvalu',
+    'United Republic of Tanzania': 'Tanzania',
+    'United States Virgin Islands': 'United States Virgin Islands',
+    'United States of America': 'United States',
+    'Venezuela (Bolivarian Republic of)': 'Venezuela',
+    'Wallis and Futuna Islands': 'Wallis and Futuna Islands'
+}
 
 # Apply corrections to population DataFrame
-population["corrected_country"] = population[pop_col].replace(correction_map)
+population["corrected_country"] = population[pop_col].replace(correction_map_base)
 
 # Handle multiple rows mapping to the same country by summing population
 population_final = population.groupby("corrected_country", as_index=False)["2050"].sum()
 
-
-# In[ ]:
-
-
 # Save the final cleaned dataset
-population_final.to_csv("C:/Users/valentin.stuhlfauth/OneDrive - univ-lyon2.fr/Bureau/climate_neutrality_target/pop_modified.csv", index=False)
-
+population_final.to_csv(f"{output_directory}/pop_modified.csv", index=False)
 
 # ## RCB
-
 # ### 2°C
 
-# In[ ]:
-
-
 emissions["Total_Emissions_1990_2023"] = emissions.loc[:, "1990":"2023"].sum(axis=1)
-
-
-# In[ ]:
-
-
-import numpy as np
-import pandas as pd
 
 # Define global carbon budgets (in GtCO2, converted to MtCO2)
 BUDGET_GLOBAL_lamboll = {"33%": 1603, "50%": 1219, "67%": 944}
@@ -174,7 +123,7 @@ for source, budgets in [("lamboll", BUDGET_GLOBAL_lamboll), ("foster", BUDGET_GL
 
         BUDGET_TOTAL = BUDGET_GLOBAL * 1000  # Convert to MtCO2
 
-        for method in ["equality", "responsability"]:
+        for method in ["equality", "responsibility"]:
             if method == "equality":
                 remaining_carbon_budget = (BUDGET_TOTAL / POP_GLOBAL_2050) * df["2050"]
             else:
@@ -225,21 +174,10 @@ for source, budgets in [("lamboll", BUDGET_GLOBAL_lamboll), ("foster", BUDGET_GL
 # Convert list to DataFrame
 df_final = pd.DataFrame(rows)
 
-
-# In[ ]:
-
-
 # Save the final cleaned dataset
-df_final.to_excel("C:/Users/valentin.stuhlfauth/OneDrive - univ-lyon2.fr/Bureau/carbon_budget_2°C.xlsx", index=False)
-
+df_final.to_excel(f"{output_directory}/carbon_budget_2°C.xlsx", index=False)
 
 # ### 1.5°C
-
-# In[ ]:
-
-
-import numpy as np
-import pandas as pd
 
 # Define the global carbon budgets (in GtCO2, converted to MtCO2)
 BUDGET_GLOBAL_lamboll = {"33%": 480, "50%": 247, "67%": 60}
@@ -261,7 +199,7 @@ for source, budgets in [("lamboll", BUDGET_GLOBAL_lamboll), ("foster", BUDGET_GL
 
         BUDGET_TOTAL = BUDGET_GLOBAL * 1000  # Convert to MtCO2
 
-        for method in ["equality", "responsability"]:
+        for method in ["equality", "responsibility"]:
             if method == "equality":
                 remaining_carbon_budget = (BUDGET_TOTAL / POP_GLOBAL_2050) * df["2050"]
             else:
@@ -312,104 +250,20 @@ for source, budgets in [("lamboll", BUDGET_GLOBAL_lamboll), ("foster", BUDGET_GL
 # Convert list to DataFrame
 df_final = pd.DataFrame(rows)
 
-
-# In[ ]:
-
-
 # Save the final cleaned dataset
-df_final.to_excel("C:/Users/valentin.stuhlfauth/OneDrive - univ-lyon2.fr/Bureau/carbon_budget_1.5°C.xlsx", index=False)
-
+df_final.to_excel(f"{output_directory}/carbon_budget_1.5°C.xlsx", index=False)
 
 # ### EU
 
-# In[ ]:
+EU_list = ["Austria", "Belgium", "Bulgaria", "Croatia", "Cyprus", "Czech Republic", "Denmark", "Estonia",
+           "Finland", "France", "Germany", "Greece", "Hungary", "Ireland", "Italy", "Latvia", "Lithuania",
+           "Luxembourg", "Malta", "Netherlands", "Poland", "Portugal", "Romania", "Slovakia", "Slovenia",
+           "Spain", "Sweden"]
 
+EU_list_corrected = ["Italy, San Marino and the Holy See", "Czechia", "France and Monaco", "Spain and Andorra"] + EU_list
 
-EU_list = ["Austria", "Belgium",
-"Bulgaria",
-"Croatia",
-"Cyprus",
-"Czech Republic",
-"Denmark",
-"Estonia",
-"Finland",
-"France",
-"Germany",
-"Greece",
-"Hungary",
-"Ireland",
-"Italy",
-"Latvia",
-"Lithuania",
-"Luxembourg",
-"Malta",
-"Netherlands",
-"Poland",
-"Portugal",
-"Romania",
-"Slovakia",
-"Slovenia",
-"Spain",
-"Sweden"]
-
-
-# In[ ]:
-
-
-list(set(EU_list) - set(df[df["Country"].isin(EU_list)]["Country"]))
-
-
-# In[ ]:
-
-
-EU_list_corrected = ["Italy, San Marino and the Holy See","Czechia","France and Monaco","Spain and Andorra"] + ["Austria", "Belgium",
-"Bulgaria",
-"Croatia",
-"Cyprus",
-"Denmark",
-"Estonia",
-"Finland",
-"Germany",
-"Greece",
-"Hungary",
-"Ireland",
-"Latvia",
-"Lithuania",
-"Luxembourg",
-"Malta",
-"Netherlands",
-"Poland",
-"Portugal",
-"Romania",
-"Slovakia",
-"Slovenia",
-"Sweden"]
-
-
-# In[ ]:
-
-
-df_EU=df_final[df_final["country"].isin(EU_list_corrected)]
-
-df_summed = df_EU.groupby(['repartition_method','source_of_budget', 'probability_of_reach', 'curve_type'], as_index=False).sum(numeric_only=True)
-
-
-# In[ ]:
-
-
-# Save the final cleaned dataset
-df_EU.to_excel("C:/Users/valentin.stuhlfauth/OneDrive - univ-lyon2.fr/Bureau/carbon_budget_2°C_EU_countries.xlsx", index=False)
-
-
-# In[ ]:
-
-
-# Save the final cleaned dataset
-df_EU.to_excel("C:/Users/valentin.stuhlfauth/OneDrive - univ-lyon2.fr/Bureau/carbon_budget_1.5°C_EU_countries.xlsx", index=False)
-
-
-# In[ ]:
-
+df_EU = df_final[df_final["country"].isin(EU_list_corrected)]
+df_summed = df_EU.groupby(['repartition_method', 'source_of_budget', 'probability_of_reach', 'curve_type'], as_index=False).sum(numeric_only=True)
 
 # Compute time_to_neutrality
 for idx, row in df_summed.iterrows():
@@ -431,40 +285,26 @@ for idx, row in df_summed.iterrows():
             cumulative_emissions += EU_emissions[str(year)]
 
             if cumulative_emissions >= abs(remaining_budget):
-                time_to_neutrality_value = year - 2023 +1
+                time_to_neutrality_value = year - 2023 + 1
                 break
 
         df_summed.at[idx, "time_to_neutrality"] = time_to_neutrality_value
 
-
-# In[ ]:
-
-
 # Save the final cleaned dataset
-df_summed.to_excel("C:/Users/valentin.stuhlfauth/OneDrive - univ-lyon2.fr/Bureau/carbon_budget_2°C_EU.xlsx", index=False)
-
-
-# In[ ]:
-
-
-# Save the final cleaned dataset
-df_summed.to_excel("C:/Users/valentin.stuhlfauth/OneDrive - univ-lyon2.fr/Bureau/carbon_budget_1.5°C_EU.xlsx", index=False)
-
+df_summed.to_excel(f"{output_directory}/carbon_budget_2°C_EU.xlsx", index=False)
+df_summed.to_excel(f"{output_directory}/carbon_budget_1.5°C_EU.xlsx", index=False)
 
 # # Consumption-based (CBA) - 2022
 
-# In[ ]:
-
-
 # EDGAR- Total fossil_CO2.csv
-emissions = pd.read_csv("C:/Users/valentin.stuhlfauth/OneDrive - univ-lyon2.fr/Bureau/climate_neutrality_target/EORA_consumption_CO2_1990-2022.csv",sep=';', encoding='latin1')
+emissions = pd.read_csv(consumption_file, sep=';', encoding='latin1')
 # UN population projections.csv
-population = pd.read_csv("C:/Users/valentin.stuhlfauth/OneDrive - univ-lyon2.fr/Bureau/climate_neutrality_target/UN population projections.csv",sep=';', encoding='latin1')
+population = pd.read_csv(population_file, sep=';', encoding='latin1')
 
 # Convert emission columns to numeric and divide by 1,000
 emission_cols = [str(year) for year in range(1990, 2023)]
 for col in emission_cols:
-    emissions[col] = pd.to_numeric(emissions[col].astype(str).str.replace(',', '.'), errors='coerce')/1000
+    emissions[col] = pd.to_numeric(emissions[col].astype(str).str.replace(',', '.'), errors='coerce') / 1000
 
 # Convert population['2050'] to numeric safely
 population['2050'] = pd.to_numeric(population['2050'].astype(str).str.replace(',', '.'), errors='coerce')
@@ -472,14 +312,7 @@ population['2050'] = pd.to_numeric(population['2050'].astype(str).str.replace(',
 # Step 2: Sum the numeric values
 POP_GLOBAL_2050 = population['2050'].sum()
 
-
 emissions = emissions.rename(columns={"ï»¿Country": "Country"})
-
-
-# ## Correct country names
-
-# In[ ]:
-
 
 # Standardize column names
 pop_col = "Region, subregion, country or area *"
@@ -492,12 +325,6 @@ emis_countries = set(emissions[emis_col].unique())
 # Find mismatches
 unmatched_emis = emis_countries - pop_countries
 unmatched_pop = pop_countries - emis_countries
-
-
-# In[ ]:
-
-
-from fuzzywuzzy import process
 
 # Fuzzy matching function (handling NaN and converting to string)
 def get_best_match(country, choices, threshold=80):
@@ -518,27 +345,11 @@ emis_unmatched_df["Manual_Correction"] = ""  # Column for manual edits
 pop_unmatched_df = pd.DataFrame(list(pop_matches.items()), columns=["Original", "Suggested"])
 pop_unmatched_df["Manual_Correction"] = ""  # Column for manual edits
 
-
-# In[ ]:
-
-
-emis_unmatched_df.to_csv("C:/Users/valentin.stuhlfauth/Downloads/emis_unmatched_df.csv", index=False)
-pop_unmatched_df.to_csv("C:/Users/valentin.stuhlfauth/Downloads/pop_unmatched_df.csv", index=False)
-
+# Save the unmatched DataFrames for manual correction
+emis_unmatched_df.to_csv(f"{output_directory}/emis_unmatched_df.csv", index=False)
+pop_unmatched_df.to_csv(f"{output_directory}/pop_unmatched_df.csv", index=False)
 
 # ## Preparing data
-
-# In[ ]:
-
-
-pop_matched = pd.read_csv(
-    "C:/Users/valentin.stuhlfauth/OneDrive - univ-lyon2.fr/Bureau/climate_neutrality_target/pop_matched_df_eora.csv",
-    sep=";"
-)
-
-
-# In[ ]:
-
 
 # Extract relevant columns
 pop_col = "Region, subregion, country or area *"
@@ -559,34 +370,18 @@ for _, row in pop_matched.iterrows():
 population["corrected_country"] = population[pop_col].replace(correction_map)
 
 # Sum emissions from 1990 to 2022
-df_pop = pd.read_csv("C:/Users/valentin.stuhlfauth/OneDrive - univ-lyon2.fr/Bureau/climate_neutrality_target/UN population projections.csv",sep=';', encoding='latin1')
+df_pop = pd.read_csv(population_file, sep=';', encoding='latin1')
 
 # Handle multiple rows mapping to the same country by summing population
 population_final = population.groupby("corrected_country", as_index=False)["2050"].sum()
 
-
-# In[ ]:
-
-
 # Save the final cleaned dataset
-population_final.to_csv("C:/Users/valentin.stuhlfauth/OneDrive - univ-lyon2.fr/Bureau/climate_neutrality_target/pop_modified_eora.csv", index=False)
-
+population_final.to_csv(f"{output_directory}/pop_modified_eora.csv", index=False)
 
 # ## RCB
-
 # ### 2°C
 
-# In[ ]:
-
-
 emissions["Total_Emissions_1990_2022"] = emissions.loc[:, "1990":"2022"].sum(axis=1)
-
-
-# In[ ]:
-
-
-import numpy as np
-import pandas as pd
 
 # Define global carbon budgets (in GtCO2, converted to MtCO2)
 BUDGET_GLOBAL_lamboll = {"33%": 1603, "50%": 1219, "67%": 944}
@@ -608,7 +403,7 @@ for source, budgets in [("lamboll", BUDGET_GLOBAL_lamboll), ("foster", BUDGET_GL
 
         BUDGET_TOTAL = BUDGET_GLOBAL * 1000  # Convert to MtCO2
 
-        for method in ["equality", "responsability"]:
+        for method in ["equality", "responsibility"]:
             if method == "equality":
                 remaining_carbon_budget = (BUDGET_TOTAL / POP_GLOBAL_2050) * df["2050"]
             else:
@@ -659,21 +454,10 @@ for source, budgets in [("lamboll", BUDGET_GLOBAL_lamboll), ("foster", BUDGET_GL
 # Convert list to DataFrame
 df_final = pd.DataFrame(rows)
 
-
-# In[ ]:
-
-
 # Save the final cleaned dataset
-df_final.to_excel("C:/Users/valentin.stuhlfauth/OneDrive - univ-lyon2.fr/Bureau/carbon_budget_CBA_2°C.xlsx", index=False)
-
+df_final.to_excel(f"{output_directory}/carbon_budget_CBA_2°C.xlsx", index=False)
 
 # ### 1.5°C
-
-# In[ ]:
-
-
-import numpy as np
-import pandas as pd
 
 # Define the global carbon budgets (in GtCO2, converted to MtCO2)
 BUDGET_GLOBAL_lamboll = {"33%": 480, "50%": 247, "67%": 60}
@@ -695,7 +479,7 @@ for source, budgets in [("lamboll", BUDGET_GLOBAL_lamboll), ("foster", BUDGET_GL
 
         BUDGET_TOTAL = BUDGET_GLOBAL * 1000  # Convert to MtCO2
 
-        for method in ["equality", "responsability"]:
+        for method in ["equality", "responsibility"]:
             if method == "equality":
                 remaining_carbon_budget = (BUDGET_TOTAL / POP_GLOBAL_2050) * df["2050"]
             else:
@@ -746,68 +530,37 @@ for source, budgets in [("lamboll", BUDGET_GLOBAL_lamboll), ("foster", BUDGET_GL
 # Convert list to DataFrame
 df_final = pd.DataFrame(rows)
 
-
-# In[ ]:
-
-
 # Save the final cleaned dataset
-df_final.to_excel("C:/Users/valentin.stuhlfauth/OneDrive - univ-lyon2.fr/Bureau/carbon_budget_CBA_1.5°C.xlsx", index=False)
-
+df_final.to_excel(f"{output_directory}/carbon_budget_CBA_1.5°C.xlsx", index=False)
 
 # # Merging - Final database
 
 # ## CO2
 
-# In[ ]:
+df_2C = pd.read_excel(f"{output_directory}/carbon_budget_2°C.xlsx")
+df_15C = pd.read_excel(f"{output_directory}/carbon_budget_1.5°C.xlsx")
 
-
-df_2C = pd.read_excel("C:/Users/valentin.stuhlfauth/OneDrive - univ-lyon2.fr/Bureau/carbon_budget_2°C.xlsx")
-df_15C = pd.read_excel("C:/Users/valentin.stuhlfauth/OneDrive - univ-lyon2.fr/Bureau/carbon_budget_1.5°C.xlsx")
-
-
-# In[ ]:
-
-
-df_2C["temperature"]="2°C"
-df_15C["temperature"]="1.5°C"
-df_2C["scope"]="territorial_CO2"
-df_15C["scope"]="territorial_CO2"
-
-
-# In[ ]:
-
+df_2C["temperature"] = "2°C"
+df_15C["temperature"] = "1.5°C"
+df_2C["scope"] = "territorial_CO2"
+df_15C["scope"] = "territorial_CO2"
 
 df = pd.concat([df_15C, df_2C], ignore_index=True)
 
 # Save the final cleaned dataset
-df.to_excel("C:/Users/valentin.stuhlfauth/OneDrive - univ-lyon2.fr/Bureau/carbon_budget_CO2.xlsx", index=False)
-
+df.to_excel(f"{output_directory}/carbon_budget_CO2.xlsx", index=False)
 
 # ## CBA
 
-# In[ ]:
+df_2C = pd.read_excel(f"{output_directory}/carbon_budget_CBA_2°C.xlsx")
+df_15C = pd.read_excel(f"{output_directory}/carbon_budget_CBA_1.5°C.xlsx")
 
-
-df_2C = pd.read_excel("C:/Users/valentin.stuhlfauth/OneDrive - univ-lyon2.fr/Bureau/carbon_budget_CBA_2°C.xlsx")
-df_15C = pd.read_excel("C:/Users/valentin.stuhlfauth/OneDrive - univ-lyon2.fr/Bureau/carbon_budget_CBA_1.5°C.xlsx")
-
-df_2C["temperature"]="2°C"
-df_15C["temperature"]="1.5°C"
-df_2C["scope"]="consumption_based"
-df_15C["scope"]="consumption_based"
-
-
-# In[ ]:
-
+df_2C["temperature"] = "2°C"
+df_15C["temperature"] = "1.5°C"
+df_2C["scope"] = "consumption_based"
+df_15C["scope"] = "consumption_based"
 
 df = pd.concat([df_15C, df_2C], ignore_index=True)
 
 # Save the final cleaned dataset
-df.to_excel("C:/Users/valentin.stuhlfauth/OneDrive - univ-lyon2.fr/Bureau/carbon_budget_CBA.xlsx", index=False)
-
-
-# In[ ]:
-
-
-
-
+df.to_excel(f"{output_directory}/carbon_budget_CBA.xlsx", index=False)
