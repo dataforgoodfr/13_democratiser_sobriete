@@ -1,5 +1,4 @@
 import os
-import json
 from argparse import ArgumentParser
 import time
 from pathlib import Path
@@ -89,6 +88,7 @@ class HistorizedIndexingPipeline(VectorIndexing):
             print("found this one:")
             print(article_metadata)
             text_md = self.pdf_extraction_block.run(pdf_path, method="group_all")
+            print(text_md)
         except Exception as e:
             print(e)
             logfire.error(e)
