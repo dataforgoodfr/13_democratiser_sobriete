@@ -47,9 +47,6 @@ def scientific_system_prompt(article_content: str, openalex_metadata, paper_taxo
     
     :param openalex_metadata:
     {openalex_metadata}
-    
-    :param paper_taxonomy:
-    {paper_taxonomy}
     """
     return prompt
 
