@@ -1,28 +1,24 @@
-import json
 import os
-import time
-from pathlib import PosixPath
-from typing import List
+import json
+from argparse import ArgumentParser
+from datetime import time
+from pathlib import Path
 
-from kotaemon.base import Document, Param, lazy
-from kotaemon.base.component import BaseComponent
-from kotaemon.base.schema import LLMInterface
-from kotaemon.embeddings import OpenAIEmbeddings
-from kotaemon.indices import VectorIndexing
-from kotaemon.indices.vectorindex import VectorRetrieval
-from kotaemon.llms.chats.openai import ChatOpenAI
+import logfire
+
+from kotaemon.base import Param, lazy
+from pydantic import ValidationError
+
+from rag_system.kotaemon.libs.kotaemon.kotaemon.embeddings import OpenAIEmbeddings
+from rag_system.kotaemon.libs.kotaemon.kotaemon.indices import VectorIndexing
+from rag_system.kotaemon.libs.kotaemon.kotaemon.llms import ChatOpenAI
+from rag_system.kotaemon.libs.kotaemon.kotaemon.storages import QdrantVectorStore
 from kotaemon.storages import LanceDBDocumentStore
-from kotaemon.storages.vectorstores.qdrant import QdrantVectorStore
-from pipelineblocks.extraction.pdfextractionblock.pdf_to_markdown import (
-    PdfExtractionToMarkdownBlock,
-)
-from pipelineblocks.llm.ingestionblock.openai import OpenAIMetadatasLLMInference
-from pydantic_core._pydantic_core import ValidationError
-from taxonomy.paper_taxonomy import PaperTaxonomy
-from persist_taxonomy import persist_article_metadata
-
-OLLAMA_DEPLOYMENT = os.getenv("OLLAMA_DEPLOYMENT", "localhost")
-VECTOR_STORE_DEPLOYMENT = os.getenv("VECTOR_STORE_DEPLOYMENT", "docker")
+from rag_system.kotaemon.libs.pipelineblocks.pipelineblocks.extraction.pdfextractionblock.pdf_to_markdown import \
+    PdfExtractionToMarkdownBlock
+from rag_system.kotaemon.libs.pipelineblocks.pipelineblocks.llm.ingestionblock.openai import OpenAIMetadatasLLMInference
+from rag_system.pipeline_scripts.persist_taxonomy import get_open_alex_article, persist_article_metadata
+from rag_system.taxonomy.taxonomy.paper_taxonomy import PaperTaxonomy
 
 PDF_FOLDER = os.getenv("PDF_FOLDER", "./pipeline_scripts/pdf_test/")
 with open("secret.json") as f:
@@ -32,12 +28,11 @@ api_key = os.getenv("VECTOR_STORE_API", config["api_key"])
 
 # ---- Do not touch (temporary) ------------- #
 
-ollama_host = "172.17.0.1" if OLLAMA_DEPLOYMENT == "docker" else "localhost"
-qdrant_host = "https://a0423e9b-e256-44fe-bb62-57a66f613850.eu-central-1-0.aws.cloud.qdrant.io" # if VECTOR_STORE_DEPLOYMENT == "docker" else "localhost"
+ollama_host = "172.17.0.1"
+qdrant_host = "https://a0423e9b-e256-44fe-bb62-57a66f613850.eu-central-1-0.aws.cloud.qdrant.io"
 
-class IndexingPipeline(VectorIndexing):
-    # --- Different blocks (pipeline blocks library) ---
 
+class HistorizedIndexingPipeline(VectorIndexing):
     pdf_extraction_block: PdfExtractionToMarkdownBlock = Param(
         lazy(PdfExtractionToMarkdownBlock).withx()
     )
@@ -82,7 +77,7 @@ class IndexingPipeline(VectorIndexing):
 
     pdf_path: str
 
-    def run(self, pdf_path: str) -> None:
+    def run(self, pdf_path: str):
         """
         ETL pipeline for a single pdf file
         1. Extract text and taxonomy from pdf
@@ -93,18 +88,21 @@ class IndexingPipeline(VectorIndexing):
         """
         tic = time.time()
         try:
+            article_metadata = get_open_alex_article(pdf_path)
             text_md = self.pdf_extraction_block.run(pdf_path, method="group_all")
         except Exception as e:
             print(e)
+            logfire.error(e)
             return (False, str(pdf_path))
 
         try:
             metadatas = self.metadatas_llm_inference_block.run(
-                text_md, doc_type="entire_doc", inference_type="scientific"
+                text_md, doc_type="entire_doc", inference_type="scientific", openalex_metadata=article_metadata
             )
         except ValidationError as e:
             print("Error happening during the text extraction")
             print(e)
+            logfire.error(e)
             return (False, str(pdf_path))
 
         # Persist metadata to PostgreSQL
@@ -113,52 +111,38 @@ class IndexingPipeline(VectorIndexing):
         except Exception as e:
             print("Error happening during the metadata ingestion")
             print(e)
+            logfire.error(e)
             return (False, str(pdf_path))
-        
+
         metadatas_json = metadatas.model_dump()
         try:
             super().run(text=[text_md], metadatas=[metadatas_json])
         except Exception as e:
             print("Error happening during the vector ingestion")
             print(e)
+            logfire.error(e)
             return (False, str(pdf_path))
         tac = time.time()
 
         print(f"Time taken: {tac - tic:.1f}")
+
         return (True, str(pdf_path))
 
 
-# ----------------Retrive (Crash) version -------------- #
-# TODO Convert it with refacto pipelineblocks too #
+def main():
+    logfire.configure(token="pylf_v1_us_qTtmbDFpkfhFwzTfZyZrTJcl4C4lC7FhmZ65BgJ7dLDV")
+    parser = ArgumentParser(description='Run pdf ingestion')
+    parser.add_argument('--file-path', required=True, help='Path to the file')
 
+    args = parser.parse_args()
+    file_path = args.file_path
+    folder_path = Path(file_path).parent
 
-class RetrievePipeline(BaseComponent):
-    """
-    from simple_pipeline.py, a better RAG pipeline must exist somewhere
+    indexing_pipeline = HistorizedIndexingPipeline(pdf_path=folder_path)
+    print(f"Parsing document: {file_path}")
 
-    TODO:
-    - Reranking support ? (rag_system/kotaemon/libs/kotaemon/kotaemon/indices/rankings)
-    - Citation/QA support ? (rag_system/kotaemon/libs/kotaemon/kotaemon/indices/qa)
-    """
-
-    llm: ChatOpenAI = ChatOpenAI.withx(
-        base_url=f"http://{ollama_host}:11434/v1/",
-        model="gemma2:2b",
-        api_key="ollama",
-    )
-
-    retrieval_pipeline: VectorRetrieval
-
-    def run(self, text: str) -> LLMInterface:
-        matched_texts: List[Document] = self.retrieval_pipeline(text)
-        return self.llm("\n".join(map(str, matched_texts)))
+    indexing_pipeline.run(file_path)
 
 
 if __name__ == "__main__":
-    path = PosixPath("test_pdf") / "folder1"
-    indexing_pipeline = IndexingPipeline(pdf_path=path)
-    indexing_pipeline.run(path / "W1506923129.pdf")
-
-    rag_pipeline = RetrievePipeline(
-        retrieval_pipeline=indexing_pipeline.to_retrieval_pipeline()
-    )
+    main()

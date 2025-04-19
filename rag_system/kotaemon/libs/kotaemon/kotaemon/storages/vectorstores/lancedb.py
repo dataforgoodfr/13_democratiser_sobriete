@@ -46,7 +46,15 @@ class LanceDBVectorStore(LlamaIndexVectorStore):
                 "Please install lancedb: 'pip install lancedb tanvity-py'"
             )
 
-        db_connection = lancedb.connect(path)  # type: ignore
+        # db_connection = lancedb.connect(path)  # type: ignore
+        db_connection = lancedb.connect(
+            "s3://wsl-mobilitybucket",
+            storage_options={
+                "region": "us-east-1",
+                "endpoint": "http://cellar-c2.services.clever-cloud.com:8000",
+            }
+        )
+
         try:
             table = db_connection.open_table(collection_name)
         except FileNotFoundError:
