@@ -34,8 +34,8 @@ class MetadatasLLMInfBlock(BaseLLMIngestionBlock):
 
         if inference_type == 'scientific' and doc_type == 'entire_doc':
             # First combination example
+            print(text)
             enriched_prompt = scientific_system_prompt(text, open_alex_metadata, paper_taxonomy)
-            print(enriched_prompt)
 
         elif inference_type == 'scientific' and doc_type == 'chunk':
             # Other combination Example
