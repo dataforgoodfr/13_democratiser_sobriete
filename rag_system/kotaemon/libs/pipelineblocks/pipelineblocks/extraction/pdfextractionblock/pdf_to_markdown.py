@@ -13,7 +13,6 @@ class PdfExtractionToMarkdownBlock(BasePdfExtractionBlock):
     def run(self, pdf_path, method='split_by_page'):
 
         text_md_list = get_pymupdf4llm(pdf_path)
-        print(text_md_list)
 
         if method == 'split_by_page':
 
