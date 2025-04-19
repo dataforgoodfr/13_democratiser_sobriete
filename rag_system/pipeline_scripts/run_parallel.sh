@@ -4,6 +4,7 @@
 # This script launches 4 parallel processes that each iterate over a different folder.
 # For every file in a folder, it runs a python program (which takes the file name as an argument).
 # If the python program fails (nonzero exit status), the filename is added to a log file.
+# Successfully processed files are moved to a 'done' folder.
 
 # activate .bashrc
 
@@ -12,6 +13,10 @@ PYTHON_SCRIPT="/home/ec2-user/13_democratiser_sobriete/rag_system/pipeline_scrip
 
 # Log file for failed Python script invocations.
 FAILED_LOG="/home/ec2-user/13_democratiser_sobriete/failed_files.txt"
+
+# Create 'done' directory if it doesn't exist
+DONE_DIR="test_pdf/done"
+mkdir -p "$DONE_DIR"
 
 # Clear previous failure log (or create an empty file)
 > "$FAILED_LOG"
@@ -37,6 +42,10 @@ process_folder() {
                 # Append the filename to the failure log if execution fails.
                 echo "$file" >> "$FAILED_LOG"
                 echo "Failed processing: $file"
+            else
+                # Move successfully processed file to 'done' folder
+                mv "$file" "$DONE_DIR/"
+                echo "Successfully processed and moved: $file"
             fi
         fi
     done

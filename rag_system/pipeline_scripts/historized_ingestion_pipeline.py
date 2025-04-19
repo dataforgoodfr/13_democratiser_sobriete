@@ -102,7 +102,6 @@ class HistorizedIndexingPipeline(VectorIndexing):
             metadatas = reconcile_metadata(article_metadata, llm_metadatas)
         except ValidationError as e:
             print("Error happening during the text extraction")
-            print(e)
             logfire.error(e)
             return (False, str(pdf_path))
 
@@ -111,9 +110,7 @@ class HistorizedIndexingPipeline(VectorIndexing):
             print(f"Trying to persist article: {metadatas}")
             persist_article_metadata(metadatas)
         except Exception as e:
-            print(e)
             print("Error happening during the metadata ingestion")
-            print(e)
             logfire.error(e)
             return (False, str(pdf_path))
 
