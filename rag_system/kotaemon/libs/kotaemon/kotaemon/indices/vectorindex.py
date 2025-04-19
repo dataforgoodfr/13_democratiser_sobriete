@@ -79,7 +79,7 @@ class VectorIndexing(BaseIndexing):
     def add_to_docstore(self, docs: list[Document]):
         if self.doc_store:
             print("Adding documents to doc store")
-            self.doc_store.add(docs)
+            self.doc_store.add(docs, refresh_indices=False)
 
     def add_to_vectorstore(self, docs: list[Document], metadatas: list[dict] = None):
         # in case we want to skip embedding

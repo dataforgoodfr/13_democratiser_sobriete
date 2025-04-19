@@ -1,7 +1,7 @@
 import os
 import json
 from argparse import ArgumentParser
-from datetime import time
+import time
 from pathlib import Path
 
 import logfire
@@ -9,28 +9,26 @@ import logfire
 from kotaemon.base import Param, lazy
 from pydantic import ValidationError
 
-from rag_system.kotaemon.libs.kotaemon.kotaemon.embeddings import OpenAIEmbeddings
-from rag_system.kotaemon.libs.kotaemon.kotaemon.indices import VectorIndexing
-from rag_system.kotaemon.libs.kotaemon.kotaemon.llms import ChatOpenAI
-from rag_system.kotaemon.libs.kotaemon.kotaemon.storages import QdrantVectorStore
+from kotaemon.embeddings import OpenAIEmbeddings
+from kotaemon.indices import VectorIndexing
+from kotaemon.llms import ChatOpenAI
+from kotaemon.storages import QdrantVectorStore
 from kotaemon.storages import LanceDBDocumentStore
-from rag_system.kotaemon.libs.pipelineblocks.pipelineblocks.extraction.pdfextractionblock.pdf_to_markdown import \
+from pipelineblocks.extraction.pdfextractionblock.pdf_to_markdown import \
     PdfExtractionToMarkdownBlock
-from rag_system.kotaemon.libs.pipelineblocks.pipelineblocks.llm.ingestionblock.openai import OpenAIMetadatasLLMInference
-from rag_system.pipeline_scripts.persist_taxonomy import get_open_alex_article, persist_article_metadata
-from rag_system.taxonomy.taxonomy.paper_taxonomy import PaperTaxonomy
+from pipelineblocks.llm.ingestionblock.openai import OpenAIMetadatasLLMInference
+from persist_taxonomy import get_open_alex_article, persist_article_metadata, reconcile_metadata
+from taxonomy.paper_taxonomy import PaperTaxonomy
+
 
 PDF_FOLDER = os.getenv("PDF_FOLDER", "./pipeline_scripts/pdf_test/")
-with open("secret.json") as f:
-    config = json.load(f)
-
-api_key = os.getenv("VECTOR_STORE_API", config["api_key"])
+config = {"api_key":"1"}
+api_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3MiOiJtIn0.iffVHUO_-wh8xhUS9C3ydHN5zPdIUjd8tBz715mnvBQ"
 
 # ---- Do not touch (temporary) ------------- #
 
-ollama_host = "172.17.0.1"
-qdrant_host = "https://a0423e9b-e256-44fe-bb62-57a66f613850.eu-central-1-0.aws.cloud.qdrant.io"
-
+ollama_host = "localhost"
+qdrant_host = "116919ed-8e07-47f6-8f24-a22527d5d520.europe-west3-0.gcp.cloud.qdrant.io"
 
 class HistorizedIndexingPipeline(VectorIndexing):
     pdf_extraction_block: PdfExtractionToMarkdownBlock = Param(
@@ -54,11 +52,10 @@ class HistorizedIndexingPipeline(VectorIndexing):
 
     vector_store: QdrantVectorStore = Param(
         lazy(QdrantVectorStore).withx(
-            url=f"http://{qdrant_host}:6333",
+            url=f"https://{qdrant_host}:6333",
             api_key=api_key,
             collection_name="index_1",
-        ),
-        ignore_ui=True,  # usefull ?
+        )
     )
     doc_store: LanceDBDocumentStore = Param(
         lazy(LanceDBDocumentStore).withx(
@@ -89,6 +86,8 @@ class HistorizedIndexingPipeline(VectorIndexing):
         tic = time.time()
         try:
             article_metadata = get_open_alex_article(pdf_path)
+            print("found this one:")
+            print(article_metadata)
             text_md = self.pdf_extraction_block.run(pdf_path, method="group_all")
         except Exception as e:
             print(e)
@@ -96,9 +95,11 @@ class HistorizedIndexingPipeline(VectorIndexing):
             return (False, str(pdf_path))
 
         try:
-            metadatas = self.metadatas_llm_inference_block.run(
+            llm_metadatas = self.metadatas_llm_inference_block.run(
                 text_md, doc_type="entire_doc", inference_type="scientific", openalex_metadata=article_metadata
             )
+            # Reconcile OpenAlex metadata with LLM output
+            metadatas = reconcile_metadata(article_metadata, llm_metadatas)
         except ValidationError as e:
             print("Error happening during the text extraction")
             print(e)
@@ -107,8 +108,10 @@ class HistorizedIndexingPipeline(VectorIndexing):
 
         # Persist metadata to PostgreSQL
         try:
+            print(f"Trying to persist article: {metadatas}")
             persist_article_metadata(metadatas)
         except Exception as e:
+            print(e)
             print("Error happening during the metadata ingestion")
             print(e)
             logfire.error(e)
@@ -120,7 +123,6 @@ class HistorizedIndexingPipeline(VectorIndexing):
         except Exception as e:
             print("Error happening during the vector ingestion")
             print(e)
-            logfire.error(e)
             return (False, str(pdf_path))
         tac = time.time()
 
@@ -137,7 +139,7 @@ def main():
     args = parser.parse_args()
     file_path = args.file_path
     folder_path = Path(file_path).parent
-
+    logfire.notice("starting doc")
     indexing_pipeline = HistorizedIndexingPipeline(pdf_path=folder_path)
     print(f"Parsing document: {file_path}")
 

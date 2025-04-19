@@ -6,16 +6,12 @@
 # If the python program fails (nonzero exit status), the filename is added to a log file.
 
 # activate .bashrc
-source /home/guevel/.bashrc
-
-# activate conda env
-conda activate DfG
 
 # Name of the Python program to be executed. Change it as needed.
-PYTHON_SCRIPT="/home/guevel/projects/RAG/13_democratiser_sobriete/rag_system/pipeline_scripts/test_ingestion_pipeline.py"
+PYTHON_SCRIPT="/home/ec2-user/13_democratiser_sobriete/rag_system/pipeline_scripts/historized_ingestion_pipeline.py"
 
 # Log file for failed Python script invocations.
-FAILED_LOG="/home/guevel/projects/RAG/13_democratiser_sobriete/failed_files.txt"
+FAILED_LOG="/home/ec2-user/13_democratiser_sobriete/failed_files.txt"
 
 # Clear previous failure log (or create an empty file)
 > "$FAILED_LOG"
@@ -23,7 +19,7 @@ FAILED_LOG="/home/guevel/projects/RAG/13_democratiser_sobriete/failed_files.txt"
 pwd
 
 # List of folders to process. Modify these folder names as required.
-FOLDERS=("test_pdf/folder1" "test_pdf/folder2" "test_pdf/folder3" "test_pdf/folder4")
+FOLDERS=("test_pdf/folder1") # "test_pdf/folder2" "test_pdf/folder3" "test_pdf/folder4")
 
 # Function to process all files in a given folder.
 process_folder() {
