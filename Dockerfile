@@ -71,14 +71,14 @@ RUN apt-get update -qqy && \
 
 # Install torch and torchvision for unstructured
 RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+RUN pip install psycopg2-binary logfire
 
 # Install additional pip packages
 RUN pip install -e "libs/kotaemon[adv]" \
     && pip install unstructured[all-docs]
 
 # Install lightRAG
-ENV USE_LIGHTRAG=true
-RUN pip install aioboto3 nano-vectordb ollama xxhash "lightrag-hku<=0.0.8"
+ENV USE_LIGHTRAG=false
 
 RUN pip install "docling<=2.5.2"
 

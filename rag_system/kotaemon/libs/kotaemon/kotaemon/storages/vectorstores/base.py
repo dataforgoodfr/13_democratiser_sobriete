@@ -90,6 +90,8 @@ class LlamaIndexVectorStore(BaseVectorStore):
             LIClass = self._li_class
 
         from dataclasses import fields
+        print(f"Args: {args}")
+        print(f"Kwrgs: {kwargs}")
 
         self._client = LIClass(*args, **kwargs)
 
