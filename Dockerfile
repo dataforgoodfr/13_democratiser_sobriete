@@ -28,6 +28,7 @@ ENV TARGETARCH=${TARGETARCH}
 WORKDIR /app
 
 # Download pdfjs
+RUN ls
 COPY rag_system/kotaemon/scripts/download_pdfjs.sh /app/scripts/download_pdfjs.sh
 RUN chmod +x /app/scripts/download_pdfjs.sh
 ENV PDFJS_PREBUILT_DIR="/app/libs/ktem/ktem/assets/prebuilt/pdfjs-dist"
