@@ -72,7 +72,7 @@ KH_FEATURE_CHAT_SUGGESTION = config(
     "KH_FEATURE_CHAT_SUGGESTION", default=False, cast=bool
 )
 KH_FEATURE_USER_MANAGEMENT = config(
-    "KH_FEATURE_USER_MANAGEMENT", default=True, cast=bool
+    "KH_FEATURE_USER_MANAGEMENT", default=False, cast=bool
 )
 KH_USER_CAN_SEE_PUBLIC = None
 KH_FEATURE_USER_MANAGEMENT_ADMIN = str(
@@ -82,9 +82,8 @@ KH_FEATURE_USER_MANAGEMENT_PASSWORD = str(
     config("KH_FEATURE_USER_MANAGEMENT_PASSWORD", default="admin")
 )
 KH_ENABLE_ALEMBIC = False
-KH_DATABASE = f"sqlite:///{KH_USER_DATA_DIR / 'sql.db'}"
+KH_DATABASE = os.getenv("POSTGRESQL_ADDON_URI", None)# f"sqlite:///{KH_USER_DATA_DIR / 'sql.db'}"
 # KH_DATABASE = "postgresql://postgres:my_pass@postgres-db:5432/my_db"
-
 KH_FILESTORAGE_PATH = str(KH_USER_DATA_DIR / "files")
 
 KH_USE_CLOUD_FILESTORAGE = False
