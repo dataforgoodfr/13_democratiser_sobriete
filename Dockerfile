@@ -35,9 +35,9 @@ ENV PDFJS_PREBUILT_DIR="/app/libs/ktem/ktem/assets/prebuilt/pdfjs-dist"
 RUN bash /app/scripts/download_pdfjs.sh $PDFJS_PREBUILT_DIR
 
 # Copy contents
-COPY clever /app
-COPY launch.sh /app/launch.sh
-COPY .env.example /app/.env
+COPY rag_system /app
+COPY rag_system/kotaemon/launch.sh /app/launch.sh
+COPY rag_system/.env.example /app/.env
 
 # Install pip packages
 RUN --mount=type=ssh  \
