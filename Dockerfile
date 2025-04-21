@@ -29,10 +29,10 @@ WORKDIR /app
 
 # Download pdfjs
 RUN ls
-ADD rag_system/kotaemon/scripts/download_pdfjs.sh /app/scripts/download_pdfjs.sh
+ADD ../rag_system/kotaemon/scripts/download_pdfjs.sh /app/scripts/download_pdfjs.sh
 RUN chmod +x /app/scripts/download_pdfjs.sh
 ENV PDFJS_PREBUILT_DIR="/app/libs/ktem/ktem/assets/prebuilt/pdfjs-dist"
-RUN bash rag_system/kotaemon/scripts/download_pdfjs.sh $PDFJS_PREBUILT_DIR
+RUN bash /app/scripts/download_pdfjs.sh $PDFJS_PREBUILT_DIR
 
 # Copy contents
 COPY clever /app
