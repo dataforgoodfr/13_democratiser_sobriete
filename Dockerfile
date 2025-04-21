@@ -39,6 +39,8 @@ COPY rag_system /app
 COPY rag_system/kotaemon/launch.sh /app/launch.sh
 COPY rag_system/kotaemon/.env.example /app/.env
 
+WORKDIR /app/kotaemon
+
 # Install pip packages
 RUN pip install -e "libs/kotaemon" \
     && pip install -e "libs/ktem" \
@@ -68,25 +70,17 @@ RUN apt-get update -qqy && \
         libmagic-dev
 
 # Install torch and torchvision for unstructured
-RUN --mount=type=ssh  \
-    --mount=type=cache,target=/root/.cache/pip  \
-    pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
 
 # Install additional pip packages
-RUN --mount=type=ssh  \
-    --mount=type=cache,target=/root/.cache/pip  \
-    pip install -e "libs/kotaemon[adv]" \
+RUN pip install -e "libs/kotaemon[adv]" \
     && pip install unstructured[all-docs]
 
 # Install lightRAG
 ENV USE_LIGHTRAG=true
-RUN --mount=type=ssh  \
-    --mount=type=cache,target=/root/.cache/pip  \
-    pip install aioboto3 nano-vectordb ollama xxhash "lightrag-hku<=0.0.8"
+RUN pip install aioboto3 nano-vectordb ollama xxhash "lightrag-hku<=0.0.8"
 
-RUN --mount=type=ssh  \
-    --mount=type=cache,target=/root/.cache/pip  \
-    pip install "docling<=2.5.2"
+RUN pip install "docling<=2.5.2"
 
 # Clean up
 RUN apt-get autoremove \
