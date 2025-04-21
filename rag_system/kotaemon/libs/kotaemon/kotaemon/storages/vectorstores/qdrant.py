@@ -31,7 +31,7 @@ class QdrantVectorStore(LlamaIndexVectorStore):
         **kwargs: Any,
     ):
         self._collection_name = collection_name
-        self._url = url
+        self._url = VECTORSTORE_URL
         self._api_key = default_api_key
         self._client_kwargs = client_kwargs
         self._kwargs = kwargs
@@ -39,8 +39,8 @@ class QdrantVectorStore(LlamaIndexVectorStore):
 
         super().__init__(
             collection_name=collection_name,
-            url=url,
-            api_key=api_key,
+            url=VECTORSTORE_URL,
+            api_key=default_api_key,
             client_kwargs=client_kwargs,
             **kwargs,
         )
