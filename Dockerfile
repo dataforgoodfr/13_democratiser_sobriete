@@ -34,7 +34,7 @@ ENV PDFJS_PREBUILT_DIR="/app/libs/ktem/ktem/assets/prebuilt/pdfjs-dist"
 RUN bash rag_system/kotaemon/scripts/download_pdfjs.sh $PDFJS_PREBUILT_DIR
 
 # Copy contents
-COPY . /app
+COPY clever /app
 COPY launch.sh /app/launch.sh
 COPY .env.example /app/.env
 
