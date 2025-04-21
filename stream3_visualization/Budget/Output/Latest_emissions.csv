@@ -1,401 +1,402 @@
-country,CO2_emissions_latest (m tons),latest_year,population_2050,scope
-Aruba,"0,530026098",2023,   100,Territory_based
-Afghanistan,"8,70734983",2023,  76 885,Territory_based
-Angola,"28,22992761",2023,  74 295,Territory_based
-Anguilla,"0,022955546",2023,   15,Territory_based
-Albania,"4,591827764",2023,  2 240,Territory_based
-Curaçao,"2,434138439",2023,   173,Territory_based
-United Arab Emirates,"205,9913033",2023,,Territory_based
-Argentina,"183,7784214",2023,  48 309,Territory_based
-Armenia,"7,725144396",2023,  2 495,Territory_based
-Antigua and Barbuda,"0,323105618",2023,   95,Territory_based
-Australia,"373,6164239",2023,  32 507,Territory_based
-Austria,"58,81513302",2023,  8 724,Territory_based
-Azerbaijan,"42,76620028",2023,  11 225,Territory_based
-Burundi,"0,844333219",2023,  24 132,Territory_based
-Belgium,"84,30606458",2023,  11 871,Territory_based
-Benin,"6,437895655",2023,  24 434,Territory_based
-Burkina Faso,"5,999250483",2023,  37 304,Territory_based
-Bangladesh,"124,7933633",2023,  214 709,Territory_based
-Bulgaria,"39,79256593",2023,  5 402,Territory_based
-Bahrain,"37,42557341",2023,  2 139,Territory_based
-Bahamas,"1,683711665",2023,   424,Territory_based
-Bosnia and Herzegovina,"21,99674836",2023,  2 455,Territory_based
-Belarus,"54,17566063",2023,  7 454,Territory_based
-Belize,"0,278450504",2023,   517,Territory_based
-Bermuda,"0,35051886",2023,   57,Territory_based
-Bolivia,"23,80693239",2023,  16 110,Territory_based
-Brazil,"479,5042293",2023,  217 489,Territory_based
-Barbados,"0,796212945",2023,   264,Territory_based
-Brunei,"9,716060497",2023,   520,Territory_based
-Bhutan,"1,986674423",2023,   882,Territory_based
-Botswana,"7,424698218",2023,  3 437,Territory_based
-Central African Republic,"0,368377593",2023,  10 617,Territory_based
-Canada,"575,0119627",2023,  45 622,Territory_based
-Switzerland and Liechtenstein,"34,22171286",2023,  9 343,Territory_based
-Chile,"83,99923167",2023,  20 320,Territory_based
-China,"13259,63895",2023, 1 260 289,Territory_based
-Côte dIvoire,"14,41245478",2023,  55 747,Territory_based
-Cameroon,"10,75563149",2023,  51 096,Territory_based
-Democratic Republic of the Congo,"3,799541205",2023,  218 246,Territory_based
-Congo,"7,250789807",2023,  11 006,Territory_based
-Cook Islands,"0,142210829",2023,   9,Territory_based
-Colombia,"100,8627109",2023,  59 385,Territory_based
-Comoros,"0,317695012",2023,  1 308,Territory_based
-Cabo Verde,"1,006330128",2023,   566,Territory_based
-Costa Rica,"8,573344504",2023,  5 354,Territory_based
-Cuba,"22,06698748",2023,  9 382,Territory_based
-Cayman Islands,"0,358014712",2023,   104,Territory_based
-Cyprus,"7,183299498",2023,  1 508,Territory_based
-Czechia,"90,51280348",2023,  9 826,Territory_based
-Germany,"582,9505817",2023,  78 295,Territory_based
-Djibouti,"0,749204256",2023,  1 531,Territory_based
-Dominica,"0,079854811",2023,   63,Territory_based
-Denmark,"26,77291179",2023,  6 125,Territory_based
-Dominican Republic,"31,3508129",2023,  12 996,Territory_based
-Algeria,"180,3576499",2023,  59 566,Territory_based
-Ecuador,"45,3281604",2023,  21 337,Territory_based
-Egypt,"249,3318513",2023,  161 630,Territory_based
-Eritrea,"0,668500259",2023,  5 696,Territory_based
-Western Sahara,"0,264759859",2023,   777,Territory_based
-Spain and Andorra,"217,2617218",2023,  44 929,Territory_based
-Estonia,"11,43636893",2023,  1 174,Territory_based
-Ethiopia,"16,7076921",2023,  225 022,Territory_based
-Finland,"32,26887724",2023,  5 352,Territory_based
-Fiji,"2,210537892",2023,  1 000,Territory_based
-Falkland Islands,"0,01945408",2023,   3,Territory_based
-France and Monaco,"282,4274667",2023,   37,Territory_based
-Faroes,"0,002103472",2023,   63,Territory_based
-Gabon,"4,926896005",2023,  4 085,Territory_based
-United Kingdom,"302,1032807",2023,,Territory_based
-Georgia,"12,8635951",2023,  3 664,Territory_based
-Ghana,"24,16378619",2023,  50 553,Territory_based
-Gibraltar,"0,688587903",2023,   50,Territory_based
-Guinea,"3,715383288",2023,  23 405,Territory_based
-Guadeloupe,"1,167141168",2023,   326,Territory_based
-The Gambia,"0,60583061",2023,  4 302,Territory_based
-Guinea-Bissau,"0,346017421",2023,  3 439,Territory_based
-Equatorial Guinea,"3,776752854",2023,  3 144,Territory_based
-Greece,"51,67400117",2023,  8 812,Territory_based
-Grenada,"0,142698104",2023,   113,Territory_based
-Greenland,"0,582223982",2023,   50,Territory_based
-Guatemala,"21,34940527",2023,  24 671,Territory_based
-French Guiana,"0,381634202",2023,   472,Territory_based
-Guyana,"3,304156195",2023,   941,Territory_based
-Hong Kong,"34,67284259",2023,  6 091,Territory_based
-Honduras,"10,94576269",2023,  14 847,Territory_based
-Croatia,"17,45650159",2023,  3 234,Territory_based
-Haiti,"3,536478127",2023,  14 711,Territory_based
-Hungary,"43,82523189",2023,  8 725,Territory_based
-Indonesia,"674,5359386",2023,  320 713,Territory_based
-India,"2955,181684",2023, 1 679 589,Territory_based
-Ireland,"32,4825757",2023,  5 970,Territory_based
-Iran,"778,8022987",2023,  101 862,Territory_based
-Iraq,"192,9082428",2023,  71 929,Territory_based
-Iceland,"3,086232416",2023,   433,Territory_based
-"Israel and Palestine, State of","61,25498856",2023,  8 452,Territory_based
-"Italy, San Marino and the Holy See","305,4901807",2023,   34,Territory_based
-Jamaica,"6,864732681",2023,  2 455,Territory_based
-Jordan,"23,57898146",2023,  16 367,Territory_based
-Japan,"944,7586103",2023,  105 123,Territory_based
-Kazakhstan,"239,8671134",2023,  26 544,Territory_based
-Kenya,"21,7336726",2023,  83 593,Territory_based
-Kyrgyzstan,"10,46398685",2023,  9 643,Territory_based
-Cambodia,"17,97008245",2023,  21 931,Territory_based
-Kiribati,"0,097443556",2023,   183,Territory_based
-Saint Kitts and Nevis,"0,118782358",2023,   44,Territory_based
-South Korea,"573,5356594",2023,  45 143,Territory_based
-Kuwait,"111,633539",2023,  6 368,Territory_based
-Laos,"26,02083544",2023,  9 757,Territory_based
-Lebanon,"17,33205484",2023,  6 999,Territory_based
-Liberia,"1,636886782",2023,  8 911,Territory_based
-Libya,"61,25859526",2023,  9 261,Territory_based
-Saint Lucia,"0,296559408",2023,   172,Territory_based
-Sri Lanka,"20,51799691",2023,  24 814,Territory_based
-Lesotho,"0,878312664",2023,  2 993,Territory_based
-Lithuania,"13,11462075",2023,  2 259,Territory_based
-Luxembourg,"7,007462613",2023,   791,Territory_based
-Latvia,"6,551100159",2023,  1 514,Territory_based
-Macao,"3,012355265",2023,   669,Territory_based
-Morocco,"69,858022",2023,  43 440,Territory_based
-Moldova,"9,928220045",2023,  2 352,Territory_based
-Madagascar,"4,099124436",2023,  53 185,Territory_based
-Maldives,"2,876314087",2023,   590,Territory_based
-Mexico,"487,0939365",2023,  148 946,Territory_based
-North Macedonia,"8,763655053",2023,  1 513,Territory_based
-Mali,"6,66068125",2023,  46 154,Territory_based
-Malta,"1,684619297",2023,   536,Territory_based
-Myanmar/Burma,"33,36836845",2023,  58 623,Territory_based
-Mongolia,"28,11711833",2023,  4 501,Territory_based
-Mozambique,"9,740080311",2023,  63 531,Territory_based
-Mauritania,"4,650269249",2023,  9 416,Territory_based
-Martinique,"1,091369448",2023,   282,Territory_based
-Mauritius,"4,213585393",2023,  1 107,Territory_based
-Malawi,"6,447680153",2023,  37 362,Territory_based
-Malaysia,"283,3235299",2023,  44 290,Territory_based
-Namibia,"4,36458915",2023,  4 512,Territory_based
-New Caledonia,"6,20856473",2023,   341,Territory_based
-Niger,"2,822852029",2023,  52 514,Territory_based
-Nigeria,"127,9417257",2023,  359 186,Territory_based
-Nicaragua,"5,725285354",2023,  8 756,Territory_based
-Netherlands,"122,87205",2023,  18 958,Territory_based
-Norway,"44,06520457",2023,  5 900,Territory_based
-Nepal,"17,93377724",2023,  34 642,Territory_based
-New Zealand,"35,79508597",2023,  5 755,Territory_based
-Oman,"93,09418839",2023,  7 827,Territory_based
-Pakistan,"200,5101298",2023,  371 864,Territory_based
-Panama,"14,72052763",2023,  5 631,Territory_based
-Peru,"58,40336278",2023,  40 584,Territory_based
-Philippines,"161,2883425",2023,  134 373,Territory_based
-Palau,"1,439590374",2023,   16,Territory_based
-Papua New Guinea,"5,951817103",2023,  14 907,Territory_based
-Poland,"286,9067825",2023,  32 814,Territory_based
-Puerto Rico,"13,81529408",2023,  2 504,Territory_based
-North Korea,"64,27451018",2023,  25 787,Territory_based
-Portugal,"36,17134971",2023,  9 770,Territory_based
-Paraguay,"8,25393827",2023,  8 640,Territory_based
-French Polynesia,"1,258990011",2023,   285,Territory_based
-Qatar,"127,9078898",2023,  4 164,Territory_based
-Réunion,"2,570714629",2023,   941,Territory_based
-Romania,"70,77330856",2023,  16 027,Territory_based
-Russia,"2069,50201",2023,  136 133,Territory_based
-Rwanda,"1,645966567",2023,  22 708,Territory_based
-Saudi Arabia,"622,9136005",2023,  47 694,Territory_based
-Serbia and Montenegro,"56,12092365",2023,  5 533,Territory_based
-Sudan and South Sudan,"21,27330623",2023,  85 206,Territory_based
-Senegal,"12,02393894",2023,  30 365,Territory_based
-Singapore,"57,06833124",2023,  6 082,Territory_based
-"Saint Helena, Ascension and Tristan da Cunha","0,017771061",2023,,Territory_based
-Solomon Islands,"0,418847248",2023,  1 309,Territory_based
-Sierra Leone,"1,074937963",2023,  12 948,Territory_based
-El Salvador,"8,379618575",2023,  6 663,Territory_based
-Somalia,"0,86815344",2023,  37 207,Territory_based
-Saint Pierre and Miquelon,"0,040105593",2023,   4,Territory_based
-São Tomé and Príncipe,"0,214079616",2023,,Territory_based
-Suriname,"2,62856188",2023,   734,Territory_based
-Slovakia,"34,86157005",2023,  4 936,Territory_based
-Slovenia,"12,07646104",2023,  1 982,Territory_based
-Sweden,"35,39216972",2023,  11 310,Territory_based
-Eswatini,"1,390163801",2023,  1 505,Territory_based
-Seychelles,"1,237262978",2023,   142,Territory_based
-Syria,"25,59486098",2023,  37 793,Territory_based
-Turks and Caicos Islands,"0,103098647",2023,   51,Territory_based
-Chad,"2,571408074",2023,  38 858,Territory_based
-Togo,"2,492578392",2023,  15 585,Territory_based
-Thailand,"274,1600465",2023,  66 383,Territory_based
-Tajikistan,"9,308194605",2023,  15 575,Territory_based
-Turkmenistan,"65,98768402",2023,  9 640,Territory_based
-Timor-Leste,"0,702889741",2023,  1 889,Territory_based
-Tonga,"0,219995944",2023,   105,Territory_based
-Trinidad and Tobago,"27,21617986",2023,  1 400,Territory_based
-Tunisia,"31,49745771",2023,  13 145,Territory_based
-Türkiye,"438,3155644",2023,  91 258,Territory_based
-Taiwan,"279,8473458",2023,  19 435,Territory_based
-Tanzania,"19,37346161",2023,  129 621,Territory_based
-Uganda,"7,217406803",2023,  85 431,Territory_based
-Ukraine,"136,197947",2023,  31 990,Territory_based
-Uruguay,"8,817278757",2023,  3 254,Territory_based
-United States,"4682,039414",2023,,Territory_based
-Uzbekistan,"137,9001132",2023,  52 211,Territory_based
-Saint Vincent and the Grenadines,"0,096285319",2023,   89,Territory_based
-Venezuela,"84,59529148",2023,  31 095,Territory_based
-British Virgin Islands,"0,075289179",2023,   40,Territory_based
-Viet Nam,"372,9485199",2023,  110 009,Territory_based
-Vanuatu,"0,287301314",2023,   534,Territory_based
-Samoa,"0,46844804",2023,   273,Territory_based
-Yemen,"10,89883896",2023,  70 976,Territory_based
-South Africa,"397,3729581",2023,  79 177,Territory_based
-Zambia,"8,058979391",2023,  38 083,Territory_based
-Zimbabwe,"11,74405128",2023,  25 866,Territory_based
-,,2023,,Territory_based
-,,2023,,Territory_based
-Afghanistan,36292.91,2022,  76 885,Consumption_based
-Albania,10698.17,2022,  2 240,Consumption_based
-Algeria,229253.3,2022,  59 566,Consumption_based
-Andorra,705.2279,2022,   82,Consumption_based
-Angola,63064.19,2022,  74 295,Consumption_based
-Antigua,772.8832,2022,   95,Consumption_based
-Argentina,329729.3,2022,  48 309,Consumption_based
-Armenia,13768.86,2022,  2 495,Consumption_based
-Aruba,857.0806,2022,   100,Consumption_based
-Australia,516071.0,2022,  32 507,Consumption_based
-Austria,104601.1,2022,  8 724,Consumption_based
-Azerbaijan,61162.01,2022,  11 225,Consumption_based
-Bahamas,3216.727,2022,   424,Consumption_based
-Bahrain,29841.91,2022,  2 139,Consumption_based
-Bangladesh,198236.6,2022,  214 709,Consumption_based
-Barbados,4262.979,2022,   264,Consumption_based
-Belarus,37690.15,2022,  7 454,Consumption_based
-Belgium,135353.9,2022,  11 871,Consumption_based
-Belize,1471.538,2022,   517,Consumption_based
-Benin,17134.1,2022,  24 434,Consumption_based
-Bermuda,0.0,2022,   57,Consumption_based
-Bhutan,3675.114,2022,   882,Consumption_based
-Bolivia,94635.2,2022,  16 110,Consumption_based
-Bosnia and Herzegovina,26348.88,2022,  2 455,Consumption_based
-Botswana,18269.59,2022,  3 437,Consumption_based
-Brazil,1077661.0,2022,  217 489,Consumption_based
-British Virgin Islands,277.6416,2022,   40,Consumption_based
-Brunei,9005.421,2022,   520,Consumption_based
-Bulgaria,57151.65,2022,  5 402,Consumption_based
-Burkina Faso,29784.11,2022,  37 304,Consumption_based
-Burundi,4499.215,2022,  24 132,Consumption_based
-Cambodia,40781.46,2022,  21 931,Consumption_based
-Cameroon,38305.13,2022,  51 096,Consumption_based
-Canada,672777.7,2022,  45 622,Consumption_based
-Cape Verde,1088.799,2022,,Consumption_based
-Cayman Islands,0.0,2022,   104,Consumption_based
-Central African Republic,9325.62,2022,  10 617,Consumption_based
-Chad,49863.27,2022,  38 858,Consumption_based
-Chile,120286.4,2022,  20 320,Consumption_based
-China,12046220.0,2022, 1 260 289,Consumption_based
-Colombia,192732.1,2022,  59 385,Consumption_based
-Congo,20378.65,2022,  11 006,Consumption_based
-Costa Rica,20150.67,2022,  5 354,Consumption_based
-Croatia,23315.05,2022,  3 234,Consumption_based
-Cuba,41996.76,2022,  9 382,Consumption_based
-Cyprus,10445.42,2022,  1 508,Consumption_based
-Czech Republic,72750.83,2022,  9 826,Consumption_based
-Cote dIvoire,33695.89,2022,,Consumption_based
-North Korea,57842.75,2022,  25 787,Consumption_based
-DR Congo,84769.86,2022,,Consumption_based
-Denmark,60056.71,2022,  6 125,Consumption_based
-Djibouti,1718.966,2022,  1 531,Consumption_based
-Dominican Republic,36865.21,2022,  12 996,Consumption_based
-Ecuador,64940.59,2022,  21 337,Consumption_based
-Egypt,359369.9,2022,  161 630,Consumption_based
-El Salvador,15276.58,2022,  6 663,Consumption_based
-Eritrea,6147.011,2022,  5 696,Consumption_based
-Estonia,12380.8,2022,  1 174,Consumption_based
-Ethiopia,15463.53,2022,  225 022,Consumption_based
-Fiji,3433.959,2022,  1 000,Consumption_based
-Finland,64984.9,2022,  5 352,Consumption_based
-France,561805.7,2022,  68 220,Consumption_based
-French Polynesia,0.0,2022,   285,Consumption_based
-Gabon,14309.98,2022,  4 085,Consumption_based
-Gambia,2508.158,2022,  4 302,Consumption_based
-Georgia,17821.2,2022,  3 664,Consumption_based
-Germany,872121.0,2022,  78 295,Consumption_based
-Ghana,54335.66,2022,  50 553,Consumption_based
-Greece,83419.89,2022,  8 812,Consumption_based
-Greenland,0.0,2022,   50,Consumption_based
-Guatemala,40880.83,2022,  24 671,Consumption_based
-Guinea,25793.36,2022,  23 405,Consumption_based
-Guyana,3330.323,2022,   941,Consumption_based
-Haiti,14318.72,2022,  14 711,Consumption_based
-Honduras,16618.26,2022,  14 847,Consumption_based
-Hong Kong,199647.2,2022,  6 091,Consumption_based
-Hungary,60087.14,2022,  8 725,Consumption_based
-Iceland,6905.605,2022,   433,Consumption_based
-India,2949414.0,2022, 1 679 589,Consumption_based
-Indonesia,847164.2,2022,  320 713,Consumption_based
-Iran,817650.5,2022,  101 862,Consumption_based
-Iraq,404602.7,2022,  71 929,Consumption_based
-Ireland,58805.73,2022,  5 970,Consumption_based
-Israel,96335.76,2022,  13 093,Consumption_based
-Italy,480372.4,2022,  51 891,Consumption_based
-Jamaica,12769.53,2022,  2 455,Consumption_based
-Japan,1258371.0,2022,  105 123,Consumption_based
-Jordan,33455.01,2022,  16 367,Consumption_based
-Kazakhstan,260460.4,2022,  26 544,Consumption_based
-Kenya,79741.14,2022,  83 593,Consumption_based
-Kuwait,120129.0,2022,  6 368,Consumption_based
-Kyrgyzstan,24121.1,2022,  9 643,Consumption_based
-Laos,35383.11,2022,  9 757,Consumption_based
-Latvia,16481.73,2022,  1 514,Consumption_based
-Lebanon,35637.68,2022,  6 999,Consumption_based
-Lesotho,4251.056,2022,  2 993,Consumption_based
-Liberia,4860.882,2022,  8 911,Consumption_based
-Libya,56034.2,2022,  9 261,Consumption_based
-Liechtenstein,1370.673,2022,   43,Consumption_based
-Lithuania,26374.68,2022,  2 259,Consumption_based
-Luxembourg,8842.451,2022,   791,Consumption_based
-Macao SAR,7363.263,2022,,Consumption_based
-Madagascar,31880.92,2022,  53 185,Consumption_based
-Malawi,16420.0,2022,  37 362,Consumption_based
-Malaysia,233196.8,2022,  44 290,Consumption_based
-Maldives,2901.473,2022,   590,Consumption_based
-Mali,73555.06,2022,  46 154,Consumption_based
-Malta,2956.266,2022,   536,Consumption_based
-Mauritania,8741.203,2022,  9 416,Consumption_based
-Mauritius,9153.498,2022,  1 107,Consumption_based
-Mexico,597805.2,2022,  148 946,Consumption_based
-Monaco,1083.42,2022,   37,Consumption_based
-Mongolia,44709.31,2022,  4 501,Consumption_based
-Montenegro,4889.849,2022,   533,Consumption_based
-Morocco,84545.53,2022,  43 440,Consumption_based
-Mozambique,46508.52,2022,  63 531,Consumption_based
-Myanmar,76010.56,2022,  58 623,Consumption_based
-Namibia,15530.63,2022,  4 512,Consumption_based
-Nepal,51712.83,2022,  34 642,Consumption_based
-Netherlands,199746.4,2022,  18 958,Consumption_based
-Netherlands Antilles,6975.561,2022,,Consumption_based
-New Caledonia,0.0,2022,   341,Consumption_based
-New Zealand,79711.4,2022,  5 755,Consumption_based
-Nicaragua,16316.99,2022,  8 756,Consumption_based
-Niger,34387.07,2022,  52 514,Consumption_based
-Nigeria,449830.9,2022,  359 186,Consumption_based
-Norway,76820.43,2022,  5 900,Consumption_based
-Gaza Strip,0.0,2022,,Consumption_based
-Oman,65195.86,2022,  7 827,Consumption_based
-Pakistan,578930.3,2022,  371 864,Consumption_based
-Panama,21225.02,2022,  5 631,Consumption_based
-Papua New Guinea,17173.62,2022,  14 907,Consumption_based
-Paraguay,29969.62,2022,  8 640,Consumption_based
-Peru,99162.15,2022,  40 584,Consumption_based
-Philippines,260867.8,2022,  134 373,Consumption_based
-Poland,340396.5,2022,  32 814,Consumption_based
-Portugal,63023.08,2022,  9 770,Consumption_based
-Qatar,162333.7,2022,  4 164,Consumption_based
-South Korea,653858.2,2022,  45 143,Consumption_based
-Moldova,4721.352,2022,  2 352,Consumption_based
-Romania,116804.6,2022,  16 027,Consumption_based
-Russia,1610535.0,2022,  136 133,Consumption_based
-Rwanda,8712.675,2022,  22 708,Consumption_based
-Samoa,692.5006,2022,   273,Consumption_based
-San Marino,566.147,2022,   34,Consumption_based
-Sao Tome and Principe,299.8609,2022,   365,Consumption_based
-Saudi Arabia,703825.6,2022,  47 694,Consumption_based
-Senegal,28294.28,2022,  30 365,Consumption_based
-Serbia,73734.61,2022,  5 533,Consumption_based
-Seychelles,997.1907,2022,   142,Consumption_based
-Sierra Leone,7612.386,2022,  12 948,Consumption_based
-Singapore,98391.44,2022,  6 082,Consumption_based
-Slovakia,47498.21,2022,  4 936,Consumption_based
-Slovenia,16400.35,2022,  1 982,Consumption_based
-Somalia,27542.13,2022,  37 207,Consumption_based
-South Africa,442396.3,2022,  79 177,Consumption_based
-South Sudan,0.0,2022,  18 342,Consumption_based
-Spain,347020.3,2022,  44 929,Consumption_based
-Sri Lanka,52344.35,2022,  24 814,Consumption_based
-Sudan,0.0,2022,  85 206,Consumption_based
-Suriname,3667.079,2022,   734,Consumption_based
-Swaziland,4368.806,2022,,Consumption_based
-Sweden,98719.11,2022,  11 310,Consumption_based
-Switzerland,98659.93,2022,  9 343,Consumption_based
-Syria,38037.59,2022,  37 793,Consumption_based
-Taiwan,149466.9,2022,  19 435,Consumption_based
-Tajikistan,16769.8,2022,  15 575,Consumption_based
-Thailand,283279.7,2022,  66 383,Consumption_based
-TFYR Macedonia,10734.94,2022,,Consumption_based
-Togo,13545.84,2022,  15 585,Consumption_based
-Trinidad and Tobago,32595.66,2022,  1 400,Consumption_based
-Tunisia,31104.63,2022,  13 145,Consumption_based
-Turkey,485273.8,2022,  91 258,Consumption_based
-Turkmenistan,101667.7,2022,  9 640,Consumption_based
-Former USSR,0.0,2022,,Consumption_based
-Uganda,50108.1,2022,  85 431,Consumption_based
-Ukraine,252120.4,2022,  31 990,Consumption_based
-UAE,186356.7,2022,,Consumption_based
-UK,610279.1,2022,,Consumption_based
-Tanzania,98392.77,2022,  129 621,Consumption_based
-USA,6698194.0,2022,,Consumption_based
-Uruguay,31574.55,2022,  3 254,Consumption_based
-Uzbekistan,165700.9,2022,  52 211,Consumption_based
-Vanuatu,571.2391,2022,   534,Consumption_based
-Venezuela,146253.4,2022,  31 095,Consumption_based
-Viet Nam,237387.7,2022,  110 009,Consumption_based
-Yemen,45342.53,2022,  70 976,Consumption_based
-Zambia,39168.51,2022,  38 083,Consumption_based
-Zimbabwe,22446.73,2022,  25 866,Consumption_based
-Rest of World,0.0,2022,,Consumption_based
+Country,CO2_emissions_latest (m tons),latest_year,scope,population_2050
+Aruba,0.53002609768256,2023,Territory_based,100002.0
+Afghanistan,8.7073498301747,2023,Territory_based,76885134.0
+Angola,28.22992761042,2023,Territory_based,74295394.0
+Anguilla,0.022955546062361,2023,Territory_based,14552.0
+International Aviation,491.63230758991,2023,Territory_based,
+Albania,4.5918277637801,2023,Territory_based,2240166.0
+Curaçao,2.4341384394063,2023,Territory_based,173498.0
+United Arab Emirates,205.99130334549,2023,Territory_based,15367392.0
+Argentina,183.77842144867,2023,Territory_based,48308943.0
+Armenia,7.72514439587,2023,Territory_based,2495207.0
+Antigua and Barbuda,0.3231056182908,2023,Territory_based,95055.0
+Australia,373.61642391254,2023,Territory_based,32506969.0
+Austria,58.815133022582,2023,Territory_based,8724332.0
+Azerbaijan,42.766200275578,2023,Territory_based,11224923.0
+Burundi,0.84433321868893,2023,Territory_based,24131720.0
+Belgium,84.306064583375,2023,Territory_based,11870906.0
+Benin,6.4378956551819,2023,Territory_based,24433809.0
+Burkina Faso,5.999250483388,2023,Territory_based,37304383.0
+Bangladesh,124.79336325846,2023,Territory_based,214709096.0
+Bulgaria,39.792565934736,2023,Territory_based,5402217.0
+Bahrain,37.425573412319,2023,Territory_based,2139464.0
+Bahamas,1.683711665168,2023,Territory_based,424265.0
+Bosnia and Herzegovina,21.996748355892,2023,Territory_based,2455167.0
+Belarus,54.175660632015,2023,Territory_based,7453546.0
+Belize,0.27845050442689,2023,Territory_based,516626.99999999994
+Bermuda,0.35051886016647,2023,Territory_based,56937.0
+Bolivia,23.806932390023,2023,Territory_based,16110162.0
+Brazil,479.50422928099,2023,Territory_based,217489300.0
+Barbados,0.79621294450306,2023,Territory_based,264216.0
+Brunei,9.7160604974166,2023,Territory_based,519551.00000000006
+Bhutan,1.9866744232507,2023,Territory_based,882340.0
+Botswana,7.4246982184685,2023,Territory_based,3437430.0
+Central African Republic,0.36837759335892,2023,Territory_based,10616752.0
+Canada,575.01196267493,2023,Territory_based,45621882.0
+Switzerland and Liechtenstein,34.221712860142,2023,Territory_based,
+Chile,83.99923167218,2023,Territory_based,20320306.0
+China,13259.63895393,2023,Territory_based,1260289093.0
+Côte d’Ivoire,14.412454776434,2023,Territory_based,
+Cameroon,10.755631491674,2023,Territory_based,51096317.0
+Democratic Republic of the Congo,3.7995412049982,2023,Territory_based,218246072.0
+Republic of the Congo,7.2507898067656,2023,Territory_based,11006472.0
+Cook Islands,0.14221082889915,2023,Territory_based,9337.0
+Colombia,100.86271085053,2023,Territory_based,59385356.0
+Comoros,0.31769501237752,2023,Territory_based,1307558.0
+Cabo Verde,1.0063301278417,2023,Territory_based,566134.0
+Costa Rica,8.5733445038455,2023,Territory_based,5354150.0
+Cuba,22.066987478184,2023,Territory_based,9382000.0
+Cayman Islands,0.35801471165214,2023,Territory_based,103958.0
+Cyprus,7.1832994975364,2023,Territory_based,1508481.0
+Czechia,90.512803480444,2023,Territory_based,9825544.0
+Germany,582.95058168258,2023,Territory_based,78294613.0
+Djibouti,0.74920425642374,2023,Territory_based,1530539.0
+Dominica,0.079854810805645,2023,Territory_based,63192.0
+Denmark,26.772911793662,2023,Territory_based,6124838.0
+Dominican Republic,31.350812904636,2023,Territory_based,12996293.0
+Algeria,180.35764986611,2023,Territory_based,59565554.0
+Ecuador,45.328160395035,2023,Territory_based,21337238.0
+Egypt,249.3318512538,2023,Territory_based,161630192.0
+Eritrea,0.66850025948463,2023,Territory_based,5696062.0
+Western Sahara,0.26475985928677,2023,Territory_based,777315.0
+Spain,217.26172181713,2023,Territory_based,45010753.0
+Estonia,11.436368931381,2023,Territory_based,1174267.0
+Ethiopia,16.70769210373,2023,Territory_based,225021874.0
+Finland,32.268877244114,2023,Territory_based,5351645.0
+Fiji,2.2105378920176,2023,Territory_based,1000261.0
+Falkland Islands,0.019454080204043,2023,Territory_based,
+France,282.42746665015,2023,Territory_based,68256432.0
+Faroes,0.0021034724281268,2023,Territory_based,
+Gabon,4.9268960049608,2023,Territory_based,4084533.0
+United Kingdom,302.1032806579,2023,Territory_based,75504681.0
+Georgia,12.863595100414,2023,Territory_based,3664014.0
+Ghana,24.163786188627,2023,Territory_based,50553047.0
+Gibraltar,0.68858790258425,2023,Territory_based,49799.0
+Guinea,3.7153832877541,2023,Territory_based,23404584.0
+Guadeloupe,1.1671411679013,2023,Territory_based,326318.0
+The Gambia,0.60583061024132,2023,Territory_based,
+Guinea-Bissau,0.34601742118274,2023,Territory_based,3438608.0
+Equatorial Guinea,3.7767528537348,2023,Territory_based,3143728.0
+Greece,51.674001168373,2023,Territory_based,8812070.0
+Grenada,0.14269810428638,2023,Territory_based,113244.0
+Greenland,0.58222398223483,2023,Territory_based,49898.0
+Guatemala,21.349405265136,2023,Territory_based,24670857.0
+French Guiana,0.38163420168342,2023,Territory_based,471917.0
+Guyana,3.3041561950112,2023,Territory_based,940608.0
+Hong Kong,34.672842589279,2023,Territory_based,
+Honduras,10.945762687588,2023,Territory_based,14846778.0
+Croatia,17.456501586697,2023,Territory_based,3234159.0
+Haiti,3.5364781273909,2023,Territory_based,14710861.0
+Hungary,43.825231892702,2023,Territory_based,8725347.0
+Indonesia,674.53593856231,2023,Territory_based,320712949.0
+India,2955.1816840234,2023,Territory_based,1679589259.0
+Ireland,32.482575702098,2023,Territory_based,5970042.0
+Iran,778.80229870376,2023,Territory_based,101861994.0
+Iraq,192.90824279111,2023,Territory_based,71928750.0
+Iceland,3.08623241561,2023,Territory_based,432993.0
+"Israel and Palestine, State of",61.254988555197,2023,Territory_based,
+"Italy, San Marino and the Holy See",305.49018071303,2023,Territory_based,
+Jamaica,6.8647326810654,2023,Territory_based,2454940.0
+Jordan,23.578981455011,2023,Territory_based,16367355.0
+Japan,944.75861026127,2023,Territory_based,105123167.0
+Kazakhstan,239.86711339054,2023,Territory_based,26544264.0
+Kenya,21.73367260176,2023,Territory_based,83593239.0
+Kyrgyzstan,10.463986854471,2023,Territory_based,9642952.0
+Cambodia,17.970082451221,2023,Territory_based,21931455.0
+Kiribati,0.097443555756881,2023,Territory_based,182621.0
+Saint Kitts and Nevis,0.11878235811464,2023,Territory_based,44249.0
+South Korea,573.53565940513,2023,Territory_based,45143133.0
+Kuwait,111.6335390319,2023,Territory_based,6367756.0
+Laos,26.020835435909,2023,Territory_based,9757286.0
+Lebanon,17.332054844281,2023,Territory_based,6999260.0
+Liberia,1.6368867823462,2023,Territory_based,8910530.0
+Libya,61.258595260127,2023,Territory_based,9260606.0
+Saint Lucia,0.29655940779291,2023,Territory_based,172080.0
+Sri Lanka,20.517996913128,2023,Territory_based,24813690.0
+Lesotho,0.87831266380185,2023,Territory_based,2993076.0
+Lithuania,13.114620751736,2023,Territory_based,2258774.0
+Luxembourg,7.0074626132562,2023,Territory_based,791464.0
+Latvia,6.5511001588409,2023,Territory_based,1513810.0
+Macao,3.0123552654769,2023,Territory_based,
+Morocco,69.85802200398,2023,Territory_based,43440431.0
+Moldova,9.9282200447959,2023,Territory_based,
+Madagascar,4.0991244360262,2023,Territory_based,53185475.0
+Maldives,2.8763140873274,2023,Territory_based,589962.0
+Mexico,487.09393652519,2023,Territory_based,148946274.0
+North Macedonia,8.7636550533562,2023,Territory_based,1512688.0
+Mali,6.6606812496484,2023,Territory_based,46154079.0
+Malta,1.6846192972572,2023,Territory_based,535722.0
+Myanmar/Burma,33.368368446278,2023,Territory_based,
+Mongolia,28.117118327245,2023,Territory_based,4501493.0
+Mozambique,9.7400803112079,2023,Territory_based,63530951.0
+Mauritania,4.6502692492917,2023,Territory_based,9415598.0
+Martinique,1.0913694475561,2023,Territory_based,282070.0
+Mauritius,4.2135853926496,2023,Territory_based,1107197.0
+Malawi,6.4476801531005,2023,Territory_based,37361682.0
+Malaysia,283.32352985037,2023,Territory_based,44289772.0
+Namibia,4.3645891499678,2023,Territory_based,4512300.0
+New Caledonia,6.2085647304274,2023,Territory_based,340581.0
+Niger,2.8228520287624,2023,Territory_based,52513876.0
+Nigeria,127.94172568947,2023,Territory_based,359185556.0
+Nicaragua,5.7252853541982,2023,Territory_based,8756430.0
+Netherlands,122.87205003554,2023,Territory_based,18958475.0
+Norway,44.065204569685,2023,Territory_based,5899829.0
+Nepal,17.93377724276,2023,Territory_based,34642027.0
+New Zealand,35.795085969375,2023,Territory_based,5755288.0
+Oman,93.094188394381,2023,Territory_based,7827002.0
+Pakistan,200.51012981048,2023,Territory_based,371863793.0
+Panama,14.72052763025,2023,Territory_based,5630680.0
+Peru,58.403362783013,2023,Territory_based,40583876.0
+Philippines,161.28834246637,2023,Territory_based,134373439.0
+Palau,1.4395903737864,2023,Territory_based,15518.0
+Papua New Guinea,5.9518171033399,2023,Territory_based,14906590.0
+Poland,286.90678248422,2023,Territory_based,32814095.999999996
+Puerto Rico,13.815294080044,2023,Territory_based,2503994.0
+North Korea,64.274510180434,2023,Territory_based,
+Portugal,36.171349709977,2023,Territory_based,9770270.0
+Paraguay,8.2539382699454,2023,Territory_based,8640464.0
+French Polynesia,1.2589900109946,2023,Territory_based,284750.0
+Qatar,127.9078898283,2023,Territory_based,4164460.0
+Réunion,2.5707146285232,2023,Territory_based,941413.0
+Romania,70.773308556275,2023,Territory_based,16027266.0
+Russia,2069.5020102347,2023,Territory_based,136132775.0
+Rwanda,1.6459665665959,2023,Territory_based,22707910.0
+Saudi Arabia,622.91360053038,2023,Territory_based,47693909.0
+Serbia and Montenegro,56.120923654447,2023,Territory_based,
+Sudan and South Sudan,21.273306234278,2023,Territory_based,
+International Shipping,706.32042124359,2023,Territory_based,
+Senegal,12.023938944726,2023,Territory_based,30364954.0
+Singapore,57.068331238868,2023,Territory_based,6081692.0
+"Saint Helena, Ascension and Tristan da Cunha",0.017771061031603,2023,Territory_based,
+Solomon Islands,0.41884724813738,2023,Territory_based,1309110.0
+Sierra Leone,1.0749379625444,2023,Territory_based,12948325.0
+El Salvador,8.3796185749606,2023,Territory_based,6663345.0
+Somalia,0.86815344043128,2023,Territory_based,37206512.0
+Saint Pierre and Miquelon,0.040105593153842,2023,Territory_based,4258.0
+São Tomé and Príncipe,0.21407961614119,2023,Territory_based,
+Suriname,2.6285618801052,2023,Territory_based,733905.0
+Slovakia,34.861570049619,2023,Territory_based,4936488.0
+Slovenia,12.076461035789,2023,Territory_based,1981553.0
+Sweden,35.392169719535,2023,Territory_based,11309630.0
+Eswatini,1.390163800607,2023,Territory_based,1505331.0
+Seychelles,1.2372629775305,2023,Territory_based,141747.0
+Syria,25.594860978191,2023,Territory_based,37793372.0
+Turks and Caicos Islands,0.10309864745675,2023,Territory_based,50988.0
+Chad,2.5714080740629,2023,Territory_based,38857686.0
+Togo,2.4925783915609,2023,Territory_based,15584778.0
+Thailand,274.16004645899,2023,Territory_based,66382735.0
+Tajikistan,9.3081946046481,2023,Territory_based,15574642.0
+Turkmenistan,65.987684015518,2023,Territory_based,9639708.0
+Timor-Leste,0.70288974083897,2023,Territory_based,1889249.0
+Tonga,0.21999594393295,2023,Territory_based,105195.0
+Trinidad and Tobago,27.21617986191,2023,Territory_based,1399800.0
+Tunisia,31.497457706309,2023,Territory_based,13145141.0
+Turkey,438.315564382,2023,Territory_based,91258061.0
+Taiwan,279.84734584871,2023,Territory_based,
+Tanzania,19.373461607994,2023,Territory_based,
+Uganda,7.2174068034481,2023,Territory_based,85431202.0
+Ukraine,136.19794695856,2023,Territory_based,31990132.0
+Uruguay,8.8172787568475,2023,Territory_based,3254354.0
+United States,4682.0394136474,2023,Territory_based,380846910.0
+Uzbekistan,137.90011319685,2023,Territory_based,52210754.0
+Saint Vincent and the Grenadines,0.096285318687791,2023,Territory_based,88942.0
+Venezuela,84.595291475398,2023,Territory_based,31094883.0
+British Virgin Islands,0.07528917901973,2023,Territory_based,40340.0
+Vietnam,372.94851993495,2023,Territory_based,110008908.0
+Vanuatu,0.28730131448058,2023,Territory_based,534388.0
+Samoa,0.46844803984142,2023,Territory_based,272726.0
+Yemen,10.898838956742,2023,Territory_based,70976403.0
+South Africa,397.37295806705,2023,Territory_based,79177328.0
+Zambia,8.0589793910829,2023,Territory_based,38083386.0
+Zimbabwe,11.744051277092,2023,Territory_based,25866385.0
+,,2023,Territory_based,
+EU27,2512.0677801126,2023,Territory_based,
+GLOBAL TOTAL,39023.937038738,2023,Territory_based,
+Afghanistan,36.292910000000006,2022,Consumption_based,76885134.0
+Albania,10.69817,2022,Consumption_based,2240166.0
+Algeria,229.2533,2022,Consumption_based,59565554.0
+Angola,63.06419,2022,Consumption_based,74295394.0
+Antigua,0.7728832,2022,Consumption_based,
+Argentina,329.72929999999997,2022,Consumption_based,48308943.0
+Armenia,13.76886,2022,Consumption_based,2495207.0
+Aruba,0.8570806,2022,Consumption_based,100002.0
+Australia,516.071,2022,Consumption_based,32506969.0
+Austria,104.6011,2022,Consumption_based,8724332.0
+Azerbaijan,61.16201,2022,Consumption_based,11224923.0
+Bahamas,3.2167269999999997,2022,Consumption_based,424265.0
+Bahrain,29.84191,2022,Consumption_based,2139464.0
+Bangladesh,198.2366,2022,Consumption_based,214709096.0
+Barbados,4.2629790000000005,2022,Consumption_based,264216.0
+Belarus,37.69015,2022,Consumption_based,7453546.0
+Belgium,135.35389999999998,2022,Consumption_based,11870906.0
+Belize,1.471538,2022,Consumption_based,516626.99999999994
+Benin,17.1341,2022,Consumption_based,24433809.0
+Bermuda,0.0,2022,Consumption_based,56937.0
+Bhutan,3.675114,2022,Consumption_based,882340.0
+Bolivia,94.6352,2022,Consumption_based,16110162.0
+Bosnia and Herzegovina,26.34888,2022,Consumption_based,2455167.0
+Botswana,18.26959,2022,Consumption_based,3437430.0
+Brazil,1077.661,2022,Consumption_based,217489300.0
+British Virgin Islands,0.2776416,2022,Consumption_based,40340.0
+Brunei,9.005421,2022,Consumption_based,519551.00000000006
+Bulgaria,57.151650000000004,2022,Consumption_based,5402217.0
+Burkina Faso,29.784110000000002,2022,Consumption_based,37304383.0
+Burundi,4.499215,2022,Consumption_based,24131720.0
+Cambodia,40.781459999999996,2022,Consumption_based,21931455.0
+Cameroon,38.30513,2022,Consumption_based,51096317.0
+Canada,672.7777,2022,Consumption_based,45621882.0
+Cape Verde,1.088799,2022,Consumption_based,
+Cayman Islands,0.0,2022,Consumption_based,103958.0
+Central African Republic,9.32562,2022,Consumption_based,10616752.0
+Chad,49.86327,2022,Consumption_based,38857686.0
+Chile,120.2864,2022,Consumption_based,20320306.0
+China,12046.22,2022,Consumption_based,1260289093.0
+Colombia,192.7321,2022,Consumption_based,59385356.0
+Republic of the Congo,20.37865,2022,Consumption_based,11006472.0
+Costa Rica,20.150669999999998,2022,Consumption_based,5354150.0
+Croatia,23.31505,2022,Consumption_based,3234159.0
+Cuba,41.99676,2022,Consumption_based,9382000.0
+Cyprus,10.44542,2022,Consumption_based,1508481.0
+Czechia,72.75083000000001,2022,Consumption_based,9825544.0
+Cote dIvoire,33.69589,2022,Consumption_based,
+North Korea,57.84275,2022,Consumption_based,
+DR Congo,84.76986,2022,Consumption_based,
+Denmark,60.05671,2022,Consumption_based,6124838.0
+Djibouti,1.718966,2022,Consumption_based,1530539.0
+Dominican Republic,36.86521,2022,Consumption_based,12996293.0
+Ecuador,64.94059,2022,Consumption_based,21337238.0
+Egypt,359.36990000000003,2022,Consumption_based,161630192.0
+El Salvador,15.27658,2022,Consumption_based,6663345.0
+Eritrea,6.147011,2022,Consumption_based,5696062.0
+Estonia,12.380799999999999,2022,Consumption_based,1174267.0
+Ethiopia,15.46353,2022,Consumption_based,225021874.0
+Fiji,3.4339589999999998,2022,Consumption_based,1000261.0
+Finland,64.9849,2022,Consumption_based,5351645.0
+French Polynesia,0.0,2022,Consumption_based,284750.0
+Gabon,14.30998,2022,Consumption_based,4084533.0
+Gambia,2.508158,2022,Consumption_based,4301896.0
+Georgia,17.8212,2022,Consumption_based,3664014.0
+Germany,872.121,2022,Consumption_based,78294613.0
+Ghana,54.335660000000004,2022,Consumption_based,50553047.0
+Greece,83.41989,2022,Consumption_based,8812070.0
+Greenland,0.0,2022,Consumption_based,49898.0
+Guatemala,40.88083,2022,Consumption_based,24670857.0
+Guinea,25.79336,2022,Consumption_based,23404584.0
+Guyana,3.330323,2022,Consumption_based,940608.0
+Haiti,14.318719999999999,2022,Consumption_based,14710861.0
+Honduras,16.61826,2022,Consumption_based,14846778.0
+Hong Kong,199.6472,2022,Consumption_based,
+Hungary,60.08714,2022,Consumption_based,8725347.0
+Iceland,6.9056049999999995,2022,Consumption_based,432993.0
+India,2949.414,2022,Consumption_based,1679589259.0
+Indonesia,847.1641999999999,2022,Consumption_based,320712949.0
+Iran,817.6505,2022,Consumption_based,101861994.0
+Iraq,404.6027,2022,Consumption_based,71928750.0
+Ireland,58.805730000000004,2022,Consumption_based,5970042.0
+Israel,96.33576,2022,Consumption_based,13092722.0
+Italy,480.3724,2022,Consumption_based,51891098.0
+Jamaica,12.769530000000001,2022,Consumption_based,2454940.0
+Japan,1258.371,2022,Consumption_based,105123167.0
+Jordan,33.45501,2022,Consumption_based,16367355.0
+Kazakhstan,260.4604,2022,Consumption_based,26544264.0
+Kenya,79.74114,2022,Consumption_based,83593239.0
+Kuwait,120.129,2022,Consumption_based,6367756.0
+Kyrgyzstan,24.1211,2022,Consumption_based,9642952.0
+Laos,35.38311,2022,Consumption_based,9757286.0
+Latvia,16.48173,2022,Consumption_based,1513810.0
+Lebanon,35.63768,2022,Consumption_based,6999260.0
+Lesotho,4.251055999999999,2022,Consumption_based,2993076.0
+Liberia,4.860881999999999,2022,Consumption_based,8910530.0
+Libya,56.0342,2022,Consumption_based,9260606.0
+Liechtenstein,1.370673,2022,Consumption_based,43013.0
+Lithuania,26.37468,2022,Consumption_based,2258774.0
+Luxembourg,8.842450999999999,2022,Consumption_based,791464.0
+Macao SAR,7.363263,2022,Consumption_based,
+Madagascar,31.88092,2022,Consumption_based,53185475.0
+Malawi,16.42,2022,Consumption_based,37361682.0
+Malaysia,233.1968,2022,Consumption_based,44289772.0
+Maldives,2.9014729999999997,2022,Consumption_based,589962.0
+Mali,73.55506,2022,Consumption_based,46154079.0
+Malta,2.9562660000000003,2022,Consumption_based,535722.0
+Mauritania,8.741202999999999,2022,Consumption_based,9415598.0
+Mauritius,9.153497999999999,2022,Consumption_based,1107197.0
+Mexico,597.8051999999999,2022,Consumption_based,148946274.0
+Mongolia,44.709309999999995,2022,Consumption_based,4501493.0
+Montenegro,4.889849,2022,Consumption_based,533295.0
+Morocco,84.54553,2022,Consumption_based,43440431.0
+Mozambique,46.50852,2022,Consumption_based,63530951.0
+Myanmar,76.01056,2022,Consumption_based,58623231.0
+Namibia,15.530629999999999,2022,Consumption_based,4512300.0
+Nepal,51.712830000000004,2022,Consumption_based,34642027.0
+Netherlands,199.7464,2022,Consumption_based,18958475.0
+Netherlands Antilles,6.975561,2022,Consumption_based,
+New Caledonia,0.0,2022,Consumption_based,340581.0
+New Zealand,79.7114,2022,Consumption_based,5755288.0
+Nicaragua,16.31699,2022,Consumption_based,8756430.0
+Niger,34.38707,2022,Consumption_based,52513876.0
+Nigeria,449.83090000000004,2022,Consumption_based,359185556.0
+Norway,76.82042999999999,2022,Consumption_based,5899829.0
+Gaza Strip,0.0,2022,Consumption_based,
+Oman,65.19586,2022,Consumption_based,7827002.0
+Pakistan,578.9303000000001,2022,Consumption_based,371863793.0
+Panama,21.22502,2022,Consumption_based,5630680.0
+Papua New Guinea,17.17362,2022,Consumption_based,14906590.0
+Paraguay,29.96962,2022,Consumption_based,8640464.0
+Peru,99.16215,2022,Consumption_based,40583876.0
+Philippines,260.8678,2022,Consumption_based,134373439.0
+Poland,340.3965,2022,Consumption_based,32814095.999999996
+Portugal,63.02308,2022,Consumption_based,9770270.0
+Qatar,162.33370000000002,2022,Consumption_based,4164460.0
+South Korea,653.8581999999999,2022,Consumption_based,45143133.0
+Moldova,4.7213519999999995,2022,Consumption_based,
+Romania,116.80460000000001,2022,Consumption_based,16027266.0
+Russia,1610.535,2022,Consumption_based,136132775.0
+Rwanda,8.712674999999999,2022,Consumption_based,22707910.0
+Samoa,0.6925005999999999,2022,Consumption_based,272726.0
+San Marino,0.5661470000000001,2022,Consumption_based,33696.0
+Sao Tome and Principe,0.29986090000000004,2022,Consumption_based,365115.0
+Saudi Arabia,703.8256,2022,Consumption_based,47693909.0
+Senegal,28.29428,2022,Consumption_based,30364954.0
+Serbia,73.73461,2022,Consumption_based,5532870.0
+Seychelles,0.9971907,2022,Consumption_based,141747.0
+Sierra Leone,7.612386000000001,2022,Consumption_based,12948325.0
+Singapore,98.39144,2022,Consumption_based,6081692.0
+Slovakia,47.49821,2022,Consumption_based,4936488.0
+Slovenia,16.40035,2022,Consumption_based,1981553.0
+Somalia,27.54213,2022,Consumption_based,37206512.0
+South Africa,442.3963,2022,Consumption_based,79177328.0
+South Sudan,0.0,2022,Consumption_based,18341974.0
+Sri Lanka,52.34435,2022,Consumption_based,24813690.0
+Sudan,0.0,2022,Consumption_based,85206383.0
+Suriname,3.667079,2022,Consumption_based,733905.0
+Eswatini,4.368805999999999,2022,Consumption_based,1505331.0
+Sweden,98.71911,2022,Consumption_based,11309630.0
+Switzerland,98.65992999999999,2022,Consumption_based,9342586.0
+Syria,38.037589999999994,2022,Consumption_based,37793372.0
+Taiwan,149.46689999999998,2022,Consumption_based,
+Tajikistan,16.7698,2022,Consumption_based,15574642.0
+Thailand,283.2797,2022,Consumption_based,66382735.0
+TFYR Macedonia,10.73494,2022,Consumption_based,
+Togo,13.54584,2022,Consumption_based,15584778.0
+Trinidad and Tobago,32.59566,2022,Consumption_based,1399800.0
+Tunisia,31.10463,2022,Consumption_based,13145141.0
+Turkey,485.2738,2022,Consumption_based,91258061.0
+Turkmenistan,101.6677,2022,Consumption_based,9639708.0
+Former USSR,0.0,2022,Consumption_based,
+Uganda,50.1081,2022,Consumption_based,85431202.0
+Ukraine,252.1204,2022,Consumption_based,31990132.0
+United Arab Emirates,186.35670000000002,2022,Consumption_based,15367392.0
+United Kingdom,610.2791,2022,Consumption_based,75504681.0
+Tanzania,98.39277,2022,Consumption_based,
+United States,6698.194,2022,Consumption_based,380846910.0
+Uruguay,31.57455,2022,Consumption_based,3254354.0
+Uzbekistan,165.7009,2022,Consumption_based,52210754.0
+Vanuatu,0.5712391,2022,Consumption_based,534388.0
+Venezuela,146.2534,2022,Consumption_based,31094883.0
+Vietnam,237.38770000000002,2022,Consumption_based,110008908.0
+Yemen,45.34253,2022,Consumption_based,70976403.0
+Zambia,39.168510000000005,2022,Consumption_based,38083386.0
+Zimbabwe,22.44673,2022,Consumption_based,25866385.0
+Rest of World,0.0,2022,Consumption_based,
+France,562.88912,2022,Consumption_based,68256432.0
+Spain,347.7255279,2022,Consumption_based,45010753.0
