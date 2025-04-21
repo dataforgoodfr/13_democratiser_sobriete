@@ -1,9 +1,13 @@
 import json
+import os
 from typing import List, Optional, Union
 
 from kotaemon.base import Document
 
 from .base import BaseDocumentStore
+CELLAR_ADDON_KEY_ID = os.getenv("CELLAR_ADDON_KEY_ID", "")
+CELLAR_ADDON_KEY_SECRET = os.getenv("CELLAR_ADDON_KEY_SECRET", "")
+CELLAR_ADDON_HOST = os.getenv("CELLAR_ADDON_HOST", "http://cellar-c2.services.clever-cloud.com")
 
 MAX_DOCS_TO_GET = 10**4
 
@@ -21,7 +25,16 @@ class LanceDBDocumentStore(BaseDocumentStore):
 
         self.db_uri = path
         self.collection_name = collection_name
-        self.db_connection = lancedb.connect(self.db_uri)  # type: ignore
+        self.db_connection = lancedb.connect(
+            "s3://wsl-docstore",
+            storage_options={
+                "region": "us-east-1",
+                "aws_access_key_id": CELLAR_ADDON_KEY_ID,
+                "aws_secret_access_key": CELLAR_ADDON_KEY_SECRET,
+                "endpoint": CELLAR_ADDON_HOST,
+                "allow_http": "true"
+            }
+        )
 
     def add(
         self,
