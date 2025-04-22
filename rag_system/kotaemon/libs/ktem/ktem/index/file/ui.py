@@ -319,6 +319,8 @@ class FileIndexPage(BasePage):
                         # TODO - New metadatas system
                         self.metadatas_values = []
                         self.metadatas_keys = []
+                        #TODO - New metadatas system
+                        """
 
                     self.upload_button = gr.Button(
                         "Upload and Index", variant="primary"
@@ -879,7 +881,7 @@ class FileIndexPage(BasePage):
                     self.reindex,
                     self._app.settings_state,
                     self._app.user_id,
-                    # *self.metadatas_values,
+                    *self.metadatas_values,
                 ],
                 outputs=[self.upload_result, self.upload_info],
                 concurrency_limit=20,
