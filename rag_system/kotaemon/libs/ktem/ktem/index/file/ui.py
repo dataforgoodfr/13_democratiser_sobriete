@@ -879,7 +879,7 @@ class FileIndexPage(BasePage):
                     self.reindex,
                     self._app.settings_state,
                     self._app.user_id,
-                    *self.metadatas_values,
+                    # *self.metadatas_values,
                 ],
                 outputs=[self.upload_result, self.upload_info],
                 concurrency_limit=20,
