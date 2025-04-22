@@ -155,46 +155,6 @@ combined_df = combined_df[combined_df['ISO3'].isin(valid_iso3_codes)]
 region_mapping = ipcc_regions.set_index('ISO3')['IPCC_Region_Intermediate'].to_dict()
 combined_df['Region'] = combined_df['ISO3'].map(region_mapping)
 
-"""
-Sanity check country names:
-- Names with special characters: such as Curaçao: always use without the special characters: for instance Curaçao be Curacao and Réunion be Reunion
-- ISOs with different country names based on file such asKorea, Dem. People's Rep. and Dem. People's Rep. of Korea, Yemen, Rep. and Yemen: always use the Country name from the population_data file
-"""
-# Create a mapping of ISO3 codes to standardized country names from population data
-standard_names = pop_measure[['ISO3', 'Country']].drop_duplicates().set_index('ISO3')['Country'].to_dict()
-
-# Add specific mappings for countries with special characters
-special_country_mapping = {
-    'REU': 'Reunion',
-    'TUR': 'Turkiye',
-    'CUW': 'Curacao',
-    'CIV': 'Cote d\'Ivoire',
-    'BLM': 'Saint Barthelemy'
-}
-
-# Update standard_names with special mappings
-standard_names.update(special_country_mapping)
-
-# Apply standardized country names where ISO3 codes match
-combined_df['Country'] = combined_df.apply(
-    lambda row: standard_names.get(row['ISO3'], row['Country']) 
-    if row['ISO3'] in standard_names else row['Country'], 
-    axis=1
-)
-
-# Print before and after counts to verify changes
-print(f"Before standardization: {combined_df['Country'].nunique()} unique country names")
-print(f"After standardization: {combined_df['Country'].nunique()} unique country names")
-
-# Print examples of countries with changed names
-sample_countries = combined_df[['ISO3', 'Country']].drop_duplicates().sample(min(10, combined_df['ISO3'].nunique()))
-print("\nSample of standardized country names:")
-for _, row in sample_countries.iterrows():
-    original = row['Country']
-    standardized = standard_names.get(row['ISO3'], original)
-    if original != standardized:
-        print(f"ISO3: {row['ISO3']}, Original: {original}, Standardized: {standardized}")
-
 # Add EU and G20 country flags
 eu_mapping = eu_g20_mapping.set_index('ISO3')['EU_country'].to_dict()
 g20_mapping = eu_g20_mapping.set_index('ISO3')['G20_country'].to_dict()
@@ -202,84 +162,166 @@ g20_mapping = eu_g20_mapping.set_index('ISO3')['G20_country'].to_dict()
 combined_df['EU_country'] = combined_df['ISO3'].map(eu_mapping).fillna('No')
 combined_df['G20_country'] = combined_df['ISO3'].map(g20_mapping).fillna('No')
 
-# add rows summing values for each year by region and for the world
+# Pivot the data to get GDP and Population as columns
+pivoted_df = combined_df.pivot_table(
+    index=['ISO3', 'Country', 'Region', 'Year', 'EU_country', 'G20_country'],
+    columns='Measure',
+    values='Value',
+    aggfunc='first'
+).reset_index()
+
+# Rename the emissions columns
+pivoted_df = pivoted_df.rename(columns={
+    'CO2_emissions_Mt': 'CO2_emissions_Mt',
+    'Consumption_CO2_emissions_Mt': 'Consumption_CO2_emissions_Mt'
+})
+
+# Calculate new metrics
+pivoted_df['Emissions_per_capita_ton'] = pivoted_df['CO2_emissions_Mt'] * 1000000 / pivoted_df['Population']
+pivoted_df['Emissions_per_GDP$_ton'] = pivoted_df['CO2_emissions_Mt'] * 1000000 / pivoted_df['GDP, PPP (constant 2021 international $)']
+
+# Calculate cumulative emissions for each country and emissions scope
+pivoted_df['Cumulative_CO2_emissions_Mt'] = pivoted_df.groupby(['ISO3', 'Region'])['CO2_emissions_Mt'].cumsum()
+pivoted_df['Cumulative_Consumption_CO2_emissions_Mt'] = pivoted_df.groupby(['ISO3', 'Region'])['Consumption_CO2_emissions_Mt'].cumsum()
+
+# Ensure all required columns exist before melting
+required_columns = ['ISO3', 'Country', 'Region', 'Year', 'EU_country', 'G20_country', 
+                   'Population', 'GDP, PPP (constant 2021 international $)',
+                   'Emissions_per_capita_ton', 'Emissions_per_GDP$_ton',
+                   'CO2_emissions_Mt', 'Consumption_CO2_emissions_Mt',
+                   'Cumulative_CO2_emissions_Mt', 'Cumulative_Consumption_CO2_emissions_Mt']
+
+# Check if all required columns exist
+missing_columns = [col for col in required_columns if col not in pivoted_df.columns]
+if missing_columns:
+    raise ValueError(f"Missing required columns: {missing_columns}")
+
+# Melt the dataframe back to long format for emissions data
+emissions_df = pivoted_df.melt(
+    id_vars=['ISO3', 'Country', 'Region', 'Year', 'EU_country', 'G20_country', 
+             'Population', 'GDP, PPP (constant 2021 international $)',
+             'Emissions_per_capita_ton', 'Emissions_per_GDP$_ton'],
+    value_vars=['CO2_emissions_Mt', 'Consumption_CO2_emissions_Mt',
+                'Cumulative_CO2_emissions_Mt', 'Cumulative_Consumption_CO2_emissions_Mt'],
+    var_name='Emissions_scope',
+    value_name='Value'  # Keep as 'Value' during melt
+)
+
+# Rename the Value column to CO2_emissions_Mt after melting
+emissions_df = emissions_df.rename(columns={'Value': 'CO2_emissions_Mt'})
+
+# Update Emissions_scope values
+emissions_scope_mapping = {
+    'CO2_emissions_Mt': 'Annual Territory',
+    'Consumption_CO2_emissions_Mt': 'Annual Consumption',
+    'Cumulative_CO2_emissions_Mt': 'Cumulative Territory',
+    'Cumulative_Consumption_CO2_emissions_Mt': 'Cumulative Consumption'
+}
+emissions_df['Emissions_scope'] = emissions_df['Emissions_scope'].map(emissions_scope_mapping)
+
+# Sort the dataframe
+emissions_df = emissions_df.sort_values(['ISO3', 'Year', 'Emissions_scope'])
+
 # Create region aggregates
 print("Creating region aggregates...")
-# Get numeric columns that should be summed
-numeric_columns = combined_df.select_dtypes(include=['number']).columns.tolist()
-# Remove columns that shouldn't be summed
-columns_not_to_sum = ['Year', 'EU_country', 'G20_country']
-columns_to_sum = [col for col in numeric_columns if col not in columns_not_to_sum]
+region_aggregates = emissions_df.groupby(['Region', 'Year', 'Emissions_scope']).agg({
+    'CO2_emissions_Mt': 'sum',
+    'Population': 'sum',
+    'GDP, PPP (constant 2021 international $)': 'sum'
+}).reset_index()
 
-# Group by Region, Year, and Measure to create region aggregates
-region_aggregates = combined_df.groupby(['Region', 'Year', 'Measure'])[columns_to_sum].sum().reset_index()
+# Calculate per capita and per GDP metrics for regions
+region_aggregates['Emissions_per_capita_ton'] = region_aggregates['CO2_emissions_Mt'] * 1000000 / region_aggregates['Population']
+region_aggregates['Emissions_per_GDP$_ton'] = region_aggregates['CO2_emissions_Mt'] * 1000000 / region_aggregates['GDP, PPP (constant 2021 international $)']
+
+# Add region identifiers
 region_aggregates['ISO3'] = region_aggregates['Region'].apply(lambda x: f"REG_{x[:3]}")
 region_aggregates['Country'] = region_aggregates['Region'].apply(lambda x: f"Region: {x}")
-# Set EU_country and G20_country to "N/A" for region aggregates since it's not applicable
 region_aggregates['EU_country'] = 'N/A'
 region_aggregates['G20_country'] = 'N/A'
 
-# Create world aggregates (all countries)
+# Create world aggregates
 print("Creating world aggregates...")
-world_aggregates = combined_df.groupby(['Year', 'Measure'])[columns_to_sum].sum().reset_index()
+world_aggregates = emissions_df.groupby(['Year', 'Emissions_scope']).agg({
+    'CO2_emissions_Mt': 'sum',
+    'Population': 'sum',
+    'GDP, PPP (constant 2021 international $)': 'sum'
+}).reset_index()
+
+# Calculate per capita and per GDP metrics for world
+world_aggregates['Emissions_per_capita_ton'] = world_aggregates['CO2_emissions_Mt'] * 1000000 / world_aggregates['Population']
+world_aggregates['Emissions_per_GDP$_ton'] = world_aggregates['CO2_emissions_Mt'] * 1000000 / world_aggregates['GDP, PPP (constant 2021 international $)']
+
+# Add world identifiers
 world_aggregates['ISO3'] = 'WLD'
 world_aggregates['Country'] = 'World'
 world_aggregates['Region'] = 'World'
-# Set EU_country and G20_country to "N/A" for world aggregates since it's not applicable
 world_aggregates['EU_country'] = 'N/A'
 world_aggregates['G20_country'] = 'N/A'
-# Create EU aggregates (all countries with EU_country = Yes)
+
+# Create EU aggregates
 print("Creating EU aggregates...")
-eu_aggregates = combined_df[combined_df['EU_country'] == 'Yes'].groupby(['Year', 'Measure'])[columns_to_sum].sum().reset_index()
+eu_aggregates = emissions_df[emissions_df['EU_country'] == 'Yes'].groupby(['Year', 'Emissions_scope']).agg({
+    'CO2_emissions_Mt': 'sum',
+    'Population': 'sum',
+    'GDP, PPP (constant 2021 international $)': 'sum'
+}).reset_index()
+
+# Calculate per capita and per GDP metrics for EU
+eu_aggregates['Emissions_per_capita_ton'] = eu_aggregates['CO2_emissions_Mt'] * 1000000 / eu_aggregates['Population']
+eu_aggregates['Emissions_per_GDP$_ton'] = eu_aggregates['CO2_emissions_Mt'] * 1000000 / eu_aggregates['GDP, PPP (constant 2021 international $)']
+
+# Add EU identifiers
 eu_aggregates['ISO3'] = 'EU'
 eu_aggregates['Country'] = 'European Union'
-eu_aggregates['Region'] = 'N/A'
+eu_aggregates['Region'] = 'EU'
 eu_aggregates['EU_country'] = 'Yes'
 eu_aggregates['G20_country'] = 'N/A'
 
-# Create G20 aggregates (all countries with G20_country = Yes)
+# Create G20 aggregates
 print("Creating G20 aggregates...")
-g20_aggregates = combined_df[combined_df['G20_country'] == 'Yes'].groupby(['Year', 'Measure'])[columns_to_sum].sum().reset_index()
+g20_aggregates = emissions_df[emissions_df['G20_country'] == 'Yes'].groupby(['Year', 'Emissions_scope']).agg({
+    'CO2_emissions_Mt': 'sum',
+    'Population': 'sum',
+    'GDP, PPP (constant 2021 international $)': 'sum'
+}).reset_index()
+
+# Calculate per capita and per GDP metrics for G20
+g20_aggregates['Emissions_per_capita_ton'] = g20_aggregates['CO2_emissions_Mt'] * 1000000 / g20_aggregates['Population']
+g20_aggregates['Emissions_per_GDP$_ton'] = g20_aggregates['CO2_emissions_Mt'] * 1000000 / g20_aggregates['GDP, PPP (constant 2021 international $)']
+
+# Add G20 identifiers
 g20_aggregates['ISO3'] = 'G20'
 g20_aggregates['Country'] = 'G20 Countries'
-g20_aggregates['Region'] = 'N/A'
+g20_aggregates['Region'] = 'G20'
 g20_aggregates['EU_country'] = 'N/A'
 g20_aggregates['G20_country'] = 'Yes'
 
-# Fix the Region value for EU and G20 aggregates
-print("Fixing Region values for EU and G20 aggregates...")
-eu_aggregates['Region'] = 'EU'
-g20_aggregates['Region'] = 'G20'
-
-# Append the EU and G20 aggregates to the combined dataframe
-combined_df = pd.concat([combined_df, region_aggregates, world_aggregates, eu_aggregates, g20_aggregates], ignore_index=True)
-
-print(f"Added {len(eu_aggregates)} EU aggregate rows and {len(g20_aggregates)} G20 aggregate rows")
-
-
-
-# Append the aggregates to the combined dataframe
-combined_df = pd.concat([combined_df, region_aggregates, world_aggregates], ignore_index=True)
-
-print(f"Added {len(region_aggregates)} region aggregate rows and {len(world_aggregates)} world aggregate rows")
-
-
-
-
+# Combine all dataframes
+print("Combining all dataframes...")
+final_df = pd.concat([
+    emissions_df,
+    region_aggregates,
+    world_aggregates,
+    eu_aggregates,
+    g20_aggregates
+], ignore_index=True)
 
 # Sort the dataframe
-combined_df = combined_df.sort_values(['ISO3', 'Year', 'Measure'])
+final_df = final_df.sort_values(['ISO3', 'Year', 'Emissions_scope'])
 
 # Save the combined dataframe
-combined_df.to_csv(f"{output_directory}/combined_data.csv", index=False)
+final_df.to_csv(f"{output_directory}/combined_data.csv", index=False)
 
 # Print verification
 print(f"Combined data saved to {output_directory}/combined_data.csv")
-print(f"Total rows: {len(combined_df)}")
-print(f"Unique countries: {combined_df['Country'].nunique()}")
-print(f"Year range: {combined_df['Year'].min()} to {combined_df['Year'].max()}")
-print(f"Measures: {', '.join(combined_df['Measure'].unique())}")
-print(f"EU countries: {combined_df[combined_df['EU_country'] == 'Yes']['Country'].nunique()}")
-print(f"G20 countries: {combined_df[combined_df['G20_country'] == 'Yes']['Country'].nunique()}")
+print(f"Total rows: {len(final_df)}")
+print(f"Unique countries: {final_df['Country'].nunique()}")
+print(f"Year range: {final_df['Year'].min()} to {final_df['Year'].max()}")
+print(f"Emissions scopes: {', '.join(final_df['Emissions_scope'].unique())}")
+print(f"Added {len(region_aggregates)} region aggregate rows")
+print(f"Added {len(world_aggregates)} world aggregate rows")
+print(f"Added {len(eu_aggregates)} EU aggregate rows")
+print(f"Added {len(g20_aggregates)} G20 aggregate rows")
 print("\nFirst 50 rows of the combined dataframe:")
-print(combined_df.head(50).to_string())
+print(final_df.head(50).to_string())

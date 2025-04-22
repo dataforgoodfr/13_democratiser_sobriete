@@ -5,86 +5,90 @@ import numpy as np
 output_directory = '/Users/louistronel/Desktop/D4G_WSL/13_democratiser_sobriete-1/stream3_visualization/Budget/Output'
 
 # Load the preprocessed data
-latest_emissions_df = pd.read_csv(f"{output_directory}/Latest_emissions.csv")
+combined_df = pd.read_csv(f"{output_directory}/combined_data.csv")
 
-# Define global carbon budgets (in GtCO2, converted to MtCO2)
-BUDGET_GLOBAL_lamboll_2C = {"33%": 1603, "50%": 1219, "67%": 944}
-BUDGET_GLOBAL_foster_2C = {"33%": 1450, "50%": 1150, "67%": 950}
-BUDGET_GLOBAL_lamboll_15C = {"33%": 480, "50%": 247, "67%": 60}
-BUDGET_GLOBAL_foster_15C = {"33%": 300, "50%": 250, "67%": 150}
+# Create base dataframe with required columns
+def create_base_dataframe(df):
+    # Get unique countries and their regions
+    base_df = df[['ISO3', 'Country', 'Region']].drop_duplicates()
+    
+    # Get population data for 2050
+    pop_2050 = df[
+        (df['Measure'] == 'Population') & 
+        (df['Year'] == 2050)
+    ][['ISO3', 'Value']].rename(columns={'Value': 'Population_2050'})
+    
+    # Get world population for 2050
+    world_pop_2050 = df[
+        (df['Measure'] == 'Population') & 
+        (df['Year'] == 2050) & 
+        (df['ISO3'] == 'WLD')
+    ]['Value'].iloc[0]
+    
+    # Merge population data
+    base_df = base_df.merge(pop_2050, on='ISO3', how='left')
+    
+    # Calculate share of total population
+    base_df['Share_of_total_population_2050'] = base_df['Population_2050'] / world_pop_2050
+    
+    # Get latest year and emissions for each scope
+    emission_scopes = ['CO2_emissions_Mt', 'Consumption_CO2_emissions_Mt']
+    for scope in emission_scopes:
+        # Filter data for this scope
+        scope_data = df[df['Measure'] == scope]
+        
+        # Get latest year for each ISO3
+        latest_years = scope_data.groupby('ISO3')['Year'].max().reset_index()
+        latest_years.columns = ['ISO3', f'Latest_year_{scope}']
+        
+        # Get latest emissions for each ISO3
+        latest_emissions = pd.merge(
+            scope_data, 
+            latest_years, 
+            left_on=['ISO3', 'Year'], 
+            right_on=['ISO3', f'Latest_year_{scope}']
+        )[['ISO3', 'Value']].rename(columns={'Value': f'Latest_emissions_{scope}'})
+        
+        # Merge with base dataframe
+        base_df = base_df.merge(latest_years, on='ISO3', how='left')
+        base_df = base_df.merge(latest_emissions, on='ISO3', how='left')
+    
+    return base_df
 
-# Merge population data with emissions
-df = latest_emissions_df
+# Create the base dataframe
+base_df = create_base_dataframe(combined_df)
 
-# Create an empty list to store reformatted rows
-rows = []
+# Create all scenario combinations
+scenarios = []
+for _, row in base_df.iterrows():
+    for emissions_scope in ['CO2_emissions_Mt', 'Consumption_CO2_emissions_Mt']:
+        for warming_scenario in ['1.5°C', '2°C']:
+            for probability in ['33%', '50%', '67%']:
+                for budget_source in ['Lamboll', 'Foster']:
+                    for distribution in ['Equality', 'Responsibility', 'Current_target']:
+                        scenario = {
+                            'ISO3': row['ISO3'],
+                            'Country': row['Country'],
+                            'Region': row['Region'],
+                            'Population_2050': row['Population_2050'],
+                            'Share_of_total_population_2050': row['Share_of_total_population_2050'],
+                            'Emissions_scope': emissions_scope,
+                            'Latest_year': row[f'Latest_year_{emissions_scope}'],
+                            'Latest_emissions': row[f'Latest_emissions_{emissions_scope}'],
+                            'Warming_scenario': warming_scenario,
+                            'Probability_of_reach': probability,
+                            'Budget_source': budget_source,
+                            'Budget_distribution_scenario': distribution
+                        }
+                        scenarios.append(scenario)
 
-# Iterate over all budget scenarios
-for temp, budgets in [("2°C", [("lamboll", BUDGET_GLOBAL_lamboll_2C), ("foster", BUDGET_GLOBAL_foster_2C)]),
-                      ("1.5°C", [("lamboll", BUDGET_GLOBAL_lamboll_15C), ("foster", BUDGET_GLOBAL_foster_15C)])]:
-    for source, budget in budgets:
-        for prob, BUDGET_GLOBAL in budget.items():
-            BUDGET_TOTAL = BUDGET_GLOBAL * 1000  # Convert to MtCO2
-            POP_GLOBAL_2050 = df['population_2050'].sum()
+# Convert to DataFrame
+scenarios_df = pd.DataFrame(scenarios)
 
-            for method in ["equality", "responsibility"]:
-                if method == "equality":
-                    remaining_carbon_budget = (BUDGET_TOTAL / POP_GLOBAL_2050) * df["population_2050"]
-                else:
-                    total_emissions = df.groupby('scope')['CO2_emissions_latest'].sum().to_dict()
-                    remaining_carbon_budget = (
-                        (total_emissions[df['scope'].iloc[0]] + BUDGET_TOTAL) * (df["population_2050"] / POP_GLOBAL_2050)
-                        - df["CO2_emissions_latest"]
-                    )
+# Print the first 50 rows to verify
+print("\nFirst 50 rows of the scenarios dataframe:")
+print(scenarios_df.head(50).to_string())
 
-                time_to_neutrality_lin = 2 * remaining_carbon_budget / df["CO2_emissions_latest"]
-                time_to_neutrality_exp = -np.log(1 - 0.95) * remaining_carbon_budget / df["CO2_emissions_latest"]
-
-                for curve, time_to_neutrality in [("linear", time_to_neutrality_lin), ("exponential", time_to_neutrality_exp)]:
-                    for _, row in df.iterrows():
-                        remaining_budget = remaining_carbon_budget.loc[row.name]
-                        time_to_neutrality_value = time_to_neutrality.loc[row.name]
-
-                        # Check if remaining_carbon_budget is negative and adjust time_to_neutrality
-                        if remaining_budget < 0:
-                            # Start summing emissions backwards from the latest year
-                            cumulative_emissions = 0
-                            country = row["country"]
-                            latest_year = row["latest_year"]
-
-                            # Iterate through years from the latest year to 1990
-                            for year in range(latest_year, 1989, -1):
-                                # Access the emissions for the country and year from the historical emissions DataFrame
-                                emissions_year = historical_emissions_df[
-                                    (historical_emissions_df["country"] == country) &
-                                    (historical_emissions_df["year"] == year) &
-                                    (historical_emissions_df["scope"] == row["scope"])
-                                ]["CO2_emissions"].values[0]
-                                cumulative_emissions += emissions_year
-
-                                # If cumulative emissions exceed the negative remaining budget, break
-                                if cumulative_emissions >= abs(remaining_budget):
-                                    time_to_neutrality_value = - (latest_year - year - 1)
-                                    break
-
-                        # Append the results to the rows list
-                        rows.append({
-                            "country": row["country"],
-                            "CO2_emissions_latest": row["CO2_emissions_latest"],
-                            "latest_year": row["latest_year"],
-                            "population_2050": row["population_2050"],
-                            "repartition_method": method,
-                            "source_of_budget": source,
-                            "probability_of_reach": prob,
-                            "curve_type": curve,
-                            "remaining_carbon_budget": remaining_budget,
-                            "time_to_neutrality": time_to_neutrality_value,
-                            "temperature": temp,
-                            "scope": row["scope"]
-                        })
-
-# Convert list to DataFrame
-df_final = pd.DataFrame(rows)
-
-# Save the final cleaned dataset
-df_final.to_csv(f"{output_directory}/carbon_budget_scenarios.csv", index=False)
+# Save to CSV
+scenarios_df.to_csv(f"{output_directory}/Budget_scenarios.csv", index=False)
+print(f"\nScenarios saved to {output_directory}/Budget_scenarios.csv")
