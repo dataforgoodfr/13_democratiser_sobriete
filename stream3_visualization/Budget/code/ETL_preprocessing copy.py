@@ -31,6 +31,9 @@ Extract relevant data from each source file:
 - the following columns from the unpopulation_dataportal_2025042 tab: Iso3 as ISO03, Location as Country, Time as Year, Value as Population
 # 2025-04-22_CO2 Emissions_All Countries_ISO Code_1750-2023.xlsx needs:
 - the following columns from the GCB2024v17_MtCO2_flat tab: Country, ISO 3166-1 alpha-3 as ISO3, Year, Total as CO2_emssions_Mt
+# 2025-04-22_Consumption emissions MtCO2_ISO code.xlsx needs:
+- the following columns from the Consumption GCB2024v17_MtCO2_flat tab: Country, ISO 3166-1 alpha-3 as ISO3, Year, Total as Consumption_emissions_Mt as Consumption_CO2_emissions_Mt
+- the following transformations: transforming the values to float, with 2 decimal places and transforming the comma separator into a dot separator for decimals
 
 Once the data is extracted as dataframes: combine into a single dataframe with the following transformations:
 - ISO3,Country, Region, Year, Measure, Value where Measure is GDP, PPP (constant 2021 international $), Population, CO2_emssions_Mt and the Region column is mapped to the ISO3 code of each country
@@ -105,6 +108,18 @@ emissions_data = pd.read_excel(f"{data_directory}/2025-04-22_CO2 Emissions_All C
 emissions_data = emissions_data[['Country', 'ISO 3166-1 alpha-3', 'Year', 'Total']]
 emissions_data.rename(columns={'ISO 3166-1 alpha-3': 'ISO3', 'Total': 'CO2_emissions_Mt'}, inplace=True)
 
+# 5. Consumption CO2 Emissions data
+consumption_emissions_data = pd.read_excel(f"{data_directory}/2025-04-22_Consumption emissions MtCO2_ISO code.xlsx", 
+                                          sheet_name="GCB2024v17_MtCO2_flat")
+# Extract relevant columns
+consumption_emissions_data = consumption_emissions_data[['Country', 'ISO 3166-1 alpha-3', 'Year', 'CO2_Consumption_emissions in Mt']]
+consumption_emissions_data.rename(columns={'ISO 3166-1 alpha-3': 'ISO3', 'CO2_Consumption_emissions in Mt': 'Consumption_CO2_emissions_Mt'}, inplace=True)
+
+# Convert consumption emissions values to float with 2 decimal places
+consumption_emissions_data['Consumption_CO2_emissions_Mt'] = consumption_emissions_data['Consumption_CO2_emissions_Mt'].apply(
+    lambda x: float(str(x).replace(',', '.')) if isinstance(x, str) else float(x)
+).round(2)
+
 # Combine all dataframes
 # Transform GDP data to match the final format
 gdp_measure = gdp_long.copy()
@@ -121,10 +136,16 @@ emissions_measure = emissions_data.copy()
 emissions_measure['Measure'] = 'CO2_emissions_Mt'
 emissions_measure.rename(columns={'CO2_emissions_Mt': 'Value'}, inplace=True)
 
+# Transform Consumption Emissions data
+consumption_emissions_measure = consumption_emissions_data.copy()
+consumption_emissions_measure['Measure'] = 'Consumption_CO2_emissions_Mt'
+consumption_emissions_measure.rename(columns={'Consumption_CO2_emissions_Mt': 'Value'}, inplace=True)
+
 # Combine all dataframes
 combined_df = pd.concat([gdp_measure[['ISO3', 'Country', 'Year', 'Measure', 'Value']], 
                          pop_measure[['ISO3', 'Country', 'Year', 'Measure', 'Value']], 
-                         emissions_measure[['ISO3', 'Country', 'Year', 'Measure', 'Value']]], 
+                         emissions_measure[['ISO3', 'Country', 'Year', 'Measure', 'Value']],
+                         consumption_emissions_measure[['ISO3', 'Country', 'Year', 'Measure', 'Value']]], 
                         ignore_index=True)
 
 # Filter out ISO3 codes without region mapping
@@ -180,6 +201,71 @@ g20_mapping = eu_g20_mapping.set_index('ISO3')['G20_country'].to_dict()
 
 combined_df['EU_country'] = combined_df['ISO3'].map(eu_mapping).fillna('No')
 combined_df['G20_country'] = combined_df['ISO3'].map(g20_mapping).fillna('No')
+
+# add rows summing values for each year by region and for the world
+# Create region aggregates
+print("Creating region aggregates...")
+# Get numeric columns that should be summed
+numeric_columns = combined_df.select_dtypes(include=['number']).columns.tolist()
+# Remove columns that shouldn't be summed
+columns_not_to_sum = ['Year', 'EU_country', 'G20_country']
+columns_to_sum = [col for col in numeric_columns if col not in columns_not_to_sum]
+
+# Group by Region, Year, and Measure to create region aggregates
+region_aggregates = combined_df.groupby(['Region', 'Year', 'Measure'])[columns_to_sum].sum().reset_index()
+region_aggregates['ISO3'] = region_aggregates['Region'].apply(lambda x: f"REG_{x[:3]}")
+region_aggregates['Country'] = region_aggregates['Region'].apply(lambda x: f"Region: {x}")
+# Set EU_country and G20_country to "N/A" for region aggregates since it's not applicable
+region_aggregates['EU_country'] = 'N/A'
+region_aggregates['G20_country'] = 'N/A'
+
+# Create world aggregates (all countries)
+print("Creating world aggregates...")
+world_aggregates = combined_df.groupby(['Year', 'Measure'])[columns_to_sum].sum().reset_index()
+world_aggregates['ISO3'] = 'WLD'
+world_aggregates['Country'] = 'World'
+world_aggregates['Region'] = 'World'
+# Set EU_country and G20_country to "N/A" for world aggregates since it's not applicable
+world_aggregates['EU_country'] = 'N/A'
+world_aggregates['G20_country'] = 'N/A'
+# Create EU aggregates (all countries with EU_country = Yes)
+print("Creating EU aggregates...")
+eu_aggregates = combined_df[combined_df['EU_country'] == 'Yes'].groupby(['Year', 'Measure'])[columns_to_sum].sum().reset_index()
+eu_aggregates['ISO3'] = 'EU'
+eu_aggregates['Country'] = 'European Union'
+eu_aggregates['Region'] = 'N/A'
+eu_aggregates['EU_country'] = 'Yes'
+eu_aggregates['G20_country'] = 'N/A'
+
+# Create G20 aggregates (all countries with G20_country = Yes)
+print("Creating G20 aggregates...")
+g20_aggregates = combined_df[combined_df['G20_country'] == 'Yes'].groupby(['Year', 'Measure'])[columns_to_sum].sum().reset_index()
+g20_aggregates['ISO3'] = 'G20'
+g20_aggregates['Country'] = 'G20 Countries'
+g20_aggregates['Region'] = 'N/A'
+g20_aggregates['EU_country'] = 'N/A'
+g20_aggregates['G20_country'] = 'Yes'
+
+# Fix the Region value for EU and G20 aggregates
+print("Fixing Region values for EU and G20 aggregates...")
+eu_aggregates['Region'] = 'EU'
+g20_aggregates['Region'] = 'G20'
+
+# Append the EU and G20 aggregates to the combined dataframe
+combined_df = pd.concat([combined_df, region_aggregates, world_aggregates, eu_aggregates, g20_aggregates], ignore_index=True)
+
+print(f"Added {len(eu_aggregates)} EU aggregate rows and {len(g20_aggregates)} G20 aggregate rows")
+
+
+
+# Append the aggregates to the combined dataframe
+combined_df = pd.concat([combined_df, region_aggregates, world_aggregates], ignore_index=True)
+
+print(f"Added {len(region_aggregates)} region aggregate rows and {len(world_aggregates)} world aggregate rows")
+
+
+
+
 
 # Sort the dataframe
 combined_df = combined_df.sort_values(['ISO3', 'Year', 'Measure'])
