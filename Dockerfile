@@ -71,7 +71,7 @@ RUN apt-get update -qqy && \
 
 # Install torch and torchvision for unstructured
 RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
-RUN pip install psycopg2-binary logfire
+RUN pip install psycopg2-binary logfire pydantic==2.10.6
 
 # Install additional pip packages
 RUN pip install -e "libs/kotaemon[adv]" \

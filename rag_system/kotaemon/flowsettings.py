@@ -82,7 +82,7 @@ KH_FEATURE_USER_MANAGEMENT_PASSWORD = str(
     config("KH_FEATURE_USER_MANAGEMENT_PASSWORD", default="admin")
 )
 KH_ENABLE_ALEMBIC = False
-KH_DATABASE = os.getenv("POSTGRESQL_ADDON_URI", None) # f"sqlite:///{KH_USER_DATA_DIR / 'sql.db'}"
+KH_DATABASE = os.getenv("POSTGRESQL_ADDON_URI", None)  # f"sqlite:///{KH_USER_DATA_DIR / 'sql.db'}"
 # KH_DATABASE = "postgresql://postgres:my_pass@postgres-db:5432/my_db"
 KH_FILESTORAGE_PATH = str(KH_USER_DATA_DIR / "files")
 
@@ -102,13 +102,9 @@ KH_DOCSTORE = {
     # "path": "s3://test-ecoskills/docstore/"
 }
 KH_VECTORSTORE = {
-    # "__type__": "kotaemon.storages.LanceDBVectorStore",
-    # "__type__": "kotaemon.storages.ChromaVectorStore",
-    # "__type__": "kotaemon.storages.MilvusVectorStore",
     "__type__": "kotaemon.storages.QdrantVectorStore",
-    "url": "http://172.17.0.1:6333",
-    "api_key": "None"
-    # "path": str(KH_USER_DATA_DIR / "vectorstore"),
+    "url": os.getenv("VECTOSTORE_URL", ""),
+    "api_key": os.getenv("API_KEY", "")
 }
 KH_LLMS = {}
 KH_EMBEDDINGS = {}
@@ -116,7 +112,7 @@ KH_RERANKINGS = {}
 
 # populate options from config
 if config("AZURE_OPENAI_API_KEY", default="") and config(
-    "AZURE_OPENAI_ENDPOINT", default=""
+        "AZURE_OPENAI_ENDPOINT", default=""
 ):
     if config("AZURE_OPENAI_CHAT_DEPLOYMENT", default=""):
         KH_LLMS["azure"] = {
@@ -126,7 +122,7 @@ if config("AZURE_OPENAI_API_KEY", default="") and config(
                 "azure_endpoint": config("AZURE_OPENAI_ENDPOINT", default=""),
                 "api_key": config("AZURE_OPENAI_API_KEY", default=""),
                 "api_version": config("OPENAI_API_VERSION", default="")
-                or "2024-02-15-preview",
+                               or "2024-02-15-preview",
                 "azure_deployment": config("AZURE_OPENAI_CHAT_DEPLOYMENT", default=""),
                 "timeout": 20,
             },
@@ -139,7 +135,7 @@ if config("AZURE_OPENAI_API_KEY", default="") and config(
                 "azure_endpoint": config("AZURE_OPENAI_ENDPOINT", default=""),
                 "api_key": config("AZURE_OPENAI_API_KEY", default=""),
                 "api_version": config("OPENAI_API_VERSION", default="")
-                or "2024-02-15-preview",
+                               or "2024-02-15-preview",
                 "azure_deployment": config(
                     "AZURE_OPENAI_EMBEDDINGS_DEPLOYMENT", default=""
                 ),
@@ -159,7 +155,7 @@ if OPENAI_API_KEY:
             "__type__": "kotaemon.llms.ChatOpenAI",
             "temperature": 0,
             "base_url": config("OPENAI_API_BASE", default="")
-            or "https://api.openai.com/v1",
+                        or "https://api.openai.com/v1",
             "api_key": OPENAI_API_KEY,
             "model": config("OPENAI_CHAT_MODEL", default="gpt-4o-mini"),
             "timeout": 20,
@@ -337,9 +333,7 @@ KH_VLM_ENDPOINT = "{0}/openai/deployments/{1}/chat/completions?api-version={2}".
     config("OPENAI_API_VERSION", default=""),
 )
 
-
 SETTINGS_APP: dict[str, dict] = {}
-
 
 SETTINGS_REASONING = {
     "use": {
@@ -383,7 +377,7 @@ KH_INDEX_TYPES = [
 GRAPHRAG_INDICES = [
     {
         "name": graph_type.split(".")[-1].replace("Index", "")
-        + " Collection",  # get last name
+                + " Collection",  # get last name
         "config": {
             "supported_file_types": (
                 ".png, .jpeg, .jpg, .tiff, .tif, .pdf, .xls, .xlsx, .doc, .docx, "

@@ -48,7 +48,7 @@ class LanceDBVectorStore(LlamaIndexVectorStore):
 
         # db_connection = lancedb.connect(path)  # type: ignore
         db_connection = lancedb.connect(
-            "s3://wsl-mobilitybucket",
+            "s3://wsl-docstore-prod",
             storage_options={
                 "region": "us-east-1",
                 "endpoint": "http://cellar-c2.services.clever-cloud.com:8000",

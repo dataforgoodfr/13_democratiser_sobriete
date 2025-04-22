@@ -26,7 +26,7 @@ class LanceDBDocumentStore(BaseDocumentStore):
         self.db_uri = path
         self.collection_name = collection_name
         self.db_connection = lancedb.connect(
-            "s3://wsl-docstore",
+            "s3://wsl-docstore-prod",
             storage_options={
                 "region": "us-east-1",
                 "aws_access_key_id": CELLAR_ADDON_KEY_ID,
