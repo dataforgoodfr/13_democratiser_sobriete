@@ -7,7 +7,7 @@ from kotaemon.base import Document
 from .base import BaseDocumentStore
 CELLAR_ADDON_KEY_ID = os.getenv("CELLAR_ADDON_KEY_ID", "")
 CELLAR_ADDON_KEY_SECRET = os.getenv("CELLAR_ADDON_KEY_SECRET", "")
-CELLAR_ADDON_HOST = os.getenv("CELLAR_ADDON_HOST", "http://cellar-c2.services.clever-cloud.com")
+CELLAR_ADDON_HOST = os.getenv("CELLAR_ADDON_HOST", "cellar-c2.services.clever-cloud.com")
 
 MAX_DOCS_TO_GET = 10**4
 
@@ -31,7 +31,7 @@ class LanceDBDocumentStore(BaseDocumentStore):
                 "region": "us-east-1",
                 "aws_access_key_id": CELLAR_ADDON_KEY_ID,
                 "aws_secret_access_key": CELLAR_ADDON_KEY_SECRET,
-                "endpoint": CELLAR_ADDON_HOST,
+                "endpoint": f"http://{CELLAR_ADDON_HOST}",
                 "allow_http": "true"
             }
         )
