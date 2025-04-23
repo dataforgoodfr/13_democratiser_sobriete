@@ -98,7 +98,7 @@ KH_DOCSTORE = {
     # "__type__": "kotaemon.storages.ElasticsearchDocumentStore",
     # "__type__": "kotaemon.storages.SimpleFileDocumentStore",
     "__type__": "kotaemon.storages.LanceDBDocumentStore",
-    "path": str(KH_USER_DATA_DIR / "docstore"),
+    "path": "docstore.lance",
     # "path": "s3://test-ecoskills/docstore/"
 }
 KH_VECTORSTORE = {
