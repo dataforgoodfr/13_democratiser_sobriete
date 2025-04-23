@@ -1,6 +1,12 @@
 import pandas as pd
 import numpy as np
 
+"""
+This script creates the master dataframe of all scenarios
+We use the data available from 1970 to 2023 for territory emissions and from 1990 to 2022 for consumption emissions
+We use the population data available from 1970 to 2050
+"""
+
 # Define the directory containing the data files
 output_directory = '/Users/louistronel/Desktop/D4G_WSL/13_democratiser_sobriete-1/stream3_visualization/Budget/Output'
 data_directory = '/Users/louistronel/Desktop/D4G_WSL/13_democratiser_sobriete-1/stream3_visualization/Budget/Data'
@@ -114,6 +120,8 @@ def create_base_dataframe(df):
         # Combine the latest years
         latest_years = pd.concat([country_latest_years, aggregate_latest_years])
         latest_years.columns = ['ISO3', f'Latest_year_{scope}']
+        # Convert years to integers
+        latest_years[f'Latest_year_{scope}'] = latest_years[f'Latest_year_{scope}'].astype(int)
         
         # Get latest emissions and population for each ISO3
         latest_data = pd.merge(
@@ -224,59 +232,71 @@ for _, row in base_df.iterrows():
                         }
                         scenarios.append(scenario)
 
-# Convert to DataFrame
+# After creating the scenarios list, create two separate dataframes
 scenarios_df = pd.DataFrame(scenarios)
 
-# Print the first 50 rows to verify
-print("\nFirst 50 rows of the scenarios dataframe:")
-print(scenarios_df.head(50).to_string())
+# 1. Create scenario parameters dataframe (one row per unique scenario)
+scenario_params = scenarios_df[[
+    'ISO3', 'Country', 'Region', 'Emissions_scope',
+    'Warming_scenario', 'Probability_of_reach', 'Budget_source',
+    'Budget_distribution_scenario', 'Years_to_neutrality', 'Neutrality_year',
+    'Latest_year', 'Latest_annual_CO2_emissions_Mt',
+    'Latest_cumulative_CO2_emissions_Mt', 'Latest_cumulative_population',
+    'Share_of_cumulative_population', 'Population_2050',
+    'Share_of_total_population_2050', 'Global_Carbon_budget',
+    'Country_carbon_budget'
+]].drop_duplicates()
 
-# After creating the scenarios list, add forecast data
-scenarios_df = pd.DataFrame(scenarios)
+# Create a scenario_id for each unique combination
+scenario_params['scenario_id'] = range(1, len(scenario_params) + 1)
 
-# Add forecast data to each scenario
+# 2. Create forecast data dataframe
 forecast_data = []
-for _, row in scenarios_df.iterrows():
-    if row['Neutrality_year'] != "N/A" and row['Neutrality_year'] is not None:
-        # Get historical years
-        historical_years = combined_df[
-            (combined_df['ISO3'] == row['ISO3']) & 
-            (combined_df['Emissions_scope'] == row['Emissions_scope'])
-        ][['Year', 'Annual_CO2_emissions_Mt']]
+for _, row in scenario_params.iterrows():
+    # Skip if no latest year or emissions data
+    if pd.isna(row['Latest_year']) or pd.isna(row['Latest_annual_CO2_emissions_Mt']):
+        continue
         
-        # Create forecast years
+    # Convert years to integers
+    latest_year = int(row['Latest_year'])
+    
+    # Handle different cases for forecast
+    if (row['Years_to_neutrality'] == "N/A" or 
+        row['Years_to_neutrality'] is None or 
+        (isinstance(row['Years_to_neutrality'], (int, float)) and row['Years_to_neutrality'] <= 0)):
+        # For N/A or negative years_to_neutrality, drop to zero immediately
         forecast_years = pd.DataFrame({
-            'Year': range(row['Latest_year'] + 1, int(row['Neutrality_year']) + 1)
+            'Year': [latest_year + 1],
+            'Forecasted_emissions_Mt': [0]
+        })
+    else:
+        # Normal case: linear decrease to zero
+        neutrality_year = int(row['Neutrality_year'])
+        forecast_years = pd.DataFrame({
+            'Year': range(latest_year + 1, neutrality_year + 1)
         })
         
         # Calculate forecasted emissions
-        slope = -row['Latest_annual_CO2_emissions_Mt'] / (int(row['Neutrality_year']) - row['Latest_year'])
+        slope = -row['Latest_annual_CO2_emissions_Mt'] / (neutrality_year - latest_year)
         forecast_years['Forecasted_emissions_Mt'] = [
-            max(0, row['Latest_annual_CO2_emissions_Mt'] + slope * (year - row['Latest_year']))
+            max(0, row['Latest_annual_CO2_emissions_Mt'] + slope * (year - latest_year))
             for year in forecast_years['Year']
         ]
-        
-        # Add forecast data to the scenario
-        for _, year_row in forecast_years.iterrows():
-            forecast_data.append({
-                'ISO3': row['ISO3'],
-                'Country': row['Country'],
-                'Region': row['Region'],
-                'Emissions_scope': row['Emissions_scope'],
-                'Warming_scenario': row['Warming_scenario'],
-                'Probability_of_reach': row['Probability_of_reach'],
-                'Budget_source': row['Budget_source'],
-                'Budget_distribution_scenario': row['Budget_distribution_scenario'],
-                'Years_to_neutrality': row['Years_to_neutrality'],
-                'Neutrality_year': row['Neutrality_year'],
-                'Year': year_row['Year'],
-                'Forecasted_emissions_Mt': year_row['Forecasted_emissions_Mt']
-            })
+    
+    # Add forecast data with scenario_id reference
+    for _, year_row in forecast_years.iterrows():
+        forecast_data.append({
+            'scenario_id': row['scenario_id'],
+            'Year': year_row['Year'],
+            'Forecasted_emissions_Mt': year_row['Forecasted_emissions_Mt']
+        })
 
-# Convert forecast data to DataFrame and merge with scenarios
+# Convert forecast data to DataFrame
 forecast_df = pd.DataFrame(forecast_data)
-final_df = pd.concat([scenarios_df, forecast_df], ignore_index=True)
 
-# Save to CSV
-final_df.to_csv(f"{output_directory}/Budget_scenarios.csv", index=False)
-print(f"\nScenarios saved to {output_directory}/Budget_scenarios.csv")
+# Save both files
+scenario_params.to_csv(f"{output_directory}/scenario_parameters.csv", index=False)
+forecast_df.to_csv(f"{output_directory}/forecast_data.csv", index=False)
+
+print(f"\nScenario parameters saved to {output_directory}/scenario_parameters.csv")
+print(f"Forecast data saved to {output_directory}/forecast_data.csv")
