@@ -200,11 +200,14 @@ for _, row in base_df.iterrows():
                                 neutrality_year = "N/A"
                                 country_budget = None
                         elif country_budget is not None and latest_annual > 0:
-                            years_to_neutrality = 2 * country_budget / latest_annual
-                            neutrality_year = latest_year + years_to_neutrality
-                            # Round to whole numbers
-                            years_to_neutrality = int(round(years_to_neutrality))
-                            neutrality_year = int(round(neutrality_year))
+                            years_to_neutrality = int(round(2 * country_budget / latest_annual))
+                            if years_to_neutrality + latest_year > 2100:
+                                neutrality_year = '>2100'
+                            elif  years_to_neutrality + latest_year < 2023:
+                                neutrality_year = '<2023'                 
+                            else:
+                                neutrality_year = int(round(latest_year + years_to_neutrality))
+
                         else:
                             years_to_neutrality = None
                             neutrality_year = None
@@ -271,7 +274,10 @@ for _, row in scenario_params.iterrows():
         })
     else:
         # Normal case: linear decrease to zero
-        neutrality_year = int(row['Neutrality_year'])
+        if row['Neutrality_year'] == '>2100':
+            neutrality_year = 2100
+        else:
+            neutrality_year = int(row['Neutrality_year'])
         forecast_years = pd.DataFrame({
             'Year': range(latest_year + 1, neutrality_year + 1)
         })
