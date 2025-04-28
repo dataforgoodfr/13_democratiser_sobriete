@@ -34,21 +34,30 @@ def load_current_targets():
     """Load and process current target years."""
     # Load the current targets file
     targets = pd.read_excel(f"{data_directory}/2025-04-21_Full file_Current carbon neutrality timeline per with Country ISO code.xlsx")
-    
+
+    # Load the ISO codes mapping file
+    iso_mapping = pd.read_excel(f"{data_directory}/28-04-2025_ISO_Codes_Mapping.xlsx")
+    iso_mapping.rename(columns={'Alpha-2 code': 'ISO2', 'Alpha-3 code': 'ISO3'}, inplace=True)
+
     # Get EU countries mapping
     eu_mapping = pd.read_excel(f"{data_directory}/2024-04-21_IPCC Regional Breakdown_ISO Country Code.xlsx",
                              sheet_name="G20_EU_Countries ",
                              header=0)
-    eu_countries = eu_mapping[eu_mapping['EU_country'] == 'Yes']['ISO3'].tolist()
-    
+
+    # Merge ISO2 codes into the EU mapping
+    eu_mapping = eu_mapping.merge(iso_mapping, on='ISO3', how='left')
+
+    # Get EU countries with ISO2 codes
+    eu_countries = eu_mapping[eu_mapping['EU_country'] == 'Yes']['ISO2'].tolist()
+
     # Create target mapping
     target_mapping = {}
-    
+
     # Process each row
     for _, row in targets.iterrows():
         iso = row['ISO']
         target_year = row['Target year']
-        
+
         if pd.notna(iso) and pd.notna(target_year):
             # Handle special case for NGA
             if iso == 'NGA' and target_year == '2050-2070':
@@ -58,14 +67,14 @@ def load_current_targets():
                     target_year = int(target_year)
                 except ValueError:
                     continue  # Skip if can't convert to integer
-            
+
             if iso == 'EU27':
                 # Add all EU countries with the same target year
                 for eu_iso in eu_countries:
                     target_mapping[eu_iso] = int(target_year)
             else:
                 target_mapping[iso] = int(target_year)
-    
+
     return target_mapping
 
 # Load the preprocessed data and current targets
@@ -75,79 +84,79 @@ current_targets = load_current_targets()
 # Create base dataframe with required columns
 def create_base_dataframe(df):
     # Get unique countries and their regions
-    base_df = df[['ISO3', 'Country', 'Region']].drop_duplicates()
-    
+    base_df = df[['ISO2', 'Country', 'Region']].drop_duplicates()
+
     # Get population data for 2050
     pop_2050 = df[
         (df['Emissions_scope'] == 'Territory') &  # Using Territory scope since population is the same
         (df['Year'] == 2050)
-    ][['ISO3', 'Population']].rename(columns={'Population': 'Population_2050'})
-    
+    ][['ISO2', 'Population']].rename(columns={'Population': 'Population_2050'})
+
     # Get world population for 2050
     world_pop_2050 = df[
         (df['Emissions_scope'] == 'Territory') &  # Using Territory scope since population is the same
-        (df['Year'] == 2050) & 
-        (df['ISO3'] == 'WLD')
+        (df['Year'] == 2050) &
+        (df['ISO2'] == 'WLD')
     ]['Population'].iloc[0]
-    
+
     # Merge population data
-    base_df = base_df.merge(pop_2050, on='ISO3', how='left')
-    
+    base_df = base_df.merge(pop_2050, on='ISO2', how='left')
+
     # Calculate share of total population
     base_df['Share_of_total_population_2050'] = base_df['Population_2050'] / world_pop_2050
-    
+
     # Get latest year and emissions for each scope
     emission_scopes = ['Territory', 'Consumption']
     for scope in emission_scopes:
         # Filter data for this scope and where Annual_CO2_emissions_Mt is not null and not 0
         scope_data = df[
-            (df['Emissions_scope'] == scope) & 
-            (df['Annual_CO2_emissions_Mt'].notna()) & 
+            (df['Emissions_scope'] == scope) &
+            (df['Annual_CO2_emissions_Mt'].notna()) &
             (df['Annual_CO2_emissions_Mt'] != 0) &
             (df['Year'] != 2050)  # Exclude 2050 from latest year calculation
         ]
-        
+
         # For regular countries, get latest year with emissions data
         country_latest_years = scope_data[
-            ~scope_data['ISO3'].isin(['WLD', 'REG', 'EU', 'G20'])
-        ].groupby('ISO3')['Year'].max().reset_index()
-        
+            ~scope_data['ISO2'].isin(['WLD', 'REG', 'EU', 'G20'])
+        ].groupby('ISO2')['Year'].max().reset_index()
+
         # For aggregates, get latest year with emissions data
         aggregate_latest_years = scope_data[
-            scope_data['ISO3'].isin(['WLD', 'REG', 'EU', 'G20'])
-        ].groupby('ISO3')['Year'].max().reset_index()
-        
+            scope_data['ISO2'].isin(['WLD', 'REG', 'EU', 'G20'])
+        ].groupby('ISO2')['Year'].max().reset_index()
+
         # Combine the latest years
         latest_years = pd.concat([country_latest_years, aggregate_latest_years])
-        latest_years.columns = ['ISO3', f'Latest_year_{scope}']
+        latest_years.columns = ['ISO2', f'Latest_year_{scope}']
         # Convert years to integers
         latest_years[f'Latest_year_{scope}'] = latest_years[f'Latest_year_{scope}'].astype(int)
-        
-        # Get latest emissions and population for each ISO3
+
+        # Get latest emissions and population for each ISO2
         latest_data = pd.merge(
-            scope_data, 
-            latest_years, 
-            left_on=['ISO3', 'Year'], 
-            right_on=['ISO3', f'Latest_year_{scope}']
-        )[['ISO3', 'Annual_CO2_emissions_Mt', 'Cumulative_CO2_emissions_Mt', 'Cumulative_population']].rename(
+            scope_data,
+            latest_years,
+            left_on=['ISO2', 'Year'],
+            right_on=['ISO2', f'Latest_year_{scope}']
+        )[['ISO2', 'Annual_CO2_emissions_Mt', 'Cumulative_CO2_emissions_Mt', 'Cumulative_population']].rename(
             columns={
                 'Annual_CO2_emissions_Mt': f'Latest_annual_CO2_emissions_Mt_{scope}',
                 'Cumulative_CO2_emissions_Mt': f'Latest_cumulative_CO2_emissions_Mt_{scope}',
                 'Cumulative_population': f'Latest_cumulative_population_{scope}'
             }
         )
-        
+
         # Merge with base dataframe
-        base_df = base_df.merge(latest_years, on='ISO3', how='left')
-        base_df = base_df.merge(latest_data, on='ISO3', how='left')
-        
+        base_df = base_df.merge(latest_years, on='ISO2', how='left')
+        base_df = base_df.merge(latest_data, on='ISO2', how='left')
+
         # Calculate share of cumulative population for this scope
         world_cumulative_pop = base_df[
-            base_df['ISO3'] == 'WLD'
+            base_df['ISO2'] == 'WLD'
         ][f'Latest_cumulative_population_{scope}'].iloc[0]
-        
+
         base_df[f'Share_of_cumulative_population_{scope}'] = base_df[f'Latest_cumulative_population_{scope}'] / world_cumulative_pop
-    
+
     return base_df
 
 # Create the base dataframe
@@ -168,26 +177,26 @@ for _, row in base_df.iterrows():
                         elif distribution == 'Responsibility':
                             # Get world's latest cumulative emissions
                             world_cumulative = base_df[
-                                (base_df['ISO3'] == 'WLD') & 
+                                (base_df['ISO2'] == 'WLD') &
                                 (base_df[f'Latest_cumulative_CO2_emissions_Mt_{emissions_scope}'].notna())
                             ][f'Latest_cumulative_CO2_emissions_Mt_{emissions_scope}'].iloc[0]
-                            
+
                             # Calculate total available budget (global + world's historical emissions)
                             total_available = global_budget + world_cumulative
-                            
+
                             # Calculate country's share and subtract its historical emissions
                             country_cumulative = row[f'Latest_cumulative_CO2_emissions_Mt_{emissions_scope}']
                             country_budget = (total_available * row[f'Share_of_cumulative_population_{emissions_scope}']) - country_cumulative
                         else:  # Current_target
                             country_budget = None
-                        
+
                         # Calculate years to neutrality and neutrality year
                         latest_annual = row[f'Latest_annual_CO2_emissions_Mt_{emissions_scope}']
                         latest_year = row[f'Latest_year_{emissions_scope}']
-                        
+
                         if distribution == 'Current_target':
                             # Get target year from current targets mapping
-                            neutrality_year = current_targets.get(row['ISO3'])
+                            neutrality_year = current_targets.get(row['ISO2'])
                             if neutrality_year is not None:
                                 years_to_neutrality = neutrality_year - latest_year
                                 # Back-calculate Country_carbon_budget based on years_to_neutrality
@@ -204,16 +213,16 @@ for _, row in base_df.iterrows():
                             if years_to_neutrality + latest_year > 2100:
                                 neutrality_year = '>2100'
                             elif  years_to_neutrality + latest_year < 2023:
-                                neutrality_year = '<2023'                 
+                                neutrality_year = '<2023'
                             else:
                                 neutrality_year = int(round(latest_year + years_to_neutrality))
 
                         else:
                             years_to_neutrality = None
                             neutrality_year = None
-                        
+
                         scenario = {
-                            'ISO3': row['ISO3'],
+                            'ISO2': row['ISO2'],
                             'Country': row['Country'],
                             'Region': row['Region'],
                             'Population_2050': row['Population_2050'],
@@ -240,7 +249,7 @@ scenarios_df = pd.DataFrame(scenarios)
 
 # 1. Create scenario parameters dataframe (one row per unique scenario)
 scenario_params = scenarios_df[[
-    'ISO3', 'Country', 'Region', 'Emissions_scope',
+    'ISO2', 'Country', 'Region', 'Emissions_scope',
     'Warming_scenario', 'Probability_of_reach', 'Budget_source',
     'Budget_distribution_scenario', 'Years_to_neutrality', 'Neutrality_year',
     'Latest_year', 'Latest_annual_CO2_emissions_Mt',
@@ -259,13 +268,13 @@ for _, row in scenario_params.iterrows():
     # Skip if no latest year or emissions data
     if pd.isna(row['Latest_year']) or pd.isna(row['Latest_annual_CO2_emissions_Mt']):
         continue
-        
+
     # Convert years to integers
     latest_year = int(row['Latest_year'])
-    
+
     # Handle different cases for forecast
-    if (row['Years_to_neutrality'] == "N/A" or 
-        row['Years_to_neutrality'] is None or 
+    if (row['Years_to_neutrality'] == "N/A" or
+        row['Years_to_neutrality'] is None or
         (isinstance(row['Years_to_neutrality'], (int, float)) and row['Years_to_neutrality'] <= 0)):
         # For N/A or negative years_to_neutrality, drop to zero immediately
         forecast_years = pd.DataFrame({
@@ -281,14 +290,14 @@ for _, row in scenario_params.iterrows():
         forecast_years = pd.DataFrame({
             'Year': range(latest_year + 1, neutrality_year + 1)
         })
-        
+
         # Calculate forecasted emissions
         slope = -row['Latest_annual_CO2_emissions_Mt'] / (neutrality_year - latest_year)
         forecast_years['Forecasted_emissions_Mt'] = [
             max(0, row['Latest_annual_CO2_emissions_Mt'] + slope * (year - latest_year))
             for year in forecast_years['Year']
         ]
-    
+
     # Add forecast data with scenario_id reference
     for _, year_row in forecast_years.iterrows():
         forecast_data.append({
