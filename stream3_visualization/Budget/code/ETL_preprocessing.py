@@ -9,6 +9,8 @@ def load_iso_codes_mapping():
     """Load and process ISO codes mapping data."""
     iso_mapping = pd.read_excel(f"{DATA_DIR}/28-04-2025_ISO_Codes_Mapping.xlsx")
     iso_mapping.rename(columns={'Alpha-2 code': 'ISO2', 'Alpha-3 code': 'ISO3'}, inplace=True)
+    # Ensure 'NA' is not interpreted as a missing value
+    iso_mapping['ISO2'] = iso_mapping['ISO2'].fillna('')
     return iso_mapping[['ISO3', 'ISO2']]
 
 def load_ipcc_regions():
@@ -35,13 +37,32 @@ def load_eu_g20_mapping():
                           header=0)
     return mapping[['ISO3', 'EU_country', 'G20_country']]
 
-def load_population_data():
-    """Load and process population data."""
+def load_historical_population_data():
+    """Load and process historical population data from emissions data."""
+    emissions = pd.read_excel(f"{DATA_DIR}/2025-04-22_CO2 Emissions_All Countries_ISO Code_1750-2023.xlsx",
+                            sheet_name="GCB2024v17_MtCO2_flat")
+    emissions = emissions[['Country', 'ISO 3166-1 alpha-3', 'Year', 'Total', 'Per Capita']]
+    emissions.rename(columns={
+        'ISO 3166-1 alpha-3': 'ISO3',
+        'Per Capita': 'Per_Capita',
+        'Total': 'Annual_CO2_emissions_Mt'
+    }, inplace=True)
+
+    # Calculate population
+    emissions['Population'] = round(((emissions['Annual_CO2_emissions_Mt'] / emissions['Per_Capita']) * 1000000), 0)
+
+    # Select relevant columns
+    return emissions[['ISO3', 'Country', 'Year', 'Population']]
+
+def load_forecasted_population_data():
+    """Load and process forecasted population data for 2050."""
     pop = pd.read_excel(f"{DATA_DIR}/2025-04-21_Population per Country ISO code_1970-2050.xlsx",
                        sheet_name="unpopulation_dataportal_2025042")
     pop = pop[['Iso3', 'Location', 'Time', 'Value']]
     pop.rename(columns={'Iso3': 'ISO3', 'Location': 'Country', 'Time': 'Year', 'Value': 'Population'}, inplace=True)
-    return pop
+
+    # Filter for the year 2050
+    return pop[pop['Year'] == 2050]
 
 def load_emissions_data():
     """Load and process CO2 emissions data."""
@@ -86,7 +107,6 @@ def calculate_cumulative_emissions(df):
     df['Cumulative_Consumption_CO2_emissions_Mt'] = df.groupby(['ISO2', 'Region'])['Consumption_CO2_emissions_Mt'].cumsum()
     return df
 
-
 def create_aggregates(df, group_cols, agg_name, iso_code, region_name):
     """Create aggregates for regions, world, EU, or G20."""
     aggregates = df.groupby(group_cols).agg({
@@ -114,15 +134,24 @@ def main():
     iso_mapping = load_iso_codes_mapping()
     ipcc_regions = load_ipcc_regions()
     eu_g20_mapping = load_eu_g20_mapping()
-    population_data = load_population_data()
+    historical_population_data = load_historical_population_data()
+    forecasted_population_data = load_forecasted_population_data()
     emissions_data = load_emissions_data()
     consumption_emissions_data = load_consumption_emissions_data()
+
+    # Combine historical and forecasted population data
+    population_data = pd.concat([historical_population_data, forecasted_population_data], ignore_index=True)
 
     # Merge ISO2 codes into the dataframes
     iso2_mapping = iso_mapping.set_index('ISO3')['ISO2'].to_dict()
     population_data['ISO2'] = population_data['ISO3'].map(iso2_mapping)
     emissions_data['ISO2'] = emissions_data['ISO3'].map(iso2_mapping)
     consumption_emissions_data['ISO2'] = consumption_emissions_data['ISO3'].map(iso2_mapping)
+
+    # Explicitly handle 'NA' for Namibia
+    population_data.loc[population_data['ISO3'] == 'NAM', 'ISO2'] = 'NA'
+    emissions_data.loc[emissions_data['ISO3'] == 'NAM', 'ISO2'] = 'NA'
+    consumption_emissions_data.loc[consumption_emissions_data['ISO3'] == 'NAM', 'ISO2'] = 'NA'
 
     # Filter and add metadata to emissions data
     valid_iso3_codes = set(ipcc_regions['ISO3'].unique())

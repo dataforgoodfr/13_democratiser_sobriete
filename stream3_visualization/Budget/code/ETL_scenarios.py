@@ -200,7 +200,7 @@ for _, row in base_df.iterrows():
                             if neutrality_year is not None:
                                 years_to_neutrality = neutrality_year - latest_year
                                 # Back-calculate Country_carbon_budget based on years_to_neutrality
-                                if latest_annual > 0:
+                                if pd.notna(latest_annual) and latest_annual > 0:
                                     country_budget = (years_to_neutrality * latest_annual) / 2
                                 else:
                                     country_budget = None
@@ -208,7 +208,7 @@ for _, row in base_df.iterrows():
                                 years_to_neutrality = "N/A"
                                 neutrality_year = "N/A"
                                 country_budget = None
-                        elif country_budget is not None and latest_annual > 0:
+                        elif pd.notna(country_budget) and pd.notna(latest_annual) and latest_annual > 0:
                             years_to_neutrality = int(round(2 * country_budget / latest_annual))
                             if years_to_neutrality + latest_year > 2100:
                                 neutrality_year = '>2100'
@@ -218,8 +218,8 @@ for _, row in base_df.iterrows():
                                 neutrality_year = int(round(latest_year + years_to_neutrality))
 
                         else:
-                            years_to_neutrality = None
-                            neutrality_year = None
+                            years_to_neutrality = 'N/A'
+                            neutrality_year = 'N/A'
 
                         scenario = {
                             'ISO2': row['ISO2'],
