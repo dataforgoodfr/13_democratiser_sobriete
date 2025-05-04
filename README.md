@@ -1,3 +1,21 @@
+# Prescreening ASK
+
+## W&B
+Projet publique [ici](https://wandb.ai/charlesattend_/13_democratiser_sobriete). Publish your run there !
+
+## Why recall is important in our case
+The aim is to filter coarsely many paper without missing an article about sufficiency. Thus we want to minimise false negative as much as possible. Which means we need to enforce recall.
+
+## Todo
+
+[] Test with SciBERT !
+[] Log F2-Score for enforcing recall
+[] Try better LR Scheduler configuration
+[] Use recall as early stopping & al metric ?
+[] Measure inference type and compute how much time we need to fitler Nk paper
+
+
+
 <div align="center">
 
 # Lightning-Hydra-Template
