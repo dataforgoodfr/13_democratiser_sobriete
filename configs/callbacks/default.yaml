@@ -1,7 +1,7 @@
 defaults:
   - model_checkpoint
   - early_stopping
-  - model_summary
+  # - model_summary
   - rich_progress_bar
   - _self_
 
@@ -15,8 +15,8 @@ model_checkpoint:
 
 early_stopping:
   monitor: "val/acc"
-  patience: 100
+  # patience: 100
   mode: "max"
 
-model_summary:
-  max_depth: -1
+# model_summary:
+#   max_depth: -1
