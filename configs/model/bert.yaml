@@ -1,6 +1,10 @@
 _target_: src.models.bert_module.BertLitModule
 model_name: bert-base-uncased
 
+criterion:
+  _target_: torch.nn.CrossEntropyLoss
+probability_loss: false
+
 optimizer:
   _target_: torch.optim.Adam
   _partial_: true

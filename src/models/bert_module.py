@@ -12,10 +12,12 @@ class BertLitModule(LightningModule):
     def __init__(
         self,
         model_name: str,
+        criterion: str,
         optimizer: torch.optim.Optimizer,
         scheduler: torch.optim.lr_scheduler,
         compile: bool,
         tensor_cores: bool,
+        probability_loss: bool,
     ):
         super().__init__()
 
@@ -24,7 +26,8 @@ class BertLitModule(LightningModule):
         self.save_hyperparameters(logger=False)
 
         self.net = BertForSequenceClassification.from_pretrained(model_name)
-        self.criterion = torch.nn.CrossEntropyLoss()
+        self.criterion = criterion
+        self.probability_loss = probability_loss
 
         # metric objects for calculating and averaging accuracy across batches
         self.train_acc = Accuracy(task="binary")
@@ -78,17 +81,21 @@ class BertLitModule(LightningModule):
             - A tensor of predictions.
             - A tensor of target labels.
         """
+        target = batch["labels"]
         output = self.net(
             input_ids=batch["input_ids"],
             attention_mask=batch["attention_mask"],
-            labels=batch["labels"],
+            labels=target,
         )
         logits = output.logits
-        loss = self.criterion(
-            logits, batch["labels"]
-        )  # Corrected to use batch["labels"]
+        if self.probability_loss:
+            # Convert labels to probabilities
+            target = torch.nn.functional.one_hot(
+                target, num_classes=2
+            ).float()
+        loss = self.criterion(logits, target)
         preds = torch.argmax(logits, dim=1)
-        return loss, preds, batch["labels"]  # Corrected to return batch["labels"]
+        return loss, preds, batch["labels"]
 
     def training_step(self, batch):
         loss, preds, targets = self.model_step(batch)
