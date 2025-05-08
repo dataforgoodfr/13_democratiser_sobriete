@@ -1,5 +1,5 @@
 _target_: src.data.mobility_datamodule.MobilityDataModule
-data_path: ${paths.data_dir}/full_concat_dataset.csv
+data_path: ${paths.data_dir}/mobility_full_concat_dataset.csv
 tokenizer:
   _target_: transformers.BertTokenizer.from_pretrained
   pretrained_model_name_or_path: ${model.model_name}
