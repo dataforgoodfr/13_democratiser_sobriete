@@ -4,7 +4,7 @@
 # python train.py experiment=example
 
 defaults:
-  - override /data: mobility_dataset
+  - override /data: full_dataset
   - override /model: bert
   - override /callbacks: default
   - override /trainer: gpu
@@ -27,11 +27,6 @@ model:
 
 data:
   batch_size: 32
-
-callbacks:
-  early_stopping:
-    patience: 4
-    monitor: "val/loss"
   
 logger:
   wandb:

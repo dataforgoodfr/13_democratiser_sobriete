@@ -5,7 +5,7 @@
 
 defaults:
   - override /data: mobility_dataset
-  - override /model: bert
+  - override /model: bert_W_BCE
   - override /callbacks: default
   - override /trainer: gpu
   - override /logger: wandb
@@ -19,7 +19,7 @@ seed: 42
 
 trainer:
   min_epochs: 3
-  max_epochs: 8
+  max_epochs: 15
   gradient_clip_val: 0.5
 
 model:
@@ -28,10 +28,6 @@ model:
 data:
   batch_size: 32
 
-callbacks:
-  early_stopping:
-    patience: 4
-    monitor: "val/loss"
   
 logger:
   wandb:

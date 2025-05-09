@@ -1,0 +1,26 @@
+_target_: src.models.bert_module.BertLitModule
+model_name: allenai/scibert_scivocab_uncased
+
+criterion:
+  _target_: torch.nn.BCEWithLogitsLoss
+  pos_weight: 
+    _target_: torch.tensor
+    _args_: [2.5]
+probability_loss: true
+
+optimizer:
+  _target_: torch.optim.Adam
+  _partial_: true
+  lr: 5e-6
+  weight_decay: 0.01
+
+scheduler:
+  _target_: torch.optim.lr_scheduler.ReduceLROnPlateau
+  _partial_: true
+  mode: min
+  factor: 0.1
+  patience: 3
+
+# compile model for faster training with pytorch 2.0
+compile: false
+tensor_cores: false
