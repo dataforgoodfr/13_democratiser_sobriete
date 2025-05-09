@@ -8,12 +8,13 @@ The aim is to filter coarsely many paper without missing an article about suffic
 
 ## Todo
 
-- [ ] Test with SciBERT !
-- [ ] Use a weighted loss function to penalize more false negative&
+- [X] Test with SciBERT !
+- [X] Use a weighted loss function to penalize more false negative
 - [ ] Log F2-Score for enforcing recall
 - [ ] Try better LR Scheduler configuration
-- [ ] Use recall as early stopping & al metric ?
-- [ ] Measure inference type and compute how much time we need to fitler Nk paper
+- [ ] ~~Use recall as early stopping & al metric ?~~ canceled  acc is better
+- [X] Measure inference type and compute how much time we need to fitler Nk paper
+  - should be quick
 - [ ] Make a "fair" comparaison with logistic regression to see the performance tradeoff (same dataset split, bit of hyperparam tunning) <- full sklearn if you don't know torch 
 - [ ] Get metrics by class like in sklearn classif report ? May be implemented in torchmetric
 - [ ] Tune hyperparameter 
