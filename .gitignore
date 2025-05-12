@@ -152,3 +152,4 @@ configs/local/default.yaml
 
 # Aim logging
 .aim
+data/all_documents_general_query.csv
