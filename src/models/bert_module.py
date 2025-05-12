@@ -12,45 +12,57 @@ class BertLitModule(LightningModule):
     def __init__(
         self,
         model_name: str,
+        num_classes: int,
         criterion: str,
         optimizer: torch.optim.Optimizer,
         scheduler: torch.optim.lr_scheduler,
         compile: bool,
         tensor_cores: bool,
         probability_loss: bool,
+        cache_dir: str = None,
     ):
         super().__init__()
 
         # this line allows to access init params with 'self.hparams' attribute
         # also ensures init params will be stored in ckpt
         self.save_hyperparameters(logger=False)
-
-        self.net = BertForSequenceClassification.from_pretrained(model_name)
+        self.net = BertForSequenceClassification.from_pretrained(
+            model_name, num_labels=num_classes, cache_dir=cache_dir
+        )
+        self.num_classes = num_classes
         self.criterion = criterion
         self.probability_loss = probability_loss
 
+        self.val_preds = []
+        self.val_targets = []
+
+        if num_classes == 2:
+            metric_kwargs = {"task": "binary"}
+        else:
+            metric_kwargs = {"task": "multiclass", "num_classes": num_classes}
+
         # metric objects for calculating and averaging accuracy across batches
-        self.train_acc = Accuracy(task="binary")
-        self.val_acc = Accuracy(task="binary")
-        self.test_acc = Accuracy(task="binary")
+        self.train_acc = Accuracy(**metric_kwargs)
+        self.val_acc = Accuracy(**metric_kwargs)
+        self.test_acc = Accuracy(**metric_kwargs)
 
         # Precision, Recall, and F1-score metrics
-        self.train_precision = Precision(task="binary")
-        self.train_recall = Recall(task="binary")
-        self.train_f1 = F1Score(task="binary")
+        self.train_precision = Precision(**metric_kwargs)
+        self.train_recall = Recall(**metric_kwargs)
+        self.train_f1 = F1Score(**metric_kwargs)
 
-        self.val_precision = Precision(task="binary")
-        self.val_recall = Recall(task="binary")
-        self.val_f1 = F1Score(task="binary")
+        self.val_precision = Precision(**metric_kwargs)
+        self.val_recall = Recall(**metric_kwargs)
+        self.val_f1 = F1Score(**metric_kwargs)
 
-        self.test_precision = Precision(task="binary")
-        self.test_recall = Recall(task="binary")
-        self.test_f1 = F1Score(task="binary")
+        self.test_precision = Precision(**metric_kwargs)
+        self.test_recall = Recall(**metric_kwargs)
+        self.test_f1 = F1Score(**metric_kwargs)
 
         # Confusion matrix metrics
-        self.train_conf_matrix = ConfusionMatrix(task="binary")
-        self.val_conf_matrix = ConfusionMatrix(task="binary")
-        self.test_conf_matrix = ConfusionMatrix(task="binary")
+        self.train_conf_matrix = ConfusionMatrix(**metric_kwargs)
+        self.val_conf_matrix = ConfusionMatrix(**metric_kwargs)
+        self.test_conf_matrix = ConfusionMatrix(**metric_kwargs)
 
         # for averaging loss across batches
         self.train_loss = MeanMetric()
@@ -85,14 +97,11 @@ class BertLitModule(LightningModule):
         output = self.net(
             input_ids=batch["input_ids"],
             attention_mask=batch["attention_mask"],
-            labels=target,
         )
         logits = output.logits
         if self.probability_loss:
             # Convert labels to probabilities
-            target = torch.nn.functional.one_hot(
-                target, num_classes=2
-            ).float()
+            target = torch.nn.functional.one_hot(target, num_classes=self.num_classes).float()
         loss = self.criterion(logits, target)
         preds = torch.argmax(logits, dim=1)
         return loss, preds, batch["labels"]
@@ -108,6 +117,7 @@ class BertLitModule(LightningModule):
         self.train_f1(preds, targets)
         self.train_conf_matrix.update(preds, targets)
 
+        # self.log("lr", self.trainer.lr_schedulers[0]["scheduler"].get_lr()[0])
         self.log(
             "train/loss", self.train_loss, on_step=False, on_epoch=True, prog_bar=True
         )
@@ -168,6 +178,7 @@ class BertLitModule(LightningModule):
         )
         self.log("test/f1", self.test_f1, on_step=False, on_epoch=True, prog_bar=True)
 
+
     def on_test_epoch_end(self) -> None:
         """Lightning hook that is called when a test epoch ends."""
         # Log confusion matrix
@@ -186,7 +197,10 @@ class BertLitModule(LightningModule):
             labels.
         :param batch_idx: The index of the current batch.
         """
-        loss, preds, targets = self.model_step(batch)
+        with torch.no_grad():
+            loss, preds, targets = self.model_step(batch)
+        self.val_preds += preds.tolist()
+        self.val_targets += targets.tolist()
 
         # update and log metrics
         self.val_loss(loss)
@@ -227,6 +241,9 @@ class BertLitModule(LightningModule):
             "val/acc_best", self.val_acc_best.compute(), sync_dist=True, prog_bar=True
         )
 
+        # report_table 
+        # self.log("val/classification_report", wandb.Table(data=report_table, columns=report_columns))
+
     def setup(self, stage: str) -> None:
         """Lightning hook that is called at the beginning of fit (train + validate), validate,
         test, or predict.
@@ -257,7 +274,7 @@ class BertLitModule(LightningModule):
                 "optimizer": optimizer,
                 "lr_scheduler": {
                     "scheduler": scheduler,
-                    "monitor": "val/loss",
+                    "monitor": "val/recall",
                     "interval": "epoch",
                     "frequency": 1,
                 },

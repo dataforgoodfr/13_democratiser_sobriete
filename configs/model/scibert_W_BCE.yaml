@@ -1,5 +1,8 @@
 _target_: src.models.bert_module.BertLitModule
 model_name: allenai/scibert_scivocab_uncased
+num_classes: ${data.num_classes}
+cache_dir: ${paths.cache_dir}
+
 
 criterion:
   _target_: torch.nn.BCEWithLogitsLoss
@@ -9,7 +12,7 @@ criterion:
 probability_loss: true
 
 optimizer:
-  _target_: torch.optim.Adam
+  _target_: torch.optim.AdamW
   _partial_: true
   lr: 5e-6
   weight_decay: 0.01

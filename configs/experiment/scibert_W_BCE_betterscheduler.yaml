@@ -24,11 +24,16 @@ trainer:
 
 model:
   tensor_cores: true
+  scheduler:
+    factor: 0.9
+    patience: 4
+    threshold: 0.05
+    mode: "max"
 
 data:
   batch_size: 32
 
-  
+
 logger:
   wandb:
     tags: ${tags}

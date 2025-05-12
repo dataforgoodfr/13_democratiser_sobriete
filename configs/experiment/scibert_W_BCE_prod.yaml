@@ -10,8 +10,19 @@ defaults:
   - override /trainer: gpu
   - override /logger: wandb
 
-# all parameters below will be merged with parameters from default configurations set above
-# this allows you to overwrite only specified parameters
+# Prod
+callbacks:
+  model_checkpoint:
+    monitor: "train/acc"
+model:
+  scheduler:
+    monitor: "train/acc"
+data:
+  batch_size: 32
+  val_split: 0
+  test_split: 0
+
+
 
 tags: ["mobility", "bert_uncased"]
 
@@ -19,14 +30,12 @@ seed: 42
 
 trainer:
   min_epochs: 3
-  max_epochs: 30
+  max_epochs: 15
   gradient_clip_val: 0.5
 
 model:
   tensor_cores: true
 
-data:
-  batch_size: 32
 
   
 logger:

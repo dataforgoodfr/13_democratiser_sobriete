@@ -36,8 +36,9 @@ class MobilityDataModule(LightningDataModule):
         batch_size=32,
         max_length=512,
         seed=42,
-        val_split=0.1,
-        test_split=0.2,
+        test_split=0.1,
+        val_split=0.2,
+        **kwargs,
     ):
         super().__init__()
         self.data_path = data_path
@@ -45,8 +46,8 @@ class MobilityDataModule(LightningDataModule):
         self.batch_size = batch_size
         self.max_length = max_length
         self.seed = seed
-        self.val_split = val_split
         self.test_split = test_split
+        self.val_split = val_split
 
     def prepare_data(self):
         self.data = pd.read_csv(self.data_path).dropna()
@@ -55,18 +56,27 @@ class MobilityDataModule(LightningDataModule):
         )
 
     def setup(self, stage=None):
-        train_data, test_data = train_test_split(
-            self.data,
-            test_size=self.test_split,
-            stratify=self.data["true_label"],
-            random_state=self.seed,
-        )
-        test_data, val_data = train_test_split(
-            test_data,
-            test_size=self.test_split / (self.val_split + self.test_split),
-            stratify=test_data["true_label"],
-            random_state=self.seed,
-        )
+        if self.val_split > 0:
+            train_data, val_data = train_test_split(
+                self.data,
+                test_size=self.val_split + self.test_split,
+                stratify=self.data["true_label"],
+                random_state=self.seed,
+            )
+        else:
+            train_data = self.data
+            val_data = []
+
+        if self.test_split > 0:
+            val_data, test_data = train_test_split(
+                val_data,
+                test_size=self.test_split / (self.val_split + self.test_split),
+                stratify=val_data["true_label"],
+                random_state=self.seed,
+            )
+        else:
+            test_data = []
+
         self.train_dataset = MobilityDataset(
             train_data, self.tokenizer, self.max_length
         )
@@ -74,7 +84,9 @@ class MobilityDataModule(LightningDataModule):
         self.test_dataset = MobilityDataset(test_data, self.tokenizer, self.max_length)
 
     def train_dataloader(self):
-        return DataLoader(self.train_dataset, batch_size=self.batch_size, shuffle=True, num_workers=4)
+        return DataLoader(
+            self.train_dataset, batch_size=self.batch_size, shuffle=True, num_workers=4
+        )
 
     def val_dataloader(self):
         return DataLoader(self.val_dataset, batch_size=self.batch_size, num_workers=4)

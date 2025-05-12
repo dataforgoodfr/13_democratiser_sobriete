@@ -1,7 +1,10 @@
 _target_: src.data.mobility_datamodule.MobilityDataModule
-data_path: ${paths.data_dir}/mobility_full_concat_dataset.csv
+data_path: ${paths.data_dir}/sector_positive.csv
 tokenizer:
   _target_: transformers.BertTokenizer.from_pretrained
   pretrained_model_name_or_path: ${model.model_name}
-batch_size: 128
-num_classes: 2
+  cache_dir: ${paths.cache_dir}
+batch_size: 32
+num_classes: 8
+val_split: 0.3
+test_split: 0

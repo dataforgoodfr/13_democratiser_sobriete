@@ -1,5 +1,7 @@
 _target_: src.models.bert_module.BertLitModule
 model_name: bert-base-uncased
+num_classes: ${data.num_classes}
+cache_dir: ${paths.cache_dir}
 
 criterion:
   _target_: torch.nn.CrossEntropyLoss
