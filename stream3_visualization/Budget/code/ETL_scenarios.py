@@ -1,34 +1,28 @@
 import pandas as pd
 import numpy as np
 
-"""
-This script creates the master dataframe of all scenarios
-We use the data available from 1970 to 2023 for territory emissions and from 1990 to 2022 for consumption emissions
-We use the population data available from 1970 to 2050
-"""
-
 # Define the directory containing the data files
 output_directory = '/Users/louistronel/Desktop/D4G_WSL/13_democratiser_sobriete-1/stream3_visualization/Budget/Output'
 data_directory = '/Users/louistronel/Desktop/D4G_WSL/13_democratiser_sobriete-1/stream3_visualization/Budget/Data'
 
 # Define global carbon budgets
 BUDGET_GLOBAL_lamboll_2C = {"33%": 1603000, "50%": 1219000, "67%": 944000}
-BUDGET_GLOBAL_foster_2C = {"33%": 1450000, "50%": 1150000, "67%": 950000}
+BUDGET_GLOBAL_forster_2C = {"33%": 1450000, "50%": 1150000, "67%": 950000}
 BUDGET_GLOBAL_lamboll_15C = {"33%": 480000, "50%": 247000, "67%": 60000}
-BUDGET_GLOBAL_foster_15C = {"33%": 300000, "50%": 250000, "67%": 150000}
+BUDGET_GLOBAL_forster_15C = {"33%": 300000, "50%": 250000, "67%": 150000}
 
 def get_global_budget(warming_scenario, probability, budget_source):
     """Get the global carbon budget based on scenario parameters."""
     if warming_scenario == '2°C':
         if budget_source == 'Lamboll':
             return BUDGET_GLOBAL_lamboll_2C[probability]
-        else:  # Foster
-            return BUDGET_GLOBAL_foster_2C[probability]
+        else:  # Forster
+            return BUDGET_GLOBAL_forster_2C[probability]
     else:  # 1.5°C
         if budget_source == 'Lamboll':
             return BUDGET_GLOBAL_lamboll_15C[probability]
-        else:  # Foster
-            return BUDGET_GLOBAL_foster_15C[probability]
+        else:  # Forster
+            return BUDGET_GLOBAL_forster_15C[probability]
 
 def load_current_targets():
     """Load and process current target years."""
@@ -73,13 +67,28 @@ def load_current_targets():
                 for eu_iso in eu_countries:
                     target_mapping[eu_iso] = int(target_year)
             else:
-                target_mapping[iso] = int(target_year)
+                # Map ISO3 to ISO2 for non-EU countries
+                iso2_code = iso_mapping[iso_mapping['ISO3'] == iso]['ISO2'].values
+                if len(iso2_code) > 0:
+                    target_mapping[iso2_code[0]] = int(target_year)
+                else:
+                    print(f"Warning: ISO3 code {iso} not found in ISO mapping.")
 
     return target_mapping
 
 # Load the preprocessed data and current targets
 combined_df = pd.read_csv(f"{output_directory}/combined_data.csv")
 current_targets = load_current_targets()
+
+# Ensure "NA" is treated as a valid ISO2 code
+combined_df['ISO2'] = combined_df['ISO2'].astype(str)
+
+# Explicitly set "NA" for Namibia
+combined_df.loc[combined_df['Country'] == 'Namibia', 'ISO2'] = 'NA'
+
+# Print to verify
+print("Combined DataFrame:")
+print(combined_df[['ISO2', 'Country', 'Region']].head())
 
 # Create base dataframe with required columns
 def create_base_dataframe(df):
@@ -138,11 +147,12 @@ def create_base_dataframe(df):
             latest_years,
             left_on=['ISO2', 'Year'],
             right_on=['ISO2', f'Latest_year_{scope}']
-        )[['ISO2', 'Annual_CO2_emissions_Mt', 'Cumulative_CO2_emissions_Mt', 'Cumulative_population']].rename(
+        )[['ISO2', 'Annual_CO2_emissions_Mt', 'Cumulative_CO2_emissions_Mt', 'Cumulative_population','Emissions_per_capita_ton']].rename(
             columns={
                 'Annual_CO2_emissions_Mt': f'Latest_annual_CO2_emissions_Mt_{scope}',
                 'Cumulative_CO2_emissions_Mt': f'Latest_cumulative_CO2_emissions_Mt_{scope}',
-                'Cumulative_population': f'Latest_cumulative_population_{scope}'
+                'Cumulative_population': f'Latest_cumulative_population_{scope}',
+                'Emissions_per_capita_ton': f'Latest_emissions_per_capita_t_{scope}'
             }
         )
 
@@ -157,10 +167,21 @@ def create_base_dataframe(df):
 
         base_df[f'Share_of_cumulative_population_{scope}'] = base_df[f'Latest_cumulative_population_{scope}'] / world_cumulative_pop
 
+        # Calculate share of cumulative emissions for this scope
+        world_cumulative_emissions = base_df[
+            base_df['ISO2'] == 'WLD'
+        ][f'Latest_cumulative_CO2_emissions_Mt_{scope}'].iloc[0]
+
+        base_df[f'Share_of_cumulative_emissions_{scope}'] = base_df[f'Latest_cumulative_CO2_emissions_Mt_{scope}'] / world_cumulative_emissions
+
     return base_df
 
 # Create the base dataframe
 base_df = create_base_dataframe(combined_df)
+
+# Print to verify
+print("Base DataFrame:")
+print(base_df[['ISO2', 'Country', 'Region', f'Share_of_cumulative_emissions_{emission_scopes[0]}']].head())
 
 # Create all scenario combinations
 scenarios = []
@@ -168,7 +189,7 @@ for _, row in base_df.iterrows():
     for emissions_scope in ['Territory', 'Consumption']:
         for warming_scenario in ['1.5°C', '2°C']:
             for probability in ['33%', '50%', '67%']:
-                for budget_source in ['Lamboll', 'Foster']:
+                for budget_source in ['Lamboll', 'Forster']:
                     for distribution in ['Equality', 'Responsibility', 'Current_target']:
                         # Calculate country carbon budget based on distribution scenario
                         global_budget = get_global_budget(warming_scenario, probability, budget_source)
@@ -208,12 +229,11 @@ for _, row in base_df.iterrows():
                                 years_to_neutrality = "N/A"
                                 neutrality_year = "N/A"
                                 country_budget = None
+                        # using integers for buckets to ensure it can be visualized on the map
                         elif pd.notna(country_budget) and pd.notna(latest_annual) and latest_annual > 0:
                             years_to_neutrality = int(round(2 * country_budget / latest_annual))
                             if years_to_neutrality + latest_year > 2100:
-                                neutrality_year = '>2100'
-                            elif  years_to_neutrality + latest_year < 2023:
-                                neutrality_year = '<2023'
+                                neutrality_year = '2100'
                             else:
                                 neutrality_year = int(round(latest_year + years_to_neutrality))
 
@@ -232,7 +252,9 @@ for _, row in base_df.iterrows():
                             'Latest_annual_CO2_emissions_Mt': latest_annual,
                             'Latest_cumulative_CO2_emissions_Mt': row[f'Latest_cumulative_CO2_emissions_Mt_{emissions_scope}'],
                             'Latest_cumulative_population': row[f'Latest_cumulative_population_{emissions_scope}'],
+                            'Latest_emissions_per_capita_t': row[f'Latest_emissions_per_capita_t_{emissions_scope}'],
                             'Share_of_cumulative_population': row[f'Share_of_cumulative_population_{emissions_scope}'],
+                            'Share_of_cumulative_emissions': row[f'Share_of_cumulative_emissions_{emissions_scope}'],
                             'Warming_scenario': warming_scenario,
                             'Probability_of_reach': probability,
                             'Budget_source': budget_source,
@@ -253,14 +275,20 @@ scenario_params = scenarios_df[[
     'Warming_scenario', 'Probability_of_reach', 'Budget_source',
     'Budget_distribution_scenario', 'Years_to_neutrality', 'Neutrality_year',
     'Latest_year', 'Latest_annual_CO2_emissions_Mt',
-    'Latest_cumulative_CO2_emissions_Mt', 'Latest_cumulative_population',
+    'Latest_cumulative_CO2_emissions_Mt','Latest_emissions_per_capita_t', 'Latest_cumulative_population',
     'Share_of_cumulative_population', 'Population_2050',
     'Share_of_total_population_2050', 'Global_Carbon_budget',
-    'Country_carbon_budget'
+    'Country_carbon_budget', 'Share_of_cumulative_emissions'
 ]].drop_duplicates()
 
 # Create a scenario_id for each unique combination
 scenario_params['scenario_id'] = range(1, len(scenario_params) + 1)
+
+# Ensure NA, TR, and US are included
+required_isos = ['NA', 'TR', 'US']
+for iso in required_isos:
+    if iso not in scenario_params['ISO2'].values:
+        print(f"Warning: ISO2 code {iso} is missing in scenario parameters.")
 
 # 2. Create forecast data dataframe
 forecast_data = []
@@ -308,6 +336,9 @@ for _, row in scenario_params.iterrows():
 
 # Convert forecast data to DataFrame
 forecast_df = pd.DataFrame(forecast_data)
+
+# Add Data_type column to the forecast_df dataframe
+forecast_df['Data_type'] = 'Forecast'
 
 # Save both files
 scenario_params.to_csv(f"{output_directory}/scenario_parameters.csv", index=False)

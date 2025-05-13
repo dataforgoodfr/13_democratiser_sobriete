@@ -11,7 +11,24 @@ def load_iso_codes_mapping():
     iso_mapping.rename(columns={'Alpha-2 code': 'ISO2', 'Alpha-3 code': 'ISO3'}, inplace=True)
     # Ensure 'NA' is not interpreted as a missing value
     iso_mapping['ISO2'] = iso_mapping['ISO2'].fillna('')
-    return iso_mapping[['ISO3', 'ISO2']]
+
+    # Manually set the country name for select countries:
+    iso_mapping.loc[iso_mapping['ISO2'] == 'US', 'Country'] = 'United States of America'
+    iso_mapping.loc[iso_mapping['ISO3'] == 'USA', 'Country'] = 'United States of America'
+    iso_mapping.loc[iso_mapping['ISO2'] == 'SO', 'Country'] = 'Somalia'
+    iso_mapping.loc[iso_mapping['ISO3'] == 'SOM', 'Country'] = 'Somalia'
+    iso_mapping.loc[iso_mapping['ISO2'] == 'NA', 'Country'] = 'Namibia'
+    iso_mapping.loc[iso_mapping['ISO3'] == 'NAM', 'Country'] = 'Namibia'
+    iso_mapping.loc[iso_mapping['ISO2'] == 'TR', 'Country'] = 'Turkey'
+    iso_mapping.loc[iso_mapping['ISO3'] == 'TUR', 'Country'] = 'Turkey'
+    iso_mapping.loc[iso_mapping['ISO2'] == 'SS', 'Country'] = 'South Sudan'
+    iso_mapping.loc[iso_mapping['ISO3'] == 'SSD', 'Country'] = 'South Sudan'
+
+    # Print to verify
+    print("ISO Mapping:")
+    print(iso_mapping[['ISO3', 'ISO2', 'Country']].head())
+
+    return iso_mapping[['ISO3', 'ISO2', 'Country']]
 
 def load_ipcc_regions():
     """Load and process IPCC region mapping data."""
@@ -51,6 +68,10 @@ def load_historical_population_data():
     # Calculate population
     emissions['Population'] = round(((emissions['Annual_CO2_emissions_Mt'] / emissions['Per_Capita']) * 1000000), 0)
 
+    # Print to verify
+    print("Historical Population Data:")
+    print(emissions[['ISO3', 'Country', 'Year', 'Population']].head())
+
     # Select relevant columns
     return emissions[['ISO3', 'Country', 'Year', 'Population']]
 
@@ -60,6 +81,10 @@ def load_forecasted_population_data():
                        sheet_name="unpopulation_dataportal_2025042")
     pop = pop[['Iso3', 'Location', 'Time', 'Value']]
     pop.rename(columns={'Iso3': 'ISO3', 'Location': 'Country', 'Time': 'Year', 'Value': 'Population'}, inplace=True)
+
+    # Print to verify
+    print("Forecasted Population Data:")
+    print(pop[['ISO3', 'Country', 'Year', 'Population']].head())
 
     # Filter for the year 2050
     return pop[pop['Year'] == 2050]
@@ -142,16 +167,44 @@ def main():
     # Combine historical and forecasted population data
     population_data = pd.concat([historical_population_data, forecasted_population_data], ignore_index=True)
 
-    # Merge ISO2 codes into the dataframes
+    # Merge ISO2 codes and country names into the dataframes
     iso2_mapping = iso_mapping.set_index('ISO3')['ISO2'].to_dict()
-    population_data['ISO2'] = population_data['ISO3'].map(iso2_mapping)
-    emissions_data['ISO2'] = emissions_data['ISO3'].map(iso2_mapping)
-    consumption_emissions_data['ISO2'] = consumption_emissions_data['ISO3'].map(iso2_mapping)
+    country_mapping = iso_mapping.set_index('ISO3')['Country'].to_dict()
 
-    # Explicitly handle 'NA' for Namibia
-    population_data.loc[population_data['ISO3'] == 'NAM', 'ISO2'] = 'NA'
-    emissions_data.loc[emissions_data['ISO3'] == 'NAM', 'ISO2'] = 'NA'
-    consumption_emissions_data.loc[consumption_emissions_data['ISO3'] == 'NAM', 'ISO2'] = 'NA'
+    # Ensure Namibia's ISO2 code is correctly assigned
+    iso2_mapping['NAM'] = 'NA'
+
+    population_data['ISO2'] = population_data['ISO3'].map(iso2_mapping)
+    population_data['Country'] = population_data['ISO3'].map(country_mapping)
+
+    emissions_data['ISO2'] = emissions_data['ISO3'].map(iso2_mapping)
+    emissions_data['Country'] = emissions_data['ISO3'].map(country_mapping)
+
+    consumption_emissions_data['ISO2'] = consumption_emissions_data['ISO3'].map(iso2_mapping)
+    consumption_emissions_data['Country'] = consumption_emissions_data['ISO3'].map(country_mapping)
+
+    # Print to verify
+    print("Population Data with ISO2 and Country:")
+    print(population_data[['ISO3', 'ISO2', 'Country', 'Year', 'Population']].head())
+
+    print("Emissions Data with ISO2 and Country:")
+    print(emissions_data[['ISO3', 'ISO2', 'Country', 'Year', 'Annual_CO2_emissions_Mt']].head())
+
+    print("Consumption Emissions Data with ISO2 and Country:")
+    print(consumption_emissions_data[['ISO3', 'ISO2', 'Country', 'Year', 'Annual_CO2_emissions_Mt']].head())
+
+    # Check for any missing ISO2 values and print a warning
+    if population_data['ISO2'].isnull().any():
+        print("Warning: Missing ISO2 values in population data.")
+        print(population_data[population_data['ISO2'].isnull()])
+
+    if emissions_data['ISO2'].isnull().any():
+        print("Warning: Missing ISO2 values in emissions data.")
+        print(emissions_data[emissions_data['ISO2'].isnull()])
+
+    if consumption_emissions_data['ISO2'].isnull().any():
+        print("Warning: Missing ISO2 values in consumption emissions data.")
+        print(consumption_emissions_data[consumption_emissions_data['ISO2'].isnull()])
 
     # Filter and add metadata to emissions data
     valid_iso3_codes = set(ipcc_regions['ISO3'].unique())
@@ -263,11 +316,16 @@ def main():
             final_df[final_df['Emissions_scope'] == scope]['Cumulative_population'] / world_cumulative_pop
         )
 
+
     # Filter out rows where Annual_CO2_emissions_Mt is 0 or null, but keep year 2050
     final_df = final_df[
         (final_df['Annual_CO2_emissions_Mt'].notna() & final_df['Annual_CO2_emissions_Mt'] != 0) |
         (final_df['Year'] == 2050)
     ]
+
+    # Add Data_type and Scenario_ID columns
+    final_df['Data_type'] = 'Historical'
+    final_df['Scenario_ID'] = None
 
     # Sort and save
     final_df = final_df.sort_values(['ISO3', 'Year', 'Emissions_scope'])
