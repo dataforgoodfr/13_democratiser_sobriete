@@ -7,8 +7,9 @@ from wsl_library.infra import PDF_STORAGE_FOLDER
 output_dir = PDF_STORAGE_FOLDER
 
 def get_all_results() -> list:
-    all_results = os.listdir(os.path.join(output_dir, 'pkl_files'))
+    all_results = os.listdir(os.path.join(output_dir, 'ingested_articles', 'pkl_files'))
     return all_results
+
 
 def remove_unnecessary_fields(result:dict) -> dict:
     keys_to_remove = ["display_name", 
@@ -84,6 +85,8 @@ def clean_result_fields(raw_result:dict) -> dict:
                 openaccess_url = result["best_oa_location"]["pdf_url"]
                 return openaccess_url    
         openaccess_url = result["open_access"]["oa_url"]
+        if not openaccess_url :
+            openaccess_url = ''
         return openaccess_url
     
     trimmed_result = remove_unnecessary_fields(raw_result)
@@ -116,17 +119,19 @@ def clean_result_fields(raw_result:dict) -> dict:
     trimmed_result["keywords"] = keywords
     trimmed_result["citation_normalized_percentile"] = citation_normalized_percentile
     trimmed_result["openaccess_url"] = openaccess_url
+    trimmed_result["is_oa"] = True if trimmed_result["openaccess_url"] else False
     trimmed_result["sustainable_development_goals"] = sustainable_development_goals
     trimmed_result["author_ids"] = author_ids
     trimmed_result["institution_ids"] = institution_ids
     trimmed_result["successfully_downloaded"] = successfully_downloaded
     return trimmed_result
 
+
 def main() -> list:
     all_results = get_all_results()
     all_clean_results = []
     for result in all_results :
-        raw_result = pkl.load(open(os.path.join(output_dir, 'pkl_files', result), "rb"))
+        raw_result = pkl.load(open(os.path.join(output_dir, 'ingested_articles', 'pkl_files', result), "rb"))
         clean_result = clean_result_fields(raw_result)
         all_clean_results.append(clean_result)
     return all_clean_results

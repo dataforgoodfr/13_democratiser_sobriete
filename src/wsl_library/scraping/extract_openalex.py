@@ -4,8 +4,12 @@ import pickle as pkl
 import requests
 import time
 from typing import List
+
 from wsl_library.domain.paper_taxonomy import OpenAlexPaper
 
+from datetime import datetime
+from icecream import ic
+from requests.adapters import HTTPAdapter, Retry
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.chrome.service import Service
@@ -18,38 +22,54 @@ from wsl_library.scraping.parse_metadata import (
     clean_result_fields,
 )
 
+
 from wsl_library.infra import PDF_STORAGE_FOLDER
 # Set directory where PDFs are saved
 # !!! SPECIFY DIRECTORY PATH FROM ROOT !!!
 output_dir = os.path.join(PDF_STORAGE_FOLDER, "ingested_articles")
 dummy_dir = os.path.join(PDF_STORAGE_FOLDER, "dummy_dir")
+mailto = input('Please enter email address to enter OpenAlex API polite pool :\n')
+
 
 # Request OpenAlex API
-def search_openalex(query: str, cursor="*", per_page:int = 50, from_dois:bool = False, dois:list = None) -> dict:
+def search_openalex(query: str, 
+                    cursor:str = '*', 
+                    per_page:int = 50, 
+                    from_dois:bool = False, 
+                    dois:list | None = None, 
+                    search_on:str = 'fulltext') -> dict:
     
     if dois is None :
         dois = []
         
     if from_dois :
-        pipe_separated_dois = "|".join(dois)
+        pipe_separated_dois = '|'.join(dois)
+        #filters = filters + ',' if len(filters) > 0 else filters
         params = {
-            "filter": f"open_access.is_oa:true,doi:{pipe_separated_dois}",
+            #"filter": f'{filters}doi:{pipe_separated_dois}',
+            "filter": f'doi:{pipe_separated_dois}',
             "cursor": cursor,
             "per-page": per_page,
+            "mailto" : mailto,
         }
     else :
+        #filters = filters + ',' if len(filters) > 0 else filters
         params = {
-            "filter": "open_access.is_oa:true",
-            "search" : f'{query}',
+            "filter": f'{search_on}.search:{query}',
             "cursor" : cursor,
             "per-page": per_page,
+            "mailto" : mailto,
             }
 
     url = "https://api.openalex.org/works"
-    response = requests.get(url, params=params)
+    s = requests.Session()
+    retries = Retry(total=5, backoff_factor=.2)
+    s.mount('https://', HTTPAdapter(max_retries=retries))
+    response = s.get(url, params=params)
     response.raise_for_status()
     query_data = response.json()
     return query_data
+
 
 # Retrieve PDF urls and OpenAlex IDs
 def get_urls_to_fetch(query_data: dict) :
@@ -63,6 +83,7 @@ def get_urls_to_fetch(query_data: dict) :
         except TypeError :
             urls_to_fetch.append(query_data["results"][i]["open_access"]["oa_url"])
     return urls_to_fetch, filenames
+
 
 # Start Selenium webdriver for scraping
 def start_webdriver() -> webdriver.Chrome:
@@ -81,11 +102,13 @@ def start_webdriver() -> webdriver.Chrome:
     driver.set_page_load_timeout(30) #to ensure script doesn't hang in the event of a bad url
     return driver
 
+
 # Function to empty a directory (mostly to make sure dummy_dir stays empty)
 def clear_directory(directory: str) -> None:
     files_in_dir = os.listdir(directory)
     for file in files_in_dir :
         os.remove(os.path.join(directory, file))
+
 
 # Tell driver to navigate to the given url, download the pdf and then rename the last downloaded file
 def download_pdf(url: str, driver: webdriver.Chrome, output_file_path: str, maxwait:int =30) -> str:
@@ -116,12 +139,13 @@ def download_pdf(url: str, driver: webdriver.Chrome, output_file_path: str, maxw
     except WebDriverException :
         return None
 
+
 def scrape_list_urls(urls_to_fetch:list, 
                      filenames:list, 
                      driver:webdriver.Chrome, 
                      scrapped_files:dict, 
                      failed_downloads:int, 
-                     successfull_downloads:int, 
+                     successful_downloads:int, 
                      maxwait:int, 
                      stop_criterion:int) -> tuple[int, int, dict]:
     
@@ -132,7 +156,7 @@ def scrape_list_urls(urls_to_fetch:list,
         if not url :
             failed_downloads += 1
             continue
-        ## Check here if file already exists, if so, skip download
+        # check here if file already exists, if so, skip download
         pdf_file_path = os.path.join(output_dir, "pdf_files", f"{filename}.pdf")
         if os.path.isfile(pdf_file_path) :
             continue
@@ -141,22 +165,95 @@ def scrape_list_urls(urls_to_fetch:list,
             if downloaded_pdf_path is None :
                 failed_downloads += 1
             else :
-                successfull_downloads += 1
+                successful_downloads += 1
                 scrapped_files[filename]["pdf_file_path"] = downloaded_pdf_path
-                if successfull_downloads >= stop_criterion :
-                    return failed_downloads, successfull_downloads, scrapped_files
+                if successful_downloads >= stop_criterion :
+                    return failed_downloads, successful_downloads, scrapped_files
                 
-    return failed_downloads, successfull_downloads, scrapped_files
+    return failed_downloads, successful_downloads, scrapped_files
 
-def save_article_metadata(query_data:dict, filenames:list) -> None:
+
+def save_article_metadata(query_data:dict, filenames:list, scraped_files:dict) -> None:
     for i in range(len(query_data["results"])) :
         data = query_data["results"][i]
         filename = filenames[i]
         pkl_file_path = f"{os.path.join(output_dir, 'pkl_files', filename)}.pkl"
-        scrapped_files[filename] = {"pkl_file_path" : pkl_file_path}
+        scraped_files[filename] = {"pkl_file_path" : pkl_file_path}
         with open(pkl_file_path, "wb") as outfile :
             pkl.dump(data, outfile)
         outfile.close()
+    
+
+def save_all_article_metadatas(query:str,
+                               filters:str = '', 
+                               from_dois:bool = False,
+                               per_page:int = 50,
+                               search_on:str = 'fulltext',
+                               start_from_scratch:bool = True) -> None: 
+    os.makedirs(output_dir, exist_ok=True)
+    os.makedirs(os.path.join(output_dir, 'pkl_files'), exist_ok=True)
+
+    all_files = os.listdir(os.path.join(output_dir, "pkl_files"))
+    parsed_files = len(all_files)
+
+    if from_dois :
+        assert os.path.isfile("./list_dois.csv"), "'list_dois.csv' not found in current directory"
+        dois = pd.read_csv('list_dois.csv')["dois"].tolist()
+        query = ""
+        doi_idx = per_page * (parsed_files // per_page)
+    else :
+        dois = []
+        doi_idx = 0
+    
+    first_pass = True
+    stop_criterion = 1e10
+    # extracting pdfs until stop_criterion is reached or until end of query is reached (last cursor)
+    scraped_files = {}
+    if start_from_scratch :
+        cursor = '*'
+    else :
+        cursor = pkl.load(open(os.path.join(output_dir, 'last_metadata_checkpoint.pkl'), 'rb'))
+        doi_idx = parsed_files
+
+    while parsed_files < stop_criterion :
+        with open(os.path.join(output_dir, 'last_metadata_checkpoint.pkl'), 'wb') as outfile :
+            pkl.dump(cursor, outfile)
+        outfile.close()
+
+        # limit of 100 dois that can be passed in one API call if from_dois, creating batches for each iteration
+        if from_dois :
+            assert per_page <= 100, "Can only call the API with up to 100 DOIs in a single call, set per_page to 100 or lower"
+            sub_dois = dois[doi_idx:doi_idx+per_page]
+        else :
+            sub_dois = []
+                    
+        query_data = search_openalex(query, cursor=cursor, per_page=per_page, from_dois=from_dois, dois=sub_dois, search_on=search_on)
+        _, filenames = get_urls_to_fetch(query_data)
+        
+        if first_pass :
+            if from_dois :
+                total_filecount = len(dois)
+            else :
+                total_filecount = query_data["meta"]["count"]
+            ic(f"Preparing to download {total_filecount} articles...")
+            first_pass = False
+
+        ic(doi_idx, str(datetime.now()))
+
+        # save all article metadata with same filename as pdf file
+        save_article_metadata(query_data, filenames, scraped_files)
+        
+        # navigate to next page of query results from OpenAlex
+        if not from_dois :
+            cursor = query_data["meta"]["next_cursor"]
+            if not cursor :
+                break
+        else :
+            if doi_idx + per_page >= total_filecount :
+                break
+        all_files = os.listdir(os.path.join(output_dir, "pkl_files"))
+        parsed_files = len(all_files)
+        doi_idx += per_page
 
 
 # Function that puts everything together to extract all pdf files and metadata from a single query
@@ -181,17 +278,13 @@ def scrape_all_urls(driver: webdriver.Chrome,
 
     # initialize and clean output directories
     os.makedirs(output_dir, exist_ok=True)
-    os.makedirs(os.path.join(output_dir, 'pkl_files'), exist_ok=True)
     os.makedirs(os.path.join(output_dir, 'pdf_files'), exist_ok=True)
     os.makedirs(dummy_dir, exist_ok=True)
     clear_directory(dummy_dir)
-
-    all_files = os.listdir(os.path.join(output_dir, "pkl_files"))
-    parsed_files = len(all_files)
     
     start_time = time.time()
     failed_downloads = 0
-    successfull_downloads = 0
+    successful_downloads = 0
 
     # start extraction from scratch or from a checkpoint
     # Check if file 'download_checkpoint.pkl' exists, if not, start from scratch
@@ -219,8 +312,7 @@ def scrape_all_urls(driver: webdriver.Chrome,
     
     first_pass = True
     # extracting pdfs until stop_criterion is reached or until end of query is reached (last cursor)
-    while parsed_files < stop_criterion : # TODO : check if this is the correct condition or merge with the one below
-    # while successfull_downloads < stop_criterion :
+    while parsed_files < stop_criterion :
         # limit of 100 dois that can be passed in one API call, creating batches for each iteration
         if from_dois :
             assert per_page <= 100, "Can only call the API with up to 100 DOIs in a single call, set per_page to 100 or lower"
@@ -244,19 +336,18 @@ def scrape_all_urls(driver: webdriver.Chrome,
         scrapped_files = {}
         
         # first save all article metadata with same filename as pdf file
-        save_article_metadata(query_data, filenames)
+        save_article_metadata(query_data, filenames, scrapped_files)
         
         # then save all pdf files with new filename
-        failed_downloads, successfull_downloads = scrape_list_urls(urls_to_fetch, filenames, driver, scrapped_files, failed_downloads, successfull_downloads, maxwait)
-        if successfull_downloads > stop_criterion :
+        failed_downloads, successful_downloads = scrape_list_urls(urls_to_fetch, filenames, driver, scrapped_files, failed_downloads, successful_downloads, maxwait)
+        if successful_downloads > stop_criterion :
             break 
 
         # navigate to next page of query results from OpenAlex
         cursor = query_data["meta"]["next_cursor"]
         if not cursor :
             break
-        all_files = os.listdir(os.path.join(output_dir, "pkl_files"))
-        parsed_files = len(all_files)
+        parsed_files = len(os.listdir(os.path.join(output_dir, "pkl_files")))
         doi_idx += per_page
 
         # new checkpoint to restart extraction if start_from_scratch == False
@@ -266,9 +357,10 @@ def scrape_all_urls(driver: webdriver.Chrome,
     
     print(f"""\nTotal elapsed time for {total_filecount} files : {time.time() - start_time}
               \nFailed downloads : {failed_downloads}
-              \nSuccessful downloads : {successfull_downloads}""")
+              \nSuccessful downloads : {successful_downloads}""")
 
     return scrapped_files
+
 
 def get_papers(query_requested:str, limitation:int)-> List[OpenAlexPaper]:
     # TODO : Expose usage of other parameters
@@ -285,6 +377,7 @@ def get_papers(query_requested:str, limitation:int)-> List[OpenAlexPaper]:
             )
         papers.append(paper)
     return papers
+
 
 def main(query:str = "", 
          from_dois:bool = False,
