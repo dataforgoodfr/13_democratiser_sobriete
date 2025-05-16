@@ -1,14 +1,12 @@
+from datetime import datetime
 import hydra
-import torch
-from torch.utils.data import Dataset, DataLoader
-import rootutils
-
-from omegaconf import DictConfig
 import pandas as pd
-
-from hydra.utils import instantiate
-from tqdm import tqdm
+import rootutils
+import torch
 import transformers
+from omegaconf import DictConfig
+from torch.utils.data import DataLoader, Dataset
+from tqdm import tqdm
 
 rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True)
 from src.models.bert_module import BertLitModule
@@ -48,7 +46,9 @@ def main(cfg: DictConfig) -> None:
     :param cfg: DictConfig configuration composed by Hydra.
     """
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
+    torch.backends.cuda.matmul.allow_tf32 = True
+    torch.set_float32_matmul_precision("medium")
+    save_path = f"predict_results_{datetime.now().strftime('%m-%d_%H-%M-%S')}.csv"
     print("Loading data...")
     # df = pd.DataFrame(
     #     {
@@ -96,7 +96,7 @@ def main(cfg: DictConfig) -> None:
     # Create pytorch dataset and dataloader from the dataframe
     tokenizer = transformers.BertTokenizer.from_pretrained(cfg.model.model_name)
     dataset = CSVDataset(df, tokenizer=tokenizer)
-    dataloader = DataLoader(dataset, batch_size=128, num_workers=4, pin_memory=True)
+    dataloader = DataLoader(dataset, batch_size=256, num_workers=4, pin_memory=True)
 
     ckpt_path = [
         {
@@ -105,39 +105,35 @@ def main(cfg: DictConfig) -> None:
         },
         {
             "model_name": "digitalisation",
-            # "path": "logs/train/runs/2025-05-12_15-43-16/checkpoints/epoch_003.ckpt",
-            "path": "logs/train/runs/2025-05-12_15-43-16/checkpoints/epoch_007.ckpt",
+            "path": "logs/train/runs/2025-05-09_00-28-50/checkpoints/epoch_012.ckpt",
         },
         {
             "model_name": "freight",
-            "path": "logs/train/runs/2025-05-12_15-43-16/checkpoints/epoch_007.ckpt",
+            "path": "logs/train/runs/2025-05-12_17-38-01/checkpoints/epoch_003.ckpt",
         },
         {
             "model_name": "mobility",
-            # "path": "logs/train/runs/2025-05-12_16-13-47/checkpoints/epoch_004.ckpt",
-            "path": "logs/train/runs/2025-05-12_15-43-16/checkpoints/epoch_007.ckpt",
+            "path": "logs/train/runs/2025-05-12_16-13-47/checkpoints/epoch_004.ckpt",
         },
         {
             "model_name": "nutrition",
-            # "path": "logs/train/runs/2025-05-12_19-00-09/checkpoints/epoch_029.ckpt",
-            "path": "logs/train/runs/2025-05-12_15-43-16/checkpoints/epoch_007.ckpt",
+            "path": "logs/train/runs/2025-05-09_00-35-45/checkpoints/epoch_012.ckpt",
         },
         {
             "model_name": "trade",
-            "path": "logs/train/runs/2025-05-12_15-43-16/checkpoints/epoch_007.ckpt",
+            "path": "logs/train/runs/2025-05-12_21-47-51/checkpoints/epoch_022.ckpt",
         },
         {
             "model_name": "urban_ecology",
-            # "path": "logs/train/runs/2025-05-12_16-54-29/checkpoints/epoch_010.ckpt",
-            "path": "logs/train/runs/2025-05-12_15-43-16/checkpoints/epoch_007.ckpt",
+            "path": "logs/train/runs/2025-05-12_16-54-29/checkpoints/epoch_010.ckpt",
         },
         {
             "model_name": "urban_governance",
-            "path": "logs/train/runs/2025-05-12_15-43-16/checkpoints/epoch_007.ckpt",
+            "path": "logs/train/runs/2025-05-12_17-22-32/checkpoints/epoch_003.ckpt",
         },
         {
             "model_name": "urban_infra",
-            "path": "logs/train/runs/2025-05-12_15-43-16/checkpoints/epoch_007.ckpt",
+            "path": "logs/train/runs/2025-05-12_17-09-01/checkpoints/epoch_012.ckpt",
         },
     ]
     print("Loading models...")
@@ -155,7 +151,7 @@ def main(cfg: DictConfig) -> None:
     all_outputs["doi"] = []
     all_outputs["title"] = []
     with torch.no_grad():
-        for batch in tqdm(dataloader):
+        for i, batch in enumerate(tqdm(dataloader)):
             batch = batch.to(device)
             all_outputs["doi"] += batch["doi"]
             all_outputs["title"] += batch["title"]
@@ -167,9 +163,12 @@ def main(cfg: DictConfig) -> None:
                 )
                 preds = torch.argmax(output.logits, dim=1)  # for classification
                 all_outputs[f"{model_name}"] += preds.tolist()
-    df = pd.DataFrame(all_outputs).set_index("doi")
-    df.to_csv("predict_results.csv")
-    print("Predictions saved to predict_results.csv")
+            if i % 50 == 0:
+                pd.DataFrame(all_outputs).set_index("doi").to_csv(save_path)
+
+    pd.DataFrame(all_outputs).set_index("doi").to_csv(save_path)
+
+    print(f"Predictions saved to {save_path}")
 
 
 if __name__ == "__main__":
