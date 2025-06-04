@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from datetime import datetime
 
 # Define the directory containing the data files
 output_directory = '/Users/louistronel/Desktop/D4G_WSL/13_democratiser_sobriete-1/stream3_visualization/Budget/Output'
@@ -186,6 +187,7 @@ print(base_df[['ISO2', 'Country', 'Region', f'Share_of_cumulative_emissions_{emi
 
 # Create all scenario combinations
 scenarios = []
+current_year = datetime.now().year
 for _, row in base_df.iterrows():
     for emissions_scope in emission_scopes:
         for warming_scenario in ['1.5°C', '2°C']:
@@ -242,11 +244,21 @@ for _, row in base_df.iterrows():
                             years_to_neutrality = "N/A"
                             neutrality_year = "N/A"
 
-                        # Ensure years_to_neutrality and neutrality_year are integers or "N/A"
-                        if isinstance(years_to_neutrality, (int, float)):
+                        # Ensure years_to_neutrality_from_latest_available and neutrality_year are integers or "N/A"
+                        if isinstance(years_to_neutrality, (int, float)) and pd.notna(years_to_neutrality):
                             years_to_neutrality = int(years_to_neutrality)
-                        if isinstance(neutrality_year, (int, float)):
+                        else:
+                            years_to_neutrality = "N/A"
+                        if isinstance(neutrality_year, (int, float)) and pd.notna(neutrality_year):
                             neutrality_year = int(neutrality_year)
+                        else:
+                            neutrality_year = "N/A"
+
+                        # Calculate Years_to_neutrality_from_today
+                        if isinstance(neutrality_year, int):
+                            years_to_neutrality_from_today = neutrality_year - current_year
+                        else:
+                            years_to_neutrality_from_today = "N/A"
 
                         scenario = {
                             'ISO2': row['ISO2'],
@@ -268,8 +280,9 @@ for _, row in base_df.iterrows():
                             'Budget_distribution_scenario': distribution,
                             'Global_Carbon_budget': global_budget,
                             'Country_carbon_budget': country_budget,
-                            'Years_to_neutrality': years_to_neutrality,
-                            'Neutrality_year': neutrality_year
+                            'Years_to_neutrality_from_latest_available': years_to_neutrality,
+                            'Neutrality_year': neutrality_year,
+                            'Years_to_neutrality_from_today': years_to_neutrality_from_today
                         }
                         scenarios.append(scenario)
 
@@ -280,7 +293,7 @@ scenarios_df = pd.DataFrame(scenarios)
 scenario_params = scenarios_df[[
     'ISO2', 'Country', 'Region', 'Emissions_scope',
     'Warming_scenario', 'Probability_of_reach', 'Budget_source',
-    'Budget_distribution_scenario', 'Years_to_neutrality', 'Neutrality_year',
+    'Budget_distribution_scenario', 'Years_to_neutrality_from_latest_available', 'Years_to_neutrality_from_today', 'Neutrality_year',
     'Latest_year', 'Latest_annual_CO2_emissions_Mt',
     'Latest_cumulative_CO2_emissions_Mt','Latest_emissions_per_capita_t', 'Latest_cumulative_population',
     'Share_of_cumulative_population', 'Population_2050',
@@ -308,9 +321,9 @@ for _, row in scenario_params.iterrows():
     latest_year = int(row['Latest_year'])
 
     # Handle different cases for forecast
-    if (row['Years_to_neutrality'] == "N/A" or
-        row['Years_to_neutrality'] is None or
-        (isinstance(row['Years_to_neutrality'], (int, float)) and row['Years_to_neutrality'] <= 0)):
+    if (row['Years_to_neutrality_from_latest_available'] == "N/A" or
+        row['Years_to_neutrality_from_latest_available'] is None or
+        (isinstance(row['Years_to_neutrality_from_latest_available'], (int, float)) and row['Years_to_neutrality_from_latest_available'] <= 0)):
         # For N/A or negative years_to_neutrality, drop to zero immediately
         forecast_years = pd.DataFrame({
             'Year': [latest_year + 1],
