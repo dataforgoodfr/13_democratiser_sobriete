@@ -55,25 +55,20 @@ def load_eu_g20_mapping():
     return mapping[['ISO3', 'EU_country', 'G20_country']]
 
 def load_historical_population_data():
-    """Load and process historical population data from emissions data."""
-    emissions = pd.read_excel(f"{DATA_DIR}/2025-04-22_CO2 Emissions_All Countries_ISO Code_1750-2023.xlsx",
-                            sheet_name="GCB2024v17_MtCO2_flat")
-    emissions = emissions[['Country', 'ISO 3166-1 alpha-3', 'Year', 'Total', 'Per Capita']]
-    emissions.rename(columns={
-        'ISO 3166-1 alpha-3': 'ISO3',
-        'Per Capita': 'Per_Capita',
-        'Total': 'Annual_CO2_emissions_Mt'
-    }, inplace=True)
-
-    # Calculate population
-    emissions['Population'] = round(((emissions['Annual_CO2_emissions_Mt'] / emissions['Per_Capita']) * 1000000), 0)
-
+    """Load and process historical population data from the dedicated population file."""
+    population = pd.read_excel(f"{DATA_DIR}/2025-05-11_Population data starting from 1950 per country ISO Code_Source Carbon budget.xlsx")
+    
+    # Ensure we have the required columns
+    population = population[['ISO3', 'Year', 'Population']]
+    
+    # Add Country column (will be filled later in the main function)
+    population['Country'] = None
+    
     # Print to verify
     print("Historical Population Data:")
-    print(emissions[['ISO3', 'Country', 'Year', 'Population']].head())
-
-    # Select relevant columns
-    return emissions[['ISO3', 'Country', 'Year', 'Population']]
+    print(population[['ISO3', 'Year', 'Population']].head())
+    
+    return population[['ISO3', 'Country', 'Year', 'Population']]
 
 def load_forecasted_population_data():
     """Load and process forecasted population data for 2050."""
@@ -174,8 +169,24 @@ def main():
     # Ensure Namibia's ISO2 code is correctly assigned
     iso2_mapping['NAM'] = 'NA'
 
+    # Print verification of ISO mapping
+    print("\nVerifying ISO mapping for population data:")
+    print("Sample of ISO2 mapping dictionary:")
+    sample_iso2 = dict(list(iso2_mapping.items())[:5])
+    print(sample_iso2)
+    
+    # Apply mappings to population data
     population_data['ISO2'] = population_data['ISO3'].map(iso2_mapping)
     population_data['Country'] = population_data['ISO3'].map(country_mapping)
+
+    # Print verification of mapped population data
+    print("\nSample of mapped population data:")
+    print(population_data[['ISO3', 'ISO2', 'Country', 'Year', 'Population']].head())
+    
+    # Check for any missing ISO2 values and print a warning
+    if population_data['ISO2'].isnull().any():
+        print("\nWarning: Missing ISO2 values in population data:")
+        print(population_data[population_data['ISO2'].isnull()][['ISO3', 'Year', 'Population']].head())
 
     emissions_data['ISO2'] = emissions_data['ISO3'].map(iso2_mapping)
     emissions_data['Country'] = emissions_data['ISO3'].map(country_mapping)
@@ -184,27 +195,11 @@ def main():
     consumption_emissions_data['Country'] = consumption_emissions_data['ISO3'].map(country_mapping)
 
     # Print to verify
-    print("Population Data with ISO2 and Country:")
-    print(population_data[['ISO3', 'ISO2', 'Country', 'Year', 'Population']].head())
-
     print("Emissions Data with ISO2 and Country:")
     print(emissions_data[['ISO3', 'ISO2', 'Country', 'Year', 'Annual_CO2_emissions_Mt']].head())
 
     print("Consumption Emissions Data with ISO2 and Country:")
     print(consumption_emissions_data[['ISO3', 'ISO2', 'Country', 'Year', 'Annual_CO2_emissions_Mt']].head())
-
-    # Check for any missing ISO2 values and print a warning
-    if population_data['ISO2'].isnull().any():
-        print("Warning: Missing ISO2 values in population data.")
-        print(population_data[population_data['ISO2'].isnull()])
-
-    if emissions_data['ISO2'].isnull().any():
-        print("Warning: Missing ISO2 values in emissions data.")
-        print(emissions_data[emissions_data['ISO2'].isnull()])
-
-    if consumption_emissions_data['ISO2'].isnull().any():
-        print("Warning: Missing ISO2 values in consumption emissions data.")
-        print(consumption_emissions_data[consumption_emissions_data['ISO2'].isnull()])
 
     # Filter and add metadata to emissions data
     valid_iso3_codes = set(ipcc_regions['ISO3'].unique())

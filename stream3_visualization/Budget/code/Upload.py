@@ -14,13 +14,6 @@ engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 # Define the output directory
 output_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "Output")
 
-
-# Upload expanded historical data by scenario
-print("\nUploading combined historical data...")
-df = pd.read_csv(os.path.join(output_dir, "expanded_combined_data.csv"))
-df.to_sql("Viz_Carbon_Budget_expanded_historical_data", engine, if_exists="replace", index=False)
-print("Expanded data uploaded successfully")
-
 # Upload historical emissions data
 print("Uploading historical emissions data...")
 df = pd.read_csv(os.path.join(output_dir, "combined_data.csv"))

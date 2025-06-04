@@ -114,8 +114,9 @@ def create_base_dataframe(df):
     # Calculate share of total population
     base_df['Share_of_total_population_2050'] = base_df['Population_2050'] / world_pop_2050
 
-    # Get latest year and emissions for each scope
+    # Define emission_scopes within the function
     emission_scopes = ['Territory', 'Consumption']
+
     for scope in emission_scopes:
         # Filter data for this scope and where Annual_CO2_emissions_Mt is not null and not 0
         scope_data = df[
@@ -174,10 +175,10 @@ def create_base_dataframe(df):
 
         base_df[f'Share_of_cumulative_emissions_{scope}'] = base_df[f'Latest_cumulative_CO2_emissions_Mt_{scope}'] / world_cumulative_emissions
 
-    return base_df
+    return base_df, emission_scopes
 
 # Create the base dataframe
-base_df = create_base_dataframe(combined_df)
+base_df, emission_scopes = create_base_dataframe(combined_df)
 
 # Print to verify
 print("Base DataFrame:")
@@ -186,7 +187,7 @@ print(base_df[['ISO2', 'Country', 'Region', f'Share_of_cumulative_emissions_{emi
 # Create all scenario combinations
 scenarios = []
 for _, row in base_df.iterrows():
-    for emissions_scope in ['Territory', 'Consumption']:
+    for emissions_scope in emission_scopes:
         for warming_scenario in ['1.5°C', '2°C']:
             for probability in ['33%', '50%', '67%']:
                 for budget_source in ['Lamboll', 'Forster']:
@@ -233,13 +234,19 @@ for _, row in base_df.iterrows():
                         elif pd.notna(country_budget) and pd.notna(latest_annual) and latest_annual > 0:
                             years_to_neutrality = int(round(2 * country_budget / latest_annual))
                             if years_to_neutrality + latest_year > 2100:
-                                neutrality_year = '2100'
+                                neutrality_year = 2100
                             else:
                                 neutrality_year = int(round(latest_year + years_to_neutrality))
 
                         else:
-                            years_to_neutrality = 'N/A'
-                            neutrality_year = 'N/A'
+                            years_to_neutrality = "N/A"
+                            neutrality_year = "N/A"
+
+                        # Ensure years_to_neutrality and neutrality_year are integers or "N/A"
+                        if isinstance(years_to_neutrality, (int, float)):
+                            years_to_neutrality = int(years_to_neutrality)
+                        if isinstance(neutrality_year, (int, float)):
+                            neutrality_year = int(neutrality_year)
 
                         scenario = {
                             'ISO2': row['ISO2'],
