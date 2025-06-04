@@ -162,6 +162,17 @@ def main():
     # Combine historical and forecasted population data
     population_data = pd.concat([historical_population_data, forecasted_population_data], ignore_index=True)
 
+    # Filter data to only include years >= 1990
+    population_data = population_data[population_data['Year'] >= 1990]
+    emissions_data = emissions_data[emissions_data['Year'] >= 1990]
+    consumption_emissions_data = consumption_emissions_data[consumption_emissions_data['Year'] >= 1990]
+
+    # Print verification of year filtering
+    print("\nVerifying year filtering (>= 1990):")
+    print(f"Population data year range: {population_data['Year'].min()} to {population_data['Year'].max()}")
+    print(f"Emissions data year range: {emissions_data['Year'].min()} to {emissions_data['Year'].max()}")
+    print(f"Consumption emissions data year range: {consumption_emissions_data['Year'].min()} to {consumption_emissions_data['Year'].max()}")
+
     # Merge ISO2 codes and country names into the dataframes
     iso2_mapping = iso_mapping.set_index('ISO3')['ISO2'].to_dict()
     country_mapping = iso_mapping.set_index('ISO3')['Country'].to_dict()
@@ -299,18 +310,19 @@ def main():
         g20_aggregates
     ], ignore_index=True)
 
-    # Calculate share of cumulative population for each scope
+    # Calculate share of cumulative population for each scope, per year
+    final_df['Share_of_cumulative_population'] = None
     for scope in ['Territory', 'Consumption']:
-        # Get world's cumulative population for this scope from the world aggregate
-        world_cumulative_pop = world_aggregates[
-            world_aggregates['Emissions_scope'] == scope
-        ]['Cumulative_population'].iloc[0]
-
-        # Calculate share for this scope
-        final_df.loc[final_df['Emissions_scope'] == scope, 'Share_of_cumulative_population'] = (
-            final_df[final_df['Emissions_scope'] == scope]['Cumulative_population'] / world_cumulative_pop
+        # Get world cumulative population per year for this scope
+        world_cum_pop = final_df[(final_df['ISO2'] == 'WLD') & (final_df['Emissions_scope'] == scope)][['Year', 'Cumulative_population']].set_index('Year')['Cumulative_population']
+        # Assign share for all rows with this scope
+        mask = final_df['Emissions_scope'] == scope
+        final_df.loc[mask, 'Share_of_cumulative_population'] = final_df[mask].apply(
+            lambda row: 1 if row['ISO2'] == 'WLD' else (row['Cumulative_population'] / world_cum_pop.get(row['Year'], np.nan)),
+            axis=1
         )
-
+    # Format as percentage string (optional, or keep as float if preferred)
+    final_df['Share_of_cumulative_population'] = (final_df['Share_of_cumulative_population'].astype(float) * 100).round(2).astype(str) + '%'
 
     # Filter out rows where Annual_CO2_emissions_Mt is 0 or null, but keep year 2050
     final_df = final_df[
