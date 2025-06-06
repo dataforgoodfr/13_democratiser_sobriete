@@ -74,6 +74,16 @@
               "code": "HE-SILC-2",
               "description": "Share of nth decile households having arrears on utility bills",
               "weight": 1
+            },
+            {
+              "code": "HE-HBS-1",
+              "description": "Percentage of households of the nth decile whose share of equivalised housing, water, electricity, gas and other fuels expenditure in equivalised disposable income is above twice the national median share",
+              "weight": 1
+            },
+            {
+              "code": "HE-HBS-2",
+              "description": "Percentage of households of the nth decile whose share of equivalised housing, water, electricity, gas and other fuels expenditure in equivalised disposable income is bellow half the national median share",
+              "weight": 1
             }
           ]
         },
@@ -94,16 +104,6 @@
             {
               "code": "HH-HBS-2",
               "description": "Percentage of households of the nth decile whose share of equivalised rent related to the occupied dwelling expenditure in equivalised disposable income is bellow half the national median share",
-              "weight": 1
-            },
-            {
-              "code": "HH-HBS-3",
-              "description": "Percentage of households of the nth decile whose share of equivalised housing, water, electricity, gas and other fuels expenditure in equivalised disposable income is above twice the national median share",
-              "weight": 1
-            },
-            {
-              "code": "HH-HBS-4",
-              "description": "Percentage of households of the nth decile whose share of equivalised housing, water, electricity, gas and other fuels expenditure in equivalised disposable income is bellow half the national median share",
               "weight": 1
             }
           ]
@@ -312,12 +312,12 @@
           "indicators": [
             {
               "code": "IE-HBS-1",
-              "description": "Percentage of households of the nth decile whose share of equivalised education expenditure in equivalised disposable income is above twice the national median share",
+              "description": "Percentage of households with parents of the nth decile whose share of equivalised education expenditure in equivalised disposable income is above twice the national median share",
               "weight": 1
             },
             {
               "code": "IE-HBS-2",
-              "description": "Percentage of households of the nth decile whose share of equivalised education expenditure in equivalised disposable income is bellow half the national median share",
+              "description": "Percentage of households with parents of the nth decile whose share of equivalised education expenditure in equivalised disposable income is bellow half the national median share",
               "weight": 1
             }
           ]
