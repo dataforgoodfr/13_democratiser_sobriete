@@ -5,7 +5,7 @@ from pipelineblocks.llm.prompts.generic_document import (
     generic_extraction_prompt_entire_doc,
 )
 from pipelineblocks.llm.prompts.scientific_paper import (
-    scientific_basic_prompt_entire_doc,
+    scientific_basic_prompt_entire_doc, scientific_system_prompt_with_existing_openalex_metadata
 )
 from pydantic import BaseModel
 
@@ -63,14 +63,20 @@ class MetadatasLLMInfBlock(BaseLLMIngestionBlock):
             )
 
     def _adjust_prompt_according_to_doc_type(
-        self, text, doc_type="entire_doc", inference_type: str = "generic"
+        self, text, doc_type="entire_doc",
+        inference_type: str = "generic",
+        existing_metadata: dict | str | None = None
     ) -> str:
 
         if inference_type == "scientific" and doc_type == "entire_doc":
             # First combination example
             enriched_prompt = scientific_basic_prompt_entire_doc(text)
 
-        elif inference_type == "scientific" and doc_type == "chunk":
+        elif inference_type == "scientific_advanced" and doc_type == "entire_doc":
+            enriched_prompt = scientific_system_prompt_with_existing_openalex_metadata(
+                article_content=text, existing_metadata=existing_metadata)
+
+        elif inference_type in ["scientific", "scientific_advanced"] and doc_type == "chunk":
             # Other combination Example
             raise NotImplementedError(
                 f"The {inference_type} inference type is not implemented for this doc_type : {doc_type} "

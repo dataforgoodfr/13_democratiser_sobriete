@@ -28,23 +28,13 @@ class OpenAIMetadatasLLMInference(MetadatasLLMInfBlock):
         api_key="ollama",
     )
 
-    def run(self, text, doc_type='entire_pdf', inference_type='scientific', openalex_metadata=None) -> BaseModel:
+    def run(self, text, doc_type='entire_pdf', inference_type='scientific',
+            existing_metadata: dict | str | None =None) -> BaseModel:
+        
         json_schema = super()._invoke_json_schema_from_taxo()
-
-        """enriched_prompt = super()._adjust_prompt_according_to_doc_type(text, doc_type, inference_type,
-                                                                       openalex_metadata, json_schema)
-
-        response = self.llm.invoke(
-            messages=HumanMessage(content=enriched_prompt),
-            temperature=0,
-            response_format={"type": "json_schema",
-                             "json_schema": {"schema": json_schema,
-                                             "name": "output_schema",
-                                             "strict": True}
-                             }"""
         
         enriched_prompt = super()._adjust_prompt_according_to_doc_type(
-            text, doc_type, inference_type
+            text, doc_type, inference_type, existing_metadata
         )
 
         if self.language != "English":

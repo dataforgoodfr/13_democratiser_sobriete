@@ -23,7 +23,8 @@ def scientific_basic_prompt_entire_doc(text: str) -> str:
     return prompt
 
 
-def scientific_system_prompt(article_content: str, openalex_metadata, paper_taxonomy) -> str:
+def scientific_system_prompt_with_existing_openalex_metadata(article_content: str, 
+                                                             existing_metadata: dict | str | None = None) -> str:
     prompt = f"""
     You are an expert AI assistant tasked with extracting a structured taxonomy from a research paper.
     You are provided with: (1) authoritative metadata about the paper (OpenAlex data), (2) the full text of the paper, 
@@ -46,7 +47,7 @@ def scientific_system_prompt(article_content: str, openalex_metadata, paper_taxo
     {article_content}
     
     :param openalex_metadata:
-    {openalex_metadata}
+    {existing_metadata}
     """
     return prompt
 
