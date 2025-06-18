@@ -36,6 +36,7 @@ dependencies = [
     "langchain-google-genai>=1.0.3,<2.0.0",
     "langchain-anthropic",
     "langchain-ollama",
+    "langchain-mistralai",
     "langchain-cohere>=0.2.4,<0.3.0",
     "llama-hub>=0.0.79,<0.1.0",
     "llama-index>=0.10.40,<0.11.0",
@@ -43,12 +44,15 @@ dependencies = [
     "llama-index-vector-stores-chroma>=0.1.9",
     "llama-index-vector-stores-lancedb",
     "openai>=1.23.6,<2",
+    "matplotlib",
+    "matplotlib-inline",
     "openpyxl>=3.1.2,<3.2",
     "opentelemetry-exporter-otlp-proto-grpc>=1.25.0", # https://github.com/chroma-core/chroma/issues/2571
     "pandas>=2.2.2,<2.3",
     "plotly<6.0.0",
     "PyMuPDF>=1.23,<=1.24.11",
     "pypdf>=4.2.0,<4.3",
+    "pylance",
     "python-decouple", # for theflow
     "python-docx>=1.1.0,<1.2",
     "python-dotenv>=1.0.1,<1.1",
@@ -57,6 +61,7 @@ dependencies = [
     "trogon>=0.5.0,<0.6",
     "umap-learn==0.5.5",
     "tavily-python>=0.4.0",
+    "pydantic<=2.10.6",
 ]
 readme = "README.md"
 authors = [
@@ -85,6 +90,7 @@ adv = [
     "tabulate",
     "unstructured>=0.15.8,<0.16",
     "wikipedia>=1.4.0,<1.5",
+    "voyageai>=0.3.0",
 ]
 dev = [
     "black",

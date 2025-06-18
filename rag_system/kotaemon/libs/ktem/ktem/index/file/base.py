@@ -11,6 +11,8 @@ class BaseFileIndexRetriever(BaseComponent):
     VS = Param(help="The VectorStore")
     DS = Param(help="The DocStore")
     FSPath = Param(help="The file storage path")
+    CloudFSUri = Param(help="The cloud file storage uri")
+    CloudFSFolder = Param(help="The cloud file storage folder")
     user_id = Param(help="The user id")
 
     @classmethod
@@ -53,6 +55,8 @@ class BaseFileIndexIndexing(BaseComponent):
     VS = Param(help="The VectorStore")
     DS = Param(help="The DocStore")
     FSPath = Param(help="The file storage path")
+    CloudFSUri = Param(help="The cloud file storage uri")
+    CloudFSFolder = Param(help="The cloud file storage folder")
     user_id = Param(help="The user id")
     private = Param(False, help="Whether this is private index")
     chunk_size = Param(help="Chunk size for this index")

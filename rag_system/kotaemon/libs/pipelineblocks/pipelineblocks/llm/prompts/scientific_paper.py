@@ -1,7 +1,7 @@
 import re
 
 
-def scientific_basic_prompt(text: str) -> str:
+def scientific_basic_prompt_entire_doc(text: str) -> str:
     """
     Create a prompt for the basic extraction of a scientific paper.
     Args:
@@ -50,8 +50,9 @@ def scientific_system_prompt(article_content: str, openalex_metadata, paper_taxo
     """
     return prompt
 
-
-def scientific_main_parts_prompt(text: str, output_format: dict | None = None) -> str:
+def scientific_main_parts_prompt_entire_doc(
+    text: str, output_format: dict | None = None
+) -> str:
     """
     Create a prompt for the extraction of the main parts of a scientific paper.
     A regular expression divides the text into parts, and the prompt is created
@@ -68,14 +69,16 @@ def scientific_main_parts_prompt(text: str, output_format: dict | None = None) -
 
     # find the intro section and the cover page coming before
     title_intro = [title for _, title in sections if "intro" in title.lower()][0]
-    cover_page = text[:text.find(title_intro)]
+    cover_page = text[: text.find(title_intro)]
 
     # find the conclusion and results part as well
-    txt = "\n".join([
-        t for t, title in sections if any(
-            [m in title.lower() for m in ["results", "conclusion", "intro"]]
-        )
-    ])
+    txt = "\n".join(
+        [
+            t
+            for t, title in sections
+            if any([m in title.lower() for m in ["results", "conclusion", "intro"]])
+        ]
+    )
 
     prompt = f"""
     You are given parts from a scientific paper, you are tasked with

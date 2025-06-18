@@ -83,7 +83,13 @@ KH_FEATURE_USER_MANAGEMENT_PASSWORD = str(
 )
 KH_ENABLE_ALEMBIC = False
 KH_DATABASE = f"sqlite:///{KH_USER_DATA_DIR / 'sql.db'}"
+# KH_DATABASE = "postgresql://postgres:my_pass@postgres-db:5432/my_db"
+
 KH_FILESTORAGE_PATH = str(KH_USER_DATA_DIR / "files")
+
+KH_USE_CLOUD_FILESTORAGE = False
+# KH_CLOUD_FILESTORAGE_URI = "s3://test-ecoskills/files/"
+
 KH_WEB_SEARCH_BACKEND = (
     "kotaemon.indices.retrievers.tavily_web_search.WebSearch"
     # "kotaemon.indices.retrievers.jina_web_search.WebSearch"
@@ -94,13 +100,16 @@ KH_DOCSTORE = {
     # "__type__": "kotaemon.storages.SimpleFileDocumentStore",
     "__type__": "kotaemon.storages.LanceDBDocumentStore",
     "path": str(KH_USER_DATA_DIR / "docstore"),
+    # "path": "s3://test-ecoskills/docstore/"
 }
 KH_VECTORSTORE = {
     # "__type__": "kotaemon.storages.LanceDBVectorStore",
-    "__type__": "kotaemon.storages.ChromaVectorStore",
+    # "__type__": "kotaemon.storages.ChromaVectorStore",
     # "__type__": "kotaemon.storages.MilvusVectorStore",
-    # "__type__": "kotaemon.storages.QdrantVectorStore",
-    "path": str(KH_USER_DATA_DIR / "vectorstore"),
+    "__type__": "kotaemon.storages.QdrantVectorStore",
+    "url": "http://172.17.0.1:6333",
+    "api_key": "None"
+    # "path": str(KH_USER_DATA_DIR / "vectorstore"),
 }
 KH_LLMS = {}
 KH_EMBEDDINGS = {}
@@ -170,6 +179,25 @@ if OPENAI_API_KEY:
             "context_length": 8191,
         },
         "default": IS_OPENAI_DEFAULT,
+    }
+
+VOYAGE_API_KEY = config("VOYAGE_API_KEY", default="")
+if VOYAGE_API_KEY:
+    KH_EMBEDDINGS["voyageai"] = {
+        "spec": {
+            "__type__": "kotaemon.embeddings.VoyageAIEmbeddings",
+            "api_key": VOYAGE_API_KEY,
+            "model": config("VOYAGE_EMBEDDINGS_MODEL", default="voyage-3-large"),
+        },
+        "default": False,
+    }
+    KH_RERANKINGS["voyageai"] = {
+        "spec": {
+            "__type__": "kotaemon.rerankings.VoyageAIReranking",
+            "model_name": "rerank-2",
+            "api_key": VOYAGE_API_KEY,
+        },
+        "default": False,
     }
 
 if config("LOCAL_MODEL", default=""):
@@ -243,6 +271,15 @@ KH_LLMS["cohere"] = {
     },
     "default": False,
 }
+KH_LLMS["mistral"] = {
+    "spec": {
+        "__type__": "kotaemon.llms.ChatOpenAI",
+        "base_url": "https://api.mistral.ai/v1",
+        "model": "ministral-8b-latest",
+        "api_key": config("MISTRAL_API_KEY", default="your-key"),
+    },
+    "default": False,
+}
 
 # additional embeddings configurations
 KH_EMBEDDINGS["cohere"] = {
@@ -261,6 +298,14 @@ KH_EMBEDDINGS["google"] = {
         "google_api_key": GOOGLE_API_KEY,
     },
     "default": not IS_OPENAI_DEFAULT,
+}
+KH_EMBEDDINGS["mistral"] = {
+    "spec": {
+        "__type__": "kotaemon.embeddings.LCMistralEmbeddings",
+        "model": "mistral-embed",
+        "api_key": config("MISTRAL_API_KEY", default="your-key"),
+    },
+    "default": False,
 }
 # KH_EMBEDDINGS["huggingface"] = {
 #     "spec": {
