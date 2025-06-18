@@ -1,0 +1,39 @@
+name: Merge Upstream Main into PR Branch
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  merge-upstream:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Git user
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Add upstream and fetch
+        run: |
+          git remote add upstream https://github.com/Cinnamon/kotaemon.git
+          git fetch upstream
+
+      - name: Merge upstream/main into PR branch
+        run: |
+          git merge --no-edit upstream/main || {
+            echo "::error ::Merge failed. Please resolve conflicts manually.";
+            exit 1;
+          }
+
+      - name: Push updated PR branch
+        run: |
+          git push origin HEAD

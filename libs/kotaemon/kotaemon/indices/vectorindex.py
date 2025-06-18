@@ -81,16 +81,20 @@ class VectorIndexing(BaseIndexing):
             print("Adding documents to doc store")
             self.doc_store.add(docs)
 
-    def add_to_vectorstore(self, docs: list[Document], metadatas: list[dict] = None):
+    def add_to_vectorstore(
+        self, docs: list[Document], metadatas: list[dict] | None = None
+    ):
         # in case we want to skip embedding
         if self.vector_store:
             if metadatas:
-                print(f"Getting embeddings for {len(docs)} nodes with {len(metadatas)} metadatas")
+                print(
+                    f"Getting embeddings for {len(docs)} nodes with {len(metadatas)} metadatas"
+                )
             else:
                 print(f"Getting embeddings for {len(docs)} nodes without any metadatas")
-            
+
             embeddings = self.embedding(docs)
-            
+
             print("Adding embeddings to vector store")
             self.vector_store.add(
                 embeddings=embeddings,
@@ -98,7 +102,11 @@ class VectorIndexing(BaseIndexing):
                 metadatas=metadatas,
             )
 
-    def run(self, text: str | list[str] | Document | list[Document], metadatas: list[dict]=None):
+    def run(
+        self,
+        text: str | list[str] | Document | list[Document],
+        metadatas: list[dict] | None = None,
+    ):
         input_: list[Document] = []
         if not isinstance(text, list):
             text = [text]
@@ -173,7 +181,7 @@ class VectorRetrieval(BaseRetrieval):
         if self.retrieval_mode == "vector":
             emb = self.embedding(text)[0].embedding
             _, scores, ids = self.vector_store.query(
-                embedding=emb, top_k=top_k_first_round, **kwargs
+                embedding=emb, top_k=top_k_first_round, doc_ids=scope, **kwargs
             )
             docs = self.doc_store.get(ids)
             result = [
@@ -202,7 +210,7 @@ class VectorRetrieval(BaseRetrieval):
 
                 assert self.doc_store is not None
                 _, vs_scores, vs_ids = self.vector_store.query(
-                    embedding=emb, top_k=top_k_first_round, **kwargs
+                    embedding=emb, top_k=top_k_first_round, doc_ids=scope, **kwargs
                 )
                 if vs_ids:
                     vs_docs = self.doc_store.get(vs_ids)

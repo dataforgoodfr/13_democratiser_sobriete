@@ -39,8 +39,10 @@ class NanoGraphRAGIndex(GraphRAGIndex):
                 self._collection_graph_id = str(uuid4())
         return self._collection_graph_id
 
-    def get_indexing_pipeline(self, settings, user_id) -> BaseFileIndexIndexing:
-        pipeline = super().get_indexing_pipeline(settings, user_id)
+    def get_indexing_pipeline(
+        self, settings, user_id, metadatas: list | None = None
+    ) -> BaseFileIndexIndexing:
+        pipeline = super().get_indexing_pipeline(settings, user_id, metadatas=metadatas)
         # indexing settings
         prefix = f"index.options.{self.id}."
         striped_settings = {
@@ -52,6 +54,10 @@ class NanoGraphRAGIndex(GraphRAGIndex):
         pipeline.prompts = striped_settings
         # set collection graph id
         pipeline.collection_graph_id = self._get_or_create_collection_graph_id()
+        # set index batch size
+        pipeline.index_batch_size = striped_settings.get(
+            "batch_size", pipeline.index_batch_size
+        )
         return pipeline
 
     def get_retriever_pipelines(

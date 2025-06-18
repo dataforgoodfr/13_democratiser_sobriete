@@ -29,6 +29,9 @@ from .visualize import create_knowledge_graph, visualize_graph
 
 try:
     from lightrag import LightRAG, QueryParam
+
+    # newer versions of LightRAG needs to be initialized before using
+    from lightrag.kg.shared_storage import initialize_pipeline_status
     from lightrag.operate import (
         _find_most_related_edges_from_entities,
         _find_most_related_text_unit_from_entities,
@@ -235,6 +238,11 @@ def build_graphrag(working_dir, llm_func, embedding_func):
         llm_model_func=llm_func,
         embedding_func=embedding_func,
     )
+
+    # newer versions of LightRAG needs to be initialized before using
+    asyncio.run(graphrag_func.initialize_storages())
+    asyncio.run(initialize_pipeline_status())
+
     return graphrag_func
 
 
@@ -243,6 +251,7 @@ class LightRAGIndexingPipeline(GraphRAGIndexingPipeline):
 
     prompts: dict[str, str] = {}
     collection_graph_id: str
+    index_batch_size: int = INDEX_BATCHSIZE
 
     def store_file_id_with_graph_id(self, file_ids: list[str | None]):
         if not settings.USE_GLOBAL_GRAPHRAG:
@@ -283,18 +292,31 @@ class LightRAGIndexingPipeline(GraphRAGIndexingPipeline):
             from lightrag.prompt import PROMPTS
 
             blacklist_keywords = ["default", "response", "process"]
-            return {
-                prompt_name: {
-                    "name": f"Prompt for '{prompt_name}'",
-                    "value": content,
-                    "component": "text",
+            settings_dict = {
+                "batch_size": {
+                    "name": (
+                        "Index batch size " "(reduce if you have rate limit issues)"
+                    ),
+                    "value": INDEX_BATCHSIZE,
+                    "component": "number",
                 }
-                for prompt_name, content in PROMPTS.items()
-                if all(
-                    keyword not in prompt_name.lower() for keyword in blacklist_keywords
-                )
-                and isinstance(content, str)
             }
+            settings_dict.update(
+                {
+                    prompt_name: {
+                        "name": f"Prompt for '{prompt_name}'",
+                        "value": content,
+                        "component": "text",
+                    }
+                    for prompt_name, content in PROMPTS.items()
+                    if all(
+                        keyword not in prompt_name.lower()
+                        for keyword in blacklist_keywords
+                    )
+                    and isinstance(content, str)
+                }
+            )
+            return settings_dict
         except ImportError as e:
             print(e)
             return {}
@@ -359,8 +381,8 @@ class LightRAGIndexingPipeline(GraphRAGIndexingPipeline):
             ),
         )
 
-        for doc_id in range(0, len(all_docs), INDEX_BATCHSIZE):
-            cur_docs = all_docs[doc_id : doc_id + INDEX_BATCHSIZE]
+        for doc_id in range(0, len(all_docs), self.index_batch_size):
+            cur_docs = all_docs[doc_id : doc_id + self.index_batch_size]
             combined_doc = "\n".join(cur_docs)
 
             # Use insert for incremental updates
@@ -380,12 +402,16 @@ class LightRAGIndexingPipeline(GraphRAGIndexingPipeline):
         )
 
     def stream(
-        self, file_paths: str | Path | list[str | Path], reindex: bool = False, **kwargs
+        self,
+        file_paths: str | Path | list[str | Path],
+        reindex: bool = False,
+        metadatas: dict | None = None,
+        **kwargs,
     ) -> Generator[
         Document, None, tuple[list[str | None], list[str | None], list[Document]]
     ]:
         file_ids, errors, all_docs = yield from super().stream(
-            file_paths, reindex=reindex, **kwargs
+            file_paths, reindex=reindex, metadatas=metadatas, **kwargs
         )
 
         return file_ids, errors, all_docs
