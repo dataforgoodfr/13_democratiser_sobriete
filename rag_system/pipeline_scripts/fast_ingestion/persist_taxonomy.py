@@ -5,8 +5,8 @@ from sqlmodel import SQLModel, Field, create_engine, Session
 from sqlalchemy import JSON, Column, ARRAY, String, DateTime, Integer, Float, Boolean
 from taxonomy.paper_taxonomy import PaperTaxonomy
 
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
+PG_DATABASE_URL = os.getenv(
+    "PG_DATABASE_URL",
     "postgresql://u4axloluqibskgvdikuy:g2rXgpHSbztokCbFxSyR@bk8htvifqendwt1wlzat-postgresql.services.clever-cloud.com:7327/bk8htvifqendwt1wlzat"
 )
 
@@ -75,14 +75,15 @@ class OpenAlexArticle(SQLModel, table=True):
     concepts: str = Field(sa_column=Column(String))
     keywords: str = Field(sa_column=Column(String))
     openaccess_url: str = Field(sa_column=Column(String))
-    # is_oa: bool = Field(sa_column=Column(Boolean))
+    #is_oa: bool = Field(sa_column=Column(Boolean))
     successfully_downloaded: bool = Field(sa_column=Column(Boolean))
     sustainable_development_goals: str = Field(sa_column=Column(String))
     author_ids: str = Field(sa_column=Column(String))
     institution_ids: str = Field(sa_column=Column(String))
+    #ingestion: str = Field(sa_column=Column(String))
 
 # Create database engine and tables
-engine = create_engine(DATABASE_URL, pool_pre_ping=True)
+engine = create_engine(PG_DATABASE_URL, pool_pre_ping=True)
 SQLModel.metadata.create_all(engine)
 
 
@@ -111,14 +112,66 @@ def persist_article_metadata(article: PaperTaxonomy) -> int:
         return db_article.id
 
 
-def get_open_alex_articles():
+def get_open_alex_articles(ingestion:str = None)    -> list[OpenAlexArticle]:
+    """Retrieve all OpenAlex articles from the database.
+    Returns:
+        list[OpenAlexArticle]: A list of OpenAlexArticle objects
+    """
+
     with Session(engine) as session:
-        open_alex_articles = session.query(OpenAlexArticle).filter(OpenAlexArticle.is_oa)
-        print(len(open_alex_articles))
+        #open_alex_articles = session.query(OpenAlexArticle).filter(OpenAlexArticle.is_oa)
+        if ingestion:
+            open_alex_articles = session.query(OpenAlexArticle).filter(
+                OpenAlexArticle.ingestion == ingestion).all()
+        else:
+            open_alex_articles = session.query(OpenAlexArticle).all()
+        print(f"nb fetched open alex articles : {len(open_alex_articles)}")
 
     return open_alex_articles
 
-def get_open_alex_article(pdf_path):
+
+def get_title_doi_open_alex_articles(ingestion:str = None) -> list[OpenAlexArticle]:
+    """Retrieve all id, doi, OpenAlex articles from the database,
+    with optional ingestion version as a filter.
+    Args:
+        ingestion (str): Optional ingestion version to filter articles
+    Returns:
+        list[OpenAlexArticle]: A list of OpenAlexArticle objects
+    """
+
+    with Session(engine) as session:
+        #open_alex_articles = session.query(OpenAlexArticle).filter(OpenAlexArticle.is_oa)
+        if ingestion:
+            open_alex_articles = session.query(OpenAlexArticle.title,
+                                               OpenAlexArticle.doi).filter(
+                OpenAlexArticle.ingestion == ingestion).all()
+        else:
+            # If no ingestion filter is provided, fetch all articles
+            open_alex_articles = session.query(OpenAlexArticle.title,
+                                           OpenAlexArticle.doi).all()
+        print(f"nb fetched open alex articles : {len(open_alex_articles)}")
+
+    return open_alex_articles
+
+def get_open_alex_article_from_id(openalex_id):
+    """
+    Retrieve an article from the database based on the OpenAlex ID extracted from a PDF filename.
+    
+    Args:
+        openalex_id(str): Path to the PDF file
+        
+    Returns:
+        OpenAlexArticle: The article from the database if found, None otherwise
+    """
+    # Extract the filename without extension to get the OpenAlex ID
+    print(f"OpenAlex id: {openalex_id}")    
+    with Session(engine) as session:
+        # Query the database for the article with the matching OpenAlex ID
+        article = session.query(OpenAlexArticle).filter(OpenAlexArticle.openalex_id == openalex_id).first()
+        
+        return article
+
+def get_open_alex_article_from_pdf_filename(pdf_filename):
     """
     Retrieve an article from the database based on the OpenAlex ID extracted from a PDF filename.
     
@@ -129,7 +182,7 @@ def get_open_alex_article(pdf_path):
         OpenAlexArticle: The article from the database if found, None otherwise
     """
     # Extract the filename without extension to get the OpenAlex ID
-    openalex_id = os.path.splitext(os.path.basename(pdf_path))[0]
+    openalex_id = os.path.splitext(os.path.basename(pdf_filename))[0]
     print(f"OpenAlex id: {openalex_id}")    
     with Session(engine) as session:
         # Query the database for the article with the matching OpenAlex ID
@@ -150,8 +203,19 @@ def reconcile_metadata(openalex_metadata, llm_metadata):
         PaperTaxonomy: A merged PaperTaxonomy object with all OpenAlex values preserved
     """
     # Convert both to dictionaries for easier manipulation
-    openalex_dict = openalex_metadata.model_dump() if openalex_metadata else {}
-    llm_dict = llm_metadata.model_dump()
+    if openalex_metadata:
+        if type(openalex_metadata) is not dict:
+            openalex_dict = openalex_metadata.model_dump()
+        else:
+            openalex_dict = openalex_metadata
+    else:
+        openalex_metadata = {}
+    
+    if llm_metadata:
+        if type(llm_metadata) is not dict:
+            llm_dict = llm_metadata.model_dump()
+        else:
+            llm_dict = llm_metadata
 
     # Create a new dictionary for the reconciled metadata
     reconciled_dict = {}
