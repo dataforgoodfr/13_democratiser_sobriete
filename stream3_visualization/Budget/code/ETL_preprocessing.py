@@ -54,35 +54,19 @@ def load_eu_g20_mapping():
                           header=0)
     return mapping[['ISO3', 'EU_country', 'G20_country']]
 
-def load_historical_population_data():
-    """Load and process historical population data from the dedicated population file."""
-    population = pd.read_excel(f"{DATA_DIR}/2025-05-11_Population data starting from 1950 per country ISO Code_Source Carbon budget.xlsx")
-    
-    # Ensure we have the required columns
-    population = population[['ISO3', 'Year', 'Population']]
-    
-    # Add Country column (will be filled later in the main function)
-    population['Country'] = None
-    
-    # Print to verify
-    print("Historical Population Data:")
-    print(population[['ISO3', 'Year', 'Population']].head())
-    
-    return population[['ISO3', 'Country', 'Year', 'Population']]
-
-def load_forecasted_population_data():
-    """Load and process forecasted population data for 2050."""
+def load_population_data():
+    """Load and process population data from 1970 to 2050."""
     pop = pd.read_excel(f"{DATA_DIR}/2025-04-21_Population per Country ISO code_1970-2050.xlsx",
                        sheet_name="unpopulation_dataportal_2025042")
     pop = pop[['Iso3', 'Location', 'Time', 'Value']]
     pop.rename(columns={'Iso3': 'ISO3', 'Location': 'Country', 'Time': 'Year', 'Value': 'Population'}, inplace=True)
 
     # Print to verify
-    print("Forecasted Population Data:")
+    print("Population Data (all years up to 2050):")
     print(pop[['ISO3', 'Country', 'Year', 'Population']].head())
 
-    # Filter for the year 2050
-    return pop[pop['Year'] == 2050]
+    # Return all years up to 2050
+    return pop[pop['Year'] <= 2050]
 
 def load_emissions_data():
     """Load and process CO2 emissions data."""
@@ -154,13 +138,9 @@ def main():
     iso_mapping = load_iso_codes_mapping()
     ipcc_regions = load_ipcc_regions()
     eu_g20_mapping = load_eu_g20_mapping()
-    historical_population_data = load_historical_population_data()
-    forecasted_population_data = load_forecasted_population_data()
+    population_data = load_population_data()
     emissions_data = load_emissions_data()
     consumption_emissions_data = load_consumption_emissions_data()
-
-    # Combine historical and forecasted population data
-    population_data = pd.concat([historical_population_data, forecasted_population_data], ignore_index=True)
 
     # Filter data to only include years >= 1990
     population_data = population_data[population_data['Year'] >= 1990]
