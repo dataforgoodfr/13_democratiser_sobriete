@@ -474,7 +474,7 @@ class FileIndex(BaseIndex):
         }
 
     def get_indexing_pipeline(
-        self, settings, user_id, metadatas: list | None
+        self, settings, user_id, metadatas: list | None = None
     ) -> BaseFileIndexIndexing:
         """Define the interface of the indexing pipeline"""
 
