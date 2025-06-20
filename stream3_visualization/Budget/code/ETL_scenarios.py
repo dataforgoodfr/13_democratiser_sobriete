@@ -6,24 +6,17 @@ from datetime import datetime
 output_directory = '/Users/louistronel/Desktop/D4G_WSL/13_democratiser_sobriete-1/stream3_visualization/Budget/Output'
 data_directory = '/Users/louistronel/Desktop/D4G_WSL/13_democratiser_sobriete-1/stream3_visualization/Budget/Data'
 
-# Define global carbon budgets
-BUDGET_GLOBAL_lamboll_2C = {"33%": 1603000, "50%": 1219000, "67%": 944000}
-BUDGET_GLOBAL_forster_2C = {"33%": 1450000, "50%": 1150000, "67%": 950000}
-BUDGET_GLOBAL_lamboll_15C = {"33%": 480000, "50%": 247000, "67%": 60000}
-BUDGET_GLOBAL_forster_15C = {"33%": 300000, "50%": 250000, "67%": 150000}
+# Define global carbon budgets from the beginning of 2025 (in million tons of CO2)
+# Source: IPCC AR6 SYR, Table 2.1, values converted from GtCO2 to MtCO2
+BUDGET_GLOBAL_2C = {"33%": 1310000, "50%": 1050000, "67%": 870000, "83%": 690000}
+BUDGET_GLOBAL_15C = {"33%": 200000, "50%": 130000, "67%": 80000, "83%": 30000}
 
-def get_global_budget(warming_scenario, probability, budget_source):
+def get_global_budget(warming_scenario, probability):
     """Get the global carbon budget based on scenario parameters."""
     if warming_scenario == '2°C':
-        if budget_source == 'Lamboll':
-            return BUDGET_GLOBAL_lamboll_2C[probability]
-        else:  # Forster
-            return BUDGET_GLOBAL_forster_2C[probability]
+        return BUDGET_GLOBAL_2C[probability]
     else:  # 1.5°C
-        if budget_source == 'Lamboll':
-            return BUDGET_GLOBAL_lamboll_15C[probability]
-        else:  # Forster
-            return BUDGET_GLOBAL_forster_15C[probability]
+        return BUDGET_GLOBAL_15C[probability]
 
 def load_current_targets():
     """Load and process current target years."""
@@ -191,100 +184,98 @@ current_year = datetime.now().year
 for _, row in base_df.iterrows():
     for emissions_scope in emission_scopes:
         for warming_scenario in ['1.5°C', '2°C']:
-            for probability in ['33%', '50%', '67%']:
-                for budget_source in ['Lamboll', 'Forster']:
-                    for distribution in ['Equality', 'Responsibility', 'Current_target']:
-                        # Calculate country carbon budget based on distribution scenario
-                        global_budget = get_global_budget(warming_scenario, probability, budget_source)
-                        if distribution == 'Equality':
-                            country_budget = global_budget * row['Share_of_total_population_2050']
-                        elif distribution == 'Responsibility':
-                            # Get world's latest cumulative emissions
-                            world_cumulative = base_df[
-                                (base_df['ISO2'] == 'WLD') &
-                                (base_df[f'Latest_cumulative_CO2_emissions_Mt_{emissions_scope}'].notna())
-                            ][f'Latest_cumulative_CO2_emissions_Mt_{emissions_scope}'].iloc[0]
+            for probability in ['33%', '50%', '67%', '83%']:
+                for distribution in ['Equality', 'Responsibility', 'Current_target']:
+                    # Calculate country carbon budget based on distribution scenario
+                    global_budget = get_global_budget(warming_scenario, probability)
+                    if distribution == 'Equality':
+                        country_budget = global_budget * row['Share_of_total_population_2050']
+                    elif distribution == 'Responsibility':
+                        # Get world's latest cumulative emissions
+                        world_cumulative = base_df[
+                            (base_df['ISO2'] == 'WLD') &
+                            (base_df[f'Latest_cumulative_CO2_emissions_Mt_{emissions_scope}'].notna())
+                        ][f'Latest_cumulative_CO2_emissions_Mt_{emissions_scope}'].iloc[0]
 
-                            # Calculate total available budget (global + world's historical emissions)
-                            total_available = global_budget + world_cumulative
+                        # Calculate total available budget (global + world's historical emissions)
+                        total_available = global_budget + world_cumulative
 
-                            # Calculate country's share and subtract its historical emissions
-                            country_cumulative = row[f'Latest_cumulative_CO2_emissions_Mt_{emissions_scope}']
-                            country_budget = (total_available * row[f'Share_of_cumulative_population_{emissions_scope}']) - country_cumulative
-                        else:  # Current_target
-                            country_budget = None
+                        # Calculate country's share and subtract its historical emissions
+                        country_cumulative = row[f'Latest_cumulative_CO2_emissions_Mt_{emissions_scope}']
+                        country_budget = (total_available * row[f'Share_of_cumulative_population_{emissions_scope}']) - country_cumulative
+                    else:  # Current_target
+                        country_budget = None
 
-                        # Calculate years to neutrality and neutrality year
-                        latest_annual = row[f'Latest_annual_CO2_emissions_Mt_{emissions_scope}']
-                        latest_year = row[f'Latest_year_{emissions_scope}']
+                    # Calculate years to neutrality and neutrality year
+                    latest_annual = row[f'Latest_annual_CO2_emissions_Mt_{emissions_scope}']
+                    latest_year = row[f'Latest_year_{emissions_scope}']
 
-                        if distribution == 'Current_target':
-                            # Get target year from current targets mapping
-                            neutrality_year = current_targets.get(row['ISO2'])
-                            if neutrality_year is not None:
-                                years_to_neutrality = neutrality_year - latest_year
-                                # Back-calculate Country_carbon_budget based on years_to_neutrality
-                                if pd.notna(latest_annual) and latest_annual > 0:
-                                    country_budget = (years_to_neutrality * latest_annual) / 2
-                                else:
-                                    country_budget = None
+                    if distribution == 'Current_target':
+                        # Get target year from current targets mapping
+                        neutrality_year = current_targets.get(row['ISO2'])
+                        if neutrality_year is not None:
+                            years_to_neutrality = neutrality_year - latest_year
+                            # Back-calculate Country_carbon_budget based on years_to_neutrality
+                            if pd.notna(latest_annual) and latest_annual > 0:
+                                country_budget = (years_to_neutrality * latest_annual) / 2
                             else:
-                                years_to_neutrality = "N/A"
-                                neutrality_year = "N/A"
                                 country_budget = None
-                        # using integers for buckets to ensure it can be visualized on the map
-                        elif pd.notna(country_budget) and pd.notna(latest_annual) and latest_annual > 0:
-                            years_to_neutrality = int(round(2 * country_budget / latest_annual))
-                            if years_to_neutrality + latest_year > 2100:
-                                neutrality_year = 2100
-                            else:
-                                neutrality_year = int(round(latest_year + years_to_neutrality))
-
                         else:
                             years_to_neutrality = "N/A"
                             neutrality_year = "N/A"
-
-                        # Ensure years_to_neutrality_from_latest_available and neutrality_year are integers or "N/A"
-                        if isinstance(years_to_neutrality, (int, float)) and pd.notna(years_to_neutrality):
-                            years_to_neutrality = int(years_to_neutrality)
+                            country_budget = None
+                    # using integers for buckets to ensure it can be visualized on the map
+                    elif pd.notna(country_budget) and pd.notna(latest_annual) and latest_annual > 0:
+                        years_to_neutrality = int(round(2 * country_budget / latest_annual))
+                        if years_to_neutrality + latest_year > 2100:
+                            neutrality_year = 2100
                         else:
-                            years_to_neutrality = "N/A"
-                        if isinstance(neutrality_year, (int, float)) and pd.notna(neutrality_year):
-                            neutrality_year = int(neutrality_year)
-                        else:
-                            neutrality_year = "N/A"
+                            neutrality_year = int(round(latest_year + years_to_neutrality))
 
-                        # Calculate Years_to_neutrality_from_today
-                        if isinstance(neutrality_year, int):
-                            years_to_neutrality_from_today = neutrality_year - current_year
-                        else:
-                            years_to_neutrality_from_today = "N/A"
+                    else:
+                        years_to_neutrality = "N/A"
+                        neutrality_year = "N/A"
 
-                        scenario = {
-                            'ISO2': row['ISO2'],
-                            'Country': row['Country'],
-                            'Region': row['Region'],
-                            'Population_2050': row['Population_2050'],
-                            'Share_of_total_population_2050': row['Share_of_total_population_2050'],
-                            'Emissions_scope': emissions_scope,
-                            'Latest_year': latest_year,
-                            'Latest_annual_CO2_emissions_Mt': latest_annual,
-                            'Latest_cumulative_CO2_emissions_Mt': row[f'Latest_cumulative_CO2_emissions_Mt_{emissions_scope}'],
-                            'Latest_cumulative_population': row[f'Latest_cumulative_population_{emissions_scope}'],
-                            'Latest_emissions_per_capita_t': row[f'Latest_emissions_per_capita_t_{emissions_scope}'],
-                            'Share_of_cumulative_population': row[f'Share_of_cumulative_population_{emissions_scope}'],
-                            'Share_of_cumulative_emissions': row[f'Share_of_cumulative_emissions_{emissions_scope}'],
-                            'Warming_scenario': warming_scenario,
-                            'Probability_of_reach': probability,
-                            'Budget_source': budget_source,
-                            'Budget_distribution_scenario': distribution,
-                            'Global_Carbon_budget': global_budget,
-                            'Country_carbon_budget': country_budget,
-                            'Years_to_neutrality_from_latest_available': years_to_neutrality,
-                            'Neutrality_year': neutrality_year,
-                            'Years_to_neutrality_from_today': years_to_neutrality_from_today
-                        }
-                        scenarios.append(scenario)
+                    # Ensure years_to_neutrality_from_latest_available and neutrality_year are integers or "N/A"
+                    if isinstance(years_to_neutrality, (int, float)) and pd.notna(years_to_neutrality):
+                        years_to_neutrality = int(years_to_neutrality)
+                    else:
+                        years_to_neutrality = "N/A"
+                    if isinstance(neutrality_year, (int, float)) and pd.notna(neutrality_year):
+                        neutrality_year = int(neutrality_year)
+                    else:
+                        neutrality_year = "N/A"
+
+                    # Calculate Years_to_neutrality_from_today
+                    if isinstance(neutrality_year, int):
+                        years_to_neutrality_from_today = neutrality_year - current_year
+                    else:
+                        years_to_neutrality_from_today = "N/A"
+
+                    scenario = {
+                        'ISO2': row['ISO2'],
+                        'Country': row['Country'],
+                        'Region': row['Region'],
+                        'Population_2050': row['Population_2050'],
+                        'Share_of_total_population_2050': row['Share_of_total_population_2050'],
+                        'Emissions_scope': emissions_scope,
+                        'Latest_year': latest_year,
+                        'Latest_annual_CO2_emissions_Mt': latest_annual,
+                        'Latest_cumulative_CO2_emissions_Mt': row[f'Latest_cumulative_CO2_emissions_Mt_{emissions_scope}'],
+                        'Latest_cumulative_population': row[f'Latest_cumulative_population_{emissions_scope}'],
+                        'Latest_emissions_per_capita_t': row[f'Latest_emissions_per_capita_t_{emissions_scope}'],
+                        'Share_of_cumulative_population': row[f'Share_of_cumulative_population_{emissions_scope}'],
+                        'Share_of_cumulative_emissions': row[f'Share_of_cumulative_emissions_{emissions_scope}'],
+                        'Warming_scenario': warming_scenario,
+                        'Probability_of_reach': probability,
+                        'Budget_distribution_scenario': distribution,
+                        'Global_Carbon_budget': global_budget,
+                        'Country_carbon_budget': country_budget,
+                        'Years_to_neutrality_from_latest_available': years_to_neutrality,
+                        'Neutrality_year': neutrality_year,
+                        'Years_to_neutrality_from_today': years_to_neutrality_from_today
+                    }
+                    scenarios.append(scenario)
 
 # After creating the scenarios list, create two separate dataframes
 scenarios_df = pd.DataFrame(scenarios)
@@ -292,7 +283,7 @@ scenarios_df = pd.DataFrame(scenarios)
 # 1. Create scenario parameters dataframe (one row per unique scenario)
 scenario_params = scenarios_df[[
     'ISO2', 'Country', 'Region', 'Emissions_scope',
-    'Warming_scenario', 'Probability_of_reach', 'Budget_source',
+    'Warming_scenario', 'Probability_of_reach',
     'Budget_distribution_scenario', 'Years_to_neutrality_from_latest_available', 'Years_to_neutrality_from_today', 'Neutrality_year',
     'Latest_year', 'Latest_annual_CO2_emissions_Mt',
     'Latest_cumulative_CO2_emissions_Mt','Latest_emissions_per_capita_t', 'Latest_cumulative_population',
