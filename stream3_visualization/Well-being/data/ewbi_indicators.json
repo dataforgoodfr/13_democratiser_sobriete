@@ -10,10 +10,10 @@
             {
               "code": "AN-SILC-1",
               "description": "Share of nth decile households in capacity to afford a meal with meat, chicken, fish or vegetarian equivalent every second day",
-              "weight": 2
+              "weight": 1
             },
             {
-              "code": "AF-EHIS-1",
+              "code": "AN-EHIS-1",
               "description": "Share of nth quintile population facing a lot of difficulty in preparing meals",
               "weight": 2
             }
@@ -74,6 +74,16 @@
               "code": "HE-SILC-2",
               "description": "Share of nth decile households having arrears on utility bills",
               "weight": 1
+            },
+            {
+              "code": "HE-HBS-1",
+              "description": "Percentage of households of the nth decile whose share of equivalised housing, water, electricity, gas and other fuels expenditure in equivalised disposable income is above twice the national median share",
+              "weight": 1
+            },
+            {
+              "code": "HE-HBS-2",
+              "description": "Percentage of households of the nth decile whose share of equivalised housing, water, electricity, gas and other fuels expenditure in equivalised disposable income is bellow half the national median share",
+              "weight": 1
             }
           ]
         },
@@ -94,16 +104,6 @@
             {
               "code": "HH-HBS-2",
               "description": "Percentage of households of the nth decile whose share of equivalised rent related to the occupied dwelling expenditure in equivalised disposable income is bellow half the national median share",
-              "weight": 1
-            },
-            {
-              "code": "HH-HBS-3",
-              "description": "Percentage of households of the nth decile whose share of equivalised housing, water, electricity, gas and other fuels expenditure in equivalised disposable income is above twice the national median share",
-              "weight": 1
-            },
-            {
-              "code": "HH-HBS-4",
-              "description": "Percentage of households of the nth decile whose share of equivalised housing, water, electricity, gas and other fuels expenditure in equivalised disposable income is bellow half the national median share",
               "weight": 1
             }
           ]
@@ -136,12 +136,12 @@
             {
               "code": "ES-SILC-1",
               "description": "Share of nth decile households in capacity to face unexpected financial expenses",
-              "weight": 2
+              "weight": 1
             },
             {
               "code": "ES-SILC-2",
               "description": "Share of nth decile households making ends meet with difficulty",
-              "weight": 2
+              "weight": 1
             }
           ]
         },
@@ -202,23 +202,28 @@
               "weight": 2
             },
             {
-              "code": "AA-SILC-1",
-              "description": "Share of nth decile households encountering limitation in activities because of health problems",
-              "weight": 2
-            },
-            {
-              "code": "AA-SILC-2",
-              "description": "Share of nth decile households unable to work for 6 months due to long-standing health problems",
-              "weight": 2
-            },
-            {
               "code": "AH-SILC-2",
               "description": "Share of nth decile households suffering from any chronic illness or condition",
               "weight": 2
             },
             {
+              "code": "AH-SILC-3",
+              "description": "Share of nth decile households encountering limitation in activities because of health problems",
+              "weight": 2
+            },
+            {
+              "code": "AH-SILC-4",
+              "description": "Share of nth decile households unable to work for 6 months due to long-standing health problems",
+              "weight": 2
+            },
+            {
               "code": "AH-EHIS-1",
               "description": "Share of nth quintile population that are every day feeling down, depressed or hopeless over the last 2 weeks",
+              "weight": 2
+            },
+            {
+              "code": "AH-EHIS-2",
+              "description": "Share of nth quintile population that are never carrying out sports, fitness or recreational (leisure) physical activities",
               "weight": 2
             }
           ]
@@ -230,6 +235,11 @@
             {
               "code": "AC-SILC-1",
               "description": "Share of nth decile households that could not afford medical examination or treatment",
+              "weight": 1
+            },
+            {
+              "code": "AC-SILC-2",
+              "description": "Share of nth decile households having unmet need for medical examination or treatment",
               "weight": 2
             },
             {
@@ -255,11 +265,6 @@
           "indicators": [
             {
               "code": "AB-EHIS-1",
-              "description": "Share of nth quintile population that suffered a road traffic accident in the past 12 months",
-              "weight": 2
-            },
-            {
-              "code": "AB-EHIS-1",
               "description": "Share of nth quintile population daily smoking",
               "weight": 2
             },
@@ -267,6 +272,11 @@
               "code": "AB-EHIS-2",
               "description": "Share of nth quintile population consuming alcoholic drink of any kind nearly every day in the past 12 months",
               "weight": 2
+            },
+            {
+              "code": "AB-EHIS-3",
+              "description": "Share of nth quintile population that suffered a road traffic accident in the past 12 months",
+              "weight": 1
             }
           ]
         }
@@ -281,22 +291,17 @@
           "indicators": [
             {
               "code": "IS-SILC-1",
-              "description": "Share of nth decile households of age of being a pre-school student but not attaining pre-school",
-              "weight": 2
-            },
-            {
-              "code": "IL-SILC-3",
-              "description": "Share of nth decile households of having no formal education",
-              "weight": 2
+              "description": "DEACTIVATED Share of nth decile households of age of being a pre-school student but not attaining pre-school",
+              "weight": 0
             },
             {
               "code": "IS-SILC-2",
-              "description": "Share of nth decile households of age of being a compulsory school student but not attaining school",
-              "weight": 2
+              "description": "DEACTIVATED Share of nth decile households of age of being a compulsory school student but not attaining school",
+              "weight": 0
             },
             {
-              "code": "IS-LFS-1",
-              "description": "Share of nth decile households of student or apprentice participating in formal education and training in the last 12 months",
+              "code": "IS-SILC-3",
+              "description": "Share of nth decile households having no formal education",
               "weight": 2
             }
           ]
@@ -307,12 +312,12 @@
           "indicators": [
             {
               "code": "IE-HBS-1",
-              "description": "Percentage of households of the nth decile whose share of equivalised education expenditure in equivalised disposable income is above twice the national median share",
+              "description": "Percentage of households with parents of the nth decile whose share of equivalised education expenditure in equivalised disposable income is above twice the national median share",
               "weight": 1
             },
             {
               "code": "IE-HBS-2",
-              "description": "Percentage of households of the nth decile whose share of equivalised education expenditure in equivalised disposable income is bellow half the national median share",
+              "description": "Percentage of households with parents of the nth decile whose share of equivalised education expenditure in equivalised disposable income is bellow half the national median share",
               "weight": 1
             }
           ]
@@ -390,8 +395,8 @@
             },
             {
               "code": "RU-LFS-1",
-              "description": "Share of nth decile households unemployed",
-              "weight": 2
+              "description": "DEACTIVATED Share of nth decile households unemployed",
+              "weight": 0
             }
           ]
         }
@@ -413,6 +418,16 @@
               "code": "TT-HBS-2",
               "description": "Percentage of households of the nth decile whose share of equivalised transport expenditure in equivalised disposable income is bellow half the national median share",
               "weight": 1
+            },
+            {
+              "code": "TT-SILC-1",
+              "description": "Share of nth quintile households uncapable to afford public transport",
+              "weight": 1
+            },
+            {
+              "code": "TT-SILC-2",
+              "description": "Share of nth quintile households facing very low access to public transport ",
+              "weight": 2
             }
           ]
         },
@@ -423,7 +438,7 @@
             {
               "code": "TS-SILC-1",
               "description": "Share of nth decile households uncapable to afford a one-week annual holiday away from home",
-              "weight": 2
+              "weight": 1
             },
             {
               "code": "TS-HBS-1",
