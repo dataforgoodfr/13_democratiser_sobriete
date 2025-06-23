@@ -18,6 +18,10 @@ def get_global_budget(warming_scenario, probability):
     else:  # 1.5°C
         return BUDGET_GLOBAL_15C[probability]
 
+def penalty_func_2(x):
+    """Quadratic penalty function."""
+    return x * x
+
 def load_current_targets():
     """Load and process current target years."""
     # Load the current targets file
@@ -90,10 +94,9 @@ def create_base_dataframe(df):
     # Get unique countries and their regions
     base_df = df[['ISO2', 'Country', 'Region']].drop_duplicates()
 
-    # Calculate share of cumulative population from 1990 to 2050 for the 'Equality' scenario
+    # Calculate share of cumulative population from 1990 to 2050 (for Responsibility scenario)
     cum_pop_2050_df = df[
-        (df['Emissions_scope'] == 'Territory') &  # Population is the same for both scopes
-        (df['Year'] == 2050)
+        (df['Emissions_scope'] == 'Territory') & (df['Year'] == 2050)
     ][['ISO2', 'Cumulative_population']].rename(columns={'Cumulative_population': 'Cumulative_population_2050'})
     
     world_cum_pop_2050 = cum_pop_2050_df[cum_pop_2050_df['ISO2'] == 'WLD']['Cumulative_population_2050'].iloc[0]
@@ -106,62 +109,64 @@ def create_base_dataframe(df):
     emission_scopes = ['Territory', 'Consumption']
 
     for scope in emission_scopes:
-        # Filter data for this scope and where Annual_CO2_emissions_Mt is not null and not 0
         scope_data = df[
             (df['Emissions_scope'] == scope) &
             (df['Annual_CO2_emissions_Mt'].notna()) &
             (df['Annual_CO2_emissions_Mt'] != 0) &
-            (df['Year'] != 2050)  # Exclude 2050 from latest year calculation
+            (df['Year'] < 2050)
         ]
 
-        # For regular countries, get latest year with emissions data
-        country_latest_years = scope_data[
-            ~scope_data['ISO2'].isin(['WLD', 'REG', 'EU', 'G20'])
-        ].groupby('ISO2')['Year'].max().reset_index()
-
-        # For aggregates, get latest year with emissions data
-        aggregate_latest_years = scope_data[
-            scope_data['ISO2'].isin(['WLD', 'REG', 'EU', 'G20'])
-        ].groupby('ISO2')['Year'].max().reset_index()
-
-        # Combine the latest years
-        latest_years = pd.concat([country_latest_years, aggregate_latest_years])
+        latest_years = scope_data.groupby('ISO2')['Year'].max().reset_index()
         latest_years.columns = ['ISO2', f'Latest_year_{scope}']
-        # Convert years to integers
         latest_years[f'Latest_year_{scope}'] = latest_years[f'Latest_year_{scope}'].astype(int)
 
-        # Get latest emissions and population for each ISO2
         latest_data = pd.merge(
             scope_data,
             latest_years,
             left_on=['ISO2', 'Year'],
             right_on=['ISO2', f'Latest_year_{scope}']
-        )[['ISO2', 'Annual_CO2_emissions_Mt', 'Cumulative_CO2_emissions_Mt', 'Cumulative_population','Emissions_per_capita_ton']].rename(
+        )[['ISO2', 'Annual_CO2_emissions_Mt', 'Cumulative_CO2_emissions_Mt', 'Cumulative_population', 'Emissions_per_capita_ton', 'GDP_PPP', 'Population']].rename(
             columns={
                 'Annual_CO2_emissions_Mt': f'Latest_annual_CO2_emissions_Mt_{scope}',
                 'Cumulative_CO2_emissions_Mt': f'Latest_cumulative_CO2_emissions_Mt_{scope}',
                 'Cumulative_population': f'Latest_cumulative_population_{scope}',
-                'Emissions_per_capita_ton': f'Latest_emissions_per_capita_t_{scope}'
+                'Emissions_per_capita_ton': f'Latest_emissions_per_capita_t_{scope}',
+                'GDP_PPP': f'Latest_GDP_PPP_{scope}',
+                'Population': f'Latest_population_{scope}'
             }
         )
 
-        # Merge with base dataframe
         base_df = base_df.merge(latest_years, on='ISO2', how='left')
         base_df = base_df.merge(latest_data, on='ISO2', how='left')
 
-        # Calculate share of cumulative population from 1990 to the latest available year for the 'Responsibility' scenario
+        # --- Share of Cumulative Population (Equality) ---
         world_cumulative_pop = base_df[
             base_df['ISO2'] == 'WLD'
         ][f'Latest_cumulative_population_{scope}'].iloc[0]
-
         base_df[f'Share_of_cumulative_population_1990_to_Latest_{scope}'] = base_df[f'Latest_cumulative_population_{scope}'] / world_cumulative_pop
 
-        # Calculate share of cumulative emissions for this scope
+        # --- Share of Cumulative Emissions (Responsibility) ---
         world_cumulative_emissions = base_df[
             base_df['ISO2'] == 'WLD'
         ][f'Latest_cumulative_CO2_emissions_Mt_{scope}'].iloc[0]
-
         base_df[f'Share_of_cumulative_emissions_{scope}'] = base_df[f'Latest_cumulative_CO2_emissions_Mt_{scope}'] / world_cumulative_emissions
+
+        # --- Share of Capacity (Capacity) ---
+        # Calculate GDP per capita using the latest population, not cumulative.
+        base_df['gdp_per_capita'] = base_df[f'Latest_GDP_PPP_{scope}'] / base_df[f'Latest_population_{scope}']
+        base_df['penalized_gdp_pop'] = penalty_func_2(base_df['gdp_per_capita']) * base_df[f'Latest_population_{scope}']
+        
+        # Calculate the world's total penalized gdp-pop for normalization
+        world_total_penalized = base_df.loc[base_df['ISO2'] == 'WLD', 'penalized_gdp_pop'].iloc[0]
+
+        share_col_name = f'share_of_capacity_{scope}'
+        if world_total_penalized > 0:
+            base_df[share_col_name] = base_df['penalized_gdp_pop'] / world_total_penalized
+        else:
+            base_df[share_col_name] = 0
+
+    # Clean up intermediate columns
+    base_df.drop(columns=['gdp_per_capita', 'penalized_gdp_pop'], inplace=True, errors='ignore')
 
     return base_df, emission_scopes
 
@@ -183,7 +188,7 @@ for _, row in base_df.iterrows():
     for emissions_scope in emission_scopes:
         for warming_scenario in ['1.5°C', '2°C']:
             for probability in ['33%', '50%', '67%', '83%']:
-                for distribution in ['Equality', 'Responsibility', 'Current_target']:
+                for distribution in ['Equality', 'Responsibility', 'Current_target', 'Capacity']:
                     # Calculate country carbon budget based on distribution scenario
                     global_budget = get_global_budget(warming_scenario, probability)
                     if distribution == 'Equality':
@@ -201,6 +206,8 @@ for _, row in base_df.iterrows():
                         # Calculate country's share and subtract its historical emissions
                         country_cumulative = row[f'Latest_cumulative_CO2_emissions_Mt_{emissions_scope}']
                         country_budget = (total_available * row['Share_of_cumulative_population_1990_to_2050']) - country_cumulative
+                    elif distribution == 'Capacity':
+                        country_budget = global_budget * row[f'share_of_capacity_{emissions_scope}']
                     else:  # Current_target
                         country_budget = None
 
@@ -255,6 +262,7 @@ for _, row in base_df.iterrows():
                         'Country': row['Country'],
                         'Region': row['Region'],
                         'Share_of_cumulative_population_1990_to_2050': row['Share_of_cumulative_population_1990_to_2050'],
+                        'share_of_capacity': row[f'share_of_capacity_{emissions_scope}'],
                         'Emissions_scope': emissions_scope,
                         'Latest_year': latest_year,
                         'Latest_annual_CO2_emissions_Mt': latest_annual,
@@ -285,7 +293,8 @@ scenario_params = scenarios_df[[
     'Latest_year', 'Latest_annual_CO2_emissions_Mt',
     'Latest_cumulative_CO2_emissions_Mt','Latest_emissions_per_capita_t', 'Latest_cumulative_population',
     'Share_of_cumulative_population_1990_to_Latest',
-    'Share_of_cumulative_population_1990_to_2050', 'Global_Carbon_budget',
+    'Share_of_cumulative_population_1990_to_2050',
+    'share_of_capacity', 'Global_Carbon_budget',
     'Country_carbon_budget', 'Share_of_cumulative_emissions'
 ]].drop_duplicates()
 

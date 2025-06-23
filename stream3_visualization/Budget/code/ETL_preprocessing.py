@@ -54,6 +54,45 @@ def load_eu_g20_mapping():
                           header=0)
     return mapping[['ISO3', 'EU_country', 'G20_country']]
 
+def load_gdp_data():
+    """Load and process GDP PPP data, reshaping it from wide to long format."""
+    # Load the data, using the first row as the header as specified.
+    gdp_wide = pd.read_excel(
+        f"{DATA_DIR}/2025-04-21_GDP _PPP constant 2021 US$_per country ISO Code.xlsx",
+        sheet_name='Data',
+        header=0
+    )
+
+    # Clean column names to remove leading/trailing spaces.
+    gdp_wide.columns = gdp_wide.columns.str.strip()
+
+    # Rename 'Country Code' to 'ISO3'.
+    if 'Country Code' in gdp_wide.columns:
+        gdp_wide.rename(columns={'Country Code': 'ISO3'}, inplace=True)
+    else:
+        raise ValueError(f"'Country Code' not found. Available columns are: {gdp_wide.columns.tolist()}")
+
+    # Identify the columns to keep as IDs.
+    id_vars = [col for col in ['Country Name', 'ISO3', 'Series Name', 'Series Code'] if col in gdp_wide.columns]
+
+    # Reshape the dataframe from wide to long.
+    gdp_long = pd.melt(
+        gdp_wide,
+        id_vars=id_vars,
+        var_name='Year_str',
+        value_name='GDP_PPP'
+    )
+    
+    # Extract the 4-digit year from the 'Year_str' column (e.g., from '1970 [YR1970]').
+    gdp_long['Year'] = gdp_long['Year_str'].astype(str).str.extract(r'(\d{4})').astype(int)
+    
+    # Convert GDP values to numeric, coercing errors (like '..') to NaN, then drop rows with no GDP data.
+    gdp_long['GDP_PPP'] = pd.to_numeric(gdp_long['GDP_PPP'], errors='coerce')
+    gdp_long.dropna(subset=['GDP_PPP'], inplace=True)
+
+    # Return the cleaned, final dataframe.
+    return gdp_long[['ISO3', 'Year', 'GDP_PPP']]
+
 def load_population_data():
     """Load and process population data from 1970 to 2050."""
     pop = pd.read_excel(f"{DATA_DIR}/2025-04-21_Population per Country ISO code_1970-2050.xlsx",
@@ -117,7 +156,8 @@ def create_aggregates(df, group_cols, agg_name, iso_code, region_name):
         'Annual_CO2_emissions_Mt': 'sum',
         'Cumulative_CO2_emissions_Mt': 'sum',
         'Population': 'sum',
-        'Cumulative_population': 'sum'
+        'Cumulative_population': 'sum',
+        'GDP_PPP': 'sum'
     }).reset_index()
 
     # Calculate metrics
@@ -141,17 +181,20 @@ def main():
     population_data = load_population_data()
     emissions_data = load_emissions_data()
     consumption_emissions_data = load_consumption_emissions_data()
+    gdp_data = load_gdp_data()
 
     # Filter data to only include years >= 1990
     population_data = population_data[population_data['Year'] >= 1990]
     emissions_data = emissions_data[emissions_data['Year'] >= 1990]
     consumption_emissions_data = consumption_emissions_data[consumption_emissions_data['Year'] >= 1990]
+    gdp_data = gdp_data[gdp_data['Year'] >= 1990]
 
     # Print verification of year filtering
     print("\nVerifying year filtering (>= 1990):")
     print(f"Population data year range: {population_data['Year'].min()} to {population_data['Year'].max()}")
     print(f"Emissions data year range: {emissions_data['Year'].min()} to {emissions_data['Year'].max()}")
     print(f"Consumption emissions data year range: {consumption_emissions_data['Year'].min()} to {consumption_emissions_data['Year'].max()}")
+    print(f"GDP data year range: {gdp_data['Year'].min()} to {gdp_data['Year'].max()}")
 
     # Merge ISO2 codes and country names into the dataframes
     iso2_mapping = iso_mapping.set_index('ISO3')['ISO2'].to_dict()
@@ -159,6 +202,9 @@ def main():
 
     # Ensure Namibia's ISO2 code is correctly assigned
     iso2_mapping['NAM'] = 'NA'
+
+    # Add ISO2 mapping to GDP data before the merge
+    gdp_data['ISO2'] = gdp_data['ISO3'].map(iso2_mapping)
 
     # Print verification of ISO mapping
     print("\nVerifying ISO mapping for population data:")
@@ -239,6 +285,9 @@ def main():
 
     # Combine the two dataframes
     emissions_df = pd.concat([territory_df, consumption_df], ignore_index=True)
+
+    # Merge GDP data
+    emissions_df = emissions_df.merge(gdp_data.drop(columns=['Country'], errors='ignore'), on=['ISO3', 'Year', 'ISO2'], how='left')
 
     # Calculate cumulative emissions for each scope
     emissions_df['Cumulative_CO2_emissions_Mt'] = emissions_df.groupby(['ISO3', 'Region', 'Emissions_scope'])['Annual_CO2_emissions_Mt'].cumsum()
