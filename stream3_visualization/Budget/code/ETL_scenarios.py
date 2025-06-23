@@ -125,14 +125,15 @@ def create_base_dataframe(df):
             latest_years,
             left_on=['ISO2', 'Year'],
             right_on=['ISO2', f'Latest_year_{scope}']
-        )[['ISO2', 'Annual_CO2_emissions_Mt', 'Cumulative_CO2_emissions_Mt', 'Cumulative_population', 'Emissions_per_capita_ton', 'GDP_PPP', 'Population']].rename(
+        )[['ISO2', 'Annual_CO2_emissions_Mt', 'Cumulative_CO2_emissions_Mt', 'Cumulative_population', 'Emissions_per_capita_ton', 'GDP_PPP', 'Population', 'share_of_capacity']].rename(
             columns={
                 'Annual_CO2_emissions_Mt': f'Latest_annual_CO2_emissions_Mt_{scope}',
                 'Cumulative_CO2_emissions_Mt': f'Latest_cumulative_CO2_emissions_Mt_{scope}',
                 'Cumulative_population': f'Latest_cumulative_population_{scope}',
                 'Emissions_per_capita_ton': f'Latest_emissions_per_capita_t_{scope}',
                 'GDP_PPP': f'Latest_GDP_PPP_{scope}',
-                'Population': f'Latest_population_{scope}'
+                'Population': f'Latest_population_{scope}',
+                'share_of_capacity': f'share_of_capacity_{scope}'
             }
         )
 
@@ -150,23 +151,6 @@ def create_base_dataframe(df):
             base_df['ISO2'] == 'WLD'
         ][f'Latest_cumulative_CO2_emissions_Mt_{scope}'].iloc[0]
         base_df[f'Share_of_cumulative_emissions_{scope}'] = base_df[f'Latest_cumulative_CO2_emissions_Mt_{scope}'] / world_cumulative_emissions
-
-        # --- Share of Capacity (Capacity) ---
-        # Calculate GDP per capita using the latest population, not cumulative.
-        base_df['gdp_per_capita'] = base_df[f'Latest_GDP_PPP_{scope}'] / base_df[f'Latest_population_{scope}']
-        base_df['penalized_gdp_pop'] = penalty_func_2(base_df['gdp_per_capita']) * base_df[f'Latest_population_{scope}']
-        
-        # Calculate the world's total penalized gdp-pop for normalization
-        world_total_penalized = base_df.loc[base_df['ISO2'] == 'WLD', 'penalized_gdp_pop'].iloc[0]
-
-        share_col_name = f'share_of_capacity_{scope}'
-        if world_total_penalized > 0:
-            base_df[share_col_name] = base_df['penalized_gdp_pop'] / world_total_penalized
-        else:
-            base_df[share_col_name] = 0
-
-    # Clean up intermediate columns
-    base_df.drop(columns=['gdp_per_capita', 'penalized_gdp_pop'], inplace=True, errors='ignore')
 
     return base_df, emission_scopes
 
@@ -297,6 +281,11 @@ scenario_params = scenarios_df[[
     'share_of_capacity', 'Global_Carbon_budget',
     'Country_carbon_budget', 'Share_of_cumulative_emissions'
 ]].drop_duplicates()
+
+# Filter out rows where neutrality could not be calculated
+original_rows = len(scenario_params)
+scenario_params = scenario_params[scenario_params['Years_to_neutrality_from_latest_available'] != "N/A"].copy()
+print(f"\nFiltered out {original_rows - len(scenario_params)} rows with 'N/A' neutrality years from scenario parameters.")
 
 # Create a scenario_id for each unique combination
 scenario_params['scenario_id'] = range(1, len(scenario_params) + 1)

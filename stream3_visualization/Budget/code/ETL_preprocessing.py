@@ -157,7 +157,8 @@ def create_aggregates(df, group_cols, agg_name, iso_code, region_name):
         'Cumulative_CO2_emissions_Mt': 'sum',
         'Population': 'sum',
         'Cumulative_population': 'sum',
-        'GDP_PPP': 'sum'
+        'GDP_PPP': 'sum',
+        'capacity_absolute': 'sum'
     }).reset_index()
 
     # Calculate metrics
@@ -295,15 +296,31 @@ def main():
     # Calculate cumulative population for each scope
     emissions_df['Cumulative_population'] = emissions_df.groupby(['ISO3', 'Region', 'Emissions_scope'])['Population'].cumsum()
 
+    # Calculate absolute capacity, which is inversely proportional to GDP per capita (p=1).
+    # This gives a larger budget share to less wealthy nations.
+    emissions_df['gdp_per_capita'] = emissions_df['GDP_PPP'] / emissions_df['Population']
+    emissions_df['capacity_absolute'] = emissions_df['Population'] / emissions_df['gdp_per_capita']
+    
+    # Handle cases with no GDP data (NaN) or infinite values by setting their capacity to 0.
+    emissions_df.replace([np.inf, -np.inf], np.nan, inplace=True)
+    emissions_df['capacity_absolute'].fillna(0, inplace=True)
+    emissions_df.drop(columns=['gdp_per_capita'], inplace=True)
+
+    # Before aggregating, filter for rows with available emissions data, but ensure 2050 is kept
+    # for population-based calculations.
+    aggregation_df = emissions_df[
+        (emissions_df['Annual_CO2_emissions_Mt'].notna()) | (emissions_df['Year'] == 2050)
+    ].copy()
+
     # Create world aggregate first
-    world_aggregates = create_aggregates(emissions_df, ['Year', 'Emissions_scope'], 'All', 'WLD', 'World')
+    world_aggregates = create_aggregates(aggregation_df, ['Year', 'Emissions_scope'], 'All', 'WLD', 'World')
 
     # Create aggregates for each region
     region_aggregates = []
-    for region in emissions_df['Region'].unique():
+    for region in aggregation_df['Region'].unique():
         if pd.notna(region):  # Skip if region is null
             region_agg = create_aggregates(
-                emissions_df[emissions_df['Region'] == region],
+                aggregation_df[aggregation_df['Region'] == region],
                 ['Year', 'Emissions_scope'],
                 'All',  # Set Country to "All"
                 region,  # Use region name as ISO2 and ISO3
@@ -314,7 +331,7 @@ def main():
 
     # Create EU aggregate
     eu_aggregates = create_aggregates(
-        emissions_df[emissions_df['EU_country'] == 'Yes'],
+        aggregation_df[aggregation_df['EU_country'] == 'Yes'],
         ['Year', 'Emissions_scope'],
         'All',
         'EU',
@@ -323,7 +340,7 @@ def main():
 
     # Create G20 aggregate
     g20_aggregates = create_aggregates(
-        emissions_df[emissions_df['G20_country'] == 'Yes'],
+        aggregation_df[aggregation_df['G20_country'] == 'Yes'],
         ['Year', 'Emissions_scope'],
         'All',
         'G20',
@@ -339,8 +356,45 @@ def main():
         g20_aggregates
     ], ignore_index=True)
 
+    # Calculate share_of_capacity from the absolute values
+    world_capacity = final_df.loc[final_df['ISO2'] == 'WLD', ['Year', 'Emissions_scope', 'capacity_absolute']].copy()
+    world_capacity.rename(columns={'capacity_absolute': 'world_total_capacity'}, inplace=True)
+    
+    final_df = final_df.merge(world_capacity, on=['Year', 'Emissions_scope'], how='left')
+    # Calculate share, handling cases where the total is zero
+    final_df['share_of_capacity'] = np.where(
+        final_df['world_total_capacity'] > 0,
+        final_df['capacity_absolute'] / final_df['world_total_capacity'],
+        0
+    )
+    final_df.drop(columns=['capacity_absolute', 'world_total_capacity'], inplace=True)
+
+    # Calculate share of GDP
+    world_gdp = final_df.loc[final_df['ISO2'] == 'WLD', ['Year', 'Emissions_scope', 'GDP_PPP']].copy()
+    world_gdp.rename(columns={'GDP_PPP': 'world_total_gdp'}, inplace=True)
+    
+    final_df = final_df.merge(world_gdp, on=['Year', 'Emissions_scope'], how='left')
+    final_df['share_of_GDP_PPP'] = np.where(
+        final_df['world_total_gdp'] > 0,
+        final_df['GDP_PPP'] / final_df['world_total_gdp'],
+        0
+    )
+    final_df.drop(columns=['world_total_gdp'], inplace=True)
+
+    # Calculate share of Population
+    world_pop = final_df.loc[final_df['ISO2'] == 'WLD', ['Year', 'Emissions_scope', 'Population']].copy()
+    world_pop.rename(columns={'Population': 'world_total_population'}, inplace=True)
+    
+    final_df = final_df.merge(world_pop, on=['Year', 'Emissions_scope'], how='left')
+    final_df['share_of_population'] = np.where(
+        final_df['world_total_population'] > 0,
+        final_df['Population'] / final_df['world_total_population'],
+        0
+    )
+    final_df.drop(columns=['world_total_population'], inplace=True)
+
     # Calculate share of cumulative population for each scope, per year
-    final_df['Share_of_cumulative_population'] = None
+    final_df['Share_of_cumulative_population'] = np.nan
     for scope in ['Territory', 'Consumption']:
         # Get world cumulative population per year for this scope
         world_cum_pop = final_df[(final_df['ISO2'] == 'WLD') & (final_df['Emissions_scope'] == scope)][['Year', 'Cumulative_population']].set_index('Year')['Cumulative_population']
@@ -350,6 +404,61 @@ def main():
             lambda row: 1 if row['ISO2'] == 'WLD' else (row['Cumulative_population'] / world_cum_pop.get(row['Year'], np.nan)),
             axis=1
         )
+    
+    # --- SANITY CHECKS ---
+    aggregate_iso2s = ['WLD', 'EU', 'G20'] + list(ipcc_regions['IPCC_Region_Intermediate'].unique())
+    country_df = final_df[~final_df['ISO2'].isin(aggregate_iso2s)]
+
+    # The universe for all share calculations is based on the data available in aggregation_df.
+    # We must apply the same filter to the country data before running the sanity checks.
+    country_df_for_checks = country_df[
+        (country_df['Annual_CO2_emissions_Mt'].notna())
+    ].copy()
+
+    # Check share_of_capacity
+    capacity_check = country_df_for_checks.groupby(['Year', 'Emissions_scope'])['share_of_capacity'].sum().reset_index()
+    print("\n--- Sanity Check: Sum of share_of_capacity for all countries ---")
+    check_failed = capacity_check[~np.isclose(capacity_check['share_of_capacity'], 1.0, atol=1e-5)]
+    if not check_failed.empty:
+        print("Check failed for these Year/Scope combinations:")
+        print(check_failed)
+    else:
+        print("Check passed. All years/scopes sum to ~1.0.")
+    print("----------------------------------------------------------------")
+
+    # Check share_of_GDP_PPP
+    gdp_check = country_df_for_checks.groupby(['Year', 'Emissions_scope'])['share_of_GDP_PPP'].sum().reset_index()
+    print("\n--- Sanity Check: Sum of share_of_GDP_PPP for all countries ---")
+    check_failed_gdp = gdp_check[~np.isclose(gdp_check['share_of_GDP_PPP'], 1.0, atol=1e-5)]
+    if not check_failed_gdp.empty:
+        print("Check failed for these Year/Scope combinations:")
+        print(check_failed_gdp)
+    else:
+        print("Check passed. All years/scopes sum to ~1.0.")
+    print("-------------------------------------------------------------------")
+    
+    # Check share_of_population
+    pop_check = country_df_for_checks.groupby(['Year', 'Emissions_scope'])['share_of_population'].sum().reset_index()
+    print("\n--- Sanity Check: Sum of share_of_population for all countries ---")
+    check_failed_pop = pop_check[~np.isclose(pop_check['share_of_population'], 1.0, atol=1e-5)]
+    if not check_failed_pop.empty:
+        print("Check failed for these Year/Scope combinations:")
+        print(check_failed_pop)
+    else:
+        print("Check passed. All years/scopes sum to ~1.0.")
+    print("--------------------------------------------------------------------")
+
+    # --- Sanity check for Share_of_cumulative_population ---
+    pop_share_check = country_df_for_checks.groupby(['Year', 'Emissions_scope'])['Share_of_cumulative_population'].sum().reset_index()
+    print("\n--- Sanity Check: Sum of Share_of_cumulative_population for all countries ---")
+    check_failed_pop_share = pop_share_check[~np.isclose(pop_share_check['Share_of_cumulative_population'], 1.0, atol=1e-5)]
+    if not check_failed_pop_share.empty:
+        print("Check failed for these Year/Scope combinations:")
+        print(check_failed_pop_share)
+    else:
+        print("Check passed. All years/scopes sum to ~1.0.")
+    print("--------------------------------------------------------------------------")
+
     # Format as percentage string (optional, or keep as float if preferred)
     final_df['Share_of_cumulative_population'] = (final_df['Share_of_cumulative_population'].astype(float) * 100).round(2).astype(str) + '%'
 
