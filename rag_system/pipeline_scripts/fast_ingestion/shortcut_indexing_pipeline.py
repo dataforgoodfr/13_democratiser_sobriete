@@ -21,7 +21,8 @@ from kotaemon.indices.splitters import TokenSplitter
 from kotaemon.llms import ChatOpenAI
 from kotaemon.loaders import PDFThumbnailReader, WebReader
 
-from fast_ingestion.persist_taxonomy import reconcile_metadata, persist_article_metadata
+#from fast_ingestion.persist_taxonomy import reconcile_metadata, persist_article_metadata
+from fast_ingestion.persist_taxonomy import reconcile_metadata
 from fast_ingestion.logging_config import configure_logging
 
 logger = configure_logging()
@@ -240,14 +241,15 @@ class IndexingPipelineShortCut(IndexPipeline):
             # Reconcile metadatas
             reconciled_metadata = reconcile_metadata(article_metadata, llm_metadatas)
 
-            # Persist metadata to PostgreSQL
+            # TODO DEBUG IT ! Persist metadata to PostgreSQL
+            """
             try:
                 logger.info(f"file_id : {file_id} - Trying to persist article...")
                 result_id = persist_article_metadata(reconciled_metadata)
                 logger.info(f"file_id : {file_id} - Metadatas persistance ok with id : {result_id} (external db,  (table for metadatas statistics))")
             except Exception as e:
                 raise Exception(f"file_id : {file_id} - Error happening during the metadata ingestion (table for metadatas statistics)") from e
-                #logfire.error(e)
+                #logfire.error(e)"""
             
             reconciled_metadata = reconciled_metadata.model_dump() #convert to dict
 
