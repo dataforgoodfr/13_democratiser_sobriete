@@ -95,7 +95,6 @@ def main():
         articles = get_open_alex_articles()
     else:
         articles = get_open_alex_articles_not_ingested(ingestion_status=args.ingestion_version)
-    articles = articles[0:1] # Just for test
 
     logger.info(f"Multi-Processing ingestion launched... (NB_PROCESSES = {int(args.nb_processes)})")
     with Pool(processes=int(args.nb_processes)) as pool:
@@ -106,4 +105,13 @@ def main():
                                    articles)
 
 if __name__ == "__main__":
+
+    # Set the multiprocessing start method to 'spawn' to avoid the lance fork-safety issue
+    import multiprocessing
+    try:
+        multiprocessing.set_start_method('spawn')
+    except RuntimeError:
+        # Method already set
+        pass
+    
     main()
