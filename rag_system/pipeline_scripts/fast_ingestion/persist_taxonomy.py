@@ -2,12 +2,19 @@ import os
 from datetime import datetime
 
 from sqlmodel import SQLModel, Field, create_engine, Session
-from sqlalchemy import JSON, Column, ARRAY, String, DateTime, Integer, Float, Boolean
+import sqlalchemy
+from sqlalchemy import JSON, Column, ARRAY, String, DateTime, Integer, Float, Boolean, text
 from taxonomy.paper_taxonomy import PaperTaxonomy
 
-PG_DATABASE_URL = os.getenv(
+from decouple import config
+
+from fast_ingestion.logging_config import configure_logging
+
+logger = configure_logging()
+
+PG_DATABASE_URL = config(
     "PG_DATABASE_URL",
-    "postgresql://u4axloluqibskgvdikuy:g2rXgpHSbztokCbFxSyR@bk8htvifqendwt1wlzat-postgresql.services.clever-cloud.com:7327/bk8htvifqendwt1wlzat"
+    ""
 )
 
 
@@ -80,11 +87,69 @@ class OpenAlexArticle(SQLModel, table=True):
     sustainable_development_goals: str = Field(sa_column=Column(String))
     author_ids: str = Field(sa_column=Column(String))
     institution_ids: str = Field(sa_column=Column(String))
-    #ingestion: str = Field(sa_column=Column(String))
+    ingestion: str = Field(sa_column=Column(String))
 
 # Create database engine and tables
-engine = create_engine(PG_DATABASE_URL, pool_pre_ping=True)
-SQLModel.metadata.create_all(engine)
+# Debug: print connection string
+logger.debug(f"[DEBUG] Using DB URL: {PG_DATABASE_URL}")
+db_engine = create_engine(PG_DATABASE_URL, pool_pre_ping=True)
+SQLModel.metadata = sqlalchemy.MetaData()
+SQLModel.metadata.create_all(bind=db_engine)
+# Sanity check: show backend dialect
+logger.debug(f"[DEBUG] SQLAlchemy dialect: {db_engine.dialect.name}")
+
+def add_ingestion_column()->None:
+    """
+    Add 'ingestion' column to the OpenAlexArticle table if it doesn't exist.
+    """
+
+    
+    with Session(db_engine) as session:
+        # Check if column exists
+        query = text("""
+            SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_name='articles' AND column_name='ingestion';
+        """)
+        result = session.execute(query)
+        
+        if not result.scalar():
+            # Add column if it doesn't exist
+            alter_query = text("""
+                ALTER TABLE articles 
+                ADD COLUMN ingestion VARCHAR DEFAULT 'none';
+            """)
+            session.execute(alter_query)
+            session.commit()
+            logger.info("Successfully added 'ingestion' column to articles table with 'none' default value")
+
+        else:
+            logger.info("Column 'ingestion' already exists in articles table")
+
+
+def update_article_ingestion_by_title(title: str, ingestion_version: str) -> None:
+    """
+    Update the 'ingestion' field for an article with the given title.
+    
+    Args:
+        title (str): The title of the article to update
+        ingestion_value (str): The new value for the ingestion field
+    
+    Returns:
+        bool: True if the update was successful, False if the article was not found
+    """
+    with Session(db_engine) as session:
+        # Find the article by title
+        article = session.query(OpenAlexArticle).filter(OpenAlexArticle.title == title).first()
+        
+        if article:
+            # Update the ingestion field
+            article.ingestion = ingestion_version
+            session.add(article)
+            session.commit()
+            logger.info(f"Updated ingestion to '{ingestion_version}' for article: {title}")
+        else:
+            logger.info(f"Article not found with title: {title}")
 
 
 def persist_article_metadata(article: PaperTaxonomy) -> int:
@@ -97,7 +162,7 @@ def persist_article_metadata(article: PaperTaxonomy) -> int:
     Returns:
         int: The ID of the newly created article record
     """
-    with Session(engine) as session:
+    with Session(db_engine) as session:
         # Convert the article to a dictionary
         article_dict = article.model_dump()
 
@@ -112,20 +177,40 @@ def persist_article_metadata(article: PaperTaxonomy) -> int:
         return db_article.id
 
 
-def get_open_alex_articles(ingestion:str = None)    -> list[OpenAlexArticle]:
+
+
+def get_open_alex_articles(ingestion_status:str = None)    -> list[OpenAlexArticle]:
     """Retrieve all OpenAlex articles from the database.
     Returns:
         list[OpenAlexArticle]: A list of OpenAlexArticle objects
     """
 
-    with Session(engine) as session:
+    with Session(db_engine) as session:
         #open_alex_articles = session.query(OpenAlexArticle).filter(OpenAlexArticle.is_oa)
-        if ingestion:
+        if ingestion_status:
             open_alex_articles = session.query(OpenAlexArticle).filter(
-                OpenAlexArticle.ingestion == ingestion).all()
+                OpenAlexArticle.ingestion == ingestion_status).all()
         else:
             open_alex_articles = session.query(OpenAlexArticle).all()
-        print(f"nb fetched open alex articles : {len(open_alex_articles)}")
+        logger.info(f"nb fetched open alex articles : {len(open_alex_articles)}")
+
+    return open_alex_articles
+
+
+def get_open_alex_articles_not_ingested(ingestion_status:str = None)    -> list[OpenAlexArticle]:
+    """Retrieve all OpenAlex articles from the database.
+    Returns:
+        list[OpenAlexArticle]: A list of OpenAlexArticle objects
+    """
+
+    with Session(db_engine) as session:
+        #open_alex_articles = session.query(OpenAlexArticle).filter(OpenAlexArticle.is_oa)
+        if ingestion_status:
+            open_alex_articles = session.query(OpenAlexArticle).filter(
+                OpenAlexArticle.ingestion != ingestion_status).all()
+        else:
+            open_alex_articles = session.query(OpenAlexArticle).all()
+        logger.info(f"nb fetched open alex articles : {len(open_alex_articles)}")
 
     return open_alex_articles
 
@@ -139,7 +224,7 @@ def get_title_doi_open_alex_articles(ingestion:str = None) -> list[OpenAlexArtic
         list[OpenAlexArticle]: A list of OpenAlexArticle objects
     """
 
-    with Session(engine) as session:
+    with Session(db_engine) as session:
         #open_alex_articles = session.query(OpenAlexArticle).filter(OpenAlexArticle.is_oa)
         if ingestion:
             open_alex_articles = session.query(OpenAlexArticle.title,
@@ -149,7 +234,7 @@ def get_title_doi_open_alex_articles(ingestion:str = None) -> list[OpenAlexArtic
             # If no ingestion filter is provided, fetch all articles
             open_alex_articles = session.query(OpenAlexArticle.title,
                                            OpenAlexArticle.doi).all()
-        print(f"nb fetched open alex articles : {len(open_alex_articles)}")
+        logger.info(f"nb fetched open alex articles : {len(open_alex_articles)}")
 
     return open_alex_articles
 
@@ -164,8 +249,8 @@ def get_open_alex_article_from_id(openalex_id):
         OpenAlexArticle: The article from the database if found, None otherwise
     """
     # Extract the filename without extension to get the OpenAlex ID
-    print(f"OpenAlex id: {openalex_id}")    
-    with Session(engine) as session:
+    logger.info(f"OpenAlex id: {openalex_id}")    
+    with Session(db_engine) as session:
         # Query the database for the article with the matching OpenAlex ID
         article = session.query(OpenAlexArticle).filter(OpenAlexArticle.openalex_id == openalex_id).first()
         
@@ -183,8 +268,8 @@ def get_open_alex_article_from_pdf_filename(pdf_filename):
     """
     # Extract the filename without extension to get the OpenAlex ID
     openalex_id = os.path.splitext(os.path.basename(pdf_filename))[0]
-    print(f"OpenAlex id: {openalex_id}")    
-    with Session(engine) as session:
+    logger.info(f"OpenAlex id: {openalex_id}")    
+    with Session(db_engine) as session:
         # Query the database for the article with the matching OpenAlex ID
         article = session.query(OpenAlexArticle).filter(OpenAlexArticle.openalex_id == openalex_id).first()
         
