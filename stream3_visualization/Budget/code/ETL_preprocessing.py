@@ -489,5 +489,117 @@ def main():
     print("\nFirst 50 rows of the combined dataframe:")
     print(final_df.head(50).to_string())
 
+    create_planetary_boundary_file(iso_mapping, ipcc_regions, eu_g20_mapping)
+
+def create_planetary_boundary_file(iso_mapping, ipcc_regions, eu_g20_mapping):
+    """
+    This function calculates and saves a dataframe detailing when each country
+    and aggregate region surpasses its share of the planetary CO2 budget.
+    """
+    print("\nCreating planetary boundary file...")
+
+    # --- 1. Load and Prepare Data ---
+    emissions_full = pd.read_excel(f"{DATA_DIR}/2025-04-22_CO2 Emissions_All Countries_ISO Code_1750-2023.xlsx",
+                                   sheet_name="GCB2024v17_MtCO2_flat")
+    emissions_full.columns = emissions_full.columns.str.strip()
+    emissions_full = emissions_full[['Country', 'ISO 3166-1 alpha-3', 'Year', 'Total', 'Per Capita']]
+    emissions_full.rename(columns={
+        'ISO 3166-1 alpha-3': 'ISO3',
+        'Total': 'Annual_CO2_emissions_Mt',
+        'Per Capita': 'Per_capita_emissions'
+    }, inplace=True)
+    
+    emissions_full['inferred_population'] = (emissions_full['Annual_CO2_emissions_Mt'] * 1000000) / emissions_full['Per_capita_emissions']
+    population_full = load_population_data()
+    
+    pb_df = emissions_full[['ISO3', 'Country', 'Year', 'Annual_CO2_emissions_Mt', 'inferred_population']].copy()
+    pb_df.rename(columns={'inferred_population': 'Population'}, inplace=True)
+
+    # --- Use consistent mapping logic ---
+    valid_iso3_codes = set(ipcc_regions['ISO3'].unique())
+    pb_df = pb_df[pb_df['ISO3'].isin(valid_iso3_codes)].copy()
+
+    iso2_mapping = iso_mapping.set_index('ISO3')['ISO2'].to_dict()
+    country_mapping = iso_mapping.set_index('ISO3')['Country'].to_dict()
+    iso2_mapping['NAM'] = 'NA'
+
+    pb_df['ISO2'] = pb_df['ISO3'].map(iso2_mapping)
+    pb_df['Country'] = pb_df['ISO3'].map(country_mapping).fillna(pb_df['Country'])
+    pb_df = pb_df.merge(population_full[['ISO3', 'Year', 'Population']], on=['ISO3', 'Year'], how='left', suffixes=('', '_official'))
+    pb_df['Population'] = pb_df['Population_official'].fillna(pb_df['Population'])
+    pb_df.drop(columns=['Population_official'], inplace=True)
+
+    region_mapping = ipcc_regions.set_index('ISO3')['IPCC_Region_Intermediate'].to_dict()
+    pb_df['Region'] = pb_df['ISO3'].map(region_mapping)
+    eu_mapping = eu_g20_mapping.set_index('ISO3')['EU_country'].to_dict()
+    g20_mapping = eu_g20_mapping.set_index('ISO3')['G20_country'].to_dict()
+    pb_df['EU_country'] = pb_df['ISO3'].map(eu_mapping).fillna('No')
+    pb_df['G20_country'] = pb_df['ISO3'].map(g20_mapping).fillna('No')
+    pb_df.dropna(subset=['ISO2'], inplace=True)
+
+    # --- 2. Create Aggregates ---
+    world_agg = pb_df.groupby('Year').agg({'Annual_CO2_emissions_Mt': 'sum', 'Population': 'sum'}).reset_index()
+    world_agg['ISO2'], world_agg['Country'], world_agg['Region'] = 'WLD', 'All', 'World'
+
+    region_aggs = pb_df.groupby(['Year', 'Region']).agg({'Annual_CO2_emissions_Mt': 'sum', 'Population': 'sum'}).reset_index()
+    region_aggs['Country'] = 'All'
+    region_aggs['ISO2'] = region_aggs['Region']
+
+    eu_agg = pb_df[pb_df['EU_country'] == 'Yes'].groupby('Year').agg({'Annual_CO2_emissions_Mt': 'sum', 'Population': 'sum'}).reset_index()
+    eu_agg['ISO2'], eu_agg['Country'], eu_agg['Region'] = 'EU', 'All', 'European Union'
+    
+    g20_agg = pb_df[pb_df['G20_country'] == 'Yes'].groupby('Year').agg({'Annual_CO2_emissions_Mt': 'sum', 'Population': 'sum'}).reset_index()
+    g20_agg['ISO2'], g20_agg['Country'], g20_agg['Region'] = 'G20', 'All', 'G20 Countries'
+    
+    pb_final_df = pd.concat([pb_df, world_agg, region_aggs, eu_agg, g20_agg], ignore_index=True)
+    pb_final_df.drop_duplicates(subset=['ISO2', 'Year'], keep='first', inplace=True)
+
+    # --- 3. Calculate Cumulative Values and Budget ---
+    pb_final_df.sort_values(['ISO2', 'Year'], inplace=True)
+    pb_final_df['cumulative_emissions'] = pb_final_df.groupby('ISO2')['Annual_CO2_emissions_Mt'].cumsum()
+    pb_final_df['cumulative_population'] = pb_final_df.groupby('ISO2')['Population'].cumsum()
+
+    GLOBAL_BUDGET = 830000
+    latest_year = pb_final_df[pb_final_df['Annual_CO2_emissions_Mt'].notna()]['Year'].max()
+    
+    latest_data = pb_final_df[pb_final_df['Year'] == latest_year].copy()
+    world_total_cum_pop = latest_data.loc[latest_data['ISO2'] == 'WLD', 'cumulative_population'].iloc[0]
+    world_total_cum_emissions = latest_data.loc[latest_data['ISO2'] == 'WLD', 'cumulative_emissions'].iloc[0]
+
+    latest_data['share_of_cumulative_population'] = latest_data['cumulative_population'] / world_total_cum_pop
+    latest_data['share_of_cumulative_emissions'] = latest_data['cumulative_emissions'] / world_total_cum_emissions
+    latest_data['Country_CO2_budget_Mt'] = GLOBAL_BUDGET * latest_data['share_of_cumulative_population']
+
+    # --- 4. Find Overshoot Year and Emissions ---
+    budget_map = latest_data.set_index('ISO2')['Country_CO2_budget_Mt']
+    pb_final_df['Country_CO2_budget_Mt'] = pb_final_df['ISO2'].map(budget_map)
+    overshoot_df = pb_final_df[pb_final_df['cumulative_emissions'] > pb_final_df['Country_CO2_budget_Mt']]
+    overshoot_years = overshoot_df.groupby('ISO2')['Year'].min().reset_index().rename(columns={'Year': 'Overshoot_year'})
+    
+    overshoot_emissions = pd.merge(
+        overshoot_years, pb_final_df,
+        left_on=['ISO2', 'Overshoot_year'], right_on=['ISO2', 'Year'], how='left'
+    )[['ISO2', 'cumulative_emissions']].rename(columns={'cumulative_emissions': 'overshoot_year_cumulative_emissions'})
+
+    # --- 5. Assemble and Save Final File ---
+    output_df = latest_data.merge(overshoot_years, on='ISO2', how='left')
+    output_df = output_df.merge(overshoot_emissions, on='ISO2', how='left')
+    
+    # Convert Overshoot_year to a nullable integer. NaN represents 'Not yet'.
+    output_df['Overshoot_year'] = output_df['Overshoot_year'].astype('Int64')
+    
+    output_df = output_df[[
+        'Country', 'ISO2', 'Region', 'cumulative_emissions', 'share_of_cumulative_emissions',
+        'cumulative_population', 'share_of_cumulative_population', 'Country_CO2_budget_Mt',
+        'Overshoot_year', 'overshoot_year_cumulative_emissions'
+    ]]
+    output_df.rename(columns={
+        'cumulative_emissions': f'Cumulative_emissions_up_to_{latest_year}',
+        'cumulative_population': f'Cumulative_population_up_to_{latest_year}'
+    }, inplace=True)
+
+    output_df.to_csv(f"{OUTPUT_DIR}/planetary_boundary.csv", index=False)
+    print(f"Planetary boundary data saved to {OUTPUT_DIR}/planetary_boundary.csv")
+
 if __name__ == "__main__":
     main()

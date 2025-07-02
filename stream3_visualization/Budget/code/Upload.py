@@ -32,4 +32,10 @@ df = pd.read_csv(os.path.join(output_dir, "forecast_data.csv"))
 df.to_sql("Viz_Carbon_Budget_forecast_data", engine, if_exists="replace", index=False)
 print("Forecast data uploaded successfully")
 
+# Upload planetary boundaries
+print("\nUploading planetary boundaries...")
+df = pd.read_csv(os.path.join(output_dir, "planetary_boundary.csv"))
+df.to_sql("Viz_Carbon_Budget_planetary_boundaries", engine, if_exists="replace", index=False)
+print("Planetary boundaries uploaded successfully")
+
 print("\nAll data uploaded successfully!")
