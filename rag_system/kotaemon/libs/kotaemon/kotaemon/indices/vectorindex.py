@@ -188,7 +188,7 @@ class VectorRetrieval(BaseRetrieval):
             docs = self.doc_store.get(ids)
             result = [
                 RetrievedDocument(**doc.to_dict(), score=score)
-                for doc, score in zip(docs, scores)
+                for doc, score in zip(docs, scores, strict=False)
             ]
         elif self.retrieval_mode == "text":
             query = text.text if isinstance(text, Document) else text
@@ -246,7 +246,7 @@ class VectorRetrieval(BaseRetrieval):
             ]
             result += [
                 RetrievedDocument(**doc.to_dict(), score=score)
-                for doc, score in zip(vs_docs, vs_scores)
+                for doc, score in zip(vs_docs, vs_scores, strict=False)
             ]
             print(f"Got {len(vs_docs)} from vectorstore")
             print(f"Got {len(ds_docs)} from docstore")

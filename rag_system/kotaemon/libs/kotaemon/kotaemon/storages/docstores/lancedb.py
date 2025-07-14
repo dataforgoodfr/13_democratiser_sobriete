@@ -51,7 +51,7 @@ class LanceDBDocumentStore(BaseDocumentStore):
                 "text": doc.text,
                 "attributes": json.dumps(doc.metadata),
             }
-            for doc_id, doc in zip(doc_ids, docs)
+            for doc_id, doc in zip(doc_ids, docs, strict=False)
         ]
 
         if self.collection_name not in self.db_connection.table_names():
@@ -126,17 +126,14 @@ class LanceDBDocumentStore(BaseDocumentStore):
             )
         except (ValueError, FileNotFoundError):
             docs = []
-
-        # return the documents using the order of original ids (which were ordered by score)
-        doc_dict = {
-            doc["id"]: Document(
-                d_=doc["id"],
+        return [
+            Document(
+                id_=doc["id"],
                 text=doc["text"] if doc["text"] else "<empty>",
                 metadata=json.loads(doc["attributes"]),
             )
             for doc in docs
-        }
-        return [doc_dict[_id] for _id in ids if _id in doc_dict]
+        ]
 
     def delete(self, ids: Union[List[str], str], refresh_indices: bool = True):
         """Delete document by id"""

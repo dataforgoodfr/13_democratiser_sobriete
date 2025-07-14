@@ -1,7 +1,5 @@
-import os
 from argparse import ArgumentParser
-from concurrent.futures import ThreadPoolExecutor
-from pathlib import Path, PosixPath
+from pathlib import Path
 
 from fast_ingestion_pipeline import IndexingPipeline
 
@@ -18,7 +16,7 @@ def main():
     indexing_pipeline = IndexingPipeline(pdf_path=folder_path)
     print(f"Parsing document: {file_path}")
     
-    result = indexing_pipeline.run(file_path)
+    indexing_pipeline.run(file_path)
 
 if __name__ == "__main__":
     main()

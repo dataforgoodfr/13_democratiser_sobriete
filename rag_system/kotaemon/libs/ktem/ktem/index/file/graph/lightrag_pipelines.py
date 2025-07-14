@@ -171,7 +171,7 @@ async def lightrag_build_local_query_context(
     )
     node_datas = [
         {**n, "entity_name": k["entity_name"], "rank": d}
-        for k, n, d in zip(results, node_datas, node_degrees)
+        for k, n, d in zip(results, node_datas, node_degrees, strict=False)
         if n is not None
     ]
 

@@ -10,7 +10,6 @@ from wsl_library.domain.paper_taxonomy import OpenAlexPaper
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 
 from wsl_library.scraping.parse_metadata import (
@@ -76,8 +75,8 @@ def start_webdriver() -> webdriver.Chrome:
         driver = webdriver.Chrome()
         service = Service(ChromeDriverManager().install())
 
-    except Exception as e:
-        print(f"Default Chrome setup failed.\nSetting manually")    
+    except Exception:
+        print("Default Chrome setup failed.\nSetting manually")    
         # setup chrome bin path
         CHROME_PATH = "/raid/home/guevel/.local/bin/google-chrome" # put your path
         chrome_options.binary_location = CHROME_PATH
@@ -144,7 +143,7 @@ def scrape_list_urls(urls_to_fetch:list,
                      maxwait:int, 
                      stop_criterion:int) -> tuple[int, int, dict]:
     
-    for i, (url, filename) in enumerate(zip(urls_to_fetch, filenames)) :
+    for _, (url, filename) in enumerate(zip(urls_to_fetch, filenames, strict=False)) :
         # catch empty urls, move on to the next one if empty
         if not url :
             failed_downloads += 1

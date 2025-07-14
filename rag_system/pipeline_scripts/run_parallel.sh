@@ -8,6 +8,9 @@
 
 # activate .bashrc
 
+# activate venv
+source /home/ec2-user/13_democratiser_sobriete/.venv/bin/activate
+
 # Name of the Python program to be executed. Change it as needed.
 PYTHON_SCRIPT="/home/ec2-user/13_democratiser_sobriete/rag_system/pipeline_scripts/historized_ingestion_pipeline.py"
 

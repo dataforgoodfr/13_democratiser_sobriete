@@ -319,8 +319,6 @@ class FileIndexPage(BasePage):
                         # TODO - New metadatas system
                         self.metadatas_values = []
                         self.metadatas_keys = []
-                        #TODO - New metadatas system
-                        """
 
                     self.upload_button = gr.Button(
                         "Upload and Index", variant="primary"
@@ -1098,7 +1096,7 @@ class FileIndexPage(BasePage):
     def index_fn(
         self, files, urls, reindex: bool, settings, user_id, *metadatas
     ) -> Generator[tuple[str, str], None, None]:
-        """Upload and index the files
+        """ Upload and index the files
 
         Args:
             files: the list of files to be uploaded

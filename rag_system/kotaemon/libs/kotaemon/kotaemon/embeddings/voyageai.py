@@ -25,7 +25,7 @@ def _format_output(texts: list[str], embeddings: list[list]):
     """
     return [
         DocumentWithEmbedding(content=text, embedding=embedding)
-        for text, embedding in zip(texts, embeddings)
+        for text, embedding in zip(texts, embeddings, strict=False)
     ]
 
 

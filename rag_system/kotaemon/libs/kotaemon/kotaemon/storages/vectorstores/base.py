@@ -125,10 +125,10 @@ class LlamaIndexVectorStore(BaseVectorStore):
         else:
             nodes = embeddings  # type: ignore
         if metadatas is not None:
-            for node, metadata in zip(nodes, metadatas):
+            for node, metadata in zip(nodes, metadatas, strict=False):
                 node.metadata = metadata
         if ids is not None:
-            for node, id in zip(nodes, ids):
+            for node, id in zip(nodes, ids, strict=False):
                 node.id_ = id
                 node.relationships = {
                     NodeRelationship.SOURCE: RelatedNodeInfo(node_id=id)

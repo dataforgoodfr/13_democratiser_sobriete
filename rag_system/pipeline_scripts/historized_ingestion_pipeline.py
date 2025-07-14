@@ -1,4 +1,5 @@
 import os
+import json
 from argparse import ArgumentParser
 import time
 from pathlib import Path
@@ -21,8 +22,10 @@ from taxonomy.paper_taxonomy import PaperTaxonomy
 
 
 PDF_FOLDER = os.getenv("PDF_FOLDER", "./pipeline_scripts/pdf_test/")
-config = {"api_key":"1"}
-api_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3MiOiJtIn0.iffVHUO_-wh8xhUS9C3ydHN5zPdIUjd8tBz715mnvBQ"
+with open("secret.json") as f:
+    config = json.load(f)
+
+api_key = os.getenv("p", config["api_key"])
 
 # ---- Do not touch (temporary) ------------- #
 
@@ -98,6 +101,7 @@ class HistorizedIndexingPipeline(VectorIndexing):
             llm_metadatas = self.metadatas_llm_inference_block.run(
                 text_md, doc_type="entire_doc", inference_type="scientific", openalex_metadata=article_metadata
             )
+
             # Reconcile OpenAlex metadata with LLM output
             metadatas = reconcile_metadata(article_metadata, llm_metadatas)
         except ValidationError as e:

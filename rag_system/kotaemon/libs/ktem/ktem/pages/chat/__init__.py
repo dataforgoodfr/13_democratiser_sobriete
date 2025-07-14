@@ -923,7 +923,7 @@ class ChatPage(BasePage):
                     file_ids.append(file_id)
 
         # add new file ids to the first selector choices
-        first_selector_choices.extend(zip(urls, file_ids))
+        first_selector_choices.extend(zip(urls, file_ids, strict=False))
 
         # if file_ids is not empty and chat_input_text is empty
         # set the input to summary

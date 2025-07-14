@@ -26,7 +26,7 @@ class LCEmbeddingMixin:
 
         return [
             DocumentWithEmbedding(content=doc, embedding=each_embedding)
-            for doc, each_embedding in zip(input_docs, embeddings)
+            for doc, each_embedding in zip(input_docs, embeddings, strict=False)
         ]
 
     def __repr__(self):

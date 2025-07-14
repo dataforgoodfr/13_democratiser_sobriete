@@ -62,7 +62,7 @@ class FastEmbedEmbeddings(BaseEmbeddings):
                 content=doc,
                 embedding=list(embedding),
             )
-            for doc, embedding in zip(input_, embeddings)
+            for doc, embedding in zip(input_, embeddings, strict=False)
         ]
 
     async def ainvoke(

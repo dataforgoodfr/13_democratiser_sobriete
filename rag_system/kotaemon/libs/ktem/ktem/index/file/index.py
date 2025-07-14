@@ -206,7 +206,7 @@ class FileIndex(BaseIndex):
 
         if hasattr(flowsettings, "FILE_INDEX_PIPELINE"):
             self._indexing_pipeline_cls = import_dotted_string(
-                getattr(flowsettings, "FILE_INDEX_PIPELINE"), safe=False
+                flowsettings.FILE_INDEX_PIPELINE, safe=False
             )
             return
 
@@ -245,7 +245,7 @@ class FileIndex(BaseIndex):
         if hasattr(flowsettings, "FILE_INDEX_RETRIEVER_PIPELINES"):
             self._retriever_pipeline_cls = [
                 import_dotted_string(each, safe=False)
-                for each in getattr(flowsettings, "FILE_INDEX_RETRIEVER_PIPELINES")
+                for each in flowsettings.FILE_INDEX_RETRIEVER_PIPELINES
             ]
             return
 
@@ -280,7 +280,7 @@ class FileIndex(BaseIndex):
 
         if hasattr(flowsettings, "FILE_INDEX_SELECTOR_UI"):
             self._selector_ui_cls = import_dotted_string(
-                getattr(flowsettings, "FILE_INDEX_SELECTOR_UI"), safe=False
+                flowsettings.FILE_INDEX_SELECTOR_UI, safe=False
             )
             return
 
@@ -315,7 +315,7 @@ class FileIndex(BaseIndex):
 
         if hasattr(flowsettings, "FILE_INDEX_UI"):
             self._index_ui_cls = import_dotted_string(
-                getattr(flowsettings, "FILE_INDEX_UI"), safe=False
+                flowsettings.FILE_INDEX_UI, safe=False
             )
             return
 

@@ -21,7 +21,7 @@ def check_col_conflicts(
     num_rows = len([cell for cell in col_a if cell])
     assert len(col_a) == len(col_b)
     conflict_count = 0
-    for cell_a, cell_b in zip(col_a, col_b):
+    for cell_a, cell_b in zip(col_a, col_b, strict=False):
         if cell_a and cell_b:
             conflict_count += 1
     return conflict_count > num_rows * thres
