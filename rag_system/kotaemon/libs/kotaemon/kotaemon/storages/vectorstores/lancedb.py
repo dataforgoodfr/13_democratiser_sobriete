@@ -1,3 +1,4 @@
+import os
 from typing import Any, List, Type, cast
 
 from llama_index.core.vector_stores.types import MetadataFilters
@@ -5,6 +6,11 @@ from llama_index.vector_stores.lancedb import LanceDBVectorStore as LILanceDBVec
 from llama_index.vector_stores.lancedb import base as base_lancedb
 
 from .base import LlamaIndexVectorStore
+
+CELLAR_ADDON_KEY_ID = os.getenv("CELLAR_ADDON_KEY_ID", "")
+CELLAR_ADDON_KEY_SECRET = os.getenv("CELLAR_ADDON_KEY_SECRET", "")
+CELLAR_ADDON_HOST = os.getenv("CELLAR_ADDON_HOST", "http://cellar-c2.services.clever-cloud.com")
+
 
 # custom monkey patch for LanceDB
 original_to_lance_filter = base_lancedb._to_lance_filter
@@ -46,7 +52,15 @@ class LanceDBVectorStore(LlamaIndexVectorStore):
                 "Please install lancedb: 'pip install lancedb tanvity-py'"
             )
 
-        db_connection = lancedb.connect(path)  # type: ignore
+        # db_connection = lancedb.connect(path)  # type: ignore
+        db_connection = lancedb.connect(
+            "s3://wsl-docstore-prod",
+            storage_options={
+                "region": "us-east-1",
+                "endpoint": f"http://{CELLAR_ADDON_HOST}",
+            }
+        )
+
         try:
             table = db_connection.open_table(collection_name)
         except FileNotFoundError:

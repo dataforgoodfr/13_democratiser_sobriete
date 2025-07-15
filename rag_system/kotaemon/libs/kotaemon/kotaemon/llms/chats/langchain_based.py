@@ -188,6 +188,30 @@ class LCChatMixin:
         raise ValueError(f"Invalid param {path}")
 
 
+class LCChatMistral(LCChatMixin, ChatLLM):  # type: ignore
+    def __init__(
+        self,
+        mistral_api_key: str | None = None,
+        model: str | None = None,
+        temperature: float = 0.7,
+        **params,
+    ):
+        super().__init__(
+            mistral_api_key=mistral_api_key,
+            model=model,
+            temperature=temperature,
+            **params,
+        )
+
+    def _get_lc_class(self):
+        try:
+            from langchain_mistralai import ChatMistralAI
+        except ImportError:
+            from langchain.mistralai import ChatMistralAI
+
+        return ChatMistralAI
+
+
 class LCChatOpenAI(LCChatMixin, ChatLLM):  # type: ignore
     def __init__(
         self,

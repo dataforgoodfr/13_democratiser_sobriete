@@ -20,5 +20,5 @@ def get_pymupdf4llm(
         image_path=os.path.join("images_pdf", file_name),
         show_progress=False,
     )
-    
+
     return content_md

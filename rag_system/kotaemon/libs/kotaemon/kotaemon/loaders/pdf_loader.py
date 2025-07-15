@@ -108,7 +108,7 @@ class PDFThumbnailReader(PDFReader):
                     },
                 )
                 for (page_thumbnail, page_number) in zip(
-                    page_thumbnails, page_numbers_str
+                    page_thumbnails, page_numbers_str, strict=False
                 )
                 if is_int_page_number[page_number]
             ]

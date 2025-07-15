@@ -287,7 +287,7 @@ class RewooAgentPipeline(BaseReasoning):
             spans.append(context[split_indices[-1] :])
 
             prev = 0
-            for span, start_idx in list(zip(spans, split_indices)):
+            for span, start_idx in list(zip(spans, split_indices, strict=False)):
                 if start_idx in start_indices:
                     text += Render.highlight(span)
                 else:

@@ -38,7 +38,7 @@ class LLMScoring(LLMReranking):
                 )
                 results.append(self.llm(_prompt))
 
-        for result, doc in zip(results, documents):
+        for result, doc in zip(results, documents, strict=False):
             score = np.exp(np.average(result.logprobs))
             include_doc = output_parser.parse(result.text)
             if include_doc:

@@ -25,7 +25,7 @@ if not KH_APP_VERSION:
     except Exception:
         KH_APP_VERSION = "local"
 
-KH_GRADIO_SHARE = config("KH_GRADIO_SHARE", default=False, cast=bool)
+KH_GRADIO_SHARE = config("KH_GRADIO_SHARE", default=True, cast=bool)
 KH_ENABLE_FIRST_SETUP = config("KH_ENABLE_FIRST_SETUP", default=True, cast=bool)
 KH_DEMO_MODE = config("KH_DEMO_MODE", default=False, cast=bool)
 KH_OLLAMA_URL = config("KH_OLLAMA_URL", default="http://localhost:11434/v1/")
@@ -72,7 +72,7 @@ KH_FEATURE_CHAT_SUGGESTION = config(
     "KH_FEATURE_CHAT_SUGGESTION", default=False, cast=bool
 )
 KH_FEATURE_USER_MANAGEMENT = config(
-    "KH_FEATURE_USER_MANAGEMENT", default=True, cast=bool
+    "KH_FEATURE_USER_MANAGEMENT", default=False, cast=bool
 )
 KH_USER_CAN_SEE_PUBLIC = None
 KH_FEATURE_USER_MANAGEMENT_ADMIN = str(
@@ -82,8 +82,13 @@ KH_FEATURE_USER_MANAGEMENT_PASSWORD = str(
     config("KH_FEATURE_USER_MANAGEMENT_PASSWORD", default="admin")
 )
 KH_ENABLE_ALEMBIC = False
-KH_DATABASE = f"sqlite:///{KH_USER_DATA_DIR / 'sql.db'}"
+KH_DATABASE = os.getenv("POSTGRESQL_ADDON_URI", None)  # f"sqlite:///{KH_USER_DATA_DIR / 'sql.db'}"
+# KH_DATABASE = "postgresql://postgres:my_pass@postgres-db:5432/my_db"
 KH_FILESTORAGE_PATH = str(KH_USER_DATA_DIR / "files")
+
+KH_USE_CLOUD_FILESTORAGE = False
+# KH_CLOUD_FILESTORAGE_URI = "s3://test-ecoskills/files/"
+
 KH_WEB_SEARCH_BACKEND = (
     "kotaemon.indices.retrievers.tavily_web_search.WebSearch"
     # "kotaemon.indices.retrievers.jina_web_search.WebSearch"
@@ -93,14 +98,13 @@ KH_DOCSTORE = {
     # "__type__": "kotaemon.storages.ElasticsearchDocumentStore",
     # "__type__": "kotaemon.storages.SimpleFileDocumentStore",
     "__type__": "kotaemon.storages.LanceDBDocumentStore",
-    "path": str(KH_USER_DATA_DIR / "docstore"),
+    "path": "docstore.lance",
+    # "path": "s3://test-ecoskills/docstore/"
 }
 KH_VECTORSTORE = {
-    # "__type__": "kotaemon.storages.LanceDBVectorStore",
-    "__type__": "kotaemon.storages.ChromaVectorStore",
-    # "__type__": "kotaemon.storages.MilvusVectorStore",
-    # "__type__": "kotaemon.storages.QdrantVectorStore",
-    "path": str(KH_USER_DATA_DIR / "vectorstore"),
+    "__type__": "kotaemon.storages.QdrantVectorStore",
+    "url": os.getenv("VECTOSTORE_URL", ""),
+    "api_key": os.getenv("API_KEY", "")
 }
 KH_LLMS = {}
 KH_EMBEDDINGS = {}
@@ -108,7 +112,7 @@ KH_RERANKINGS = {}
 
 # populate options from config
 if config("AZURE_OPENAI_API_KEY", default="") and config(
-    "AZURE_OPENAI_ENDPOINT", default=""
+        "AZURE_OPENAI_ENDPOINT", default=""
 ):
     if config("AZURE_OPENAI_CHAT_DEPLOYMENT", default=""):
         KH_LLMS["azure"] = {
@@ -118,7 +122,7 @@ if config("AZURE_OPENAI_API_KEY", default="") and config(
                 "azure_endpoint": config("AZURE_OPENAI_ENDPOINT", default=""),
                 "api_key": config("AZURE_OPENAI_API_KEY", default=""),
                 "api_version": config("OPENAI_API_VERSION", default="")
-                or "2024-02-15-preview",
+                               or "2024-02-15-preview",
                 "azure_deployment": config("AZURE_OPENAI_CHAT_DEPLOYMENT", default=""),
                 "timeout": 20,
             },
@@ -131,7 +135,7 @@ if config("AZURE_OPENAI_API_KEY", default="") and config(
                 "azure_endpoint": config("AZURE_OPENAI_ENDPOINT", default=""),
                 "api_key": config("AZURE_OPENAI_API_KEY", default=""),
                 "api_version": config("OPENAI_API_VERSION", default="")
-                or "2024-02-15-preview",
+                               or "2024-02-15-preview",
                 "azure_deployment": config(
                     "AZURE_OPENAI_EMBEDDINGS_DEPLOYMENT", default=""
                 ),
@@ -151,7 +155,7 @@ if OPENAI_API_KEY:
             "__type__": "kotaemon.llms.ChatOpenAI",
             "temperature": 0,
             "base_url": config("OPENAI_API_BASE", default="")
-            or "https://api.openai.com/v1",
+                        or "https://api.openai.com/v1",
             "api_key": OPENAI_API_KEY,
             "model": config("OPENAI_CHAT_MODEL", default="gpt-4o-mini"),
             "timeout": 20,
@@ -170,6 +174,25 @@ if OPENAI_API_KEY:
             "context_length": 8191,
         },
         "default": IS_OPENAI_DEFAULT,
+    }
+
+VOYAGE_API_KEY = config("VOYAGE_API_KEY", default="")
+if VOYAGE_API_KEY:
+    KH_EMBEDDINGS["voyageai"] = {
+        "spec": {
+            "__type__": "kotaemon.embeddings.VoyageAIEmbeddings",
+            "api_key": VOYAGE_API_KEY,
+            "model": config("VOYAGE_EMBEDDINGS_MODEL", default="voyage-3-large"),
+        },
+        "default": False,
+    }
+    KH_RERANKINGS["voyageai"] = {
+        "spec": {
+            "__type__": "kotaemon.rerankings.VoyageAIReranking",
+            "model_name": "rerank-2",
+            "api_key": VOYAGE_API_KEY,
+        },
+        "default": False,
     }
 
 if config("LOCAL_MODEL", default=""):
@@ -243,6 +266,15 @@ KH_LLMS["cohere"] = {
     },
     "default": False,
 }
+KH_LLMS["mistral"] = {
+    "spec": {
+        "__type__": "kotaemon.llms.ChatOpenAI",
+        "base_url": "https://api.mistral.ai/v1",
+        "model": "ministral-8b-latest",
+        "api_key": config("MISTRAL_API_KEY", default="your-key"),
+    },
+    "default": False,
+}
 
 # additional embeddings configurations
 KH_EMBEDDINGS["cohere"] = {
@@ -261,6 +293,14 @@ KH_EMBEDDINGS["google"] = {
         "google_api_key": GOOGLE_API_KEY,
     },
     "default": not IS_OPENAI_DEFAULT,
+}
+KH_EMBEDDINGS["mistral"] = {
+    "spec": {
+        "__type__": "kotaemon.embeddings.LCMistralEmbeddings",
+        "model": "mistral-embed",
+        "api_key": config("MISTRAL_API_KEY", default="your-key"),
+    },
+    "default": False,
 }
 # KH_EMBEDDINGS["huggingface"] = {
 #     "spec": {
@@ -293,9 +333,7 @@ KH_VLM_ENDPOINT = "{0}/openai/deployments/{1}/chat/completions?api-version={2}".
     config("OPENAI_API_VERSION", default=""),
 )
 
-
 SETTINGS_APP: dict[str, dict] = {}
-
 
 SETTINGS_REASONING = {
     "use": {
@@ -339,7 +377,7 @@ KH_INDEX_TYPES = [
 GRAPHRAG_INDICES = [
     {
         "name": graph_type.split(".")[-1].replace("Index", "")
-        + " Collection",  # get last name
+                + " Collection",  # get last name
         "config": {
             "supported_file_types": (
                 ".png, .jpeg, .jpg, .tiff, .tif, .pdf, .xls, .xlsx, .doc, .docx, "

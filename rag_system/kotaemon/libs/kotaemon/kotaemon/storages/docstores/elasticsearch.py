@@ -81,7 +81,7 @@ class ElasticsearchDocumentStore(BaseDocumentStore):
         doc_ids = ids if ids else [doc.doc_id for doc in docs]
 
         requests = []
-        for doc_id, doc in zip(doc_ids, docs):
+        for doc_id, doc in zip(doc_ids, docs, strict=False):
             text = doc.text
             metadata = doc.metadata
             request = {

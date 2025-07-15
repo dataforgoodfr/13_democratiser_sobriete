@@ -180,7 +180,7 @@ def build_chat_ui(config, pipeline_def):
         """
         gr.Info("Starting new session...")
         param_dicts = {
-            name: value for name, value in zip(config["params"].keys(), args)
+            name: value for name, value in zip(config["params"].keys(), args, strict=False)
         }
         for key in param_dicts.keys():
             if config["params"][key].get("component").lower() == "file":

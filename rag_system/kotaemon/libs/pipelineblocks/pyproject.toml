@@ -9,6 +9,7 @@ dependencies = [
     "pydantic>=2.10.6",
     "pymupdf4llm>=0.0.17",
     "selenium>=4.29.0",
+    "langchain-mistralai==0.1.8"
 ]
 
 

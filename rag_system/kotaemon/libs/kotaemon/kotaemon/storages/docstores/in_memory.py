@@ -36,7 +36,7 @@ class InMemoryDocumentStore(BaseDocumentStore):
             docs = [docs]
         doc_ids = ids if ids else [doc.doc_id for doc in docs]
 
-        for doc_id, doc in zip(doc_ids, docs):
+        for doc_id, doc in zip(doc_ids, docs, strict=False):
             if doc_id in self._store and not exist_ok:
                 raise ValueError(f"Document with id {doc_id} already exist")
             self._store[doc_id] = doc
