@@ -49,7 +49,7 @@ jobs:
         run: |
           cd rag_system 
           docker buildx build \
-          --platform=linux/amd64 \
+          --platform=linux/arm64 \
           --push \
           -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest \
           -f Dockerfile ./ --target prod-runtime

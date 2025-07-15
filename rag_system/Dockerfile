@@ -31,6 +31,7 @@ RUN bash scripts/download_pdfjs.sh $PDFJS_PREBUILT_DIR
 COPY kotaemon/libs /app/libs
 COPY kotaemon/launch.sh /app/launch.sh
 COPY kotaemon/.env.example /app/.env
+COPY kotaemon/app.py /app/app.py
 COPY flowsettings.py /app/flowsettings.py
 COPY pipeline_scripts /app/pipeline_scripts
 COPY taxonomy /app/taxonomy
@@ -62,8 +63,7 @@ RUN --mount=type=ssh \
     pip install "libs/kotaemon[adv]" && \
     pip install "libs/ktem" && \
     pip install "libs/pipelineblocks" && \
-    pip install boto3 && \
-    pip install "pdfservices-sdk@git+https://github.com/niallcm/pdfservices-python-sdk.git@bump-and-unfreeze-requirements"
+    pip install boto3
 
 
 
