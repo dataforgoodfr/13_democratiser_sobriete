@@ -185,6 +185,8 @@ class IndexManager:
         self.load_index_types()
 
         for index in settings.KH_INDICES:
+            print(f"Index: {index}")
+            print(f"exists: {self.exists(name=index['name'])}")
             if not self.exists(name=index["name"]):
                 self.build_index(**index)
 

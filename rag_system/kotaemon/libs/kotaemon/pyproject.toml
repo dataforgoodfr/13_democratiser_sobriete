@@ -86,7 +86,7 @@ adv = [
     "llama-index>=0.10.40,<0.11.0",
     "llama-index-vector-stores-milvus",
     "llama-index-vector-stores-qdrant",
-    "sentence-transformers",
+    # "sentence-transformers",
     "tabulate",
     "unstructured>=0.15.8,<0.16",
     "wikipedia>=1.4.0,<1.5",

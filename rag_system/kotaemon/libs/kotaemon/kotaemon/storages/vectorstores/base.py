@@ -4,7 +4,8 @@ from abc import ABC, abstractmethod
 from typing import Any, Optional
 
 from llama_index.core.schema import NodeRelationship, RelatedNodeInfo
-from llama_index.core.vector_stores.types import BasePydanticVectorStore
+from llama_index.core.vector_stores.types import BasePydanticVectorStore, MetadataFilter, FilterOperator, \
+    MetadataFilters, ExactMatchFilter
 from llama_index.core.vector_stores.types import VectorStore as LIVectorStore
 from llama_index.core.vector_stores.types import VectorStoreQuery
 
@@ -160,53 +161,6 @@ class LlamaIndexVectorStore(BaseVectorStore):
         Returns:
             the matched embeddings, the similarity scores, and the ids
         """
-        """
-        kwargs['metadatas_filters'] = {
-                                'doc_type':'concrete_experiment'
-                                    }
-
-        if 'metadatas_filters' in kwargs:
-            metadatas_filters = kwargs['metadatas_filters']
-
-            metadatas_filter_objs = [MetadataFilter(
-                    key=meta_key,
-                    value=meta_value,
-                    operator=FilterOperator.EQ,
-                ) for meta_key, meta_value in metadatas_filters.items()]
-
-            if 'filters' in kwargs:
-                filters = kwargs['filters']
-
-                if isinstance(filters, MetadataFilters):
-                    filters.filters.extend(metadatas_filter_objs)
-
-                else:
-                    print(f"Sorry, but this filters {filters} is not a MetadataFilter object...")
-                    filters = MetadataFilters(
-                    filters=metadatas_filter_objs)
-            else:
-                filters = MetadataFilters(
-                filters=metadatas_filter_objs)
-
-            kwargs['filters'] = filters
-        """
-
-        """
-        filters = MetadataFilters(
-                filters=[ExactMatchFilter(key="metadata.doc_type", value="concrete_experiment")]
-        )"""
-
-        """retrieval_kwargs["filters"] = MetadataFilters(
-            filters=[
-                MetadataFilter(
-                    key="file_id",
-                    value=doc_ids,
-                    operator=FilterOperator.IN,
-                )
-            ],
-            condition=FilterCondition.OR,
-        )"""
-
         vsq_kwargs = {}
         vs_kwargs = {}
         for kwkey, kwvalue in kwargs.items():
@@ -220,14 +174,12 @@ class LlamaIndexVectorStore(BaseVectorStore):
                 query_embedding=embedding,
                 similarity_top_k=top_k,
                 node_ids=ids,
-                # filters=filters,
                 **vsq_kwargs,
             ),
             **vs_kwargs,
         )
 
         embeddings = []
-
         if output.nodes:
             for node in output.nodes:
                 embeddings.append(node.embedding)
