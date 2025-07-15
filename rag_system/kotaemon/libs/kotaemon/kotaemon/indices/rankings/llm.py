@@ -55,7 +55,7 @@ class LLMReranking(BaseReranking):
 
         # use Boolean parser to extract relevancy output from LLM
         results = [output_parser.parse(result) for result in results]
-        for include_doc, doc in zip(results, documents):
+        for include_doc, doc in zip(results, documents, strict=False):
             if include_doc:
                 filtered_docs.append(doc)
 

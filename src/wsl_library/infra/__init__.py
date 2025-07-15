@@ -2,7 +2,7 @@ import os
 
 # Get the main directory of the project
 # This is the directory where the project is stored
-PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 # Define the path to the PDF storage folder
 # This is where the PDFs will be stored after being downloaded

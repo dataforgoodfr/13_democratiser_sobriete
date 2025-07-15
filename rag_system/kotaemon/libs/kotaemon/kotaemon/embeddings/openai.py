@@ -135,7 +135,7 @@ class BaseOpenAIEmbeddings(BaseEmbeddings):
         output_ = sorted(resp["data"], key=lambda x: x["index"])
         return [
             DocumentWithEmbedding(embedding=o["embedding"], content=i)
-            for i, o in zip(input_, output_)
+            for i, o in zip(input_, output_, strict=False)
         ]
 
 

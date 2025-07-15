@@ -65,7 +65,7 @@ class TeiEndpointEmbeddings(BaseEmbeddings):
             outputs.extend(
                 [
                     DocumentWithEmbedding(content=doc, embedding=embedding)
-                    for doc, embedding in zip(mini_batch, embeddings)
+                    for doc, embedding in zip(mini_batch, embeddings, strict=False)
                 ]
             )
 
@@ -99,7 +99,7 @@ class TeiEndpointEmbeddings(BaseEmbeddings):
             outputs.extend(
                 [
                     DocumentWithEmbedding(content=doc, embedding=embedding)
-                    for doc, embedding in zip(mini_batch, embeddings)
+                    for doc, embedding in zip(mini_batch, embeddings, strict=False)
                 ]
             )
         return outputs

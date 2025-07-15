@@ -48,6 +48,7 @@ class IndexManager:
         """
 
         with Session(engine) as sess:
+            print(engine.url)
             entry = Index(name=name, config=config, index_type=index_type)
             sess.add(entry)
             sess.commit()

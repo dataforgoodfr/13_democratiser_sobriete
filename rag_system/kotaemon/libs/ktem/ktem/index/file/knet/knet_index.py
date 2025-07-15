@@ -22,10 +22,12 @@ class KnowledgeNetworkFileIndex(FileIndex):
     def _setup_retriever_cls(self):
         self._retriever_pipeline_cls = [KnetRetrievalPipeline]
 
-    def get_indexing_pipeline(self, settings, user_id) -> BaseFileIndexIndexing:
+    def get_indexing_pipeline(
+        self, settings, user_id, metadatas: list | None = None
+    ) -> BaseFileIndexIndexing:
         """Define the interface of the indexing pipeline"""
 
-        obj = super().get_indexing_pipeline(settings, user_id)
+        obj = super().get_indexing_pipeline(settings, user_id, metadatas=metadatas)
         # disable vectorstore for this kind of Index
         # also set the collection_name for API call
         obj.VS = None

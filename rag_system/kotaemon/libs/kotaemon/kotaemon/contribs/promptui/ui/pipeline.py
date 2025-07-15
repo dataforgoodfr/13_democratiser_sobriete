@@ -165,10 +165,10 @@ def build_pipeline_ui(config: dict, pipeline_def):
 
     def run_func(*args):
         inputs = {
-            name: value for name, value in zip(inputs_name, args[: len(inputs_name)])
+            name: value for name, value in zip(inputs_name, args[: len(inputs_name)], strict=False)
         }
         params = {
-            name: value for name, value in zip(params_name, args[len(inputs_name) :])
+            name: value for name, value in zip(params_name, args[len(inputs_name) :], strict=False)
         }
         pipeline = pipeline_def()
         pipeline.set(params)
@@ -193,7 +193,7 @@ def build_pipeline_ui(config: dict, pipeline_def):
             return outputs
 
     def save_func(*args):
-        params = {name: value for name, value in zip(params_name, args)}
+        params = {name: value for name, value in zip(params_name, args, strict=False)}
         filename = save_dir / f"{int(time.time())}.pkl"
         with open(filename, "wb") as f:
             pickle.dump(params, f)

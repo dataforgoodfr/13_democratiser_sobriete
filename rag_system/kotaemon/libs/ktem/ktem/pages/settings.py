@@ -372,7 +372,7 @@ class SettingsPage(BasePage):
             user_id: the user id
             args: all the values from the settings
         """
-        setting = {key: value for key, value in zip(self.component_names(), args)}
+        setting = {key: value for key, value in zip(self.component_names(), args, strict=False)}
         if user_id is None:
             gr.Warning("Need to login before saving settings")
             return setting

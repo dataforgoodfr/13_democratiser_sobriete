@@ -130,7 +130,7 @@ class AdobeReader(BaseReader):
             [item[1] for item in figures],
             self.max_figures_to_caption,
         )
-        for item, caption in zip(figures, figure_captions):
+        for item, caption in zip(figures, figure_captions, strict=False):
             # update figure caption
             item[2] += " " + caption
 
