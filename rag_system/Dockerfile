@@ -46,23 +46,6 @@ RUN . .venv/bin/activate
 RUN chmod +x .venv/bin/activate
 
 
-
-# ===============================
-# Stage: dev (editable installs)
-# ===============================
-FROM base-builder AS dev
-
-RUN --mount=type=ssh \
-    --mount=type=cache,target=/root/.cache/pip \
-    uv pip install -e "libs/kotaemon[adv]" && \
-    uv pip install -e "libs/ktem" && \
-    uv pip install -e "libs/pipelineblocks" && \
-    uv pip install -e "pipeline_scripts" && \
-    uv pip install -e "taxonomy" && \
-    uv pip install boto3 && \
-    uv pip install "pdfservices-sdk@git+https://github.com/niallcm/pdfservices-python-sdk.git"
-
-
 # ===============================
 # Stage: prod (non-editable installs)
 # ===============================
@@ -70,53 +53,55 @@ FROM base-builder AS prod
 
 RUN --mount=type=ssh \
     --mount=type=cache,target=/root/.cache/pip \
-    uv pip install "libs/kotaemon[adv]" && \
+    uv pip install "libs/kotaemon" && \
     uv pip install "libs/ktem" && \
     uv pip install "libs/pipelineblocks" && \
-    uv pip install boto3
+    uv pip install boto3 && \
+    uv pip install psycopg2-binary && \
+    uv pip install "pdfservices-sdk@git+https://github.com/niallcm/pdfservices-python-sdk.git@bump-and-unfreeze-requirements"
 
-
+ENTRYPOINT ["bash", "/app/launch.sh"]
 
 # ===============================
 # Shared minimal runtime base
 # ===============================
-FROM ubuntu:22.04 AS runtime-base
-
-RUN apt-get update -qqy && \
-    apt-get install -y --no-install-recommends \
-        ssh \
-        git \
-        poppler-utils \
-        curl \
-        ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install uv
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh
-
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PYTHONIOENCODING=UTF-8 \
-    PATH="/root/.local/bin:/app/.venv/bin:$PATH"
-
-WORKDIR /app
-
-
-# ===============================
-# Final: dev-runtime
-# ===============================
-FROM runtime-base AS dev-runtime
-
-COPY --from=dev /app /app
-
-ENTRYPOINT ["/bin/sh", "-c", "tail -f /dev/null"]
-
-
-# ===============================
-# Final: prod-runtime
-# ===============================
-FROM runtime-base AS prod-runtime
-
-COPY --from=prod /app /app
-
-ENTRYPOINT ["sh", "/app/launch.sh"]
+# FROM ubuntu:22.04 AS runtime-base
+#
+# RUN apt-get update -qqy && \
+#     apt-get install -y --no-install-recommends \
+#         ssh \
+#         git \
+#         poppler-utils \
+#         curl \
+#         ca-certificates \
+#     && rm -rf /var/lib/apt/lists/*
+#
+# # Install uv
+# RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+#
+# ENV PYTHONDONTWRITEBYTECODE=1 \
+#     PYTHONUNBUFFERED=1 \
+#     PYTHONIOENCODING=UTF-8 \
+#     PATH="/root/.local/bin:/app/.venv/bin:$PATH"
+#
+# WORKDIR /app
+#
+#
+# # ===============================
+# # Final: dev-runtime
+# # ===============================
+# FROM runtime-base AS dev-runtime
+#
+# COPY --from=dev /app /app
+#
+# ENTRYPOINT ["/bin/sh", "-c", "tail -f /dev/null"]
+#
+#
+# # ===============================
+# # Final: prod-runtime
+# # ===============================
+# FROM runtime-base AS prod-runtime
+#
+# COPY --from=prod /app /app
+#
+# ENTRYPOINT ["sh", "/app/launch.sh"]

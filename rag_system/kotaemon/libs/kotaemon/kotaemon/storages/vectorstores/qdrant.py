@@ -3,8 +3,8 @@ from typing import Any, List, Optional, cast
 
 from .base import LlamaIndexVectorStore
 
-VECTORSTORE_URL = os.getenv("VECTOSTORE_URL", "")
-default_api_key = os.getenv("API_KEY", "")
+VECTORSTORE_URL = os.getenv("VECTORSTORE_URL", "")
+default_api_key = os.getenv("VECTOR_STORE_API_KEY", "")
 
 class QdrantVectorStore(LlamaIndexVectorStore):
     _li_class = None
