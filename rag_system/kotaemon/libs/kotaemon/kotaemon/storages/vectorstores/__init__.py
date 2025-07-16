@@ -11,7 +11,7 @@ __all__ = [
     "ChromaVectorStore",
     "InMemoryVectorStore",
     "SimpleFileVectorStore",
-    "LanceDBVectorStore",
+    # "LanceDBVectorStore",
     "MilvusVectorStore",
     "QdrantVectorStore",
 ]
