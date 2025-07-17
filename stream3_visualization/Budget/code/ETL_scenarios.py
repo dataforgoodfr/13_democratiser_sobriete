@@ -8,8 +8,8 @@ data_directory = '/Users/louistronel/Desktop/D4G_WSL/13_democratiser_sobriete-1/
 
 # Define global carbon budgets from the beginning of 2025 (in million tons of CO2)
 # Source: IPCC AR6 SYR, Table 2.1, values converted from GtCO2 to MtCO2
-BUDGET_GLOBAL_2C = {"33%": 1310000, "50%": 1050000, "67%": 870000, "83%": 690000}
-BUDGET_GLOBAL_15C = {"33%": 200000, "50%": 130000, "67%": 80000, "83%": 30000}
+BUDGET_GLOBAL_2C = {"50%": 1050000, "67%": 870000, "83%": 690000}
+BUDGET_GLOBAL_15C = {"50%": 130000, "67%": 80000, "83%": 30000}
 
 def get_global_budget(warming_scenario, probability):
     """Get the global carbon budget based on scenario parameters."""
@@ -131,8 +131,8 @@ def create_base_dataframe(df):
         base_df = base_df.merge(latest_years, on='ISO2', how='left')
         base_df = base_df.merge(latest_data, on='ISO2', how='left')
 
-        # --- Share of Cumulative Population 1990-2050 (Responsibility) ---
-        # Calculate scope-specific cumulative population from 1990 to 2050
+        # --- Share of Cumulative Population 1970-2050 (Responsibility) ---
+        # Calculate scope-specific cumulative population from 1970 to 2050
         # Only include countries that have emissions data available for this scope
         countries_with_data = scope_data['ISO2'].unique()
         cum_pop_2050_df = df[
@@ -149,7 +149,7 @@ def create_base_dataframe(df):
         world_cum_pop_2050 = countries_only_2050[f'Cumulative_population_2050_{scope}'].sum()
         
         base_df = base_df.merge(cum_pop_2050_df, on='ISO2', how='left')
-        base_df[f'Share_of_cumulative_population_1990_to_2050_{scope}'] = base_df[f'Cumulative_population_2050_{scope}'] / world_cum_pop_2050
+        base_df[f'Share_of_cumulative_population_1970_to_2050_{scope}'] = base_df[f'Cumulative_population_2050_{scope}'] / world_cum_pop_2050
         base_df.drop(columns=[f'Cumulative_population_2050_{scope}'], inplace=True)
 
         # --- Share of Cumulative Population (Equality) ---
@@ -190,8 +190,29 @@ def create_base_dataframe(df):
 # Create the base dataframe
 base_df, emission_scopes = create_base_dataframe(combined_df)
 
-# Print verification for the latest years used in the 'Equality' scenario
-print("\nVerifying latest years used for 'Equality' scenario calculations:")
+# Data check: Compare sum of country cumulative emissions to world cumulative emissions for each scope
+for scope in emission_scopes:
+    # Get countries with actual emissions data for this scope
+    scope_data = combined_df[
+        (combined_df['Emissions_scope'] == scope) &
+        (combined_df['Annual_CO2_emissions_Mt'].notna()) &
+        (combined_df['Annual_CO2_emissions_Mt'] != 0) &
+        (combined_df['Year'] < 2050)
+    ]
+    countries_with_data = set(scope_data['ISO2'].unique())
+    # Exclude aggregates (WLD, EU, G20, and any ISO2 where Country == 'All')
+    aggregate_iso2s = set(['WLD', 'EU', 'G20']) | set(base_df[base_df['Country'] == 'All']['ISO2'].unique())
+    country_rows = base_df[(base_df['ISO2'].isin(countries_with_data)) & (~base_df['ISO2'].isin(aggregate_iso2s))]
+    sum_country_cumulative = country_rows[f'Latest_cumulative_CO2_emissions_Mt_{scope}'].sum()
+    world_cumulative = base_df[base_df['ISO2'] == 'WLD'][f'Latest_cumulative_CO2_emissions_Mt_{scope}'].iloc[0]
+    print(f"\n[DATA CHECK] Scope: {scope}")
+    print(f"Countries included in sum: {len(country_rows)}")
+    print(f"Sum of country cumulative emissions: {sum_country_cumulative:,.2f} MtCO2")
+    print(f"World cumulative emissions (WLD): {world_cumulative:,.2f} MtCO2")
+    print(f"Difference (World - Sum Countries): {world_cumulative - sum_country_cumulative:,.2f} MtCO2")
+
+# Print verification for the latest years used in the 'Population' scenario
+print("\nVerifying latest years used for 'Population' scenario calculations:")
 print(base_df[['ISO2', 'Country', 'Latest_year_Territory', 'Latest_year_Consumption']].head())
 
 # Print to verify
@@ -204,11 +225,11 @@ current_year = datetime.now().year
 for _, row in base_df.iterrows():
     for emissions_scope in emission_scopes:
         for warming_scenario in ['1.5°C', '2°C']:
-            for probability in ['33%', '50%', '67%', '83%']:
-                for distribution in ['Equality', 'Responsibility', 'Current_target', 'Capacity']:
+            for probability in ['50%', '67%', '83%']:
+                for distribution in ['Population', 'Responsibility', 'Current_target', 'Capacity']:
                     # Calculate country carbon budget based on distribution scenario
                     global_budget = get_global_budget(warming_scenario, probability)
-                    if distribution == 'Equality':
+                    if distribution == 'Population':
                         country_budget = global_budget * row[f'Share_of_cumulative_population_Latest_to_2050_{emissions_scope}']
                     elif distribution == 'Responsibility':
                         # Get world's latest cumulative emissions
@@ -222,9 +243,20 @@ for _, row in base_df.iterrows():
 
                         # Calculate country's share and subtract its historical emissions
                         country_cumulative = row[f'Latest_cumulative_CO2_emissions_Mt_{emissions_scope}']
-                        country_budget = (total_available * row[f'Share_of_cumulative_population_1990_to_2050_{emissions_scope}']) - country_cumulative
+                        country_budget = (total_available * row[f'Share_of_cumulative_population_1970_to_2050_{emissions_scope}']) - country_cumulative
                     elif distribution == 'Capacity':
-                        country_budget = global_budget * row[f'share_of_capacity_{emissions_scope}']
+                        # Get world's latest cumulative emissions
+                        world_cumulative = base_df[
+                            (base_df['ISO2'] == 'WLD') &
+                            (base_df[f'Latest_cumulative_CO2_emissions_Mt_{emissions_scope}'].notna())
+                        ][f'Latest_cumulative_CO2_emissions_Mt_{emissions_scope}'].iloc[0]
+
+                        # Calculate total available budget (global + world's historical emissions)
+                        total_available = global_budget + world_cumulative
+
+                        # Calculate country's share and subtract its historical emissions
+                        country_cumulative = row[f'Latest_cumulative_CO2_emissions_Mt_{emissions_scope}']
+                        country_budget = (total_available * row[f'share_of_capacity_{emissions_scope}']) - country_cumulative
                     else:  # Current_target
                         country_budget = None
 
@@ -278,7 +310,7 @@ for _, row in base_df.iterrows():
                         'ISO2': row['ISO2'],
                         'Country': row['Country'],
                         'Region': row['Region'],
-                        'Share_of_cumulative_population_1990_to_2050': row[f'Share_of_cumulative_population_1990_to_2050_{emissions_scope}'],
+                        'Share_of_cumulative_population_1970_to_2050': row[f'Share_of_cumulative_population_1970_to_2050_{emissions_scope}'],
                         'share_of_capacity': row[f'share_of_capacity_{emissions_scope}'],
                         'Emissions_scope': emissions_scope,
                         'Latest_year': latest_year,
@@ -312,7 +344,7 @@ scenario_params = scenarios_df[[
     'Latest_year', 'Latest_population', 'Latest_annual_CO2_emissions_Mt',
     'Latest_cumulative_CO2_emissions_Mt','Latest_emissions_per_capita_t', 'Latest_cumulative_population',
     'Share_of_cumulative_population_Latest_to_2050',
-    'Share_of_cumulative_population_1990_to_2050',
+    'Share_of_cumulative_population_1970_to_2050',
     'share_of_capacity', 'Global_Carbon_budget',
     'Country_carbon_budget', 'Country_budget_per_capita', 'Share_of_cumulative_emissions'
 ]].drop_duplicates()

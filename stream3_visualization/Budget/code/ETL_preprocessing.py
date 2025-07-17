@@ -115,22 +115,139 @@ def load_emissions_data():
     emissions.rename(columns={'ISO 3166-1 alpha-3': 'ISO3', 'Total': 'Annual_CO2_emissions_Mt'}, inplace=True)
     return emissions
 
+def load_consumption_emissions_data_1970_1989():
+    """Load and process consumption emissions data from 1970-1989."""
+    print("Loading consumption emissions data from 1970-1989...")
+    
+    # Load the CSV file
+    cons_emissions_early = pd.read_csv(f"{DATA_DIR}/2025-07-11_Consumption data scaled from 1970_edited.xlsx - eoraScaled-PRIMAPcba-19702021.csv")
+    
+    # Print initial info
+    print(f"Original data shape: {cons_emissions_early.shape}")
+    print("Original columns:", cons_emissions_early.columns.tolist())
+    
+    # Get year columns (all columns except 'country' and 'iso3c')
+    year_columns = [col for col in cons_emissions_early.columns if col not in ['country', 'iso3c']]
+    print(f"Year columns found: {year_columns[:5]}...{year_columns[-5:]}")  # Show first and last 5 years
+    
+    # Reshape from wide to long format
+    cons_emissions_long = pd.melt(
+        cons_emissions_early,
+        id_vars=['country', 'iso3c'],
+        value_vars=year_columns,
+        var_name='Year',
+        value_name='Annual_CO2_emissions_Mt'
+    )
+    
+    # Convert Year to integer and filter for 1970-1989
+    cons_emissions_long['Year'] = cons_emissions_long['Year'].astype(int)
+    cons_emissions_long = cons_emissions_long[(cons_emissions_long['Year'] >= 1970) & (cons_emissions_long['Year'] <= 1989)]
+    
+    # Rename columns to match expected format
+    cons_emissions_long.rename(columns={
+        'country': 'Country',
+        'iso3c': 'ISO3'
+    }, inplace=True)
+    
+    # Convert emissions to numeric and handle any non-numeric values
+    cons_emissions_long['Annual_CO2_emissions_Mt'] = pd.to_numeric(
+        cons_emissions_long['Annual_CO2_emissions_Mt'], 
+        errors='coerce'
+    )
+    
+    # CRITICAL: Convert from thousand tons (kt) to million tons (MtCO2) to match 1990+ data format
+    # Example: France 1989 = 507193.8005 kt -> 507.19 MtCO2
+    cons_emissions_long['Annual_CO2_emissions_Mt'] = cons_emissions_long['Annual_CO2_emissions_Mt'] / 1000
+    
+    # Drop rows with NaN emissions
+    initial_rows = len(cons_emissions_long)
+    cons_emissions_long = cons_emissions_long.dropna(subset=['Annual_CO2_emissions_Mt'])
+    dropped_rows = initial_rows - len(cons_emissions_long)
+    
+    print(f"Reshaped data shape: {cons_emissions_long.shape}")
+    print(f"Dropped {dropped_rows} rows with NaN emissions")
+    print(f"APPLIED SCALING: Converted from thousand tons (kt) to MtCO2 (divided by 1,000)")
+    print(f"Year range: {cons_emissions_long['Year'].min()} to {cons_emissions_long['Year'].max()}")
+    print(f"Unique countries: {cons_emissions_long['Country'].nunique()}")
+    
+    # Print sample data to verify scaling
+    print("\nSample of 1970-1989 consumption emissions data (after scaling to MtCO2):")
+    print(cons_emissions_long[['Country', 'ISO3', 'Year', 'Annual_CO2_emissions_Mt']].head(10))
+    
+    # Show some specific examples to verify scaling
+    france_sample = cons_emissions_long[cons_emissions_long['Country'].str.contains('France', case=False, na=False)]
+    if not france_sample.empty:
+        print(f"\nFrance example (should be ~507.19 MtCO2 for 1989):")
+        print(france_sample[france_sample['Year'] == 1989][['Country', 'Year', 'Annual_CO2_emissions_Mt']])
+    
+    return cons_emissions_long
+
 def load_consumption_emissions_data():
-    """Load and process consumption emissions data."""
-    cons_emissions = pd.read_excel(f"{DATA_DIR}/2025-04-22_Consumption emissions MtCO2_ISO code.xlsx",
-                                 sheet_name="GCB2024v17_MtCO2_flat")
-    cons_emissions = cons_emissions[['Country', 'ISO 3166-1 alpha-3', 'Year', 'CO2_Consumption_emissions in Mt']]
-    cons_emissions.rename(columns={
+    """Load and process consumption emissions data from 1990 onward and combine with 1970-1989 data, keeping only countries with complete data for the entire period."""
+    print("Loading consumption emissions data from 1990 onward...")
+    
+    # Load 1990+ data
+    cons_emissions_1990plus = pd.read_excel(f"{DATA_DIR}/2025-04-22_Consumption emissions MtCO2_ISO code.xlsx",
+                                          sheet_name="GCB2024v17_MtCO2_flat")
+    
+    print(f"1990+ data shape: {cons_emissions_1990plus.shape}")
+    print("1990+ data columns:", cons_emissions_1990plus.columns.tolist())
+    
+    cons_emissions_1990plus = cons_emissions_1990plus[['Country', 'ISO 3166-1 alpha-3', 'Year', 'CO2_Consumption_emissions in Mt']]
+    cons_emissions_1990plus.rename(columns={
         'ISO 3166-1 alpha-3': 'ISO3',
         'CO2_Consumption_emissions in Mt': 'Annual_CO2_emissions_Mt'
     }, inplace=True)
 
     # Clean consumption emissions values
-    cons_emissions['Annual_CO2_emissions_Mt'] = cons_emissions['Annual_CO2_emissions_Mt'].apply(
+    cons_emissions_1990plus['Annual_CO2_emissions_Mt'] = cons_emissions_1990plus['Annual_CO2_emissions_Mt'].apply(
         lambda x: float(str(x).replace(',', '.')) if isinstance(x, str) else float(x)
     ).round(2)
+    
+    print(f"1990+ data year range: {cons_emissions_1990plus['Year'].min()} to {cons_emissions_1990plus['Year'].max()}")
+    print(f"1990+ data unique countries: {cons_emissions_1990plus['Country'].nunique()}")
+    
+    # Load 1970-1989 data
+    cons_emissions_1970_1989 = load_consumption_emissions_data_1970_1989()
 
-    return cons_emissions
+    # --- Filter to only countries present in both datasets ---
+    iso3_1970_1989 = set(cons_emissions_1970_1989['ISO3'].unique())
+    iso3_1990plus = set(cons_emissions_1990plus['ISO3'].unique())
+    common_iso3 = iso3_1970_1989 & iso3_1990plus
+    print(f"Countries with complete data for 1970-2022: {len(common_iso3)}")
+    
+    cons_emissions_1970_1989 = cons_emissions_1970_1989[cons_emissions_1970_1989['ISO3'].isin(common_iso3)]
+    cons_emissions_1990plus = cons_emissions_1990plus[cons_emissions_1990plus['ISO3'].isin(common_iso3)]
+
+    # Combine both datasets
+    print("\nCombining 1970-1989 and 1990+ consumption emissions data...")
+    combined_cons_emissions = pd.concat([cons_emissions_1970_1989, cons_emissions_1990plus], ignore_index=True)
+    
+    # Sort by Country and Year
+    combined_cons_emissions = combined_cons_emissions.sort_values(['Country', 'Year'])
+    
+    print(f"Combined data shape: {combined_cons_emissions.shape}")
+    print(f"Combined data year range: {combined_cons_emissions['Year'].min()} to {combined_cons_emissions['Year'].max()}")
+    print(f"Combined data unique countries: {combined_cons_emissions['Country'].nunique()}")
+    
+    # Check for overlapping years between datasets
+    years_1970_1989 = set(cons_emissions_1970_1989['Year'].unique())
+    years_1990plus = set(cons_emissions_1990plus['Year'].unique())
+    overlap_years = years_1970_1989.intersection(years_1990plus)
+    
+    if overlap_years:
+        print(f"WARNING: Overlapping years found: {sorted(overlap_years)}")
+    else:
+        print("No overlapping years between datasets - good!")
+    
+    # Print sample of combined data
+    print("\nSample of combined consumption emissions data:")
+    print(combined_cons_emissions[['Country', 'ISO3', 'Year', 'Annual_CO2_emissions_Mt']].head(10))
+    
+    print("\nTail of combined consumption emissions data:")
+    print(combined_cons_emissions[['Country', 'ISO3', 'Year', 'Annual_CO2_emissions_Mt']].tail(10))
+
+    return combined_cons_emissions
 
 def create_measure_dataframe(df, measure_name, value_column):
     """Create a standardized measure dataframe."""
@@ -184,14 +301,14 @@ def main():
     consumption_emissions_data = load_consumption_emissions_data()
     gdp_data = load_gdp_data()
 
-    # Filter data to only include years >= 1990
-    population_data = population_data[population_data['Year'] >= 1990]
-    emissions_data = emissions_data[emissions_data['Year'] >= 1990]
-    consumption_emissions_data = consumption_emissions_data[consumption_emissions_data['Year'] >= 1990]
-    gdp_data = gdp_data[gdp_data['Year'] >= 1990]
+    # Filter data to only include years >= 1970 (now that we have consumption emissions from 1970)
+    population_data = population_data[population_data['Year'] >= 1970]
+    emissions_data = emissions_data[emissions_data['Year'] >= 1970]
+    # consumption_emissions_data now includes data from 1970-1989, already filtered in the function
+    gdp_data = gdp_data[gdp_data['Year'] >= 1970]
 
     # Print verification of year filtering
-    print("\nVerifying year filtering (>= 1990):")
+    print("\nVerifying year filtering (>= 1970):")
     print(f"Population data year range: {population_data['Year'].min()} to {population_data['Year'].max()}")
     print(f"Emissions data year range: {emissions_data['Year'].min()} to {emissions_data['Year'].max()}")
     print(f"Consumption emissions data year range: {consumption_emissions_data['Year'].min()} to {consumption_emissions_data['Year'].max()}")
@@ -562,12 +679,11 @@ def create_planetary_boundary_file(iso_mapping, ipcc_regions, eu_g20_mapping):
     GLOBAL_BUDGET = 830000
     latest_year = pb_final_df[pb_final_df['Annual_CO2_emissions_Mt'].notna()]['Year'].max()
     
-    latest_data = pb_final_df[pb_final_df['Year'] == latest_year].copy()
+    # Use 1988 for budget allocation instead of latest year
+    latest_data = pb_final_df[pb_final_df['Year'] == 1988].copy()
     world_total_cum_pop = latest_data.loc[latest_data['ISO2'] == 'WLD', 'cumulative_population'].iloc[0]
-    world_total_cum_emissions = latest_data.loc[latest_data['ISO2'] == 'WLD', 'cumulative_emissions'].iloc[0]
 
     latest_data['share_of_cumulative_population'] = latest_data['cumulative_population'] / world_total_cum_pop
-    latest_data['share_of_cumulative_emissions'] = latest_data['cumulative_emissions'] / world_total_cum_emissions
     latest_data['Country_CO2_budget_Mt'] = GLOBAL_BUDGET * latest_data['share_of_cumulative_population']
 
     # --- 4. Find Overshoot Year and Emissions ---
@@ -582,17 +698,30 @@ def create_planetary_boundary_file(iso_mapping, ipcc_regions, eu_g20_mapping):
     )[['ISO2', 'cumulative_emissions']].rename(columns={'cumulative_emissions': 'overshoot_year_cumulative_emissions'})
 
     # --- 5. Assemble and Save Final File ---
-    output_df = latest_data.merge(overshoot_years, on='ISO2', how='left')
+    # Get current year data for reporting
+    current_data = pb_final_df[pb_final_df['Year'] == latest_year].copy()
+    # Prepare budget allocation data with proper column names
+    budget_allocation = latest_data[['ISO2', 'Country_CO2_budget_Mt', 'share_of_cumulative_population']].copy()
+    budget_allocation.rename(columns={
+        'share_of_cumulative_population': 'share_of_cumulative_population_1988'
+    }, inplace=True)
+    
+    # Merge budget allocation with current data
+    output_df = current_data.merge(budget_allocation, on='ISO2', how='left')
+    output_df = output_df.merge(overshoot_years, on='ISO2', how='left')
     output_df = output_df.merge(overshoot_emissions, on='ISO2', how='left')
     
     # Convert Overshoot_year to a nullable integer. NaN represents 'Not yet'.
     output_df['Overshoot_year'] = output_df['Overshoot_year'].astype('Int64')
     
     output_df = output_df[[
-        'Country', 'ISO2', 'Region', 'cumulative_emissions', 'share_of_cumulative_emissions',
-        'cumulative_population', 'share_of_cumulative_population', 'Country_CO2_budget_Mt',
+        'Country', 'ISO2', 'Region', 'cumulative_emissions', 'cumulative_population', 
+        'share_of_cumulative_population_1988', 'Country_CO2_budget_Mt_y',
         'Overshoot_year', 'overshoot_year_cumulative_emissions'
     ]]
+    
+    # Rename the column to remove the suffix
+    output_df.rename(columns={'Country_CO2_budget_Mt_y': 'Country_CO2_budget_Mt'}, inplace=True)
     output_df.rename(columns={
         'cumulative_emissions': f'Cumulative_emissions_up_to_{latest_year}',
         'cumulative_population': f'Cumulative_population_up_to_{latest_year}'
@@ -600,6 +729,8 @@ def create_planetary_boundary_file(iso_mapping, ipcc_regions, eu_g20_mapping):
 
     output_df.to_csv(f"{OUTPUT_DIR}/planetary_boundary.csv", index=False)
     print(f"Planetary boundary data saved to {OUTPUT_DIR}/planetary_boundary.csv")
+    print(f"Budget allocation based on cumulative population from 1750 to 1988")
+    print(f"Overshoot calculations use full historical data up to {latest_year}")
 
 if __name__ == "__main__":
     main()
