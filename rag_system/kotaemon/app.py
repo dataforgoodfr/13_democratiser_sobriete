@@ -1,4 +1,6 @@
 import os
+import logging
+import sys
 
 from theflow.settings import settings as flowsettings
 
@@ -11,11 +13,26 @@ if GRADIO_TEMP_DIR is None:
     GRADIO_TEMP_DIR = os.path.join(KH_APP_DATA_DIR, "gradio_tmp")
     os.environ["GRADIO_TEMP_DIR"] = GRADIO_TEMP_DIR
 
+# Configure logging for Docker Swarm visibility
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout),
+        logging.StreamHandler(sys.stderr)
+    ]
+)
+
+logger = logging.getLogger(__name__)
+logger.info("Starting Kotaemon application...")
 
 from ktem.main import App  # noqa
 
 app = App()
 demo = app.make()
+
+logger.info(f"Launching Gradio app on port {GRADIO_SERVER_PORT}")
+
 demo.queue().launch(
     favicon_path=app._favicon,
     inbrowser=True,
@@ -26,4 +43,6 @@ demo.queue().launch(
         GRADIO_TEMP_DIR,
     ],
     share=KH_GRADIO_SHARE,
+    show_error=True,  # Show errors in logs
+    quiet=False,  # Don't suppress logs
 )

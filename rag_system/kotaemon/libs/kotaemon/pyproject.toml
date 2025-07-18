@@ -50,7 +50,7 @@ dependencies = [
     "opentelemetry-exporter-otlp-proto-grpc>=1.25.0", # https://github.com/chroma-core/chroma/issues/2571
     "pandas>=2.2.2,<2.3",
     "plotly<6.0.0",
-    "PyMuPDF>=1.23,<=1.24.11",
+    "PyMuPDF",
     "pypdf>=4.2.0,<4.3",
     "pylance",
     "python-decouple", # for theflow
@@ -86,7 +86,7 @@ adv = [
     "llama-index>=0.10.40,<0.11.0",
     "llama-index-vector-stores-milvus",
     "llama-index-vector-stores-qdrant",
-    "sentence-transformers",
+    # "sentence-transformers",
     "tabulate",
     "unstructured>=0.15.8,<0.16",
     "wikipedia>=1.4.0,<1.5",
