@@ -1,4 +1,5 @@
 #!/bin/bash
+source .venv/bin/activate
 
 if [ -z "$GRADIO_SERVER_NAME" ]; then
     export GRADIO_SERVER_NAME="0.0.0.0"

@@ -53,12 +53,16 @@ FROM base-builder AS prod
 
 RUN --mount=type=ssh \
     --mount=type=cache,target=/root/.cache/pip \
-    uv pip install "libs/kotaemon" && \
+    uv pip install "libs/kotaemon[adv]" && \
     uv pip install "libs/ktem" && \
     uv pip install "libs/pipelineblocks" && \
     uv pip install boto3 && \
     uv pip install psycopg2-binary && \
     uv pip install "pdfservices-sdk@git+https://github.com/niallcm/pdfservices-python-sdk.git@bump-and-unfreeze-requirements"
+
+RUN uv pip install llama-index==0.10.68 && \
+    uv pip install llama-index-vector-stores-qdrant==0.2.17 && \
+    uv pip install requests-toolbelt==0.10.1 urllib3==1.26.20 voyageai
 
 ENTRYPOINT ["bash", "/app/launch.sh"]
 

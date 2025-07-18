@@ -14,3 +14,4 @@ __all__ = [
     "MilvusVectorStore",
     "QdrantVectorStore",
 ]
+from kotaemon.storages.vectorstores.chroma import ChromaVectorStore

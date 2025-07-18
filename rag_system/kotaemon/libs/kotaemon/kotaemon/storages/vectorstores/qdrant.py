@@ -44,6 +44,7 @@ class QdrantVectorStore(LlamaIndexVectorStore):
             client_kwargs=client_kwargs,
             **kwargs,
         )
+        print(f"Super init done, now importing the QDrantVectorStore")
         from llama_index.vector_stores.qdrant import (
             QdrantVectorStore as LIQdrantVectorStore,
         )

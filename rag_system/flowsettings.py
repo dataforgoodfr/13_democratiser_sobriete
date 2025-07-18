@@ -97,8 +97,8 @@ KH_WEB_SEARCH_BACKEND = (
 
 KH_DOCSTORE = {
     # "__type__": "kotaemon.storages.ElasticsearchDocumentStore",
-    # "__type__": "kotaemon.storages.SimpleFileDocumentStore",
-    "__type__": "kotaemon.storages.LanceDBDocumentStore",
+    "__type__": "kotaemon.storages.SimpleFileDocumentStore",
+    # "__type__": "kotaemon.storages.LanceDBDocumentStore",
     "path": str(KH_USER_DATA_DIR / "docstore"),
     # "path": "s3://test-ecoskills/docstore/"
 }
