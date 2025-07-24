@@ -8,8 +8,8 @@ data_directory = '/Users/louistronel/Desktop/D4G_WSL/13_democratiser_sobriete-1/
 
 # Define global carbon budgets from the beginning of 2025 (in million tons of CO2)
 # Source: IPCC AR6 SYR, Table 2.1, values converted from GtCO2 to MtCO2
-BUDGET_GLOBAL_2C = {"50%": 1050000, "67%": 870000, "83%": 690000}
-BUDGET_GLOBAL_15C = {"50%": 130000, "67%": 80000, "83%": 30000}
+BUDGET_GLOBAL_2C = {"50%": 1219000, "67%": 944000}
+BUDGET_GLOBAL_15C = {"50%": 247000, "67%": 60000}
 
 def get_global_budget(warming_scenario, probability):
     """Get the global carbon budget based on scenario parameters."""
@@ -225,7 +225,7 @@ current_year = datetime.now().year
 for _, row in base_df.iterrows():
     for emissions_scope in emission_scopes:
         for warming_scenario in ['1.5°C', '2°C']:
-            for probability in ['50%', '67%', '83%']:
+            for probability in ['50%', '67%']:
                 for distribution in ['Population', 'Responsibility', 'Current_target', 'Capacity']:
                     # Calculate country carbon budget based on distribution scenario
                     global_budget = get_global_budget(warming_scenario, probability)

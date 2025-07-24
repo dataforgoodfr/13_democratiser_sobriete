@@ -711,8 +711,11 @@ def create_planetary_boundary_file(iso_mapping, ipcc_regions, eu_g20_mapping):
     output_df = output_df.merge(overshoot_years, on='ISO2', how='left')
     output_df = output_df.merge(overshoot_emissions, on='ISO2', how='left')
     
-    # Convert Overshoot_year to a nullable integer. NaN represents 'Not yet'.
-    output_df['Overshoot_year'] = output_df['Overshoot_year'].astype('Int64')
+    # Set overshoot year to 2050 for countries that haven't overshot yet
+    output_df['Overshoot_year'] = output_df['Overshoot_year'].fillna(2050)
+    
+    # Convert Overshoot_year to integer (now that we've filled NaN with 2050)
+    output_df['Overshoot_year'] = output_df['Overshoot_year'].astype(int)
     
     output_df = output_df[[
         'Country', 'ISO2', 'Region', 'cumulative_emissions', 'cumulative_population', 
