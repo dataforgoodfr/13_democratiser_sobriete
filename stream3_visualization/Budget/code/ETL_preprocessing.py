@@ -274,8 +274,7 @@ def create_aggregates(df, group_cols, agg_name, iso_code, region_name):
         'Cumulative_CO2_emissions_Mt': 'sum',
         'Population': 'sum',
         'Cumulative_population': 'sum',
-        'GDP_PPP': 'sum',
-        'capacity_absolute': 'sum'
+        'GDP_PPP': 'sum'
     }).reset_index()
 
     # Calculate metrics
@@ -413,14 +412,12 @@ def main():
     # Calculate cumulative population for each scope
     emissions_df['Cumulative_population'] = emissions_df.groupby(['ISO3', 'Region', 'Emissions_scope'])['Population'].cumsum()
 
-    # Calculate absolute capacity, which is inversely proportional to GDP per capita (p=1).
-    # This gives a larger budget share to less wealthy nations.
+    # Calculate absolute capacity based on cumulative population (1970-2050) and latest GDP per capita
+    # This gives higher capacity to countries with large cumulative populations but low current wealth
     emissions_df['gdp_per_capita'] = emissions_df['GDP_PPP'] / emissions_df['Population']
-    emissions_df['capacity_absolute'] = emissions_df['Population'] / emissions_df['gdp_per_capita']
     
-    # Handle cases with no GDP data (NaN) or infinite values by setting their capacity to 0.
-    emissions_df.replace([np.inf, -np.inf], np.nan, inplace=True)
-    emissions_df['capacity_absolute'].fillna(0, inplace=True)
+    # For each country, get their cumulative population from 1970 to 2050 and latest GDP per capita
+    # We'll calculate this after aggregation to get the proper cumulative values
     emissions_df.drop(columns=['gdp_per_capita'], inplace=True)
 
     # Before aggregating, filter for rows with available emissions data, but ensure 2050 is kept
@@ -429,8 +426,16 @@ def main():
         (emissions_df['Annual_CO2_emissions_Mt'].notna()) | (emissions_df['Year'] == 2050)
     ].copy()
 
-    # Create world aggregate first
-    world_aggregates = create_aggregates(aggregation_df, ['Year', 'Emissions_scope'], 'All', 'WLD', 'World')
+    # Create world aggregate first - use full emissions_df to include all countries with GDP data
+    world_aggregates = create_aggregates(emissions_df, ['Year', 'Emissions_scope'], 'All', 'WLD', 'World')
+    
+    # Create capacity-specific world aggregate (only countries with both emissions and GDP data)
+    capacity_world_df = emissions_df[
+        (emissions_df['Annual_CO2_emissions_Mt'].notna()) &  # Has emissions data
+        (emissions_df['GDP_PPP'].notna()) &  # Has GDP data
+        (emissions_df['Population'].notna())  # Has population data
+    ].copy()
+    capacity_world_aggregates = create_aggregates(capacity_world_df, ['Year', 'Emissions_scope'], 'All', 'WLD_CAPACITY', 'World (Capacity)')
 
     # Create aggregates for each region
     region_aggregates = []
@@ -464,7 +469,7 @@ def main():
         'G20 Countries'
     )
 
-    # Combine all dataframes
+    # Combine all dataframes (excluding capacity world aggregate from main data)
     final_df = pd.concat([
         emissions_df,
         region_aggregates,
@@ -473,18 +478,86 @@ def main():
         g20_aggregates
     ], ignore_index=True)
 
-    # Calculate share_of_capacity from the absolute values
-    world_capacity = final_df.loc[final_df['ISO2'] == 'WLD', ['Year', 'Emissions_scope', 'capacity_absolute']].copy()
-    world_capacity.rename(columns={'capacity_absolute': 'world_total_capacity'}, inplace=True)
+    # Calculate new capacity metric: cumulative population (1970-2050) / latest GDP per capita
+    # This gives higher capacity to countries with large cumulative populations but low current wealth
     
-    final_df = final_df.merge(world_capacity, on=['Year', 'Emissions_scope'], how='left')
-    # Calculate share, handling cases where the total is zero
-    final_df['share_of_capacity'] = np.where(
-        final_df['world_total_capacity'] > 0,
-        final_df['capacity_absolute'] / final_df['world_total_capacity'],
+    # Get cumulative population from 1970 to 2050 for each country
+    cum_pop_2050 = final_df[
+        (final_df['Year'] == 2050) & 
+        (~final_df['ISO2'].isin(['WLD', 'EU', 'G20'])) &  # Exclude aggregates
+        (final_df['Country'] != 'All')  # Exclude region aggregates
+    ][['ISO2', 'Emissions_scope', 'Cumulative_population']].copy()
+    cum_pop_2050.rename(columns={'Cumulative_population': 'Cumulative_population_1970_to_2050'}, inplace=True)
+    
+    # Get latest GDP per capita for each country (latest available year)
+    latest_gdp_per_capita = final_df[
+        (~final_df['ISO2'].isin(['WLD', 'EU', 'G20'])) &  # Exclude aggregates
+        (final_df['Country'] != 'All') &  # Exclude region aggregates
+        (final_df['GDP_PPP'].notna()) & (final_df['Population'].notna())
+    ].copy()
+    latest_gdp_per_capita['gdp_per_capita'] = latest_gdp_per_capita['GDP_PPP'] / latest_gdp_per_capita['Population']
+    
+    # Get the latest year GDP per capita for each country
+    latest_year_gdp = latest_gdp_per_capita.groupby(['ISO2', 'Emissions_scope'])['Year'].max().reset_index()
+    latest_gdp_per_capita = latest_gdp_per_capita.merge(latest_year_gdp, on=['ISO2', 'Emissions_scope', 'Year'], how='inner')
+    latest_gdp_per_capita = latest_gdp_per_capita[['ISO2', 'Emissions_scope', 'gdp_per_capita']].copy()
+    
+    # Calculate capacity: cumulative population / latest GDP per capita
+    capacity_calc = cum_pop_2050.merge(latest_gdp_per_capita, on=['ISO2', 'Emissions_scope'], how='inner')
+    capacity_calc['capacity_absolute'] = capacity_calc['Cumulative_population_1970_to_2050'] / capacity_calc['gdp_per_capita']
+    
+    # Handle infinite values and NaN
+    capacity_calc.replace([np.inf, -np.inf], np.nan, inplace=True)
+    capacity_calc['capacity_absolute'].fillna(0, inplace=True)
+    
+    # Calculate world total capacity by summing individual country capacities
+    world_capacity_total = capacity_calc.groupby('Emissions_scope')['capacity_absolute'].sum().reset_index()
+    world_capacity_total.rename(columns={'capacity_absolute': 'world_total_capacity'}, inplace=True)
+    
+    # Calculate share of capacity
+    capacity_calc = capacity_calc.merge(world_capacity_total, on='Emissions_scope', how='left')
+    capacity_calc['share_of_capacity'] = np.where(
+        capacity_calc['world_total_capacity'] > 0,
+        capacity_calc['capacity_absolute'] / capacity_calc['world_total_capacity'],
         0
     )
-    final_df.drop(columns=['capacity_absolute', 'world_total_capacity'], inplace=True)
+    
+    # Merge capacity shares back to final_df
+    final_df = final_df.merge(
+        capacity_calc[['ISO2', 'Emissions_scope', 'share_of_capacity']], 
+        on=['ISO2', 'Emissions_scope'], 
+        how='left'
+    )
+    
+    # For world aggregate, set capacity share to 1.0 (sum of all countries)
+    final_df.loc[final_df['ISO2'] == 'WLD', 'share_of_capacity'] = 1.0
+    
+    # Fill NaN values for other aggregates (they don't have capacity shares)
+    final_df['share_of_capacity'].fillna(0, inplace=True)
+    
+    # Print verification of new capacity calculation
+    print("\n=== New Capacity Calculation Verification ===")
+    print(f"Countries with capacity data: {len(capacity_calc)}")
+    print(f"Capacity calculation formula: Cumulative Population (1970-2050) / Latest GDP per capita")
+    
+    # Show some examples
+    sample_capacity = capacity_calc.head(5)
+    print("\nSample capacity calculations:")
+    for _, row in sample_capacity.iterrows():
+        print(f"{row['ISO2']}: {row['Cumulative_population_1970_to_2050']:,.0f} people / {row['gdp_per_capita']:,.0f} $/person = {row['capacity_absolute']:,.0f} capacity units")
+    
+    # Verify shares sum to 1.0
+    for scope in ['Territory', 'Consumption']:
+        scope_sum = capacity_calc[capacity_calc['Emissions_scope'] == scope]['share_of_capacity'].sum()
+        print(f"\n{scope} scope - Sum of capacity shares: {scope_sum:.6f} (should be ~1.0)")
+    
+    # Show world aggregate data for verification
+    print("\nWorld aggregate data verification:")
+    world_data = final_df[final_df['ISO2'] == 'WLD'].head(2)  # Show first 2 rows (Territory and Consumption)
+    for _, row in world_data.iterrows():
+        print(f"  {row['Emissions_scope']}: GDP={row['GDP_PPP']:,.0f}, Population={row['Population']:,.0f}, Capacity_share={row['share_of_capacity']:.6f}")
+    
+    print("=== End Capacity Verification ===\n")
 
     # Calculate share of GDP
     world_gdp = final_df.loc[final_df['ISO2'] == 'WLD', ['Year', 'Emissions_scope', 'GDP_PPP']].copy()

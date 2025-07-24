@@ -11,12 +11,28 @@ data_directory = '/Users/louistronel/Desktop/D4G_WSL/13_democratiser_sobriete-1/
 BUDGET_GLOBAL_2C = {"50%": 1219000, "67%": 944000}
 BUDGET_GLOBAL_15C = {"50%": 247000, "67%": 60000}
 
-def get_global_budget(warming_scenario, probability):
+def get_global_budget(warming_scenario, probability, emissions_scope=None, combined_df=None):
     """Get the global carbon budget based on scenario parameters."""
-    if warming_scenario == '2°C':
-        return BUDGET_GLOBAL_2C[probability]
-    else:  # 1.5°C
-        return BUDGET_GLOBAL_15C[probability]
+    base_budget = BUDGET_GLOBAL_2C[probability] if warming_scenario == '2°C' else BUDGET_GLOBAL_15C[probability]
+    
+    # For territory emissions, subtract 2023 global emissions since budgets start from 2023
+    if emissions_scope == 'Territory' and combined_df is not None:
+        # Get 2023 global territory emissions
+        territory_2023 = combined_df[
+            (combined_df['Emissions_scope'] == 'Territory') & 
+            (combined_df['ISO2'] == 'WLD') & 
+            (combined_df['Year'] == 2023)
+        ]['Annual_CO2_emissions_Mt'].iloc[0] if len(combined_df[
+            (combined_df['Emissions_scope'] == 'Territory') & 
+            (combined_df['ISO2'] == 'WLD') & 
+            (combined_df['Year'] == 2023)
+        ]) > 0 else 0
+        
+        adjusted_budget = base_budget - territory_2023
+        return adjusted_budget
+    
+    # For consumption emissions, use the original budget (data ends in 2022, budget starts from 2023)
+    return base_budget
 
 def penalty_func_2(x):
     """Quadratic penalty function."""
@@ -222,13 +238,31 @@ print(base_df[['ISO2', 'Country', 'Region', f'Share_of_cumulative_emissions_{emi
 # Create all scenario combinations
 scenarios = []
 current_year = datetime.now().year
+
+# Print budget adjustments for territory emissions
+print("\n=== Budget Adjustments for Territory Emissions ===")
+for warming_scenario in ['1.5°C', '2°C']:
+    for probability in ['50%', '67%']:
+        base_budget = get_global_budget(warming_scenario, probability)
+        territory_2023 = combined_df[
+            (combined_df['Emissions_scope'] == 'Territory') & 
+            (combined_df['ISO2'] == 'WLD') & 
+            (combined_df['Year'] == 2023)
+        ]['Annual_CO2_emissions_Mt'].iloc[0] if len(combined_df[
+            (combined_df['Emissions_scope'] == 'Territory') & 
+            (combined_df['ISO2'] == 'WLD') & 
+            (combined_df['Year'] == 2023)
+        ]) > 0 else 0
+        adjusted_budget = base_budget - territory_2023
+        print(f"{warming_scenario} {probability}: {base_budget:,.0f} → {adjusted_budget:,.0f} MtCO2 (subtracted {territory_2023:,.0f} MtCO2 from 2023)")
+print("=== Consumption emissions use original budgets (data ends 2022) ===\n")
 for _, row in base_df.iterrows():
     for emissions_scope in emission_scopes:
         for warming_scenario in ['1.5°C', '2°C']:
             for probability in ['50%', '67%']:
                 for distribution in ['Population', 'Responsibility', 'Current_target', 'Capacity']:
                     # Calculate country carbon budget based on distribution scenario
-                    global_budget = get_global_budget(warming_scenario, probability)
+                    global_budget = get_global_budget(warming_scenario, probability, emissions_scope, combined_df)
                     if distribution == 'Population':
                         country_budget = global_budget * row[f'Share_of_cumulative_population_Latest_to_2050_{emissions_scope}']
                     elif distribution == 'Responsibility':
