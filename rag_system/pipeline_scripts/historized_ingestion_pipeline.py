@@ -135,16 +135,67 @@ class HistorizedIndexingPipeline(VectorIndexing):
 def main():
     logfire.configure(token="pylf_v1_us_qTtmbDFpkfhFwzTfZyZrTJcl4C4lC7FhmZ65BgJ7dLDV")
     parser = ArgumentParser(description='Run pdf ingestion')
-    parser.add_argument('--file-path', required=True, help='Path to the file')
+    parser.add_argument('--file-path', help='Path to the file (single file mode)')
+    parser.add_argument('--folder-path', help='Path to the folder (batch mode)')
 
     args = parser.parse_args()
-    file_path = args.file_path
-    folder_path = Path(file_path).parent
-    logfire.notice("starting doc")
-    indexing_pipeline = HistorizedIndexingPipeline(pdf_path=folder_path)
-    print(f"Parsing document: {file_path}")
-
-    indexing_pipeline.run(file_path)
+    
+    if args.file_path and args.folder_path:
+        print("Error: Please specify either --file-path OR --folder-path, not both")
+        return
+    
+    if not args.file_path and not args.folder_path:
+        print("Error: Please specify either --file-path or --folder-path")
+        return
+    
+    logfire.notice("starting doc processing")
+    
+    if args.file_path:
+        # Single file mode (original behavior)
+        file_path = args.file_path
+        folder_path = Path(file_path).parent
+        indexing_pipeline = HistorizedIndexingPipeline(pdf_path=folder_path)
+        print(f"Parsing single document: {file_path}")
+        indexing_pipeline.run(file_path)
+        
+    else:
+        # Folder mode (new behavior)
+        folder_path = Path(args.folder_path)
+        if not folder_path.exists():
+            print(f"Error: Folder {folder_path} does not exist")
+            return
+            
+        # Get all PDF files in the folder
+        pdf_files = list(folder_path.glob("*.pdf"))
+        if not pdf_files:
+            print(f"No PDF files found in {folder_path}")
+            return
+            
+        print(f"Found {len(pdf_files)} PDF files in {folder_path}")
+        indexing_pipeline = HistorizedIndexingPipeline(pdf_path=folder_path)
+        
+        successful = 0
+        failed = 0
+        
+        for i, pdf_file in enumerate(pdf_files, 1):
+            try:
+                print(f"Processing [{i}/{len(pdf_files)}]: {pdf_file.name}")
+                result = indexing_pipeline.run(str(pdf_file))
+                if result[0]:  # success
+                    successful += 1
+                    print(f"✅ Successfully processed: {pdf_file.name}")
+                else:
+                    failed += 1
+                    print(f"❌ Failed to process: {pdf_file.name}")
+            except Exception as e:
+                failed += 1
+                print(f"❌ Error processing {pdf_file.name}: {e}")
+                logfire.error(f"Error processing {pdf_file.name}: {e}")
+                
+        print("\n📊 Folder processing completed:")
+        print(f"   ✅ Successful: {successful}")
+        print(f"   ❌ Failed: {failed}")
+        print(f"   📋 Total: {len(pdf_files)}")
 
 
 if __name__ == "__main__":
