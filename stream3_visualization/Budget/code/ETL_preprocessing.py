@@ -784,12 +784,23 @@ def create_planetary_boundary_file(iso_mapping, ipcc_regions, eu_g20_mapping):
     output_df = output_df.merge(overshoot_years, on='ISO2', how='left')
     output_df = output_df.merge(overshoot_emissions, on='ISO2', how='left')
     
-    # Set overshoot year to 2050 for countries that haven't overshot yet
-    output_df['Overshoot_year'] = output_df['Overshoot_year'].fillna(2050)
+    # Set overshoot year to "Not overshot yet" for countries that haven't overshot yet
+    output_df['Overshoot_year'] = output_df['Overshoot_year'].fillna("Not overshot yet")
     
-    # Convert Overshoot_year to integer (now that we've filled NaN with 2050)
-    output_df['Overshoot_year'] = output_df['Overshoot_year'].astype(int)
+    # Convert Overshoot_year to string to handle "Not overshot yet" values
+    output_df['Overshoot_year'] = output_df['Overshoot_year'].astype(str)
     
+    # Filter out countries that haven't overshot yet (keep only countries with actual overshoot years)
+    # First, identify which countries have overshot (have numeric overshoot years)
+    output_df['has_overshot'] = pd.to_numeric(output_df['Overshoot_year'], errors='coerce').notna()
+    output_df = output_df[output_df['has_overshot']].copy()
+    
+    # Convert Overshoot_year to integer for mapping compatibility
+    output_df['Overshoot_year'] = output_df['Overshoot_year'].astype(float).astype(int)
+    
+    # Drop the helper column
+    output_df.drop(columns=['has_overshot'], inplace=True)
+
     output_df = output_df[[
         'Country', 'ISO2', 'Region', 'cumulative_emissions', 'cumulative_population', 
         'share_of_cumulative_population_1988', 'Country_CO2_budget_Mt_y',

@@ -183,17 +183,24 @@ def create_base_dataframe(df):
             (df['Emissions_scope'] == scope) & 
             (df['Year'] == latest_year_for_scope) &
             (df['ISO2'].isin(countries_with_data))
-        ][['ISO2', 'Cumulative_population']].rename(columns={'Cumulative_population': f'Cumulative_population_latest_{scope}'})
+        ].copy()
         
-        # Calculate world total for this period - sum individual countries only
-        # Exclude all aggregates to ensure we only sum countries with emissions data for this scope
-        aggregate_iso2s = ['WLD', 'EU', 'G20'] + [iso for iso in cum_pop_latest_df['ISO2'].unique() 
-                                                  if iso in df[df['Country'] == 'All']['ISO2'].unique()]
-        countries_only_latest = cum_pop_latest_df[~cum_pop_latest_df['ISO2'].isin(aggregate_iso2s)]
-        world_cum_pop_latest = countries_only_latest[f'Cumulative_population_latest_{scope}'].sum()
+        # Calculate cumulative population from 1970 to latest year for each country
+        cum_pop_latest_df[f'Cumulative_population_latest_{scope}'] = cum_pop_latest_df.groupby(['ISO2', 'Region', 'Emissions_scope'])['Population'].cumsum()
         
-        base_df = base_df.merge(cum_pop_latest_df, on='ISO2', how='left')
+        # Get world cumulative population for this scope (sum of countries with data)
+        world_cum_pop_latest = cum_pop_latest_df[f'Cumulative_population_latest_{scope}'].max()
+        
+        # Merge with base dataframe
+        cum_pop_latest_merge = cum_pop_latest_df[['ISO2', f'Cumulative_population_latest_{scope}']]
+        base_df = base_df.merge(cum_pop_latest_merge, on='ISO2', how='left')
+        
+        # Calculate population share for each country
         base_df[f'Share_of_cumulative_population_1970_to_latest_{scope}'] = base_df[f'Cumulative_population_latest_{scope}'] / world_cum_pop_latest
+        
+        # FIX: Ensure WLD (World) always has population share = 1.0
+        base_df.loc[base_df['ISO2'] == 'WLD', f'Share_of_cumulative_population_1970_to_latest_{scope}'] = 1.0
+        
         base_df.drop(columns=[f'Cumulative_population_latest_{scope}'], inplace=True)
         
         print(f"  World cumulative population 1970-{latest_year_for_scope}: {world_cum_pop_latest:,.0f}")
@@ -525,7 +532,14 @@ for _, row in base_df.iterrows():
 
                         # Calculate country's share and subtract its historical emissions
                         country_cumulative = row[f'Latest_cumulative_CO2_emissions_Mt_{emissions_scope}']
-                        country_budget = (total_available * row[f'share_of_capacity_{emissions_scope}']) - country_cumulative
+                        capacity_share = row[f'share_of_capacity_{emissions_scope}']
+                        
+                        # FIX: Exclude countries with missing GDP data from Capacity scenario
+                        if capacity_share == 0 or pd.isna(capacity_share):
+                            # Skip this scenario for countries with missing GDP data
+                            continue
+                        
+                        country_budget = (total_available * capacity_share) - country_cumulative
                     else:  # Current_target
                         country_budget = None
 
