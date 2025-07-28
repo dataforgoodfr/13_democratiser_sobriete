@@ -15,7 +15,6 @@ import logfire
 # Add parent directory to path for imports
 sys.path.append(str(Path(__file__).parent.parent))
 from database.models import (
-    populate_scraping_queue, 
     get_papers_to_scrape, 
     mark_paper_scraped, 
     mark_paper_failed,
@@ -55,17 +54,8 @@ def test_scraping_10_papers():
     # Step 1: Setup test directories
     base_dir, folder_paths = setup_test_directories()
     
-    # Step 2: Populate queue with limited papers (for testing)
-    print("\n📥 Step 1: Populating scraping queue with 10 papers...")
-    try:
-        added_count = populate_scraping_queue(limit=10)
-        print(f"✅ Added {added_count} papers to scraping queue")
-    except Exception as e:
-        print(f"❌ Failed to populate queue: {e}")
-        return False
-    
-    # Step 3: Get papers to scrape
-    print("\n🔍 Step 2: Getting papers to scrape...")
+    # Step 2: Get papers to scrape (auto-populates as needed)
+    print("\n🔍 Step 1: Getting papers to scrape (auto-populating as needed)...")
     try:
         papers_to_scrape = get_papers_to_scrape(limit=10)
         print(f"📄 Found {len(papers_to_scrape)} papers to scrape")
@@ -80,8 +70,8 @@ def test_scraping_10_papers():
         print(f"❌ Failed to get papers: {e}")
         return False
     
-    # Step 4: Test scraping each paper
-    print(f"\n🌐 Step 3: Testing scraping of {len(papers_to_scrape)} papers...")
+    # Step 3: Test scraping each paper
+    print(f"\n🌐 Step 2: Testing scraping of {len(papers_to_scrape)} papers...")
     successful = 0
     failed = 0
     

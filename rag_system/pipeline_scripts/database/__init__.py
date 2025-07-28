@@ -8,11 +8,12 @@ from .models import (
     PoliciesAbstractsAll,
     get_session,
     create_tables,
-    populate_scraping_queue,
     get_papers_to_scrape,
     mark_paper_scraped,
     mark_paper_failed,
-    get_scraping_stats
+    get_scraping_stats,
+    clear_scraping_queue,
+    get_paper_doi
 )
 
 __all__ = [
@@ -20,9 +21,10 @@ __all__ = [
     'PoliciesAbstractsAll', 
     'get_session',
     'create_tables',
-    'populate_scraping_queue',
     'get_papers_to_scrape',
     'mark_paper_scraped',
     'mark_paper_failed',
-    'get_scraping_stats'
+    'get_scraping_stats',
+    'clear_scraping_queue',
+    'get_paper_doi'
 ] 
