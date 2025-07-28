@@ -502,9 +502,9 @@ def main():
     latest_gdp_per_capita = latest_gdp_per_capita.merge(latest_year_gdp, on=['ISO2', 'Emissions_scope', 'Year'], how='inner')
     latest_gdp_per_capita = latest_gdp_per_capita[['ISO2', 'Emissions_scope', 'gdp_per_capita']].copy()
     
-    # Calculate capacity: cumulative population / latest GDP per capita
+    # Calculate capacity: cumulative population / square root of latest GDP per capita
     capacity_calc = cum_pop_2050.merge(latest_gdp_per_capita, on=['ISO2', 'Emissions_scope'], how='inner')
-    capacity_calc['capacity_absolute'] = capacity_calc['Cumulative_population_1970_to_2050'] / capacity_calc['gdp_per_capita']
+    capacity_calc['capacity_absolute'] = capacity_calc['Cumulative_population_1970_to_2050'] / np.sqrt(capacity_calc['gdp_per_capita'])
     
     # Handle infinite values and NaN
     capacity_calc.replace([np.inf, -np.inf], np.nan, inplace=True)
@@ -538,7 +538,7 @@ def main():
     # Print verification of new capacity calculation
     print("\n=== New Capacity Calculation Verification ===")
     print(f"Countries with capacity data: {len(capacity_calc)}")
-    print(f"Capacity calculation formula: Cumulative Population (1970-2050) / Latest GDP per capita")
+    print(f"Capacity calculation formula: Cumulative Population (1970-2050) / √(Latest GDP per capita)")
     
     # Show some examples
     sample_capacity = capacity_calc.head(5)

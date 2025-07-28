@@ -235,6 +235,202 @@ print(base_df[['ISO2', 'Country', 'Latest_year_Territory', 'Latest_year_Consumpt
 print("\nBase DataFrame:")
 print(base_df[['ISO2', 'Country', 'Region', f'Share_of_cumulative_emissions_{emission_scopes[0]}']].head())
 
+# FIX: Recalculate cumulative population shares using scope-specific world totals
+print("\n=== FIXING CUMULATIVE POPULATION SHARES ===")
+for scope in emission_scopes:
+    print(f"\nRecalculating shares for {scope} scope...")
+    
+    # Get countries with emissions data for this scope
+    scope_data = combined_df[
+        (combined_df['Emissions_scope'] == scope) &
+        (combined_df['Annual_CO2_emissions_Mt'].notna()) &
+        (combined_df['Annual_CO2_emissions_Mt'] != 0) &
+        (combined_df['Year'] < 2050)
+    ]
+    countries_with_data = set(scope_data['ISO2'].unique())
+    
+    # Exclude aggregates
+    aggregate_iso2s = set(['WLD', 'EU', 'G20']) | set(base_df[base_df['Country'] == 'All']['ISO2'].unique())
+    
+    # Fix Share_of_cumulative_population_1970_to_2050
+    # Get cumulative population 1970-2050 for countries with emissions data only
+    cum_pop_1970_2050 = combined_df[
+        (combined_df['Emissions_scope'] == scope) & 
+        (combined_df['Year'] == 2050) &
+        (combined_df['ISO2'].isin(countries_with_data)) &
+        (~combined_df['ISO2'].isin(aggregate_iso2s))
+    ][['ISO2', 'Cumulative_population']].copy()
+    
+    # Calculate world total using only countries with emissions data
+    world_cum_pop_1970_2050 = cum_pop_1970_2050['Cumulative_population'].sum()
+    
+    # Update shares for countries with emissions data
+    for _, row in cum_pop_1970_2050.iterrows():
+        mask = (base_df['ISO2'] == row['ISO2']) & (base_df[f'Share_of_cumulative_population_1970_to_2050_{scope}'].notna())
+        if mask.any():
+            base_df.loc[mask, f'Share_of_cumulative_population_1970_to_2050_{scope}'] = row['Cumulative_population'] / world_cum_pop_1970_2050
+    
+    # Set world aggregate to 1.0
+    world_mask = base_df['ISO2'] == 'WLD'
+    if world_mask.any():
+        base_df.loc[world_mask, f'Share_of_cumulative_population_1970_to_2050_{scope}'] = 1.0
+    
+    print(f"  Countries with emissions data: {len(countries_with_data)}")
+    print(f"  World cumulative population 1970-2050: {world_cum_pop_1970_2050:,.0f}")
+    
+    # Fix Share_of_cumulative_population_Latest_to_2050
+    # Get latest year for this scope
+    latest_year_for_scope = scope_data['Year'].max()
+    
+    # Get cumulative population from latest year to 2050 for countries with emissions data only
+    pop_latest_to_2050 = combined_df[
+        (combined_df['Emissions_scope'] == scope) & 
+        (combined_df['Year'] >= latest_year_for_scope) & 
+        (combined_df['Year'] <= 2050) &
+        (combined_df['ISO2'].isin(countries_with_data)) &
+        (~combined_df['ISO2'].isin(aggregate_iso2s))
+    ].groupby('ISO2')['Population'].sum().reset_index()
+    
+    # Calculate world total using only countries with emissions data
+    world_cum_pop_latest_to_2050 = pop_latest_to_2050['Population'].sum()
+    
+    # Update shares for countries with emissions data
+    for _, row in pop_latest_to_2050.iterrows():
+        mask = (base_df['ISO2'] == row['ISO2']) & (base_df[f'Share_of_cumulative_population_Latest_to_2050_{scope}'].notna())
+        if mask.any():
+            base_df.loc[mask, f'Share_of_cumulative_population_Latest_to_2050_{scope}'] = row['Population'] / world_cum_pop_latest_to_2050
+    
+    # Set world aggregate to 1.0
+    if world_mask.any():
+        base_df.loc[world_mask, f'Share_of_cumulative_population_Latest_to_2050_{scope}'] = 1.0
+    
+    print(f"  World cumulative population {latest_year_for_scope}-2050: {world_cum_pop_latest_to_2050:,.0f}")
+    
+    # Verify shares sum to 1.0
+    country_shares_1970 = base_df[
+        (base_df['ISO2'].isin(countries_with_data)) & 
+        (~base_df['ISO2'].isin(aggregate_iso2s)) &
+        (base_df[f'Share_of_cumulative_population_1970_to_2050_{scope}'].notna())
+    ][f'Share_of_cumulative_population_1970_to_2050_{scope}'].sum()
+    
+    country_shares_latest = base_df[
+        (base_df['ISO2'].isin(countries_with_data)) & 
+        (~base_df['ISO2'].isin(aggregate_iso2s)) &
+        (base_df[f'Share_of_cumulative_population_Latest_to_2050_{scope}'].notna())
+    ][f'Share_of_cumulative_population_Latest_to_2050_{scope}'].sum()
+    
+    print(f"  Sum of country shares 1970-2050: {country_shares_1970:.6f}")
+    print(f"  Sum of country shares {latest_year_for_scope}-2050: {country_shares_latest:.6f}")
+
+print("=== END FIX ===\n")
+
+# FIX: Update world aggregate values to be consistent with scope-specific calculations
+print("\n=== UPDATING WORLD AGGREGATE VALUES ===")
+for scope in emission_scopes:
+    print(f"\nUpdating world aggregate for {scope} scope...")
+    
+    # Get countries with emissions data for this scope
+    scope_data = combined_df[
+        (combined_df['Emissions_scope'] == scope) &
+        (combined_df['Annual_CO2_emissions_Mt'].notna()) &
+        (combined_df['Annual_CO2_emissions_Mt'] != 0) &
+        (combined_df['Year'] < 2050)
+    ]
+    countries_with_data = set(scope_data['ISO2'].unique())
+    
+    # Exclude aggregates
+    aggregate_iso2s = set(['WLD', 'EU', 'G20']) | set(base_df[base_df['Country'] == 'All']['ISO2'].unique())
+    
+    # Get country rows for this scope
+    country_rows = base_df[
+        (base_df['ISO2'].isin(countries_with_data)) & 
+        (~base_df['ISO2'].isin(aggregate_iso2s))
+    ]
+    
+    # Calculate scope-specific world totals
+    world_latest_emissions = country_rows[f'Latest_annual_CO2_emissions_Mt_{scope}'].sum()
+    world_cumulative_emissions = country_rows[f'Latest_cumulative_CO2_emissions_Mt_{scope}'].sum()
+    world_latest_population = country_rows[f'Latest_population_{scope}'].sum()
+    world_cumulative_population = country_rows[f'Latest_cumulative_population_{scope}'].sum()
+    
+    # Update world aggregate values
+    world_mask = base_df['ISO2'] == 'WLD'
+    if world_mask.any():
+        base_df.loc[world_mask, f'Latest_annual_CO2_emissions_Mt_{scope}'] = world_latest_emissions
+        base_df.loc[world_mask, f'Latest_cumulative_CO2_emissions_Mt_{scope}'] = world_cumulative_emissions
+        base_df.loc[world_mask, f'Latest_population_{scope}'] = world_latest_population
+        base_df.loc[world_mask, f'Latest_cumulative_population_{scope}'] = world_cumulative_population
+        base_df.loc[world_mask, f'Latest_emissions_per_capita_t_{scope}'] = (world_latest_emissions * 1000000) / world_latest_population if world_latest_population > 0 else 0
+    
+    print(f"  Countries with emissions data: {len(countries_with_data)}")
+    print(f"  World latest emissions: {world_latest_emissions:,.2f} MtCO2")
+    print(f"  World cumulative emissions: {world_cumulative_emissions:,.2f} MtCO2")
+    print(f"  World latest population: {world_latest_population:,.0f}")
+    print(f"  World cumulative population: {world_cumulative_population:,.0f}")
+
+print("=== END WORLD AGGREGATE UPDATE ===\n")
+
+# FINAL VERIFICATION: Check that shares sum to 1.0
+print("\n=== FINAL VERIFICATION: CUMULATIVE POPULATION SHARES ===")
+for scope in emission_scopes:
+    print(f"\nVerifying {scope} scope:")
+    
+    # Get countries with emissions data for this scope
+    scope_data = combined_df[
+        (combined_df['Emissions_scope'] == scope) &
+        (combined_df['Annual_CO2_emissions_Mt'].notna()) &
+        (combined_df['Annual_CO2_emissions_Mt'] != 0) &
+        (combined_df['Year'] < 2050)
+    ]
+    countries_with_data = set(scope_data['ISO2'].unique())
+    
+    # Exclude aggregates
+    aggregate_iso2s = set(['WLD', 'EU', 'G20']) | set(base_df[base_df['Country'] == 'All']['ISO2'].unique())
+    
+    # Check 1970-2050 shares (only country shares, excluding world aggregate)
+    country_shares_1970 = base_df[
+        (base_df['ISO2'].isin(countries_with_data)) & 
+        (~base_df['ISO2'].isin(aggregate_iso2s)) &
+        (base_df[f'Share_of_cumulative_population_1970_to_2050_{scope}'].notna())
+    ][f'Share_of_cumulative_population_1970_to_2050_{scope}'].sum()
+    
+    world_share_1970 = base_df[
+        (base_df['ISO2'] == 'WLD') &
+        (base_df[f'Share_of_cumulative_population_1970_to_2050_{scope}'].notna())
+    ][f'Share_of_cumulative_population_1970_to_2050_{scope}'].iloc[0] if len(base_df[
+        (base_df['ISO2'] == 'WLD') &
+        (base_df[f'Share_of_cumulative_population_1970_to_2050_{scope}'].notna())
+    ]) > 0 else 0
+    
+    # Check Latest-2050 shares (only country shares, excluding world aggregate)
+    country_shares_latest = base_df[
+        (base_df['ISO2'].isin(countries_with_data)) & 
+        (~base_df['ISO2'].isin(aggregate_iso2s)) &
+        (base_df[f'Share_of_cumulative_population_Latest_to_2050_{scope}'].notna())
+    ][f'Share_of_cumulative_population_Latest_to_2050_{scope}'].sum()
+    
+    world_share_latest = base_df[
+        (base_df['ISO2'] == 'WLD') &
+        (base_df[f'Share_of_cumulative_population_Latest_to_2050_{scope}'].notna())
+    ][f'Share_of_cumulative_population_Latest_to_2050_{scope}'].iloc[0] if len(base_df[
+        (base_df['ISO2'] == 'WLD') &
+        (base_df[f'Share_of_cumulative_population_Latest_to_2050_{scope}'].notna())
+    ]) > 0 else 0
+    
+    print(f"  1970-2050 shares:")
+    print(f"    Country shares sum: {country_shares_1970:.6f}")
+    print(f"    World share: {world_share_1970:.6f}")
+    print(f"    Country shares should sum to 1.0: {'✓' if abs(country_shares_1970 - 1.0) < 0.0001 else '✗'}")
+    print(f"    World share should equal country sum: {'✓' if abs(world_share_1970 - country_shares_1970) < 0.0001 else '✗'}")
+    
+    print(f"  Latest-2050 shares:")
+    print(f"    Country shares sum: {country_shares_latest:.6f}")
+    print(f"    World share: {world_share_latest:.6f}")
+    print(f"    Country shares should sum to 1.0: {'✓' if abs(country_shares_latest - 1.0) < 0.0001 else '✗'}")
+    print(f"    World share should equal country sum: {'✓' if abs(world_share_latest - country_shares_latest) < 0.0001 else '✗'}")
+
+print("=== END VERIFICATION ===\n")
+
 # Create all scenario combinations
 scenarios = []
 current_year = datetime.now().year

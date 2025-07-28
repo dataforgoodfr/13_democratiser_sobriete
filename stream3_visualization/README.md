@@ -31,7 +31,7 @@ This file contains historical and projected data for countries and regional aggr
 3.  **Share Calculations:** Several "share of total" metrics are calculated for each country and aggregate, per year. These include:
     *   `share_of_population`: Share of the world's annual population.
     *   `share_of_GDP_PPP`: Share of the world's annual GDP.
-    *   `share_of_capacity`: This metric is used for the "Capacity" scenario. It is calculated to be **inversely proportional to GDP per capita** (`Population / GDP_per_capita`). This gives a larger share of the budget allocation to countries with lower economic capacity.
+    *   `share_of_capacity`: This metric is used for the "Capacity" scenario. It is calculated to be **inversely proportional to the square root of GDP per capita** (`Population / √(GDP_per_capita)`). This gives a larger share of the budget allocation to countries with lower economic capacity while reducing the extreme penalty for wealthy countries.
 
 ### B. Secondary Output: `planetary_boundary.csv`
 
