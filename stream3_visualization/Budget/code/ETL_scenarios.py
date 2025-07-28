@@ -6,6 +6,11 @@ from datetime import datetime
 output_directory = '/Users/louistronel/Desktop/D4G_WSL/13_democratiser_sobriete-1/stream3_visualization/Budget/Output'
 data_directory = '/Users/louistronel/Desktop/D4G_WSL/13_democratiser_sobriete-1/stream3_visualization/Budget/Data'
 
+# Configuration: Choose Responsibility methodology
+# True = Use 1970 to latest emissions year (new approach)
+# False = Use 1970 to 2050 (current approach)
+USE_LATEST_YEAR_FOR_RESPONSIBILITY = True
+
 # Define global carbon budgets from the beginning of 2025 (in million tons of CO2)
 # Source: IPCC AR6 SYR, Table 2.1, values converted from GtCO2 to MtCO2
 BUDGET_GLOBAL_2C = {"50%": 1219000, "67%": 944000}
@@ -167,6 +172,31 @@ def create_base_dataframe(df):
         base_df = base_df.merge(cum_pop_2050_df, on='ISO2', how='left')
         base_df[f'Share_of_cumulative_population_1970_to_2050_{scope}'] = base_df[f'Cumulative_population_2050_{scope}'] / world_cum_pop_2050
         base_df.drop(columns=[f'Cumulative_population_2050_{scope}'], inplace=True)
+
+        # --- Share of Cumulative Population 1970-Latest (Responsibility - New Approach) ---
+        # Calculate scope-specific cumulative population from 1970 to latest emissions year
+        # Only include countries that have emissions data available for this scope
+        countries_with_data = scope_data['ISO2'].unique()
+        latest_year_for_scope = latest_years[f'Latest_year_{scope}'].max()
+        
+        cum_pop_latest_df = df[
+            (df['Emissions_scope'] == scope) & 
+            (df['Year'] == latest_year_for_scope) &
+            (df['ISO2'].isin(countries_with_data))
+        ][['ISO2', 'Cumulative_population']].rename(columns={'Cumulative_population': f'Cumulative_population_latest_{scope}'})
+        
+        # Calculate world total for this period - sum individual countries only
+        # Exclude all aggregates to ensure we only sum countries with emissions data for this scope
+        aggregate_iso2s = ['WLD', 'EU', 'G20'] + [iso for iso in cum_pop_latest_df['ISO2'].unique() 
+                                                  if iso in df[df['Country'] == 'All']['ISO2'].unique()]
+        countries_only_latest = cum_pop_latest_df[~cum_pop_latest_df['ISO2'].isin(aggregate_iso2s)]
+        world_cum_pop_latest = countries_only_latest[f'Cumulative_population_latest_{scope}'].sum()
+        
+        base_df = base_df.merge(cum_pop_latest_df, on='ISO2', how='left')
+        base_df[f'Share_of_cumulative_population_1970_to_latest_{scope}'] = base_df[f'Cumulative_population_latest_{scope}'] / world_cum_pop_latest
+        base_df.drop(columns=[f'Cumulative_population_latest_{scope}'], inplace=True)
+        
+        print(f"  World cumulative population 1970-{latest_year_for_scope}: {world_cum_pop_latest:,.0f}")
 
         # --- Share of Cumulative Population (Equality) ---
         # Calculate cumulative population from latest emission year to 2050
@@ -473,7 +503,16 @@ for _, row in base_df.iterrows():
 
                         # Calculate country's share and subtract its historical emissions
                         country_cumulative = row[f'Latest_cumulative_CO2_emissions_Mt_{emissions_scope}']
-                        country_budget = (total_available * row[f'Share_of_cumulative_population_1970_to_2050_{emissions_scope}']) - country_cumulative
+                        
+                        # Choose population share based on configuration
+                        if USE_LATEST_YEAR_FOR_RESPONSIBILITY:
+                            # Use 1970 to latest emissions year (new approach)
+                            population_share = row[f'Share_of_cumulative_population_1970_to_latest_{emissions_scope}']
+                        else:
+                            # Use 1970 to 2050 (current approach)
+                            population_share = row[f'Share_of_cumulative_population_1970_to_2050_{emissions_scope}']
+                        
+                        country_budget = (total_available * population_share) - country_cumulative
                     elif distribution == 'Capacity':
                         # Get world's latest cumulative emissions
                         world_cumulative = base_df[
@@ -541,6 +580,7 @@ for _, row in base_df.iterrows():
                         'Country': row['Country'],
                         'Region': row['Region'],
                         'Share_of_cumulative_population_1970_to_2050': row[f'Share_of_cumulative_population_1970_to_2050_{emissions_scope}'],
+                        'Share_of_cumulative_population_1970_to_latest': row[f'Share_of_cumulative_population_1970_to_latest_{emissions_scope}'],
                         'share_of_capacity': row[f'share_of_capacity_{emissions_scope}'],
                         'Emissions_scope': emissions_scope,
                         'Latest_year': latest_year,
@@ -575,6 +615,7 @@ scenario_params = scenarios_df[[
     'Latest_cumulative_CO2_emissions_Mt','Latest_emissions_per_capita_t', 'Latest_cumulative_population',
     'Share_of_cumulative_population_Latest_to_2050',
     'Share_of_cumulative_population_1970_to_2050',
+    'Share_of_cumulative_population_1970_to_latest',
     'share_of_capacity', 'Global_Carbon_budget',
     'Country_carbon_budget', 'Country_budget_per_capita', 'Share_of_cumulative_emissions'
 ]].drop_duplicates()
@@ -602,15 +643,18 @@ for _, row in scenario_params.iterrows():
 
     # Convert years to integers
     latest_year = int(row['Latest_year'])
+    latest_emissions = row['Latest_annual_CO2_emissions_Mt']
 
     # Handle different cases for forecast
     if (row['Years_to_neutrality_from_latest_available'] == "N/A" or
         row['Years_to_neutrality_from_latest_available'] is None or
         (isinstance(row['Years_to_neutrality_from_latest_available'], (int, float)) and row['Years_to_neutrality_from_latest_available'] <= 0)):
-        # For N/A or negative years_to_neutrality, drop to zero immediately
+        # For N/A or negative years_to_neutrality (countries with negative budgets):
+        # Set the first forecast year to the latest historical emissions value for continuity
+        # Then drop to 0 in the next year
         forecast_years = pd.DataFrame({
-            'Year': [latest_year],
-            'Forecasted_emissions_Mt': [0]
+            'Year': [latest_year, latest_year + 1],
+            'Forecasted_emissions_Mt': [latest_emissions, 0]
         })
     else:
         # Normal case: linear decrease to zero
@@ -623,9 +667,9 @@ for _, row in scenario_params.iterrows():
         })
 
         # Calculate forecasted emissions
-        slope = -row['Latest_annual_CO2_emissions_Mt'] / (neutrality_year - latest_year)
+        slope = -latest_emissions / (neutrality_year - latest_year)
         forecast_years['Forecasted_emissions_Mt'] = [
-            max(0, row['Latest_annual_CO2_emissions_Mt'] + slope * (year - latest_year))
+            max(0, latest_emissions + slope * (year - latest_year))
             for year in forecast_years['Year']
         ]
 
