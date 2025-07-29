@@ -130,7 +130,7 @@ class TargetedPaperScraper:
             driver = webdriver.Chrome(service=service, options=chrome_options)
             logfire.info("Chrome webdriver started with manual setup")
         
-        driver.set_page_load_timeout(30)
+        driver.set_page_load_timeout(60)
         
         # Verify download directory is working
         logfire.info(f"Chrome configured to download to: {self.temp_dir.absolute()}")

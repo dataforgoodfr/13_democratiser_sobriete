@@ -39,7 +39,7 @@ class ScrapingQueue(SQLModel, table=True):
     
     # Simple status tracking
     scraped: bool = Field(default=False)
-    assigned_folder: Optional[int] = Field(default=None)  # 0-11 for the 12 folders
+    assigned_folder: Optional[str] = Field(default=None, sa_column=Column(String))  # 0-11 for the 12 folders
     pdf_path: Optional[str] = Field(default=None, sa_column=Column(String))
     
     # Timestamps

@@ -13,7 +13,7 @@ from kotaemon.embeddings import OpenAIEmbeddings
 from kotaemon.indices import VectorIndexing
 from kotaemon.llms import ChatOpenAI
 from kotaemon.storages import QdrantVectorStore
-from kotaemon.storages import LanceDBDocumentStore
+from kotaemon.storages import SimpleFileDocumentStore
 from pipelineblocks.extraction.pdfextractionblock.pdf_to_markdown import \
     PdfExtractionToMarkdownBlock
 from pipelineblocks.llm.ingestionblock.openai import OpenAIMetadatasLLMInference
@@ -31,6 +31,7 @@ api_key = os.getenv("p", config["api_key"])
 
 ollama_host = "localhost"
 qdrant_host = "116919ed-8e07-47f6-8f24-a22527d5d520.europe-west3-0.gcp.cloud.qdrant.io"
+deepseek_api_key = os.getenv('DS_SECRET_KEY', "sk-da2decacb37a45ddad71aaf79cac2505")  # DS key
 
 class HistorizedIndexingPipeline(VectorIndexing):
     pdf_extraction_block: PdfExtractionToMarkdownBlock = Param(
@@ -42,9 +43,8 @@ class HistorizedIndexingPipeline(VectorIndexing):
     metadatas_llm_inference_block: OpenAIMetadatasLLMInference = Param(
         lazy(OpenAIMetadatasLLMInference).withx(
             llm=ChatOpenAI(
-                base_url=f"http://{ollama_host}:11434/v1/",
-                model="deepseek-r1:70b",
-                api_key="ollama",
+                base_url="https://api.deepseek.com",
+                api_key=deepseek_api_key,
             ),
             taxonomy=PaperTaxonomy,
         )
@@ -59,9 +59,9 @@ class HistorizedIndexingPipeline(VectorIndexing):
             collection_name="index_1",
         )
     )
-    doc_store: LanceDBDocumentStore = Param(
-        lazy(LanceDBDocumentStore).withx(
-            path="./kotaemon-custom/kotaemon/ktem_app_data/user_data/docstore",
+    doc_store: SimpleFileDocumentStore = Param(
+        lazy(SimpleFileDocumentStore).withx(
+            path="/opt/wsl-kotaemon/data/kotaemon-custom/kotaemon/ktem_app_data/user_data/docstore",
         ),
         ignore_ui=True,
     )
@@ -148,8 +148,7 @@ def main():
         print("Error: Please specify either --file-path or --folder-path")
         return
     
-    logfire.notice("starting doc processing")
-    
+
     if args.file_path:
         # Single file mode (original behavior)
         file_path = args.file_path
