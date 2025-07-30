@@ -478,16 +478,20 @@ def main():
         g20_aggregates
     ], ignore_index=True)
 
-    # Calculate new capacity metric: cumulative population (1970-2050) / latest GDP per capita
+    # Calculate new capacity metric: cumulative population (1970-latest) / square root of latest GDP per capita
     # This gives higher capacity to countries with large cumulative populations but low current wealth
     
-    # Get cumulative population from 1970 to 2050 for each country
-    cum_pop_2050 = final_df[
-        (final_df['Year'] == 2050) & 
+    # Get cumulative population from 1970 to latest available year for each country
+    # For Territory: latest = 2023, for Consumption: latest = 2022
+    latest_years = final_df[
+        (final_df['Annual_CO2_emissions_Mt'].notna()) & 
         (~final_df['ISO2'].isin(['WLD', 'EU', 'G20'])) &  # Exclude aggregates
         (final_df['Country'] != 'All')  # Exclude region aggregates
-    ][['ISO2', 'Emissions_scope', 'Cumulative_population']].copy()
-    cum_pop_2050.rename(columns={'Cumulative_population': 'Cumulative_population_1970_to_2050'}, inplace=True)
+    ].groupby(['ISO2', 'Emissions_scope'])['Year'].max().reset_index()
+    
+    cum_pop_latest = final_df.merge(latest_years, on=['ISO2', 'Emissions_scope', 'Year'], how='inner')
+    cum_pop_latest = cum_pop_latest[['ISO2', 'Emissions_scope', 'Cumulative_population']].copy()
+    cum_pop_latest.rename(columns={'Cumulative_population': 'Cumulative_population_1970_to_latest'}, inplace=True)
     
     # Get latest GDP per capita for each country (latest available year)
     latest_gdp_per_capita = final_df[
@@ -502,9 +506,9 @@ def main():
     latest_gdp_per_capita = latest_gdp_per_capita.merge(latest_year_gdp, on=['ISO2', 'Emissions_scope', 'Year'], how='inner')
     latest_gdp_per_capita = latest_gdp_per_capita[['ISO2', 'Emissions_scope', 'gdp_per_capita']].copy()
     
-    # Calculate capacity: cumulative population / square root of latest GDP per capita
-    capacity_calc = cum_pop_2050.merge(latest_gdp_per_capita, on=['ISO2', 'Emissions_scope'], how='inner')
-    capacity_calc['capacity_absolute'] = capacity_calc['Cumulative_population_1970_to_2050'] / np.sqrt(capacity_calc['gdp_per_capita'])
+    # Calculate capacity: cumulative population (1970-latest) / square root of latest GDP per capita
+    capacity_calc = cum_pop_latest.merge(latest_gdp_per_capita, on=['ISO2', 'Emissions_scope'], how='inner')
+    capacity_calc['capacity_absolute'] = capacity_calc['Cumulative_population_1970_to_latest'] / np.sqrt(capacity_calc['gdp_per_capita'])
     
     # Handle infinite values and NaN
     capacity_calc.replace([np.inf, -np.inf], np.nan, inplace=True)
@@ -538,13 +542,13 @@ def main():
     # Print verification of new capacity calculation
     print("\n=== New Capacity Calculation Verification ===")
     print(f"Countries with capacity data: {len(capacity_calc)}")
-    print(f"Capacity calculation formula: Cumulative Population (1970-2050) / √(Latest GDP per capita)")
+    print(f"Capacity calculation formula: Cumulative Population (1970-latest) / √(Latest GDP per capita)")
     
     # Show some examples
     sample_capacity = capacity_calc.head(5)
     print("\nSample capacity calculations:")
     for _, row in sample_capacity.iterrows():
-        print(f"{row['ISO2']}: {row['Cumulative_population_1970_to_2050']:,.0f} people / {row['gdp_per_capita']:,.0f} $/person = {row['capacity_absolute']:,.0f} capacity units")
+        print(f"{row['ISO2']}: {row['Cumulative_population_1970_to_latest']:,.0f} people / {row['gdp_per_capita']:,.0f} $/person = {row['capacity_absolute']:,.0f} capacity units")
     
     # Verify shares sum to 1.0
     for scope in ['Territory', 'Consumption']:

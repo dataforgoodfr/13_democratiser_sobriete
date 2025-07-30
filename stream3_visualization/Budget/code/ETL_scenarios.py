@@ -563,11 +563,43 @@ for _, row in base_df.iterrows():
                             country_budget = None
                     # using integers for buckets to ensure it can be visualized on the map
                     elif pd.notna(country_budget) and pd.notna(latest_annual) and latest_annual > 0:
-                        years_to_neutrality = int(round(2 * country_budget / latest_annual))
-                        if years_to_neutrality + latest_year > 2100:
-                            neutrality_year = 2100
+                        if country_budget < 0:
+                            # For negative budgets: find the historical year when they overshot their budget
+                            # This is similar to the planetary boundary approach
+                            country_cumulative_emissions = row[f'Latest_cumulative_CO2_emissions_Mt_{emissions_scope}']
+                            allocated_budget = country_budget + country_cumulative_emissions  # This is the positive budget they should have had
+                            
+                            # Find the exact year when cumulative emissions exceeded the allocated budget
+                            # We need to access the historical emissions data for this country
+                            # For now, use a more accurate calculation based on their current emissions rate
+                            if allocated_budget > 0:
+                                # Calculate when they should have reached zero emissions
+                                # If they have X Mt budget and emit Y Mt/year, they should reach zero in X/Y years
+                                # But since they've already overshot, this happened in the past
+                                # Use a more sophisticated approach: find when cumulative emissions = allocated budget
+                                years_overshot = int(round((country_cumulative_emissions - allocated_budget) / latest_annual))
+                                overshoot_year = latest_year - years_overshot
+                                
+                                # Cap at 1970 (earliest year in our data)
+                                if overshoot_year < 1970:
+                                    neutrality_year = 1970
+                                else:
+                                    neutrality_year = overshoot_year
+                            else:
+                                # If allocated budget is also negative, they never had a valid budget
+                                neutrality_year = 1970
                         else:
-                            neutrality_year = int(round(latest_year + years_to_neutrality))
+                            # For positive budgets: use the standard linear decrease approach
+                            years_to_neutrality = int(round(2 * country_budget / latest_annual))
+                            calculated_neutrality_year = int(round(latest_year + years_to_neutrality))
+                            
+                            # Cap neutrality year at 1970 (earliest) and 2100 (latest)
+                            if calculated_neutrality_year < 1970:
+                                neutrality_year = 1970
+                            elif calculated_neutrality_year > 2100:
+                                neutrality_year = 2100
+                            else:
+                                neutrality_year = calculated_neutrality_year
 
                     else:
                         years_to_neutrality = "N/A"
@@ -662,8 +694,8 @@ for _, row in scenario_params.iterrows():
     # Handle different cases for forecast
     if (row['Years_to_neutrality_from_latest_available'] == "N/A" or
         row['Years_to_neutrality_from_latest_available'] is None or
-        (isinstance(row['Years_to_neutrality_from_latest_available'], (int, float)) and row['Years_to_neutrality_from_latest_available'] <= 0)):
-        # For N/A or negative years_to_neutrality (countries with negative budgets):
+        row['Country_carbon_budget'] < 0):
+        # For N/A or countries with negative budgets:
         # Set the first forecast year to the latest historical emissions value for continuity
         # Then drop to 0 in the next year
         forecast_years = pd.DataFrame({
@@ -681,11 +713,15 @@ for _, row in scenario_params.iterrows():
         })
 
         # Calculate forecasted emissions
-        slope = -latest_emissions / (neutrality_year - latest_year)
-        forecast_years['Forecasted_emissions_Mt'] = [
-            max(0, latest_emissions + slope * (year - latest_year))
-            for year in forecast_years['Year']
-        ]
+        if neutrality_year == latest_year:
+            # If neutrality year is the same as latest year, emissions should be 0 immediately
+            forecast_years['Forecasted_emissions_Mt'] = 0
+        else:
+            slope = -latest_emissions / (neutrality_year - latest_year)
+            forecast_years['Forecasted_emissions_Mt'] = [
+                max(0, latest_emissions + slope * (year - latest_year))
+                for year in forecast_years['Year']
+            ]
 
     # Add forecast data with scenario_id reference
     for _, year_row in forecast_years.iterrows():

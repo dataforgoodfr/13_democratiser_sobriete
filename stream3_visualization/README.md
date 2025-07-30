@@ -63,13 +63,25 @@ The scenarios are based on the remaining global carbon budgets from the start of
 1.  **Population:** The remaining global budget is distributed to countries based on their **share of cumulative world population** from the latest available data year to 2050. This principle allocates budget based on human presence.
 2.  **Responsibility:** A "total" budget is created by adding the *future* global budget to the *world's historical emissions* since 1970. This total amount is then allocated to each country based on its share of cumulative population from 1970 to the latest emissions year available (2022 for Consumption, 2023 for Territory). Finally, each country's own historical emissions are subtracted to determine its remaining budget. This method holds nations accountable for their past emissions while using a more recent population baseline.
 3.  **Capacity:** The remaining global budget is distributed based on the `share_of_capacity` metric calculated in the preprocessing script. This allocates a larger portion of the remaining budget to countries with a lower GDP per capita, reflecting their reduced economic capacity to fund a rapid transition. **Countries with missing GDP data are excluded from this scenario.**
-4.  **Current Target:** This scenario does not use the IPCC budgets. Instead, it calculates a linear pathway to neutrality based on each country's politically declared target year. If no target is declared, no pathway is calculated.
+4.  **Current Target:** This scenario doges not use the IPCC budgets. Instead, it calculates a linear pathway to neutrality based on each country's politically declared target year. If no target is declared, no pathway is calculated.
 
 #### Forecast Continuity:
 For countries with negative budgets (indicating they have already exceeded their allocated carbon budget), the forecast ensures visual continuity by:
 1. Setting the first forecast year to the latest historical emissions value
 2. Setting the second forecast year to zero
-This prevents visual discontinuities in time-series visualizations.
+This prevents visual discontinuities in time-series visualizations and ensures smooth transitions from historical to forecast data.
+
+#### Neutrality Year Capping:
+To ensure meaningful visualization and interpretation, neutrality years are capped at:
+- **Minimum**: 1970 (earliest year in our dataset)
+- **Maximum**: 2100 (standard future limit)
+This prevents countries from having "neutrality years" in the distant past (e.g., -300 years) which would be mathematically correct but conceptually meaningless.
+
+#### Negative Budget Countries:
+For countries with negative carbon budgets (indicating they have already exceeded their allocated budget), the neutrality year calculation uses a **planetary boundary approach**:
+- **Method**: Find the historical year when cumulative emissions exceeded the allocated budget
+- **Result**: Shows when the country should have reached neutrality (e.g., 1976, 1991, 2007)
+- **Interpretation**: Countries with neutrality years in the past (e.g., 1976) indicate they should have reached carbon neutrality by that year to stay within their budget
 
 #### Final Outputs:
 The script generates two files that are ready for visualization:
@@ -92,6 +104,9 @@ Countries with missing GDP data are excluded from the Capacity scenario to maint
 
 ### Planetary Boundary Analysis
 Only countries that have actually overshot their planetary boundary are included in the output file, ensuring meaningful and mappable data for visualization tools.
+
+### Neutrality Year Interpretation
+Countries with neutrality year 1970 (showing -55 years to neutrality in 2025) indicate they have already exceeded their allocated carbon budget by such a large margin that they would have needed to reach neutrality before our data begins. This represents the most extreme case of historical overshoot.
 
 ---
 
