@@ -1,31 +1,25 @@
 import os
-import json
 from argparse import ArgumentParser
 import time
 from pathlib import Path
-
-import logfire
 
 from kotaemon.base import Param, lazy
 from pydantic import ValidationError
 
 from kotaemon.embeddings import OpenAIEmbeddings
 from kotaemon.indices import VectorIndexing
-from kotaemon.llms import ChatOpenAI
+from openai import OpenAI
 from kotaemon.storages import QdrantVectorStore
 from kotaemon.storages import SimpleFileDocumentStore
 from pipelineblocks.extraction.pdfextractionblock.pdf_to_markdown import \
     PdfExtractionToMarkdownBlock
-from pipelineblocks.llm.ingestionblock.openai import OpenAIMetadatasLLMInference
+from pipelineblocks.llm.ingestionblock.deepseek import DeepSeekMetadatasLLMInference
 from persist_taxonomy import get_open_alex_article, persist_article_metadata, reconcile_metadata
 from taxonomy.paper_taxonomy import PaperTaxonomy
 
 
 PDF_FOLDER = os.getenv("PDF_FOLDER", "./pipeline_scripts/pdf_test/")
-with open("secret.json") as f:
-    config = json.load(f)
 
-api_key = os.getenv("p", config["api_key"])
 
 # ---- Do not touch (temporary) ------------- #
 
@@ -40,9 +34,9 @@ class HistorizedIndexingPipeline(VectorIndexing):
 
     # At least, one taxonomy = one llm_inference_block
     # (Multiply the number of llm_inference_block when you need handle more than one taxonomy
-    metadatas_llm_inference_block: OpenAIMetadatasLLMInference = Param(
-        lazy(OpenAIMetadatasLLMInference).withx(
-            llm=ChatOpenAI(
+    metadatas_llm_inference_block: DeepSeekMetadatasLLMInference = Param(
+        lazy(DeepSeekMetadatasLLMInference).withx(
+            llm=OpenAI(
                 base_url="https://api.deepseek.com",
                 api_key=deepseek_api_key,
             ),
@@ -94,19 +88,17 @@ class HistorizedIndexingPipeline(VectorIndexing):
             print(text_md)
         except Exception as e:
             print(e)
-            logfire.error(e)
             return (False, str(pdf_path))
 
         try:
             llm_metadatas = self.metadatas_llm_inference_block.run(
-                text_md, doc_type="entire_doc", inference_type="scientific", openalex_metadata=article_metadata
+                text_md, doc_type="entire_doc", inference_type="scientific_advanced", existing_metadata=article_metadata
             )
 
             # Reconcile OpenAlex metadata with LLM output
             metadatas = reconcile_metadata(article_metadata, llm_metadatas)
         except ValidationError as e:
             print("Error happening during the text extraction")
-            logfire.error(e)
             return (False, str(pdf_path))
 
         # Persist metadata to PostgreSQL
@@ -115,7 +107,6 @@ class HistorizedIndexingPipeline(VectorIndexing):
             persist_article_metadata(metadatas)
         except Exception as e:
             print("Error happening during the metadata ingestion")
-            logfire.error(e)
             return (False, str(pdf_path))
 
         metadatas_json = metadatas.model_dump()
@@ -133,7 +124,6 @@ class HistorizedIndexingPipeline(VectorIndexing):
 
 
 def main():
-    logfire.configure(token="pylf_v1_us_qTtmbDFpkfhFwzTfZyZrTJcl4C4lC7FhmZ65BgJ7dLDV")
     parser = ArgumentParser(description='Run pdf ingestion')
     parser.add_argument('--file-path', help='Path to the file (single file mode)')
     parser.add_argument('--folder-path', help='Path to the folder (batch mode)')
@@ -189,8 +179,7 @@ def main():
             except Exception as e:
                 failed += 1
                 print(f"❌ Error processing {pdf_file.name}: {e}")
-                logfire.error(f"Error processing {pdf_file.name}: {e}")
-                
+
         print("\n📊 Folder processing completed:")
         print(f"   ✅ Successful: {successful}")
         print(f"   ❌ Failed: {failed}")
