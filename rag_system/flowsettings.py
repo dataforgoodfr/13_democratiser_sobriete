@@ -82,8 +82,8 @@ KH_FEATURE_USER_MANAGEMENT_PASSWORD = str(
     config("KH_FEATURE_USER_MANAGEMENT_PASSWORD", default="admin")
 )
 KH_ENABLE_ALEMBIC = False
-KH_DATABASE = f"sqlite:///{KH_USER_DATA_DIR / 'sql.db'}"
-# KH_DATABASE = "postgresql://postgres:my_pass@postgres-db:5432/my_db"
+# KH_DATABASE = f"sqlite:///{KH_USER_DATA_DIR / 'sql.db'}"
+KH_DATABASE = os.getenv("PG_DATABASE_URL", None)
 
 KH_FILESTORAGE_PATH = str(KH_USER_DATA_DIR / "files")
 
@@ -97,19 +97,15 @@ KH_WEB_SEARCH_BACKEND = (
 
 KH_DOCSTORE = {
     # "__type__": "kotaemon.storages.ElasticsearchDocumentStore",
-    # "__type__": "kotaemon.storages.SimpleFileDocumentStore",
-    "__type__": "kotaemon.storages.LanceDBDocumentStore",
+    "__type__": "kotaemon.storages.SimpleFileDocumentStore",
+    # "__type__": "kotaemon.storages.LanceDBDocumentStore",
     "path": str(KH_USER_DATA_DIR / "docstore"),
     # "path": "s3://test-ecoskills/docstore/"
 }
 KH_VECTORSTORE = {
-    # "__type__": "kotaemon.storages.LanceDBVectorStore",
-    # "__type__": "kotaemon.storages.ChromaVectorStore",
-    # "__type__": "kotaemon.storages.MilvusVectorStore",
     "__type__": "kotaemon.storages.QdrantVectorStore",
-    "url": "116919ed-8e07-47f6-8f24-a22527d5d520.europe-west3-0.gcp.cloud.qdrant.io",
-    "api_key": "None"
-    # "path": str(KH_USER_DATA_DIR / "vectorstore"),
+    "url": os.getenv("VECTORSTORE_URL", ""),
+    "api_key": os.getenv("VECTOR_STORE_API_KEY", "")
 }
 KH_LLMS = {}
 KH_EMBEDDINGS = {}
@@ -362,10 +358,10 @@ SETTINGS_REASONING = {
     },
 }
 
-USE_GLOBAL_GRAPHRAG = config("USE_GLOBAL_GRAPHRAG", default=True, cast=bool)
+USE_GLOBAL_GRAPHRAG = config("USE_GLOBAL_GRAPHRAG", default=False, cast=bool)
 USE_NANO_GRAPHRAG = config("USE_NANO_GRAPHRAG", default=False, cast=bool)
-USE_LIGHTRAG = config("USE_LIGHTRAG", default=True, cast=bool)
-USE_MS_GRAPHRAG = config("USE_MS_GRAPHRAG", default=True, cast=bool)
+USE_LIGHTRAG = config("USE_LIGHTRAG", default=False, cast=bool)
+USE_MS_GRAPHRAG = config("USE_MS_GRAPHRAG", default=False, cast=bool)
 
 GRAPHRAG_INDEX_TYPES = []
 
@@ -408,6 +404,5 @@ KH_INDICES = [
             "private": True,
         },
         "index_type": "ktem.index.file.FileIndex",
-    },
-    *GRAPHRAG_INDICES,
+    }
 ]
