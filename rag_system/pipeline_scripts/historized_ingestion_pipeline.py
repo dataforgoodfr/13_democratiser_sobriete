@@ -26,6 +26,7 @@ PDF_FOLDER = os.getenv("PDF_FOLDER", "./pipeline_scripts/pdf_test/")
 ollama_host = "localhost"
 qdrant_host = "116919ed-8e07-47f6-8f24-a22527d5d520.europe-west3-0.gcp.cloud.qdrant.io"
 deepseek_api_key = os.getenv('DS_SECRET_KEY', "sk-da2decacb37a45ddad71aaf79cac2505")  # DS key
+qdrant_api_key = os.getenv('VECTOR_STORE_API_KEY')  # vs key
 
 class HistorizedIndexingPipeline(VectorIndexing):
     pdf_extraction_block: PdfExtractionToMarkdownBlock = Param(
@@ -49,7 +50,7 @@ class HistorizedIndexingPipeline(VectorIndexing):
     vector_store: QdrantVectorStore = Param(
         lazy(QdrantVectorStore).withx(
             url=f"https://{qdrant_host}:6333",
-            api_key=api_key,
+            api_key=qdrant_api_key,
             collection_name="index_1",
         )
     )
