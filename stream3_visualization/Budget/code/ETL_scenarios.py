@@ -493,7 +493,7 @@ for _, row in base_df.iterrows():
     for emissions_scope in emission_scopes:
         for warming_scenario in ['1.5°C', '2°C']:
             for probability in ['50%', '67%']:
-                for distribution in ['Population', 'Responsibility', 'Current_target', 'Capacity']:
+                for distribution in ['Population', 'Responsibility', 'NDC Pledges', 'Capacity']:
                     # Calculate country carbon budget based on distribution scenario
                     global_budget = get_global_budget(warming_scenario, probability, emissions_scope, combined_df)
                     if distribution == 'Population':
@@ -540,51 +540,71 @@ for _, row in base_df.iterrows():
                             continue
                         
                         country_budget = (total_available * capacity_share) - country_cumulative
-                    else:  # Current_target
+                    elif distribution == 'NDC Pledges':
+                        # NDC Pledges only apply to Territory emissions, not Consumption
+                        if emissions_scope == 'Territory':
+                            country_budget = None
+                        else:  # Consumption scope
+                            # Skip NDC Pledges for Consumption emissions
+                            continue
+                    else:  # Capacity
                         country_budget = None
 
                     # Calculate years to neutrality and neutrality year
                     latest_annual = row[f'Latest_annual_CO2_emissions_Mt_{emissions_scope}']
                     latest_year = row[f'Latest_year_{emissions_scope}']
 
-                    if distribution == 'Current_target':
+                    if distribution == 'NDC Pledges':
                         # Get target year from current targets mapping
-                        neutrality_year = current_targets.get(row['ISO2'])
-                        if neutrality_year is not None:
-                            years_to_neutrality = neutrality_year - latest_year
+                        ndc_neutrality_year = current_targets.get(row['ISO2'])
+                        if ndc_neutrality_year is not None:
+                            years_to_neutrality = ndc_neutrality_year - latest_year
                             # Back-calculate Country_carbon_budget based on years_to_neutrality
                             if pd.notna(latest_annual) and latest_annual > 0:
                                 country_budget = (years_to_neutrality * latest_annual) / 2
                             else:
                                 country_budget = None
+                            neutrality_year = ndc_neutrality_year
                         else:
                             years_to_neutrality = "N/A"
                             neutrality_year = "N/A"
                             country_budget = None
                     # using integers for buckets to ensure it can be visualized on the map
                     elif pd.notna(country_budget) and pd.notna(latest_annual) and latest_annual > 0:
+                        # Initialize neutrality_year
+                        neutrality_year = None
+                        
                         if country_budget < 0:
                             # For negative budgets: find the historical year when they overshot their budget
-                            # This is similar to the planetary boundary approach
+                            # This uses the same approach as the planetary boundary calculation
                             country_cumulative_emissions = row[f'Latest_cumulative_CO2_emissions_Mt_{emissions_scope}']
                             allocated_budget = country_budget + country_cumulative_emissions  # This is the positive budget they should have had
                             
                             # Find the exact year when cumulative emissions exceeded the allocated budget
-                            # We need to access the historical emissions data for this country
-                            # For now, use a more accurate calculation based on their current emissions rate
+                            # Use the same approach as the planetary boundary calculation
                             if allocated_budget > 0:
-                                # Calculate when they should have reached zero emissions
-                                # If they have X Mt budget and emit Y Mt/year, they should reach zero in X/Y years
-                                # But since they've already overshot, this happened in the past
-                                # Use a more sophisticated approach: find when cumulative emissions = allocated budget
-                                years_overshot = int(round((country_cumulative_emissions - allocated_budget) / latest_annual))
-                                overshoot_year = latest_year - years_overshot
+                                # Get historical emissions data for this country, excluding 2050 (which has NaN values)
+                                latest_emissions_year = 2023 if emissions_scope == 'Territory' else 2022
+                                country_historical = combined_df[
+                                    (combined_df['ISO2'] == row['ISO2']) & 
+                                    (combined_df['Emissions_scope'] == emissions_scope) &
+                                    (combined_df['Cumulative_CO2_emissions_Mt'].notna()) &
+                                    (combined_df['Year'] <= latest_emissions_year) &
+                                    (combined_df['Year'] != 2050)  # Exclude 2050 which has NaN values
+                                ].sort_values('Year')
                                 
-                                # Cap at 1970 (earliest year in our data)
-                                if overshoot_year < 1970:
-                                    neutrality_year = 1970
+                                if len(country_historical) > 0:
+                                    # Find the first year when cumulative emissions exceeded the allocated budget
+                                    overshoot_mask = country_historical['Cumulative_CO2_emissions_Mt'] > allocated_budget
+                                    if overshoot_mask.any():
+                                        overshoot_year = country_historical[overshoot_mask]['Year'].iloc[0]
+                                        neutrality_year = overshoot_year
+                                    else:
+                                        # If no overshoot found in historical data, use 1970
+                                        neutrality_year = 1970
                                 else:
-                                    neutrality_year = overshoot_year
+                                    # No historical data available, use 1970
+                                    neutrality_year = 1970
                             else:
                                 # If allocated budget is also negative, they never had a valid budget
                                 neutrality_year = 1970
@@ -610,7 +630,7 @@ for _, row in base_df.iterrows():
                         years_to_neutrality = int(years_to_neutrality)
                     else:
                         years_to_neutrality = "N/A"
-                    if isinstance(neutrality_year, (int, float)) and pd.notna(neutrality_year):
+                    if isinstance(neutrality_year, (int, float)) or (hasattr(neutrality_year, 'dtype') and np.issubdtype(neutrality_year.dtype, np.integer)) and neutrality_year is not None:
                         neutrality_year = int(neutrality_year)
                     else:
                         neutrality_year = "N/A"
