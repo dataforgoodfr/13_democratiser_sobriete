@@ -805,8 +805,11 @@ def create_planetary_boundary_file(iso_mapping, ipcc_regions, eu_g20_mapping):
     # Drop the helper column
     output_df.drop(columns=['has_overshot'], inplace=True)
 
+    # Add Emission_scope column for dashboard filtering
+    output_df['Emission_scope'] = 'Territory'
+
     output_df = output_df[[
-        'Country', 'ISO2', 'Region', 'cumulative_emissions', 'cumulative_population', 
+        'Country', 'ISO2', 'Region', 'Emission_scope', 'cumulative_emissions', 'cumulative_population', 
         'share_of_cumulative_population_1988', 'Country_CO2_budget_Mt_y',
         'Overshoot_year', 'overshoot_year_cumulative_emissions'
     ]]
