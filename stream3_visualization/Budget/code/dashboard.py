@@ -152,8 +152,10 @@ app.layout = html.Div([
     # Visualizations
     html.Div([
         dcc.Graph(id='world-map'),
-        dcc.Graph(id='scenario-comparison-bar'),
-        dcc.Graph(id='emissions-trajectory-line')
+        html.Div([
+            dcc.Graph(id='scenario-comparison-bar', style={'display': 'inline-block', 'width': '49%'}),
+            dcc.Graph(id='emissions-trajectory-line', style={'display': 'inline-block', 'width': '49%'})
+        ])
     ], style={
         'margin': '0 20px',
         'paddingTop': '20px'  # Extra space to account for sticky headers
@@ -366,7 +368,7 @@ def update_map(budget_dist, probability, emissions_scope, selected_country):
     
     # Make map bigger and position it to the left
     fig.update_layout(
-        height=600,  # 1.5x bigger (was ~400px default)
+        height=500,  # Smaller map
         margin={"r": 100, "t": 50, "l": 50, "b": 50},  # More space on right, less on left
         geo=dict(
             projection_scale=1.2  # Slightly zoom in
@@ -380,7 +382,7 @@ def update_map(budget_dist, probability, emissions_scope, selected_country):
             color="#2c3e50"
         ),
         title=dict(
-            font=dict(size=24, color="#f4d03f", weight="bold"),  # Bold, bigger, yellow like top ribbon
+            font=dict(size=20, color="#f4d03f", weight="bold"),  # Bold, smaller, yellow like top ribbon
             x=0.5
         ),
         # Lighter hover box styling
@@ -471,7 +473,7 @@ def update_bar_chart(probability, emissions_scope, selected_country):
             color="#2c3e50"
         ),
         title=dict(
-            font=dict(size=24, color="#f4d03f", weight="bold"),  # Bold, bigger, yellow like top ribbon
+            font=dict(size=20, color="#f4d03f", weight="bold"),  # Bold, smaller, yellow like top ribbon
             x=0.5
         ),
         height=500,
@@ -575,7 +577,7 @@ def update_line_chart(budget_dist, probability, emissions_scope, selected_countr
         ),
         title=dict(
             text=chart_title,
-            font=dict(size=24, color="#f4d03f", weight="bold"),  # Bold, bigger, yellow like top ribbon
+            font=dict(size=20, color="#f4d03f", weight="bold"),  # Bold, smaller, yellow like top ribbon
             x=0.5
         ),
         height=500,
