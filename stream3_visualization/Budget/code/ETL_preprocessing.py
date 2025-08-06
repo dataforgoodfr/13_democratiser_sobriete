@@ -751,6 +751,24 @@ def create_planetary_boundary_file(iso_mapping, ipcc_regions, eu_g20_mapping):
     # --- 3. Calculate Cumulative Values and Budget ---
     pb_final_df.sort_values(['ISO2', 'Year'], inplace=True)
     pb_final_df['cumulative_emissions'] = pb_final_df.groupby('ISO2')['Annual_CO2_emissions_Mt'].cumsum()
+
+    # --- Pre-1970 Stats ---
+    world_emissions = pb_final_df[pb_final_df['ISO2'] == 'WLD']
+    emissions_pre_1970 = world_emissions[world_emissions['Year'] < 1970]['Annual_CO2_emissions_Mt'].sum()
+    total_emissions = world_emissions['Annual_CO2_emissions_Mt'].sum()
+    share_pre_1970 = (emissions_pre_1970 / total_emissions) * 100
+    print(f"\\n--- PRE-1970 EMISSIONS STATS ---")
+    print(f"Total global emissions before 1970: {emissions_pre_1970:,.0f} MtCO2")
+    print(f"Total global emissions up to latest year: {total_emissions:,.0f} MtCO2")
+    print(f"Share of emissions occurring before 1970: {share_pre_1970:.2f}%")
+
+    # --- Country Count Stats ---
+    countries_with_data = pb_df[pb_df['Annual_CO2_emissions_Mt'].notna() & (pb_df['Annual_CO2_emissions_Mt'] > 0)]
+    print(f"Number of countries with emissions data in 1970: {countries_with_data[countries_with_data['Year'] == 1970]['ISO2'].nunique()}")
+    for decade in range(1960, 1890, -10):
+        print(f"Number of countries with emissions data in {decade}: {countries_with_data[countries_with_data['Year'] == decade]['ISO2'].nunique()}")
+    print(f"--- END STATS ---\\n")
+
     pb_final_df['cumulative_population'] = pb_final_df.groupby('ISO2')['Population'].cumsum()
 
     GLOBAL_BUDGET = 830000
