@@ -506,19 +506,46 @@ def main():
     latest_gdp_per_capita = latest_gdp_per_capita.merge(latest_year_gdp, on=['ISO2', 'Emissions_scope', 'Year'], how='inner')
     latest_gdp_per_capita = latest_gdp_per_capita[['ISO2', 'Emissions_scope', 'gdp_per_capita']].copy()
     
-    # Calculate capacity: cumulative population (1970-latest) / square root of latest GDP per capita
+    # COMPREHENSIVE CAPACITY SHARE FIX
+    print("\n=== COMPREHENSIVE CAPACITY SHARE CALCULATION ===")
+    
+    # Step 1: Calculate raw capacity values for individual countries only (exclude aggregates)
+    print("Step 1: Calculating raw capacity values for individual countries...")
     capacity_calc = cum_pop_latest.merge(latest_gdp_per_capita, on=['ISO2', 'Emissions_scope'], how='inner')
+    
+    # Exclude regional and world aggregates from capacity calculations
+    capacity_calc = capacity_calc[~capacity_calc['ISO2'].isin(['WLD', 'EU', 'G20'])].copy()
+    
     capacity_calc['capacity_absolute'] = capacity_calc['Cumulative_population_1970_to_latest'] / np.sqrt(capacity_calc['gdp_per_capita'])
     
     # Handle infinite values and NaN
     capacity_calc.replace([np.inf, -np.inf], np.nan, inplace=True)
-    capacity_calc['capacity_absolute'].fillna(0, inplace=True)
+    capacity_calc['capacity_absolute'] = capacity_calc['capacity_absolute'].fillna(0)
     
-    # Calculate world total capacity by summing individual country capacities
+    print(f"Countries with capacity data before consistency check:")
+    for scope in ['Territory', 'Consumption']:
+        count = len(capacity_calc[capacity_calc['Emissions_scope'] == scope])
+        print(f"  {scope}: {count} countries")
+    
+    # Step 2: Ensure consistent country coverage across both scopes
+    print("\nStep 2: Ensuring consistent country coverage...")
+    territory_countries = set(capacity_calc[capacity_calc['Emissions_scope'] == 'Territory']['ISO2'])
+    consumption_countries = set(capacity_calc[capacity_calc['Emissions_scope'] == 'Consumption']['ISO2'])
+    
+    # Only keep countries that have data for BOTH Territory and Consumption
+    common_countries = territory_countries.intersection(consumption_countries)
+    print(f"  Territory-only countries: {len(territory_countries - consumption_countries)}")
+    print(f"  Consumption-only countries: {len(consumption_countries - territory_countries)}")
+    print(f"  Common countries (kept): {len(common_countries)}")
+    
+    # Filter to keep only common countries
+    capacity_calc = capacity_calc[capacity_calc['ISO2'].isin(common_countries)].copy()
+    
+    # Step 3: Calculate world totals and normalize shares to exactly 1.0
+    print("\nStep 3: Normalizing capacity shares to sum exactly to 1.0...")
     world_capacity_total = capacity_calc.groupby('Emissions_scope')['capacity_absolute'].sum().reset_index()
     world_capacity_total.rename(columns={'capacity_absolute': 'world_total_capacity'}, inplace=True)
     
-    # Calculate share of capacity
     capacity_calc = capacity_calc.merge(world_capacity_total, on='Emissions_scope', how='left')
     capacity_calc['share_of_capacity'] = np.where(
         capacity_calc['world_total_capacity'] > 0,
@@ -526,18 +553,40 @@ def main():
         0
     )
     
-    # Merge capacity shares back to final_df
+    # Verify exact normalization
+    for scope in ['Territory', 'Consumption']:
+        scope_data = capacity_calc[capacity_calc['Emissions_scope'] == scope]
+        current_sum = scope_data['share_of_capacity'].sum()
+        count = len(scope_data)
+        print(f"  {scope}: {count} countries, sum = {current_sum:.10f}")
+        
+        # Ensure exactly 1.0 (handle floating point precision)
+        if current_sum > 0 and abs(current_sum - 1.0) > 1e-10:
+            capacity_calc.loc[capacity_calc['Emissions_scope'] == scope, 'share_of_capacity'] = \
+                capacity_calc.loc[capacity_calc['Emissions_scope'] == scope, 'share_of_capacity'] / current_sum
+            new_sum = capacity_calc[capacity_calc['Emissions_scope'] == scope]['share_of_capacity'].sum()
+            print(f"    Renormalized to: {new_sum:.10f}")
+    
+    # Step 4: Merge capacity shares back to final_df
+    print("\nStep 4: Merging capacity shares back to main dataset...")
     final_df = final_df.merge(
         capacity_calc[['ISO2', 'Emissions_scope', 'share_of_capacity']], 
         on=['ISO2', 'Emissions_scope'], 
         how='left'
     )
     
-    # For world aggregate, set capacity share to 1.0 (sum of all countries)
+    # Step 5: Handle aggregates properly
+    print("\nStep 5: Setting aggregate values...")
+    # World aggregate gets capacity share of 1.0 (represents sum of all countries)
     final_df.loc[final_df['ISO2'] == 'WLD', 'share_of_capacity'] = 1.0
     
-    # Fill NaN values for other aggregates (they don't have capacity shares)
-    final_df['share_of_capacity'].fillna(0, inplace=True)
+    # Regional aggregates (EU, G20) get capacity share of 0 (they don't participate in capacity allocation)
+    final_df.loc[final_df['ISO2'].isin(['EU', 'G20']), 'share_of_capacity'] = 0.0
+    
+    # All other missing values get 0 (countries without GDP data)
+    final_df['share_of_capacity'] = final_df['share_of_capacity'].fillna(0)
+    
+    print("=== END COMPREHENSIVE CAPACITY SHARE CALCULATION ===\n")
     
     # Print verification of new capacity calculation
     print("\n=== New Capacity Calculation Verification ===")

@@ -73,7 +73,7 @@ app.layout = html.Div([
                     'marginBottom': '10px',
                     'fontFamily': 'Arial, sans-serif'
                 }),
-        html.H2("Distributing our remaining global carbon budget to stay within 1.5°C in a fair and inclusive way implies that most developed countries have overshot their budget", 
+        html.H2("Distributing our remaining global carbon budget fairly to stay within 1.5°C implies that most developed countries have overshot their budget", 
                 style={
                     'textAlign': 'center',
                     'color': '#34495e',
@@ -155,11 +155,18 @@ app.layout = html.Div([
         html.Div([
             dcc.Graph(id='scenario-comparison-bar', style={'display': 'inline-block', 'width': '49%'}),
             dcc.Graph(id='emissions-trajectory-line', style={'display': 'inline-block', 'width': '49%'})
-        ])
+        ]),
+        # Top 20 Emitters Charts
+        html.Div([
+            dcc.Graph(id='top-cumulative-emitters', style={'display': 'inline-block', 'width': '49%'}),
+            dcc.Graph(id='top-per-capita-emitters', style={'display': 'inline-block', 'width': '49%'})
+        ], style={'marginTop': '20px'})
     ], style={
         'margin': '0 20px',
         'paddingTop': '20px'  # Extra space to account for sticky headers
     }),
+    
+
     
     # Sources section
     html.Div([
@@ -286,8 +293,8 @@ def update_map(budget_dist, probability, emissions_scope, selected_country):
     all_countries_data['Neutrality_year_numeric'] = pd.to_numeric(all_countries_data['Neutrality_year'], errors='coerce')
     
     # Determine the color range from the full dataset for the scenario
-    color_range_min = all_countries_data['Neutrality_year_numeric'].min()
-    color_range_max = all_countries_data['Neutrality_year_numeric'].max()
+    color_range_min = min(1970, all_countries_data['Neutrality_year_numeric'].min())  # Ensure we start from 1970
+    color_range_max = max(2100, all_countries_data['Neutrality_year_numeric'].max())  # Ensure we go to at least 2100
 
     # Select data for plotting based on dropdown
     if selected_country != 'ALL':
@@ -310,7 +317,7 @@ def update_map(budget_dist, probability, emissions_scope, selected_country):
             "Country_carbon_budget": False,
             "ISO3": False
         },
-        color_continuous_scale="RdYlGn",
+        color_continuous_scale=[[0.0, '#FB8072'], [0.2, '#FDB462'], [0.4, '#FFD558'], [0.6, '#FFFFB3'], [0.8, '#8DD3C7'], [1.0, '#B3DE69']],  # Red for early years (urgent/bad), Green for late years (less urgent/better)
         range_color=[color_range_min, color_range_max],  # Apply consistent color scale
         title="Year by which countries need to reach Zero Carbon by Scenario",
         labels={
@@ -339,7 +346,19 @@ def update_map(budget_dist, probability, emissions_scope, selected_country):
             'Neutrality_year', 'Years_to_neutrality_from_today',
             'Latest_annual_CO2_emissions_Mt', 'Latest_cumulative_CO2_emissions_Mt',
             'Latest_emissions_per_capita_t', 'Country_carbon_budget'
-        ]].values
+        ]].values,
+        # Position colorbar to the left of centered map
+        colorbar=dict(
+            x=0.05,  # Position to the left but within the centered layout
+            xanchor="left",
+            thickness=15,
+            len=0.7,  # Shorter colorbar to create more space
+            title=dict(
+                text="Neutrality Year",
+                font=dict(size=14, color="#2c3e50"),
+                side="top"
+            )
+        )
     )
     
     # Ensure grey (no data) countries also have white borders
@@ -351,7 +370,11 @@ def update_map(budget_dist, probability, emissions_scope, selected_country):
         bgcolor='white',  # Background color of the map area
         landcolor='lightgray',  # Color for countries with no data
         framecolor='white',  # Frame color
-        showlakes=False  # Hide lakes for cleaner look
+        showlakes=False,  # Hide lakes for cleaner look
+        # Center map more north and adjust bounds to crop Antarctica
+        center=dict(lat=20, lon=0),  # Center more north
+        lataxis_range=[-60, 80],  # Crop Antarctica (bottom) but keep Arctic
+        lonaxis_range=[-180, 180]
     )
     
     # Also update layout to ensure consistent white borders for all countries
@@ -362,16 +385,20 @@ def update_map(budget_dist, probability, emissions_scope, selected_country):
             showocean=True,
             oceancolor='white',
             showlakes=False,
-            showrivers=False
+            showrivers=False,
+            # Center map more north and adjust bounds to crop Antarctica
+            center=dict(lat=20, lon=0),  # Center more north
+            lataxis_range=[-60, 80],  # Crop Antarctica (bottom) but keep Arctic
+            lonaxis_range=[-180, 180]
         )
     )
     
-    # Make map bigger and position it to the left
+    # Make map bigger, wider, and center it properly
     fig.update_layout(
-        height=500,  # Smaller map
-        margin={"r": 100, "t": 50, "l": 50, "b": 50},  # More space on right, less on left
+        height=550,  # Slightly taller
+        margin={"r": 150, "t": 80, "l": 150, "b": 50},  # Increased top margin to give more space for colorbar title
         geo=dict(
-            projection_scale=1.2  # Slightly zoom in
+            projection_scale=1.0  # Less zoom to show more countries
         ),
         # Style to match World Sufficiency Lab theme
         paper_bgcolor='#ffffff',  # Clean white background
@@ -399,69 +426,117 @@ def update_map(budget_dist, probability, emissions_scope, selected_country):
 @app.callback(
     Output('scenario-comparison-bar', 'figure'),
     [Input('probability-dropdown', 'value'),
-     Input('emissions-scope-dropdown', 'value'),
      Input('country-dropdown', 'value')]
 )
-def update_bar_chart(probability, emissions_scope, selected_country):
-    # Filter data based on dropdown selections
+def update_bar_chart(probability, selected_country):
+    # Use selected probability and 1.5°C
     filtered_data = scenario_parameters[
         (scenario_parameters['Probability_of_reach'] == probability) &
-        (scenario_parameters['Emissions_scope'] == emissions_scope) &
         (scenario_parameters['Warming_scenario'] == '1.5°C')
     ].copy()
     
     # Apply country filter
     if selected_country != 'ALL':
         filtered_data = filtered_data[filtered_data['ISO2'] == selected_country]
-        chart_title = f'Years to Neutrality by CO2 Budget Distribution Scenario - {filtered_data.iloc[0]["Country"] if len(filtered_data) > 0 else selected_country}'
+        chart_title = f'Neutrality Year by Budget Distribution Scenario'
     else:
         # Exclude aggregates for global analysis
         filtered_data = filtered_data[~filtered_data['ISO2'].isin(['WLD', 'EU', 'G20'])]
-        chart_title = 'Years to Neutrality by Global CO2 Budget Distribution Scenario'
+        chart_title = f'Neutrality Year by Budget Distribution Scenario - Global'
 
-    # Convert 'Years_to_neutrality_from_today' to numeric, coercing errors
-    filtered_data['Years_to_neutrality_numeric'] = pd.to_numeric(filtered_data['Years_to_neutrality_from_today'], errors='coerce')
-
+    # Convert 'Neutrality_year' to numeric
+    filtered_data['Neutrality_year_numeric'] = pd.to_numeric(filtered_data['Neutrality_year'], errors='coerce')
+    
+    # Create scenario-scope combinations for x-axis
+    filtered_data['Scenario_Scope'] = filtered_data['Budget_distribution_scenario'] + ' - ' + filtered_data['Emissions_scope']
+    
+    # Define the desired order (NDC Pledges only has Territory)
+    scenario_order = [
+        'NDC Pledges - Territory',
+        'Capacity - Territory',
+        'Capacity - Consumption', 
+        'Responsibility - Territory',
+        'Responsibility - Consumption'
+    ]
+    
+    # Color scheme - Territory vs Consumption
+    color_map = {
+        'Territory': '#80B1D3',    # Light blue
+        'Consumption': '#FB8072'   # Light red
+    }
+    
+    # Filter out Population - only show NDC Pledges, Responsibility, Capacity
+    filtered_data = filtered_data[filtered_data['Budget_distribution_scenario'].isin(['NDC Pledges', 'Responsibility', 'Capacity'])]
+    
     if selected_country != 'ALL':
         # For single country, show individual scenario values
+        # Create bar heights from 2025 baseline
+        filtered_data['bar_height'] = filtered_data['Neutrality_year_numeric'] - 2025
+        
         fig = px.bar(
             filtered_data,
-            x='Budget_distribution_scenario',
-            y='Years_to_neutrality_numeric',
+            x='Scenario_Scope',
+            y='bar_height',
             title=chart_title,
-            labels={'Years_to_neutrality_numeric': 'Years to Neutrality'},
-            color_discrete_sequence=['#f39c12']  # World Sufficiency Lab orange accent
+            labels={'bar_height': 'Years from 2025', 'Scenario_Scope': 'Budget Distribution Scenario'},
+            color='Emissions_scope',
+            color_discrete_map=color_map,
+            category_orders={'Scenario_Scope': scenario_order}
         )
         
-        # Add consistent styling to match theme
-        fig.update_layout(
-            paper_bgcolor='#ffffff',  # Clean white background
-            plot_bgcolor='#ffffff',
-            font=dict(
-                family="Arial, sans-serif",
-                size=12,
-                color="#2c3e50"
-            ),
-            title=dict(
-                font=dict(size=24, color="#f4d03f", weight="bold"),  # Bold, bigger, yellow like top ribbon
-                x=0.5
-            ),
-            height=500
-        )
+        # Manually set the base to 2025
+        fig.update_traces(base=2025)
+        
+        # Remove hover data - just show scenario name
+        fig.update_traces(hovertemplate="<b>%{x}</b><extra></extra>")
+        
+        # Add text labels on top of bars showing the neutrality year
+        for i, row in filtered_data.iterrows():
+            fig.add_annotation(
+                x=row['Scenario_Scope'],
+                y=row['Neutrality_year_numeric'],
+                text=str(int(row['Neutrality_year_numeric'])),
+                showarrow=False,
+                font=dict(size=11, color="black", weight="bold"),
+                yshift=15,  # More space above the bar
+                xanchor="center",  # Center the text horizontally
+                yanchor="bottom"   # Anchor text at bottom so it sits above the bar
+            )
+        
     else:
         # For all countries, show min, max, mean
-        summary_data = filtered_data.groupby('Budget_distribution_scenario')['Years_to_neutrality_numeric'].agg(['min', 'max', 'mean']).reset_index()
+        summary_data = filtered_data.groupby('Scenario_Scope')['Neutrality_year_numeric'].agg(['min', 'max', 'mean']).reset_index()
+        
+        # Add emissions scope for coloring
+        summary_data['Emissions_scope'] = summary_data['Scenario_Scope'].apply(lambda x: x.split(' - ')[1])
+        
+        # Create bar heights from 2025 baseline
+        summary_data['bar_height'] = summary_data['mean'] - 2025
+        summary_data['error_y_adj'] = summary_data['max'] - summary_data['mean']
+        summary_data['error_y_minus_adj'] = summary_data['mean'] - summary_data['min']
         
         fig = px.bar(
             summary_data,
-            x='Budget_distribution_scenario',
-            y='mean',
-            error_y=summary_data['max'] - summary_data['mean'],
-            error_y_minus=summary_data['mean'] - summary_data['min'],
+            x='Scenario_Scope',
+            y='bar_height',
+            error_y='error_y_adj',
+            error_y_minus='error_y_minus_adj',
             title=chart_title,
-            labels={'mean': 'Average Years to Neutrality'},
-            color_discrete_sequence=['#f39c12']  # World Sufficiency Lab orange accent
+            labels={'bar_height': 'Years from 2025', 'Scenario_Scope': 'Budget Distribution Scenario'},
+            color='Emissions_scope',
+            color_discrete_map=color_map,
+            category_orders={'Scenario_Scope': scenario_order}
         )
+        
+        # Manually set the base to 2025
+        fig.update_traces(base=2025)
+        
+        # Remove hover data - just show scenario name
+        fig.update_traces(hovertemplate="<b>%{x}</b><extra></extra>")
+    
+    # Add horizontal line at 2025 (current year baseline)
+    fig.add_hline(y=2025, line_dash="dash", line_color="black", line_width=2, 
+                  annotation_text="2025", annotation_position="right")
     
     # Add consistent styling to match theme
     fig.update_layout(
@@ -469,7 +544,7 @@ def update_bar_chart(probability, emissions_scope, selected_country):
         plot_bgcolor='#ffffff',
         font=dict(
             family="Arial, sans-serif",
-            size=12,
+            size=14,  # Increased from 12 to 14
             color="#2c3e50"
         ),
         title=dict(
@@ -477,24 +552,105 @@ def update_bar_chart(probability, emissions_scope, selected_country):
             x=0.5
         ),
         height=500,
-        yaxis_title="Average, Minimum and Maximum Years to Neutrality",
-        xaxis_title=None
-    )
+        margin=dict(t=80, b=100, l=60, r=60),  # More bottom margin for note, reduced right margin
+        showlegend=False,  # Remove legend
+        yaxis=dict(
+            title=None,  # Remove Y axis title
+            range=[1950, 2110],  # Extended range to accommodate labels below 1970
+            tickmode='linear',
+            tick0=1970,
+            dtick=20  # Show ticks every 20 years for better spacing
+        ),
+        xaxis_title=None,
+        xaxis=dict(
+            tickangle=0,  # Horizontal labels
+            tickmode='array',
+            tickvals=['NDC Pledges - Territory', 'Capacity - Territory', 'Capacity - Consumption', 'Responsibility - Territory', 'Responsibility - Consumption'],
+            ticktext=['', '', '', '', ''],  # Remove default tick labels
+            tickfont=dict(size=12),
+            side='bottom'  # Put emissions scope labels below bars
+        )
+            )
     
-    # Update hover template
+    # Add emissions scope labels at y=1965
+    emissions_scope_labels = [
+        (0, 'Territory'),      # NDC Pledges - Territory
+        (1, 'Territory'),      # Capacity - Territory
+        (2, 'Consumption'),    # Capacity - Consumption
+        (3, 'Territory'),      # Responsibility - Territory
+        (4, 'Consumption')     # Responsibility - Consumption
+    ]
+    
+    for pos, label in emissions_scope_labels:
+        fig.add_annotation(
+            x=pos,
+            y=1960,  # Emissions scope labels at 1960
+            text=label,
+            showarrow=False,
+            font=dict(size=12, color="#2c3e50"),
+            xref="x",
+            yref="y",
+            xanchor="center",
+            yanchor="bottom"
+        )
+    
+    # Add scenario group labels at the bottom
+    scenario_groups = [
+        ('NDC Pledges', 0, 0),      # Single bar for NDC Pledges
+        ('Capacity', 1, 2),          # Two bars for Capacity
+        ('Responsibility', 3, 4)     # Two bars for Responsibility
+    ]
+    
+    for group_name, start_pos, end_pos in scenario_groups:
+        center_pos = (start_pos + end_pos) / 2
+        
+        # Add visual line connecting bars in the same group (like in the drawing)
+        # Now include NDC Pledges with a single bar line
+        fig.add_shape(
+            type="line",
+            x0=start_pos-0.1, y0=1955,  # Lines at 1955
+            x1=end_pos+0.1, y1=1955,    # Lines at 1955
+            line=dict(color="#2c3e50", width=2),  # Thinner line
+            xref="x", yref="y"
+        )
+        
+        fig.add_annotation(
+            x=center_pos,
+            y=1950,  # Budget distribution labels at the bottom
+            text=f"<b>{group_name}</b>",
+            showarrow=False,
+            font=dict(size=12, color="#2c3e50"),
+            xref="x",
+            yref="y",
+            xanchor="center",
+            yanchor="top"
+        )
+    
+    # Add explanation text for min/max bars as a note below the chart (only for global view)
     if selected_country == 'ALL':
-        fig.update_traces(
-            hovertemplate="<b>%{x}</b><br><br>" +
-                          "Average Years to Neutrality = %{y:.0f}<br>" +
-                          "Maximum Years to Neutrality = %{customdata[0]:.0f}<br>" +
-                          "Minimum Years to Neutrality = %{customdata[1]:.0f}<extra></extra>",
-            customdata=summary_data[['max', 'min']].values
+        fig.add_annotation(
+            text="Note: Min/Max bars show the range of neutrality years across all countries in each scenario",
+            xref="paper", yref="paper",
+            x=0.5, y=-0.15,  # Centered below the chart
+            xanchor="center", yanchor="top",
+            showarrow=False,
+            font=dict(size=12, color="#2c3e50", weight="bold"),
+            bgcolor="rgba(255,255,255,0.95)"
         )
-    else:
-        fig.update_traces(
-            hovertemplate="<b>%{x}</b><br><br>" +
-                          "Years to Neutrality = %{y:.0f}<extra></extra>"
-        )
+    
+    # For global view, add text labels on bars showing average neutrality year
+    if selected_country == 'ALL':
+        for i, row in summary_data.iterrows():
+            fig.add_annotation(
+                x=row['Scenario_Scope'],
+                y=row['max'],  # Position above the error bar (max value)
+                text=str(int(row['mean'])),
+                showarrow=False,
+                font=dict(size=11, color="black", weight="bold"),
+                yshift=20,  # More space above error bars
+                xanchor="center",
+                yanchor="bottom"
+            )
     
     return fig
 
@@ -510,11 +666,11 @@ def update_line_chart(budget_dist, probability, emissions_scope, selected_countr
     # Determine which country/region to show
     if selected_country == 'ALL':
         target_iso = 'WLD'
-        chart_title = 'Global Historical CO2 Emissions (Mt) and Required Trajectory by Scenario'
+        chart_title = 'Historical CO2 Emissions (Mt) and Required Trajectory by Scenario'
     else:
         target_iso = selected_country
         country_name = scenario_parameters[scenario_parameters['ISO2'] == selected_country]['Country'].iloc[0] if len(scenario_parameters[scenario_parameters['ISO2'] == selected_country]) > 0 else selected_country
-        chart_title = f'{country_name} - Historical CO2 Emissions (Mt) and Required Trajectory by Scenario'
+        chart_title = f'Historical CO2 Emissions (Mt) and Required Trajectory by Scenario'
     
     # Filter historical data (exclude 2050 as it's only for population data)
     hist_data = historical_data[
@@ -550,7 +706,7 @@ def update_line_chart(budget_dist, probability, emissions_scope, selected_countr
             y=hist_data['Annual_CO2_emissions_Mt'],
             mode='lines',
             name='Historical Emissions',
-            line=dict(color='#3498db', width=3)  # Nice blue color, thicker line
+            line=dict(color='#8DD3C7', width=3)  # Cyan from palette as requested
         ))
 
     # Forecasted emissions
@@ -560,19 +716,19 @@ def update_line_chart(budget_dist, probability, emissions_scope, selected_countr
             y=forecast_country['Forecasted_emissions_Mt'],
             mode='lines',
             name='Required Trajectory',
-            line=dict(dash='dash', color='#e74c3c', width=3)  # Nice red color, thicker line
+            line=dict(dash='dash', color='#FDB462', width=3)  # Orange from palette, different from bar chart
         ))
     
     fig.update_layout(
-        xaxis_title='Year',
-        yaxis_title='CO2 Emissions (Mt)',
+        xaxis_title=None,
+        yaxis_title=None,  # Remove Y axis title
         hovermode='x unified',
         # Add consistent styling to match theme
         paper_bgcolor='#ffffff',  # Clean white background
         plot_bgcolor='#ffffff',
         font=dict(
             family="Arial, sans-serif",
-            size=12,
+            size=14,  # Increased from 12 to 14
             color="#2c3e50"
         ),
         title=dict(
@@ -581,12 +737,21 @@ def update_line_chart(budget_dist, probability, emissions_scope, selected_countr
             x=0.5
         ),
         height=500,
+        margin=dict(t=80, b=50, l=60, r=60),  # Match the top margin of the bar chart
+        # Position legend to overlap at 2080-2100 years area
+        legend=dict(
+            x=0.75,  # Position at around 2080 area (75% of chart width)
+            y=0.95,  # Top of chart
+            xanchor="left",
+            yanchor="top",
+            bgcolor="rgba(255,255,255,0.8)"
+        ),
         # Style the grid with fixed range
         xaxis=dict(
             gridcolor='rgba(200,200,200,0.3)',  # Light gray grid on white background
             showgrid=True,
             range=[1970, 2100],  # Fixed x-axis range from 1970 to 2100
-            title='Year'
+            title=None
         ),
         yaxis=dict(
             gridcolor='rgba(200,200,200,0.3)',  # Light gray grid on white background
@@ -621,5 +786,200 @@ def update_country_from_map(clickData):
     return dash.no_update
 
 
+# Callback for Top 20 Cumulative Emitters Chart
+@app.callback(
+    Output('top-cumulative-emitters', 'figure'),
+    [Input('country-dropdown', 'value'),
+     Input('emissions-scope-dropdown', 'value')]
+)
+def update_top_cumulative_emitters(selected_country, selected_scope):
+    try:
+        # Filter data by emissions scope
+        filtered_data = historical_data[historical_data['Emissions_scope'] == selected_scope].copy()
+        
+        # Get latest year data for each country (exclude aggregates)
+        filtered_data = filtered_data[~filtered_data['ISO2'].isin(['WLD', 'EU', 'G20'])]
+        
+        # Remove rows with missing data
+        filtered_data = filtered_data.dropna(subset=['ISO2', 'Year', 'Cumulative_CO2_emissions_Mt'])
+        
+        if filtered_data.empty:
+            # Return empty chart if no data
+            fig = px.bar(title=f'No data available for {selected_scope}')
+            return fig
+        
+        # Get the latest year for each country safely
+        latest_indices = filtered_data.groupby('ISO2')['Year'].idxmax()
+        latest_data = filtered_data.loc[latest_indices].copy()
+        
+        # Calculate share of cumulative emissions
+        # Get world total cumulative emissions for the same scope and year
+        world_data = historical_data[
+            (historical_data['Emissions_scope'] == selected_scope) & 
+            (historical_data['ISO2'] == 'WLD') &
+            (historical_data['Cumulative_CO2_emissions_Mt'] > 0)  # Only non-zero emissions
+        ]
+        if not world_data.empty:
+            # Get the latest year with actual emissions data
+            world_latest = world_data.loc[world_data['Year'].idxmax()]
+            world_total = world_latest['Cumulative_CO2_emissions_Mt']
+            if world_total > 0:
+                latest_data['Share_of_cumulative_emissions'] = latest_data['Cumulative_CO2_emissions_Mt'] / world_total
+            else:
+                latest_data['Share_of_cumulative_emissions'] = 0
+        else:
+            latest_data['Share_of_cumulative_emissions'] = 0
+        
+        # Remove countries with zero or negative emissions
+        latest_data = latest_data[latest_data['Share_of_cumulative_emissions'] > 0]
+        
+        # Sort by share of cumulative emissions and get top 20
+        top_20 = latest_data.nlargest(20, 'Share_of_cumulative_emissions')
+        
+        if top_20.empty:
+            # Return empty chart if no data
+            fig = px.bar(title=f'No emission data available for {selected_scope}')
+            return fig
+        
+        # Highlight selected country if it exists in top 20 (using colors from your palette)
+        colors = ['#FB8072' if country == selected_country else '#80B1D3' for country in top_20['ISO2']]
+        
+        # Convert to percentage for display
+        top_20_display = top_20.copy()
+        top_20_display['Share_of_cumulative_emissions_pct'] = top_20_display['Share_of_cumulative_emissions'] * 100
+        
+        fig = px.bar(
+            top_20_display,
+            x='Share_of_cumulative_emissions_pct',
+            y='Country',
+            orientation='h',
+            color_discrete_sequence=colors,
+            title='Top 20 Countries by Share of Cumulative CO2 Emissions since 1970 - %'
+        )
+        
+        # Update traces for better hover formatting
+        fig.update_traces(
+            hovertemplate="<b>%{y}</b><br>" +
+                         "Share of Cumulative Emissions = %{x:.1f}%<br>" +
+                         "<extra></extra>"
+        )
+        
+        # Add spacing between bars and y-axis labels
+        fig.update_layout(bargap=0.3)
+    except Exception as e:
+        # Return error chart if something goes wrong
+        fig = px.bar(title=f'Error loading data: {str(e)}')
+        return fig
+    
+    fig.update_layout(
+        height=600,
+        paper_bgcolor='#ffffff',
+        plot_bgcolor='#ffffff', 
+        font=dict(
+            family="Arial, sans-serif",
+            size=14,
+            color="#2c3e50"
+        ),
+        title=dict(
+            font=dict(size=20, color="#f4d03f", weight="bold"),
+            x=0.5
+        ),
+        showlegend=False,
+        yaxis={'categoryorder': 'total ascending', 'title': None, 'ticklabelstep': 1, 'tickmode': 'auto', 'ticklabelposition': 'outside', 'tickangle': 0, 'tickfont': {'size': 12}},
+        xaxis={'title': None, 'ticksuffix': '%'},
+        margin=dict(l=200, r=100, t=80, b=50, pad=10)  # Increased left margin for more spacing
+    )
+    
+    return fig
+
+
+# Callback for Top 20 Per Capita Emitters Chart
+@app.callback(
+    Output('top-per-capita-emitters', 'figure'),
+    [Input('country-dropdown', 'value'),
+     Input('emissions-scope-dropdown', 'value')]
+)
+def update_top_per_capita_emitters(selected_country, selected_scope):
+    try:
+        # Filter data by emissions scope
+        filtered_data = historical_data[historical_data['Emissions_scope'] == selected_scope].copy()
+        
+        # Get latest year data for each country (exclude aggregates)
+        filtered_data = filtered_data[~filtered_data['ISO2'].isin(['WLD', 'EU', 'G20'])]
+        
+        # Remove rows with missing data
+        filtered_data = filtered_data.dropna(subset=['ISO2', 'Year', 'Emissions_per_capita_ton'])
+        
+        if filtered_data.empty:
+            # Return empty chart if no data
+            fig = px.bar(title=f'No data available for {selected_scope}')
+            return fig
+        
+        # Get the latest year for each country safely
+        latest_indices = filtered_data.groupby('ISO2')['Year'].idxmax()
+        latest_data = filtered_data.loc[latest_indices].copy()
+        
+        # Remove countries with zero or negative emissions per capita
+        latest_data = latest_data[latest_data['Emissions_per_capita_ton'] > 0]
+        
+        if latest_data.empty:
+            # Return empty chart if no valid data
+            fig = px.bar(title=f'No emission data available for {selected_scope}')
+            return fig
+        
+        # Sort by emissions per capita and get top 20
+        top_20 = latest_data.nlargest(20, 'Emissions_per_capita_ton')
+        
+        # Highlight selected country if it exists in top 20 (using colors from your palette)
+        colors = ['#FB8072' if country == selected_country else '#B3DE69' for country in top_20['ISO2']]
+        
+        fig = px.bar(
+            top_20,
+            x='Emissions_per_capita_ton',
+            y='Country',
+            orientation='h',
+            color_discrete_sequence=colors,
+            title='Top 20 Countries by CO2 Emissions Per Capita - Tons'
+        )
+        
+        # Update traces for better hover formatting
+        fig.update_traces(
+            hovertemplate="<b>%{y}</b><br>" +
+                         "CO2 Emissions Per Capita = %{x:.1f} tons<br>" +
+                         "<extra></extra>"
+        )
+        
+        # Add spacing between bars and y-axis labels
+        fig.update_layout(bargap=0.3)
+    except Exception as e:
+        # Return error chart if something goes wrong
+        fig = px.bar(title=f'Error loading data: {str(e)}')
+        return fig
+    
+    fig.update_layout(
+        height=600,
+        paper_bgcolor='#ffffff',
+        plot_bgcolor='#ffffff', 
+        font=dict(
+            family="Arial, sans-serif",
+            size=14,
+            color="#2c3e50"
+        ),
+        title=dict(
+            font=dict(size=20, color="#f4d03f", weight="bold"),
+            x=0.5
+        ),
+        showlegend=False,
+        yaxis={'categoryorder': 'total ascending', 'title': None, 'ticklabelstep': 1, 'tickmode': 'auto', 'ticklabelposition': 'outside', 'tickangle': 0, 'tickfont': {'size': 12}},
+        xaxis={'title': None},
+        margin=dict(l=200, r=100, t=80, b=50, pad=10)  # Increased left margin for more spacing
+    )
+    
+    return fig
+
+
+# For gunicorn deployment
+server = app.server
+
 if __name__ == '__main__':
-    app.run(debug=True, port=8057)
+    app.run(debug=True, port=8058)
