@@ -1,8 +1,7 @@
 pandas==2.2.2
 numpy==1.26.4
-sqlalchemy==2.0.30
 openpyxl==3.1.2
-psycopg2-binary==2.9.9
 dash==2.17.0
 plotly==5.22.0
-gunicorn==22.0.0
+uvicorn==0.27.1
+asgiref==3.7.2

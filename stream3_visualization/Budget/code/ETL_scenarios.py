@@ -73,8 +73,8 @@ def load_current_targets():
 
         if pd.notna(iso) and pd.notna(target_year):
             # Handle special case for NGA
-            if iso == 'NGA' and target_year == '2050-2070':
-                target_year = 2070
+            if iso == 'NGA':
+                target_year = 2060
             elif isinstance(target_year, str):
                 try:
                     target_year = int(target_year)
@@ -92,6 +92,21 @@ def load_current_targets():
                     target_mapping[iso2_code[0]] = int(target_year)
                 else:
                     print(f"Warning: ISO3 code {iso} not found in ISO mapping.")
+
+    # Add manual entries for specific countries
+    # Mexico (MEX) - 2050
+    mexico_iso2 = iso_mapping[iso_mapping['ISO3'] == 'MEX']['ISO2'].values
+    if len(mexico_iso2) > 0:
+        target_mapping[mexico_iso2[0]] = 2050
+    else:
+        print("Warning: MEX not found in ISO mapping.")
+    
+    # Ethiopia (ETH) - 2050
+    ethiopia_iso2 = iso_mapping[iso_mapping['ISO3'] == 'ETH']['ISO2'].values
+    if len(ethiopia_iso2) > 0:
+        target_mapping[ethiopia_iso2[0]] = 2050
+    else:
+        print("Warning: ETH not found in ISO mapping.")
 
     return target_mapping
 
