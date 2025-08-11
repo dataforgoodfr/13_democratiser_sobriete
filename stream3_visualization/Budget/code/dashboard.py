@@ -146,7 +146,10 @@ app.layout = html.Div([
                 html.Label("Scope of Emissions", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
                 dcc.Dropdown(
                     id='emissions-scope-dropdown',
-                    options=[{'label': i, 'value': i} for i in scenario_parameters['Emissions_scope'].unique()],
+                    options=[
+                        {'label': 'Territorial', 'value': 'Territory'},
+                        {'label': 'Consumption-based', 'value': 'Consumption'}
+                    ],
                     value='Territory',
                     style={'marginTop': '8px'},
                     clearable=False
@@ -215,12 +218,12 @@ app.layout = html.Div([
                 'fontWeight': 'bold',
                 'marginBottom': '10px'
             }),
-            html.P("Historical CO2 emissions from 1970 to 2022 for Consumption and from 1970 to 2023 for Territory:", style={
+            html.P("Historical CO2 emissions from 1970 to 2022 for Consumption-based and from 1970 to 2023 for Territorial:", style={
                 'marginBottom': '10px',
                 'lineHeight': '1.6'
             }),
             html.P([
-                html.Strong("Territory: "),
+                html.Strong("Territorial: "),
                 "Andrew, R. M., & Peters, G. P. (2024). The Global Carbon Project's fossil CO2 emissions dataset (2024v18) [Data set]. Zenodo. ",
                 html.A("https://doi.org/10.5281/zenodo.14106218", 
                        href="https://doi.org/10.5281/zenodo.14106218", 
@@ -242,7 +245,7 @@ app.layout = html.Div([
                 'fontWeight': 'bold',
                 'marginBottom': '10px'
             }),
-            html.P("Budget distribution definitions and calculations of neutrality year, years to neutrality and emissions trajectories made by the World Sufficiency Lab based on:", style={
+            html.P("Budget distribution definitions and calculations of zero carbon year, years to zero carbon and emissions trajectories made by the World Sufficiency Lab based on:", style={
                 'marginBottom': '10px',
                 'lineHeight': '1.6'
             }),
@@ -353,11 +356,11 @@ def update_map(budget_dist, probability, emissions_scope, selected_country, g20_
         },
         color_continuous_scale=[[0.0, '#8B0000'], [0.1, '#DC143C'], [0.2, '#FB8072'], [0.4, '#FDB462'], [0.6, '#FFFFB3'], [0.8, '#8DD3C7'], [1.0, '#B3DE69']],  # Dark red for 1980s, red for early years, Green for late years
         range_color=[color_range_min, color_range_max],  # Apply consistent color scale
-        title="Year by which countries need to reach Zero Carbon by Scenario",
+                    title="Zero Carbon Timeline: Countries' Legal Obligations Under the ICJ July 2025 Ruling",
         labels={
-            'Neutrality_year_numeric': 'Neutrality Year',
-            'Neutrality_year': 'Neutrality Year',
-            'Years_to_neutrality_from_today': 'Years from Today',
+                          'Neutrality_year_numeric': 'Zero Carbon Year',
+                          'Neutrality_year': 'Zero Carbon Year',
+            'Years_to_neutrality_from_today': 'Years to Zero Carbon',
             'Latest_annual_CO2_emissions_Mt': 'Annual Emissions (Mt)',
             'Latest_cumulative_CO2_emissions_Mt': 'Cumulative Emissions (Mt)',
             'Latest_emissions_per_capita_t': 'Emissions Per Capita (tonnes)',
@@ -370,8 +373,8 @@ def update_map(budget_dist, probability, emissions_scope, selected_country, g20_
         marker_line_color="white",
         marker_line_width=0.5,
         hovertemplate="<b>%{hovertext}</b><br>" +
-                     "Neutrality Year = %{customdata[0]}<br>" +
-                     "Years from Today = %{customdata[1]}<br>" +
+                     "Zero Carbon Year = %{customdata[0]}<br>" +
+                     "Years to Zero Carbon = %{customdata[1]}<br>" +
                      "Annual Emissions (Mt) = %{customdata[2]:.1f}<br>" +
                      "Cumulative Emissions (Mt) = %{customdata[3]:.1f}<br>" +
                      "Emissions Per Capita (tonnes) = %{customdata[4]:.2f}<br>" +
@@ -388,7 +391,7 @@ def update_map(budget_dist, probability, emissions_scope, selected_country, g20_
             thickness=15,
             len=0.7,  # Shorter colorbar to create more space
             title=dict(
-                text="Neutrality Year",
+                text="Zero Carbon Year",
                 font=dict(size=14, color="#2c3e50"),
                 side="top"
             )
@@ -427,7 +430,7 @@ def update_map(budget_dist, probability, emissions_scope, selected_country, g20_
         )
     )
     
-    # Make map bigger, wider, and center it properly
+            # Make map bigger, wider, and center it properly
     fig.update_layout(
         height=550,  # Slightly taller
         margin={"r": 150, "t": 80, "l": 150, "b": 50},  # Increased top margin to give more space for colorbar title
@@ -443,7 +446,7 @@ def update_map(budget_dist, probability, emissions_scope, selected_country, g20_
             color="#2c3e50"
         ),
         title=dict(
-            font=dict(size=20, color="#f4d03f", weight="bold"),  # Bold, smaller, yellow like top ribbon
+            font=dict(size=16, color="#f4d03f", weight="bold"),  # Bold, smaller, yellow like top ribbon
             x=0.5
         ),
         # Lighter hover box styling
@@ -474,14 +477,14 @@ def update_bar_chart(probability, selected_country, g20_filter):
     if g20_filter == 'Yes':
         # When G20 filter is active, show only G20 countries (individual countries, not aggregate)
         filtered_data = filtered_data[filtered_data['ISO2'].isin(G20_COUNTRIES)]
-        chart_title = f'Neutrality Year by Budget Distribution Scenario - G20 Countries'
+        chart_title = f'Zero Carbon Timeline by Budget Distribution Scenario - G20 Countries'
     elif selected_country != 'ALL':
         filtered_data = filtered_data[filtered_data['ISO2'] == selected_country]
-        chart_title = f'Neutrality Year by Budget Distribution Scenario'
+        chart_title = f'Zero Carbon Timeline by Budget Distribution Scenario'
     else:
         # For "All Countries" without G20 filter, use WLD aggregate data
         filtered_data = filtered_data[~filtered_data['ISO2'].isin(['WLD', 'EU', 'G20'])]
-        chart_title = f'Neutrality Year by Budget Distribution Scenario - Global'
+        chart_title = f'Zero Carbon Timeline by Budget Distribution Scenario - Global'
 
     # Convert 'Neutrality_year' to numeric
     filtered_data['Neutrality_year_numeric'] = pd.to_numeric(filtered_data['Neutrality_year'], errors='coerce')
@@ -529,7 +532,7 @@ def update_bar_chart(probability, selected_country, g20_filter):
         # Remove hover data - just show scenario name
         fig.update_traces(hovertemplate="<b>%{x}</b><extra></extra>")
         
-        # Add text labels on top of bars showing the neutrality year
+        # Add text labels on top of bars showing the zero carbon year
         for i, row in filtered_data.iterrows():
             fig.add_annotation(
                 x=row['Scenario_Scope'],
@@ -628,7 +631,7 @@ def update_bar_chart(probability, selected_country, g20_filter):
             color="#2c3e50"
         ),
         title=dict(
-            font=dict(size=20, color="#f4d03f", weight="bold"),  # Bold, smaller, yellow like top ribbon
+            font=dict(size=16, color="#f4d03f", weight="bold"),  # Bold, smaller, yellow like top ribbon
             x=0.5
         ),
         height=500,
@@ -654,11 +657,11 @@ def update_bar_chart(probability, selected_country, g20_filter):
     
     # Add emissions scope labels at y=1965
     emissions_scope_labels = [
-        (0, 'Territory'),      # NDC Pledges - Territory
-        (1, 'Territory'),      # Capacity - Territory
-        (2, 'Consumption'),    # Capacity - Consumption
-        (3, 'Territory'),      # Responsibility - Territory
-        (4, 'Consumption')     # Responsibility - Consumption
+        (0, 'Territorial'),      # NDC Pledges - Territory
+        (1, 'Territorial'),      # Capacity - Territory
+        (2, 'Consumption-based'),    # Capacity - Consumption
+        (3, 'Territorial'),      # Responsibility - Territory
+        (4, 'Consumption-based')     # Responsibility - Consumption
     ]
     
     for pos, label in emissions_scope_labels:
@@ -708,10 +711,10 @@ def update_bar_chart(probability, selected_country, g20_filter):
     
 
     
-    # For global view, add text labels on bars showing neutrality year
+            # For global view, add text labels on bars showing zero carbon year
     if selected_country == 'ALL':
         if g20_filter == 'Yes':
-            # For G20 aggregate view, show neutrality year values
+            # For G20 aggregate view, show zero carbon year values
             for i, row in g20_data.iterrows():
                 fig.add_annotation(
                     x=row['Scenario_Scope'],
@@ -724,7 +727,7 @@ def update_bar_chart(probability, selected_country, g20_filter):
                     yanchor="bottom"
                 )
         else:
-            # For WLD aggregate view, show neutrality year values
+            # For WLD aggregate view, show zero carbon year values
             for i, row in wld_data.iterrows():
                 fig.add_annotation(
                     x=row['Scenario_Scope'],
@@ -754,14 +757,14 @@ def update_line_chart(budget_dist, probability, emissions_scope, selected_countr
         # For G20 filter, we need to aggregate data from individual G20 countries
         # We'll use the first G20 country as a placeholder and aggregate the data
         target_iso = 'G20'
-        chart_title = 'Historical CO2 Emissions (Mt) and Required Trajectory by Scenario - G20 Countries'
+        chart_title = f'Global Historical Emissions and Trajectory Under the ICJ Ruling - G20 Countries ({emissions_scope})'
     elif selected_country == 'ALL':
         target_iso = 'WLD'
-        chart_title = 'Historical CO2 Emissions (Mt) and Required Trajectory by Scenario'
+        chart_title = f'Global Historical Emissions and Trajectory Under the ICJ Ruling ({emissions_scope})'
     else:
         target_iso = selected_country
         country_name = scenario_parameters[scenario_parameters['ISO2'] == selected_country]['Country'].iloc[0] if len(scenario_parameters[scenario_parameters['ISO2'] == selected_country]) > 0 else selected_country
-        chart_title = f'Historical CO2 Emissions (Mt) and Required Trajectory by Scenario'
+        chart_title = f'Global Historical Emissions and Trajectory Under the ICJ Ruling ({emissions_scope})'
     
     # Filter historical data (exclude 2050 as it's only for population data)
     hist_data = historical_data[
@@ -824,7 +827,7 @@ def update_line_chart(budget_dist, probability, emissions_scope, selected_countr
         ),
         title=dict(
             text=chart_title,
-            font=dict(size=20, color="#f4d03f", weight="bold"),  # Bold, smaller, yellow like top ribbon
+            font=dict(size=16, color="#f4d03f", weight="bold"),  # Bold, smaller, yellow like top ribbon
             x=0.5
         ),
         height=500,
@@ -952,9 +955,9 @@ def update_top_cumulative_emitters(selected_country, selected_scope, g20_filter)
         
         # Set title based on G20 filter
         if g20_filter == 'Yes':
-            title_text = 'Top 20 G20 Countries by Share of Cumulative CO2 Emissions since 1970 - %'
+            title_text = f'Top 20 G20 Countries by Share of Cumulative CO2 Emissions since 1970 - % ({selected_scope}, 1970-{2023 if selected_scope == "Territory" else 2022})'
         else:
-            title_text = 'Top 20 Countries by Share of Cumulative CO2 Emissions since 1970 - %'
+            title_text = f'Top 20 Countries by Share of Cumulative CO2 Emissions since 1970 - % ({selected_scope}, 1970-{2023 if selected_scope == "Territory" else 2022})'
             
         fig = px.bar(
             top_20_display,
@@ -989,7 +992,7 @@ def update_top_cumulative_emitters(selected_country, selected_scope, g20_filter)
             color="#2c3e50"
         ),
         title=dict(
-            font=dict(size=20, color="#f4d03f", weight="bold"),
+            font=dict(size=16, color="#f4d03f", weight="bold"),
             x=0.5
         ),
         showlegend=False,
@@ -1049,9 +1052,9 @@ def update_top_per_capita_emitters(selected_country, selected_scope, g20_filter)
         
         # Set title based on G20 filter
         if g20_filter == 'Yes':
-            title_text = 'Top 20 G20 Countries by CO2 Emissions Per Capita - Tons'
+            title_text = f'Top 20 G20 Countries by CO2 Emissions Per Capita - Tons ({selected_scope}, {2023 if selected_scope == "Territory" else 2022})'
         else:
-            title_text = 'Top 20 Countries by CO2 Emissions Per Capita - Tons'
+            title_text = f'Top 20 Countries by CO2 Emissions Per Capita - Tons ({selected_scope}, {2023 if selected_scope == "Territory" else 2022})'
             
         fig = px.bar(
             top_20,
@@ -1086,7 +1089,7 @@ def update_top_per_capita_emitters(selected_country, selected_scope, g20_filter)
             color="#2c3e50"
         ),
         title=dict(
-            font=dict(size=20, color="#f4d03f", weight="bold"),
+            font=dict(size=16, color="#f4d03f", weight="bold"),
             x=0.5
         ),
         showlegend=False,
