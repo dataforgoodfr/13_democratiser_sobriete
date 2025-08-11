@@ -709,6 +709,73 @@ print(f"\nFiltered out {original_rows - len(scenario_params)} rows with 'N/A' ne
 # Create a scenario_id for each unique combination
 scenario_params['scenario_id'] = range(1, len(scenario_params) + 1)
 
+# Calculate NDC Pledges values for aggregates (WLD, G20, EU) using straight average
+print("\n=== Calculating NDC Pledges for Aggregates ===")
+aggregate_isos = ['WLD', 'G20', 'EU']
+
+for aggregate_iso in aggregate_isos:
+    print(f"\nProcessing {aggregate_iso}...")
+    
+    # Get all NDC Pledges scenarios for individual countries (excluding aggregates)
+    individual_ndc = scenario_params[
+        (scenario_params['Budget_distribution_scenario'] == 'NDC Pledges') &
+        (scenario_params['Emissions_scope'] == 'Territory') &  # NDC only applies to Territory
+        (~scenario_params['ISO2'].isin(aggregate_isos)) &
+        (scenario_params['Neutrality_year'].notna()) &
+        (scenario_params['Neutrality_year'] != "N/A")
+    ].copy()
+    
+    if len(individual_ndc) > 0:
+        # Calculate average neutrality year for each emissions scope
+        for emissions_scope in ['Territory', 'Consumption']:
+            scope_data = individual_ndc[individual_ndc['Emissions_scope'] == emissions_scope]
+            
+            if len(scope_data) > 0:
+                # Calculate average neutrality year
+                avg_neutrality_year = int(round(scope_data['Neutrality_year'].mean()))
+                
+                # Get the first row to use as template for other fields
+                template_row = scope_data.iloc[0]
+                
+                # Create aggregate NDC Pledges scenario
+                aggregate_ndc = {
+                    'ISO2': aggregate_iso,
+                    'Country': 'All' if aggregate_iso == 'WLD' else aggregate_iso,
+                    'Region': 'World' if aggregate_iso == 'WLD' else f'{aggregate_iso} Countries',
+                    'Emissions_scope': emissions_scope,
+                    'Warming_scenario': '1.5°C',  # Default to 1.5°C
+                    'Probability_of_reach': '50%',  # Default to 50%
+                    'Budget_distribution_scenario': 'NDC Pledges',
+                    'Years_to_neutrality_from_latest_available': avg_neutrality_year - template_row['Latest_year'],
+                    'Years_to_neutrality_from_today': avg_neutrality_year - current_year,
+                    'Neutrality_year': avg_neutrality_year,
+                    'Latest_year': template_row['Latest_year'],
+                    'Latest_population': template_row['Latest_population'],
+                    'Latest_annual_CO2_emissions_Mt': template_row['Latest_annual_CO2_emissions_Mt'],
+                    'Latest_cumulative_CO2_emissions_Mt': template_row['Latest_cumulative_CO2_emissions_Mt'],
+                    'Latest_emissions_per_capita_t': template_row['Latest_emissions_per_capita_t'],
+                    'Latest_cumulative_population': template_row['Latest_cumulative_population'],
+                    'Share_of_cumulative_population_Latest_to_2050': 1.0 if aggregate_iso == 'WLD' else 0.0,
+                    'Share_of_cumulative_population_1970_to_2050': 1.0 if aggregate_iso == 'WLD' else 0.0,
+                    'Share_of_cumulative_population_1970_to_latest': 1.0 if aggregate_iso == 'WLD' else 0.0,
+                    'share_of_capacity': 1.0 if aggregate_iso == 'WLD' else 0.0,
+                    'Global_Carbon_budget': template_row['Global_Carbon_budget'],
+                    'Country_carbon_budget': template_row['Global_Carbon_budget'] * (0.2 if aggregate_iso == 'G20' else 0.1 if aggregate_iso == 'EU' else 1.0),  # Rough estimates
+                    'Country_budget_per_capita': template_row['Global_Carbon_budget'] * (0.2 if aggregate_iso == 'G20' else 0.1 if aggregate_iso == 'EU' else 1.0) / template_row['Latest_population'] if template_row['Latest_population'] > 0 else 0,
+                    'Share_of_cumulative_emissions': 1.0 if aggregate_iso == 'WLD' else 0.0,
+                    'scenario_id': len(scenario_params) + 1
+                }
+                
+                # Add to scenario_params
+                scenario_params = pd.concat([scenario_params, pd.DataFrame([aggregate_ndc])], ignore_index=True)
+                
+                print(f"  Added {emissions_scope} NDC Pledges: Neutrality year = {avg_neutrality_year}")
+    else:
+        print(f"  No individual NDC Pledges data found for {aggregate_iso}")
+
+# Regenerate scenario_id values since we added new rows
+scenario_params['scenario_id'] = range(1, len(scenario_params) + 1)
+
 # Ensure NA, TR, and US are included
 required_isos = ['NA', 'TR', 'US']
 for iso in required_isos:
@@ -720,6 +787,10 @@ forecast_data = []
 for _, row in scenario_params.iterrows():
     # Skip if no latest year or emissions data
     if pd.isna(row['Latest_year']) or pd.isna(row['Latest_annual_CO2_emissions_Mt']):
+        continue
+    
+    # Skip aggregates for forecast data (they don't have meaningful forecast trajectories)
+    if row['ISO2'] in ['WLD', 'G20', 'EU'] and row['Budget_distribution_scenario'] == 'NDC Pledges':
         continue
 
     # Convert years to integers
