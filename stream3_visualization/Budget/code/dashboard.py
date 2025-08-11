@@ -816,15 +816,21 @@ def update_country_from_map(clickData):
 @app.callback(
     Output('top-cumulative-emitters', 'figure'),
     [Input('country-dropdown', 'value'),
-     Input('emissions-scope-dropdown', 'value')]
+     Input('emissions-scope-dropdown', 'value'),
+     Input('g20-filter-dropdown', 'value')]
 )
-def update_top_cumulative_emitters(selected_country, selected_scope):
+def update_top_cumulative_emitters(selected_country, selected_scope, g20_filter):
     try:
         # Filter data by emissions scope
         filtered_data = historical_data[historical_data['Emissions_scope'] == selected_scope].copy()
         
-        # Get latest year data for each country (exclude aggregates)
-        filtered_data = filtered_data[~filtered_data['ISO2'].isin(['WLD', 'EU', 'G20'])]
+        # Get latest year data for each country (exclude aggregates based on G20 filter)
+        if g20_filter == 'Yes':
+            # When G20 filter is active, show only G20 countries
+            filtered_data = filtered_data[filtered_data['G20_country'] == True]
+        else:
+            # Exclude aggregates for normal view
+            filtered_data = filtered_data[~filtered_data['ISO2'].isin(['WLD', 'EU', 'G20'])]
         
         # Remove rows with missing data
         filtered_data = filtered_data.dropna(subset=['ISO2', 'Year', 'Cumulative_CO2_emissions_Mt'])
@@ -874,13 +880,19 @@ def update_top_cumulative_emitters(selected_country, selected_scope):
         top_20_display = top_20.copy()
         top_20_display['Share_of_cumulative_emissions_pct'] = top_20_display['Share_of_cumulative_emissions'] * 100
         
+        # Set title based on G20 filter
+        if g20_filter == 'Yes':
+            title_text = 'Top 20 G20 Countries by Share of Cumulative CO2 Emissions since 1970 - %'
+        else:
+            title_text = 'Top 20 Countries by Share of Cumulative CO2 Emissions since 1970 - %'
+            
         fig = px.bar(
             top_20_display,
             x='Share_of_cumulative_emissions_pct',
             y='Country',
             orientation='h',
             color_discrete_sequence=colors,
-            title='Top 20 Countries by Share of Cumulative CO2 Emissions since 1970 - %'
+            title=title_text
         )
         
         # Update traces for better hover formatting
