@@ -70,7 +70,7 @@ server = app.server
 app.layout = html.Div([
     # Header section with hierarchical titles
     html.Div([
-        html.H1("Zero Carbon For All: A Fair and Inclusive Timeline", 
+        html.H1("Zero Carbon for All", 
                 style={
                     'textAlign': 'center',
                     'color': '#2c3e50',
@@ -79,18 +79,24 @@ app.layout = html.Div([
                     'marginBottom': '10px',
                     'fontFamily': 'Arial, sans-serif'
                 }),
-        html.H2("Distributing our remaining global carbon budget fairly to stay within 1.5°C implies that most developed countries have overshot their budget", 
-                style={
-                    'textAlign': 'center',
-                    'color': '#34495e',
-                    'fontSize': '1.2rem',
-                    'fontWeight': 'normal',
-                    'marginBottom': '30px',
-                    'fontFamily': 'Arial, sans-serif',
-                    'lineHeight': '1.4',
-                    'maxWidth': '900px',
-                    'margin': '0 auto 30px auto'
-                }),
+        html.H2([
+            "From ",
+            html.A("ICJ's July 2025 Ruling", 
+                   href="https://www.icj-cij.org/sites/default/files/case-related/187/187-20250723-adv-01-01-en.pdf?__cf_chl_tk=Yr3gmWW.N9WZWS7uWgxCBO.lqeW_HYwLgAtsaO7txV8-1754635176-1.0.1.1-CTgho8.CllXbjOuGsjcZBsK2bI7y...6o_iO6c_9klI",
+                   target="_blank",
+                   style={'color': '#f39c12', 'textDecoration': 'underline'}),
+            " to Real-World Metamorphosis"
+        ], style={
+            'textAlign': 'center',
+            'color': '#34495e',
+            'fontSize': '1.2rem',
+            'fontWeight': 'normal',
+            'marginBottom': '30px',
+            'fontFamily': 'Arial, sans-serif',
+            'lineHeight': '1.4',
+            'maxWidth': '900px',
+            'margin': '0 auto 30px auto'
+        }),
         
         # Controls section embedded within the header
         html.Div([
@@ -106,7 +112,8 @@ app.layout = html.Div([
                                  (scenario_parameters['ISO2'].notna())
                              ][['Country', 'ISO2']].drop_duplicates().sort_values('Country').values],
                     value='ALL',
-                    style={'marginTop': '8px'}
+                    style={'marginTop': '8px'},
+                    clearable=False
                 )
             ], style={'width': '19%', 'display': 'inline-block', 'margin-right': '1%'}),
             
@@ -119,37 +126,41 @@ app.layout = html.Div([
                         {'label': 'Yes', 'value': 'Yes'}
                     ],
                     value='No',
-                    style={'marginTop': '8px'}
+                    style={'marginTop': '8px'},
+                    clearable=False
                 )
             ], style={'width': '19%', 'display': 'inline-block', 'margin-right': '1%'}),
 
             html.Div([
-                html.Label("Budget Distribution", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
+                html.Label("Zero Carbon Emissions Trajectory", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
                 dcc.Dropdown(
                     id='budget-distribution-dropdown',
                     options=[{'label': i, 'value': i} for i in scenario_parameters['Budget_distribution_scenario'].unique()],
                     value='Responsibility',
-                    style={'marginTop': '8px'}
+                    style={'marginTop': '8px'},
+                    clearable=False
                 )
             ], style={'width': '19%', 'display': 'inline-block', 'margin-right': '1%'}),
             
             html.Div([
-                html.Label("Probability", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
+                html.Label("Probability of holding temperature rise to 1.5°C", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
                 dcc.Dropdown(
                     id='probability-dropdown',
                     options=[{'label': i, 'value': i} for i in scenario_parameters['Probability_of_reach'].unique()],
                     value='50%',
-                    style={'marginTop': '8px'}
+                    style={'marginTop': '8px'},
+                    clearable=False
                 )
             ], style={'width': '19%', 'display': 'inline-block', 'margin-right': '1%'}),
             
             html.Div([
-                html.Label("Emissions Scope", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
+                html.Label("Scope of Emissions", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
                 dcc.Dropdown(
                     id='emissions-scope-dropdown',
                     options=[{'label': i, 'value': i} for i in scenario_parameters['Emissions_scope'].unique()],
                     value='Territory',
-                    style={'marginTop': '8px'}
+                    style={'marginTop': '8px'},
+                    clearable=False
                 )
             ], style={'width': '19%', 'display': 'inline-block'}),
         ], style={
