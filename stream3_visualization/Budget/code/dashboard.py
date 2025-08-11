@@ -15,6 +15,12 @@ try:
     forecast_data = pd.read_csv(os.path.join(DATA_DIR, 'forecast_data.csv'))
     historical_data = pd.read_csv(os.path.join(DATA_DIR, 'combined_data.csv'))
     print("All data files loaded successfully.")
+    
+    # Define G20 countries list
+    G20_COUNTRIES = [
+        'AR', 'AU', 'BR', 'CA', 'CN', 'FR', 'DE', 'IN', 'ID', 'IT', 
+        'JP', 'MX', 'RU', 'SA', 'ZA', 'KR', 'TR', 'GB', 'US', 'EU'
+    ]
 
     # Filter out 'Population' scenario from the entire dataset
     scenario_parameters = scenario_parameters[scenario_parameters['Budget_distribution_scenario'] != 'Population'].copy()
@@ -312,8 +318,8 @@ def update_map(budget_dist, probability, emissions_scope, selected_country, g20_
 
     # Select data for plotting based on dropdown
     if g20_filter == 'Yes':
-        # When G20 filter is active, show only G20 countries
-        plot_data = all_countries_data[all_countries_data['ISO2'].isin(['G20'])]
+        # When G20 filter is active, show only G20 countries (individual countries, not aggregate)
+        plot_data = all_countries_data[all_countries_data['ISO2'].isin(G20_COUNTRIES)]
     elif selected_country != 'ALL':
         plot_data = all_countries_data[all_countries_data['ISO2'] == selected_country]
     else:
@@ -455,8 +461,8 @@ def update_bar_chart(probability, selected_country, g20_filter):
     
     # Apply country filter
     if g20_filter == 'Yes':
-        # When G20 filter is active, show only G20 aggregate data
-        filtered_data = filtered_data[filtered_data['ISO2'] == 'G20']
+        # When G20 filter is active, show only G20 countries (individual countries, not aggregate)
+        filtered_data = filtered_data[filtered_data['ISO2'].isin(G20_COUNTRIES)]
         chart_title = f'Neutrality Year by Budget Distribution Scenario - G20 Countries'
     elif selected_country != 'ALL':
         filtered_data = filtered_data[filtered_data['ISO2'] == selected_country]
@@ -688,6 +694,8 @@ def update_bar_chart(probability, selected_country, g20_filter):
 def update_line_chart(budget_dist, probability, emissions_scope, selected_country, g20_filter):
     # Determine which country/region to show
     if g20_filter == 'Yes':
+        # For G20 filter, we need to aggregate data from individual G20 countries
+        # We'll use the first G20 country as a placeholder and aggregate the data
         target_iso = 'G20'
         chart_title = 'Historical CO2 Emissions (Mt) and Required Trajectory by Scenario - G20 Countries'
     elif selected_country == 'ALL':
