@@ -290,9 +290,10 @@ app.layout = html.Div([
     [Input('budget-distribution-dropdown', 'value'),
      Input('probability-dropdown', 'value'),
      Input('emissions-scope-dropdown', 'value'),
-     Input('country-dropdown', 'value')]
+     Input('country-dropdown', 'value'),
+     Input('g20-filter-dropdown', 'value')]
 )
-def update_map(budget_dist, probability, emissions_scope, selected_country):
+def update_map(budget_dist, probability, emissions_scope, selected_country, g20_filter):
     # Filter data for the entire scenario to establish a consistent color scale
     all_countries_data = scenario_parameters[
         (scenario_parameters['Budget_distribution_scenario'] == budget_dist) &
@@ -310,7 +311,10 @@ def update_map(budget_dist, probability, emissions_scope, selected_country):
     color_range_max = max(2100, all_countries_data['Neutrality_year_numeric'].max())  # Ensure we go to at least 2100
 
     # Select data for plotting based on dropdown
-    if selected_country != 'ALL':
+    if g20_filter == 'Yes':
+        # When G20 filter is active, show only G20 countries
+        plot_data = all_countries_data[all_countries_data['ISO2'].isin(['G20'])]
+    elif selected_country != 'ALL':
         plot_data = all_countries_data[all_countries_data['ISO2'] == selected_country]
     else:
         plot_data = all_countries_data
