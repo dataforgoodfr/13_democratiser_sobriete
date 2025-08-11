@@ -682,11 +682,15 @@ def update_bar_chart(probability, selected_country, g20_filter):
     [Input('budget-distribution-dropdown', 'value'),
      Input('probability-dropdown', 'value'),
      Input('emissions-scope-dropdown', 'value'),
-     Input('country-dropdown', 'value')]
+     Input('country-dropdown', 'value'),
+     Input('g20-filter-dropdown', 'value')]
 )
-def update_line_chart(budget_dist, probability, emissions_scope, selected_country):
+def update_line_chart(budget_dist, probability, emissions_scope, selected_country, g20_filter):
     # Determine which country/region to show
-    if selected_country == 'ALL':
+    if g20_filter == 'Yes':
+        target_iso = 'G20'
+        chart_title = 'Historical CO2 Emissions (Mt) and Required Trajectory by Scenario - G20 Countries'
+    elif selected_country == 'ALL':
         target_iso = 'WLD'
         chart_title = 'Historical CO2 Emissions (Mt) and Required Trajectory by Scenario'
     else:
