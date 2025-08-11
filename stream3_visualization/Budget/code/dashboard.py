@@ -194,10 +194,10 @@ app.layout = html.Div([
     # Visualizations
     html.Div([
         dcc.Graph(id='world-map'),
-        html.Div([
-            dcc.Graph(id='scenario-comparison-bar', style={'display': 'inline-block', 'width': '49%'}),
-            dcc.Graph(id='emissions-trajectory-line', style={'display': 'inline-block', 'width': '49%'})
-        ]),
+                html.Div([
+            dcc.Graph(id='scenario-comparison-bar', style={'display': 'inline-block', 'width': '49%', 'verticalAlign': 'top'}),
+            dcc.Graph(id='emissions-trajectory-line', style={'display': 'inline-block', 'width': '49%', 'verticalAlign': 'top'})
+        ], style={'textAlign': 'center', 'margin': '0 auto'}),
         # Top 20 Emitters Charts
         html.Div([
             dcc.Graph(id='top-cumulative-emitters', style={'display': 'inline-block', 'width': '49%'}),
@@ -482,18 +482,19 @@ def update_bar_chart(probability, selected_country, g20_filter):
         (scenario_parameters['Warming_scenario'] == '1.5°C')
     ].copy()
     
-    # Apply country filter - G20 filter takes priority
-    if g20_filter == 'Yes':
-        # When G20 filter is active, show only G20 countries (individual countries, not aggregate)
-        filtered_data = filtered_data[filtered_data['ISO2'].isin(G20_COUNTRIES)]
-        chart_title = f'Zero Carbon Timeline by Budget Distribution Scenario - G20 Countries'
-    elif selected_country != 'ALL':
+    # Apply country filter with intuitive logic
+    if selected_country != 'ALL':
+        # When a specific country is selected, show that country's data (ignore G20 filter)
         filtered_data = filtered_data[filtered_data['ISO2'] == selected_country]
         chart_title = f'Zero Carbon Timeline by Budget Distribution Scenario'
+    elif g20_filter == 'Yes':
+        # When G20 filter is active (and no specific country), show G20 aggregate data
+        filtered_data = filtered_data[filtered_data['ISO2'] == 'G20']
+        chart_title = f'Zero Carbon Timeline by Budget Distribution Scenario - G20 Aggregate'
     else:
-        # For "All Countries" without G20 filter, use WLD aggregate data
-        filtered_data = filtered_data[~filtered_data['ISO2'].isin(['WLD', 'EU', 'G20'])]
-        chart_title = f'Zero Carbon Timeline by Budget Distribution Scenario - Global'
+        # For "All Countries" without G20 filter, show world aggregate data
+        filtered_data = filtered_data[filtered_data['ISO2'] == 'WLD']
+        chart_title = f'Zero Carbon Timeline by Budget Distribution Scenario - World Aggregate'
 
     # Convert 'Neutrality_year' to numeric
     filtered_data['Neutrality_year_numeric'] = pd.to_numeric(filtered_data['Neutrality_year'], errors='coerce')
@@ -519,123 +520,49 @@ def update_bar_chart(probability, selected_country, g20_filter):
     # Filter out Population - only show NDC Pledges, Responsibility, Capacity
     filtered_data = filtered_data[filtered_data['Budget_distribution_scenario'].isin(['NDC Pledges', 'Responsibility', 'Capacity'])]
     
-    if selected_country != 'ALL':
-        # For single country, show individual scenario values
-        # Create bar heights from 2025 baseline
-        filtered_data['bar_height'] = filtered_data['Neutrality_year_numeric'] - 2025
-        
-        fig = px.bar(
-            filtered_data,
-            x='Scenario_Scope',
-            y='bar_height',
-            title=chart_title,
-            labels={'bar_height': 'Years from 2025', 'Scenario_Scope': 'Budget Distribution Scenario'},
-            color='Emissions_scope',
-            color_discrete_map=color_map,
-            category_orders={'Scenario_Scope': scenario_order}
-        )
-        
-        # Manually set the base to 2025
-        fig.update_traces(base=2025)
-        
-        # Remove hover data - just show scenario name
-        fig.update_traces(hovertemplate="<b>%{x}</b><extra></extra>")
-        
-        # Add text labels on top of bars showing the zero carbon year
-        for i, row in filtered_data.iterrows():
-            # Determine if the bar is negative (below 2025) or positive (above 2025)
-            bar_height = row['Neutrality_year_numeric'] - 2025
-            if bar_height < 0:
-                # For negative bars, place label below the bar
-                yshift = -15
-                yanchor = "top"
-            else:
-                # For positive bars, place label above the bar
-                yshift = 15
-                yanchor = "bottom"
-            
-            fig.add_annotation(
-                x=row['Scenario_Scope'],
-                y=row['Neutrality_year_numeric'],
-                text=str(int(row['Neutrality_year_numeric'])),
-                showarrow=False,
-                font=dict(size=11, color="black", weight="bold"),
-                yshift=yshift,  # Dynamic positioning based on bar direction
-                xanchor="center",  # Center the text horizontally
-                yanchor=yanchor   # Dynamic anchor based on bar direction
-            )
-        
-    else:
-        # For "All Countries" selection
-        if g20_filter == 'Yes':
-            # When G20 filter is active with "All Countries", use G20 aggregate data directly
-            g20_data = scenario_parameters[
-                (scenario_parameters['Probability_of_reach'] == probability) &
-                (scenario_parameters['Warming_scenario'] == '1.5°C') &
-                (scenario_parameters['ISO2'] == 'G20') &
-                (scenario_parameters['Budget_distribution_scenario'].isin(['NDC Pledges', 'Responsibility', 'Capacity']))
-            ].copy()
-            
-            # Convert 'Neutrality_year' to numeric
-            g20_data['Neutrality_year_numeric'] = pd.to_numeric(g20_data['Neutrality_year'], errors='coerce')
-            
-            # Create scenario-scope combinations for x-axis
-            g20_data['Scenario_Scope'] = g20_data['Budget_distribution_scenario'] + ' - ' + g20_data['Emissions_scope']
-            
-            # Create bar heights from 2025 baseline
-            g20_data['bar_height'] = g20_data['Neutrality_year_numeric'] - 2025
-            
-            fig = px.bar(
-                g20_data,
-                x='Scenario_Scope',
-                y='bar_height',
-                title=chart_title,
-                labels={'bar_height': 'Years from 2025', 'Scenario_Scope': 'Budget Distribution Scenario'},
-                color='Emissions_scope',
-                color_discrete_map=color_map,
-                category_orders={'Scenario_Scope': scenario_order}
-            )
-            
-            # Manually set the base to 2025
-            fig.update_traces(base=2025)
-            
-            # Remove hover data - just show scenario name
-            fig.update_traces(hovertemplate="<b>%{x}</b><extra></extra>")
-            
+    # Create bar heights from 2025 baseline
+    filtered_data['bar_height'] = filtered_data['Neutrality_year_numeric'] - 2025
+    
+    fig = px.bar(
+        filtered_data,
+        x='Scenario_Scope',
+        y='bar_height',
+        title=chart_title,
+        labels={'bar_height': 'Years from 2025', 'Scenario_Scope': 'Budget Distribution Scenario'},
+        color='Emissions_scope',
+        color_discrete_map=color_map,
+        category_orders={'Scenario_Scope': scenario_order}
+    )
+    
+    # Manually set the base to 2025
+    fig.update_traces(base=2025)
+    
+    # Remove hover data - just show scenario name
+    fig.update_traces(hovertemplate="<b>%{x}</b><extra></extra>")
+    
+    # Add text labels on top of bars showing the zero carbon year
+    for i, row in filtered_data.iterrows():
+        # Determine if the bar is negative (below 2025) or positive (above 2025)
+        bar_height = row['Neutrality_year_numeric'] - 2025
+        if bar_height < 0:
+            # For negative bars, place label below the bar
+            yshift = -15
+            yanchor = "top"
         else:
-            # For "All Countries" without G20 filter, use WLD aggregate data (more mathematically correct)
-            wld_data = scenario_parameters[
-                (scenario_parameters['Probability_of_reach'] == probability) &
-                (scenario_parameters['Warming_scenario'] == '1.5°C') &
-                (scenario_parameters['ISO2'] == 'WLD') &
-                (scenario_parameters['Budget_distribution_scenario'].isin(['NDC Pledges', 'Responsibility', 'Capacity']))
-            ].copy()
-            
-            # Convert 'Neutrality_year' to numeric
-            wld_data['Neutrality_year_numeric'] = pd.to_numeric(wld_data['Neutrality_year'], errors='coerce')
-            
-            # Create scenario-scope combinations for x-axis
-            wld_data['Scenario_Scope'] = wld_data['Budget_distribution_scenario'] + ' - ' + wld_data['Emissions_scope']
-            
-            # Create bar heights from 2025 baseline
-            wld_data['bar_height'] = wld_data['Neutrality_year_numeric'] - 2025
-            
-            fig = px.bar(
-                wld_data,
-                x='Scenario_Scope',
-                y='bar_height',
-                title=chart_title,
-                labels={'bar_height': 'Years from 2025', 'Scenario_Scope': 'Budget Distribution Scenario'},
-                color='Emissions_scope',
-                color_discrete_map=color_map,
-                category_orders={'Scenario_Scope': scenario_order}
-            )
-            
-            # Manually set the base to 2025
-            fig.update_traces(base=2025)
-            
-            # Remove hover data - just show scenario name
-            fig.update_traces(hovertemplate="<b>%{x}</b><extra></extra>")
+            # For positive bars, place label above the bar
+            yshift = 15
+            yanchor = "bottom"
+        
+        fig.add_annotation(
+            x=row['Scenario_Scope'],
+            y=row['Neutrality_year_numeric'],
+            text=str(int(row['Neutrality_year_numeric'])),
+            showarrow=False,
+            font=dict(size=11, color="black", weight="bold"),
+            yshift=yshift,  # Dynamic positioning based on bar direction
+            xanchor="center",  # Center the text horizontally
+            yanchor=yanchor   # Dynamic anchor based on bar direction
+        )
     
     # Add horizontal line at 2025 (current year baseline)
     fig.add_hline(y=2025, line_dash="dash", line_color="black", line_width=2, 
@@ -655,7 +582,7 @@ def update_bar_chart(probability, selected_country, g20_filter):
             x=0.5
         ),
         height=500,
-        margin=dict(t=80, b=100, l=60, r=60),  # More bottom margin for note, reduced right margin
+        margin=dict(t=80, b=50, l=60, r=60),  # Match the line chart margin
         showlegend=False,  # Remove legend
         yaxis=dict(
             title=None,  # Remove Y axis title
@@ -731,56 +658,29 @@ def update_bar_chart(probability, selected_country, g20_filter):
     
 
     
-            # For global view, add text labels on bars showing zero carbon year
-    if selected_country == 'ALL':
-        if g20_filter == 'Yes':
-            # For G20 aggregate view, show zero carbon year values
-            for i, row in g20_data.iterrows():
-                # Determine if the bar is negative (below 2025) or positive (above 2025)
-                bar_height = row['Neutrality_year_numeric'] - 2025
-                if bar_height < 0:
-                    # For negative bars, place label below the bar
-                    yshift = -15
-                    yanchor = "top"
-                else:
-                    # For positive bars, place label above the bar
-                    yshift = 15
-                    yanchor = "bottom"
-                
-                fig.add_annotation(
-                    x=row['Scenario_Scope'],
-                    y=row['Neutrality_year_numeric'],
-                    text=str(int(row['Neutrality_year_numeric'])),
-                    showarrow=False,
-                    font=dict(size=11, color="black", weight="bold"),
-                    yshift=yshift,  # Dynamic positioning based on bar direction
-                    xanchor="center",
-                    yanchor=yanchor
-                )
+    # Add text labels on bars showing zero carbon year for all cases
+    for i, row in filtered_data.iterrows():
+        # Determine if the bar is negative (below 2025) or positive (above 2025)
+        bar_height = row['Neutrality_year_numeric'] - 2025
+        if bar_height < 0:
+            # For negative bars, place label below the bar
+            yshift = -15
+            yanchor = "top"
         else:
-            # For WLD aggregate view, show zero carbon year values
-            for i, row in wld_data.iterrows():
-                # Determine if the bar is negative (below 2025) or positive (above 2025)
-                bar_height = row['Neutrality_year_numeric'] - 2025
-                if bar_height < 0:
-                    # For negative bars, place label below the bar
-                    yshift = -15
-                    yanchor = "top"
-                else:
-                    # For positive bars, place label above the bar
-                    yshift = 15
-                    yanchor = "bottom"
-                
-                fig.add_annotation(
-                    x=row['Scenario_Scope'],
-                    y=row['Neutrality_year_numeric'],
-                    text=str(int(row['Neutrality_year_numeric'])),
-                    showarrow=False,
-                    font=dict(size=11, color="black", weight="bold"),
-                    yshift=yshift,  # Dynamic positioning based on bar direction
-                    xanchor="center",
-                    yanchor=yanchor
-                )
+            # For positive bars, place label above the bar
+            yshift = 15
+            yanchor = "bottom"
+        
+        fig.add_annotation(
+            x=row['Scenario_Scope'],
+            y=row['Neutrality_year_numeric'],
+            text=str(int(row['Neutrality_year_numeric'])),
+            showarrow=False,
+            font=dict(size=11, color="black", weight="bold"),
+            yshift=yshift,  # Dynamic positioning based on bar direction
+            xanchor="center",
+            yanchor=yanchor
+        )
     
     return fig
 
@@ -794,19 +694,20 @@ def update_bar_chart(probability, selected_country, g20_filter):
      Input('g20-filter-dropdown', 'value')]
 )
 def update_line_chart(budget_dist, probability, emissions_scope, selected_country, g20_filter):
-    # Determine which country/region to show
-    if g20_filter == 'Yes':
-        # For G20 filter, we need to aggregate data from individual G20 countries
-        # We'll use the first G20 country as a placeholder and aggregate the data
-        target_iso = 'G20'
-        chart_title = f'Historical Emissions and Trajectory Under the ICJ Ruling - G20 ({get_scope_display_label(emissions_scope)}) - Million Tons'
-    elif selected_country == 'ALL':
-        target_iso = 'WLD'
-        chart_title = f'Historical Emissions and Trajectory Under the ICJ Ruling - Global ({get_scope_display_label(emissions_scope)}) - Million Tons'
-    else:
+    # Determine which country/region to show with intuitive logic
+    if selected_country != 'ALL':
+        # When a specific country is selected, show that country's data (ignore G20 filter)
         target_iso = selected_country
         country_name = scenario_parameters[scenario_parameters['ISO2'] == selected_country]['Country'].iloc[0] if len(scenario_parameters[scenario_parameters['ISO2'] == selected_country]) > 0 else selected_country
         chart_title = f'Historical Emissions and Trajectory Under the ICJ Ruling ({get_scope_display_label(emissions_scope)}) - Million Tons'
+    elif g20_filter == 'Yes':
+        # When G20 filter is active (and no specific country), show G20 aggregate data
+        target_iso = 'G20'
+        chart_title = f'Historical Emissions and Trajectory Under the ICJ Ruling - G20 ({get_scope_display_label(emissions_scope)}) - Million Tons'
+    else:
+        # For "All Countries" without G20 filter, show world aggregate data
+        target_iso = 'WLD'
+        chart_title = f'Historical Emissions and Trajectory Under the ICJ Ruling - Global ({get_scope_display_label(emissions_scope)}) - Million Tons'
     
     # Filter historical data (exclude 2050 as it's only for population data)
     hist_data = historical_data[

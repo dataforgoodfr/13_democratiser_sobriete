@@ -110,6 +110,79 @@ def load_current_targets():
 
     return target_mapping
 
+def calculate_aggregate_ndc_pledges(target_mapping, base_df):
+    """Calculate NDC pledges for aggregates (G20, WLD, EU, IPCC regions) as straight average of available pledges."""
+    
+    # Define aggregate groups - only for aggregates that exist in the data
+    aggregate_groups = {}
+    
+    # Check which aggregates exist in base_df
+    existing_aggregates = base_df[base_df['Country'] == 'All']['ISO2'].unique()
+    
+    # Add G20 if it exists
+    if 'G20' in existing_aggregates:
+        aggregate_groups['G20'] = ['AR', 'AU', 'BR', 'CA', 'CN', 'FR', 'DE', 'IN', 'ID', 'IT', 'JP', 'MX', 'RU', 'SA', 'ZA', 'KR', 'TR', 'GB', 'US']
+    
+    # Add EU if it exists
+    if 'EU' in existing_aggregates:
+        # Get EU countries from the same source as load_current_targets
+        eu_mapping = pd.read_excel(f"{data_directory}/2024-04-21_IPCC Regional Breakdown_ISO Country Code.xlsx",
+                                 sheet_name="G20_EU_Countries ",
+                                 header=0)
+        iso_mapping = pd.read_excel(f"{data_directory}/28-04-2025_ISO_Codes_Mapping.xlsx")
+        iso_mapping.rename(columns={'Alpha-2 code': 'ISO2', 'Alpha-3 code': 'ISO3'}, inplace=True)
+        eu_mapping = eu_mapping.merge(iso_mapping, on='ISO3', how='left')
+        eu_countries = eu_mapping[eu_mapping['EU_country'] == 'Yes']['ISO2'].tolist()
+        aggregate_groups['EU'] = eu_countries
+    
+    # Add WLD (World) if it exists
+    if 'WLD' in existing_aggregates:
+        aggregate_groups['WLD'] = None  # Will be calculated differently
+    
+    # Add other IPCC regions if they exist
+    for region in existing_aggregates:
+        if region not in ['WLD', 'G20', 'EU']:
+            # For now, we'll skip IPCC regions that don't have predefined country lists
+            # This could be enhanced later with proper region-to-country mappings
+            aggregate_groups[region] = []
+    
+    # Calculate aggregate NDC pledges
+    aggregate_ndc = {}
+    
+    for aggregate_name, country_list in aggregate_groups.items():
+        if aggregate_name == 'WLD':
+            # For world aggregate, calculate average of all available country pledges
+            available_targets = []
+            for iso2, target_year in target_mapping.items():
+                if iso2 in base_df['ISO2'].values:
+                    available_targets.append(target_year)
+            
+            if available_targets:
+                aggregate_ndc[aggregate_name] = int(round(sum(available_targets) / len(available_targets)))
+                print(f"World (WLD) NDC pledge: {aggregate_ndc[aggregate_name]} (average of {len(available_targets)} countries)")
+            else:
+                aggregate_ndc[aggregate_name] = None
+                print(f"World (WLD) NDC pledge: No data available")
+                
+        elif country_list:  # G20, EU with country lists
+            available_targets = []
+            for iso2 in country_list:
+                if iso2 in target_mapping:
+                    available_targets.append(target_mapping[iso2])
+            
+            if available_targets:
+                aggregate_ndc[aggregate_name] = int(round(sum(available_targets) / len(available_targets)))
+                print(f"{aggregate_name} NDC pledge: {aggregate_ndc[aggregate_name]} (average of {len(available_targets)} countries)")
+            else:
+                aggregate_ndc[aggregate_name] = None
+                print(f"{aggregate_name} NDC pledge: No data available")
+        else:
+            # For IPCC regions without country lists, skip for now
+            aggregate_ndc[aggregate_name] = None
+            print(f"{aggregate_name} NDC pledge: Skipped (no country list available)")
+    
+    return aggregate_ndc
+
 # Load the preprocessed data and current targets
 combined_df = pd.read_csv(f"{output_directory}/combined_data.csv")
 current_targets = load_current_targets()
@@ -273,6 +346,18 @@ def create_base_dataframe(df):
 
 # Create the base dataframe
 base_df, emission_scopes = create_base_dataframe(combined_df)
+
+# Calculate aggregate NDC pledges and add them to current_targets
+aggregate_ndc_pledges = calculate_aggregate_ndc_pledges(current_targets, base_df)
+current_targets.update(aggregate_ndc_pledges)
+
+print("\n=== Aggregate NDC Pledges ===")
+for aggregate, pledge in aggregate_ndc_pledges.items():
+    if pledge is not None:
+        print(f"{aggregate}: {pledge}")
+    else:
+        print(f"{aggregate}: No data available")
+print("=== End Aggregate NDC Pledges ===\n")
 
 # Data check: Compare sum of country cumulative emissions to world cumulative emissions for each scope
 for scope in emission_scopes:
