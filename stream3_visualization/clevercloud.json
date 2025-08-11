@@ -1,0 +1,27 @@
+{
+  "build": {
+    "cache_directories": [
+      "venv"
+    ]
+  },
+  "deploy": {
+    "module": "Budget.code.dashboard:asgi_app"
+  },
+  "hooks": {
+    "pre_build": "pip install -r requirements.txt"
+  },
+  "build": {
+    "cache_directories": [
+      "venv"
+    ]
+  },
+  "environment": {
+    "PYTHONPATH": "/app",
+    "DASH_ENV": "production",
+    "DEBUG": "False"
+  },
+  "scaling": {
+    "min_instances": 1,
+    "max_instances": 3
+  }
+} 
