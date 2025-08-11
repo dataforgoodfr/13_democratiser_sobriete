@@ -706,6 +706,13 @@ original_rows = len(scenario_params)
 scenario_params = scenario_params[scenario_params['Years_to_neutrality_from_latest_available'] != "N/A"].copy()
 print(f"\nFiltered out {original_rows - len(scenario_params)} rows with 'N/A' neutrality years from scenario parameters.")
 
+# Remove existing aggregate entries (WLD, G20, EU) to prevent duplicates
+print("\n=== Removing existing aggregate entries to prevent duplicates ===")
+before_removal = len(scenario_params)
+scenario_params = scenario_params[~scenario_params['ISO2'].isin(['WLD', 'G20', 'EU'])].copy()
+after_removal = len(scenario_params)
+print(f"Removed {before_removal - after_removal} existing aggregate entries")
+
 # Create a scenario_id for each unique combination
 scenario_params['scenario_id'] = range(1, len(scenario_params) + 1)
 
