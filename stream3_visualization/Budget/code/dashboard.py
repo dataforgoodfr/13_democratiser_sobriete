@@ -132,7 +132,20 @@ app.layout = html.Div([
                     value='Territory',
                     style={'marginTop': '8px'}
                 )
-            ], style={'width': '23%', 'display': 'inline-block'}),
+            ], style={'width': '18%', 'display': 'inline-block', 'margin-right': '2%'}),
+            
+            html.Div([
+                html.Label("G20 Only", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
+                dcc.Dropdown(
+                    id='g20-filter-dropdown',
+                    options=[
+                        {'label': 'No', 'value': 'No'},
+                        {'label': 'Yes', 'value': 'Yes'}
+                    ],
+                    value='No',
+                    style={'marginTop': '8px'}
+                )
+            ], style={'width': '18%', 'display': 'inline-block'}),
         ], style={
             'padding': '15px 20px',
             'backgroundColor': '#fdf6e3',
