@@ -108,37 +108,7 @@ app.layout = html.Div([
                     value='ALL',
                     style={'marginTop': '8px'}
                 )
-            ], style={'width': '23%', 'display': 'inline-block', 'margin-right': '2%'}),
-
-            html.Div([
-                html.Label("Budget Distribution", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
-                dcc.Dropdown(
-                    id='budget-distribution-dropdown',
-                    options=[{'label': i, 'value': i} for i in scenario_parameters['Budget_distribution_scenario'].unique()],
-                    value='Responsibility',
-                    style={'marginTop': '8px'}
-                )
-            ], style={'width': '23%', 'display': 'inline-block', 'margin-right': '2%'}),
-            
-            html.Div([
-                html.Label("Probability", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
-                dcc.Dropdown(
-                    id='probability-dropdown',
-                    options=[{'label': i, 'value': i} for i in scenario_parameters['Probability_of_reach'].unique()],
-                    value='50%',
-                    style={'marginTop': '8px'}
-                )
-            ], style={'width': '23%', 'display': 'inline-block', 'margin-right': '2%'}),
-            
-            html.Div([
-                html.Label("Emissions Scope", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
-                dcc.Dropdown(
-                    id='emissions-scope-dropdown',
-                    options=[{'label': i, 'value': i} for i in scenario_parameters['Emissions_scope'].unique()],
-                    value='Territory',
-                    style={'marginTop': '8px'}
-                )
-            ], style={'width': '18%', 'display': 'inline-block', 'margin-right': '2%'}),
+            ], style={'width': '19%', 'display': 'inline-block', 'margin-right': '1%'}),
             
             html.Div([
                 html.Label("G20 Only", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
@@ -151,7 +121,37 @@ app.layout = html.Div([
                     value='No',
                     style={'marginTop': '8px'}
                 )
-            ], style={'width': '18%', 'display': 'inline-block'}),
+            ], style={'width': '19%', 'display': 'inline-block', 'margin-right': '1%'}),
+
+            html.Div([
+                html.Label("Budget Distribution", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
+                dcc.Dropdown(
+                    id='budget-distribution-dropdown',
+                    options=[{'label': i, 'value': i} for i in scenario_parameters['Budget_distribution_scenario'].unique()],
+                    value='Responsibility',
+                    style={'marginTop': '8px'}
+                )
+            ], style={'width': '19%', 'display': 'inline-block', 'margin-right': '1%'}),
+            
+            html.Div([
+                html.Label("Probability", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
+                dcc.Dropdown(
+                    id='probability-dropdown',
+                    options=[{'label': i, 'value': i} for i in scenario_parameters['Probability_of_reach'].unique()],
+                    value='50%',
+                    style={'marginTop': '8px'}
+                )
+            ], style={'width': '19%', 'display': 'inline-block', 'margin-right': '1%'}),
+            
+            html.Div([
+                html.Label("Emissions Scope", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
+                dcc.Dropdown(
+                    id='emissions-scope-dropdown',
+                    options=[{'label': i, 'value': i} for i in scenario_parameters['Emissions_scope'].unique()],
+                    value='Territory',
+                    style={'marginTop': '8px'}
+                )
+            ], style={'width': '19%', 'display': 'inline-block'}),
         ], style={
             'padding': '15px 20px',
             'backgroundColor': '#fdf6e3',
@@ -340,7 +340,7 @@ def update_map(budget_dist, probability, emissions_scope, selected_country, g20_
             "Country_carbon_budget": False,
             "ISO3": False
         },
-        color_continuous_scale=[[0.0, '#FB8072'], [0.2, '#FDB462'], [0.4, '#FFD558'], [0.6, '#FFFFB3'], [0.8, '#8DD3C7'], [1.0, '#B3DE69']],  # Red for early years (urgent/bad), Green for late years (less urgent/better)
+        color_continuous_scale=[[0.0, '#8B0000'], [0.1, '#DC143C'], [0.2, '#FB8072'], [0.4, '#FDB462'], [0.6, '#FFFFB3'], [0.8, '#8DD3C7'], [1.0, '#B3DE69']],  # Dark red for 1980s, red for early years, Green for late years
         range_color=[color_range_min, color_range_max],  # Apply consistent color scale
         title="Year by which countries need to reach Zero Carbon by Scenario",
         labels={
