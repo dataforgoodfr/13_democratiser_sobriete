@@ -791,9 +791,14 @@ def update_line_chart(budget_dist, probability, emissions_scope, selected_countr
 # Callback to update country dropdown from map click
 @app.callback(
     Output('country-dropdown', 'value'),
-    [Input('world-map', 'clickData')]
+    [Input('world-map', 'clickData'),
+     Input('g20-filter-dropdown', 'value')]
 )
-def update_country_from_map(clickData):
+def update_country_from_map(clickData, g20_filter):
+    if g20_filter == 'Yes':
+        # When G20 filter is active, reset to ALL to show G20 aggregate
+        return 'ALL'
+    
     if clickData is None:
         # Prevent update on initial load
         return dash.no_update
