@@ -766,14 +766,14 @@ def update_line_chart(budget_dist, probability, emissions_scope, selected_countr
         # For G20 filter, we need to aggregate data from individual G20 countries
         # We'll use the first G20 country as a placeholder and aggregate the data
         target_iso = 'G20'
-        chart_title = f'Global Historical Emissions and Trajectory Under the ICJ Ruling - G20 Countries ({get_scope_display_label(emissions_scope)})'
+        chart_title = f'Global Historical Emissions and Trajectory Under the ICJ Ruling - G20 Countries ({get_scope_display_label(emissions_scope)}) - Million Tons'
     elif selected_country == 'ALL':
         target_iso = 'WLD'
-        chart_title = f'Global Historical Emissions and Trajectory Under the ICJ Ruling ({get_scope_display_label(emissions_scope)})'
+        chart_title = f'Global Historical Emissions and Trajectory Under the ICJ Ruling ({get_scope_display_label(emissions_scope)}) - Million Tons'
     else:
         target_iso = selected_country
         country_name = scenario_parameters[scenario_parameters['ISO2'] == selected_country]['Country'].iloc[0] if len(scenario_parameters[scenario_parameters['ISO2'] == selected_country]) > 0 else selected_country
-        chart_title = f'Global Historical Emissions and Trajectory Under the ICJ Ruling ({get_scope_display_label(emissions_scope)})'
+        chart_title = f'Global Historical Emissions and Trajectory Under the ICJ Ruling ({get_scope_display_label(emissions_scope)}) - Million Tons'
     
     # Filter historical data (exclude 2050 as it's only for population data)
     hist_data = historical_data[
@@ -810,7 +810,7 @@ def update_line_chart(budget_dist, probability, emissions_scope, selected_countr
             mode='lines',
             name='Historical Emissions',
             line=dict(color='#8DD3C7', width=3),  # Cyan from palette as requested
-            hovertemplate="<b>%{x}</b><br>%{y:.2f}<extra></extra>"
+            hovertemplate="<b>Year: %{x}</b><br>Emissions: %{y:.2f} Mt<extra></extra>"
         ))
 
     # Forecasted emissions
@@ -821,13 +821,13 @@ def update_line_chart(budget_dist, probability, emissions_scope, selected_countr
             mode='lines',
             name='Required Trajectory',
             line=dict(dash='dash', color='#FDB462', width=3),  # Orange from palette, different from bar chart
-            hovertemplate="<b>%{x}</b><br>%{y:.2f}<extra></extra>"
+            hovertemplate="<b>Year: %{x}</b><br>Emissions: %{y:.2f} Mt<extra></extra>"
         ))
     
     fig.update_layout(
         xaxis_title=None,
         yaxis_title=None,  # Remove Y axis title
-        hovermode='x unified',
+        hovermode='closest',
         # Add consistent styling to match theme
         paper_bgcolor='#ffffff',  # Clean white background
         plot_bgcolor='#ffffff',
