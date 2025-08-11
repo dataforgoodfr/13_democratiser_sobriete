@@ -545,26 +545,27 @@ def update_bar_chart(probability, selected_country, g20_filter):
     else:
         # For "All Countries" selection
         if g20_filter == 'Yes':
-            # When G20 filter is active with "All Countries", aggregate G20 countries data
-            g20_data = filtered_data[filtered_data['ISO2'].isin(G20_COUNTRIES)]
+            # When G20 filter is active with "All Countries", use G20 aggregate data directly
+            g20_data = scenario_parameters[
+                (scenario_parameters['Probability_of_reach'] == probability) &
+                (scenario_parameters['Warming_scenario'] == '1.5°C') &
+                (scenario_parameters['ISO2'] == 'G20') &
+                (scenario_parameters['Budget_distribution_scenario'].isin(['NDC Pledges', 'Responsibility', 'Capacity']))
+            ].copy()
             
-            # Group by scenario and scope to get aggregate values
-            summary_data = g20_data.groupby('Scenario_Scope')['Neutrality_year_numeric'].agg(['min', 'max', 'mean']).reset_index()
+            # Convert 'Neutrality_year' to numeric
+            g20_data['Neutrality_year_numeric'] = pd.to_numeric(g20_data['Neutrality_year'], errors='coerce')
             
-            # Add emissions scope for coloring
-            summary_data['Emissions_scope'] = summary_data['Scenario_Scope'].apply(lambda x: x.split(' - ')[1])
+            # Create scenario-scope combinations for x-axis
+            g20_data['Scenario_Scope'] = g20_data['Budget_distribution_scenario'] + ' - ' + g20_data['Emissions_scope']
             
             # Create bar heights from 2025 baseline
-            summary_data['bar_height'] = summary_data['mean'] - 2025
-            summary_data['error_y_adj'] = summary_data['max'] - summary_data['mean']
-            summary_data['error_y_minus_adj'] = summary_data['mean'] - summary_data['min']
+            g20_data['bar_height'] = g20_data['Neutrality_year_numeric'] - 2025
             
             fig = px.bar(
-                summary_data,
+                g20_data,
                 x='Scenario_Scope',
                 y='bar_height',
-                error_y='error_y_adj',
-                error_y_minus='error_y_minus_adj',
                 title=chart_title,
                 labels={'bar_height': 'Years from 2025', 'Scenario_Scope': 'Budget Distribution Scenario'},
                 color='Emissions_scope',
@@ -705,30 +706,20 @@ def update_bar_chart(probability, selected_country, g20_filter):
             yanchor="top"
         )
     
-    # Add explanation text for min/max bars as a note below the chart (only for G20 aggregate view)
-    if selected_country == 'ALL' and g20_filter == 'Yes':
-        fig.add_annotation(
-            text="Note: Min/Max bars show the range of neutrality years across G20 countries in each scenario",
-            xref="paper", yref="paper",
-            x=0.5, y=-0.15,  # Centered below the chart
-            xanchor="center", yanchor="top",
-            showarrow=False,
-            font=dict(size=12, color="#2c3e50", weight="bold"),
-            bgcolor="rgba(255,255,255,0.95)"
-        )
+
     
     # For global view, add text labels on bars showing neutrality year
     if selected_country == 'ALL':
         if g20_filter == 'Yes':
-            # For G20 aggregate view, show mean values above error bars
-            for i, row in summary_data.iterrows():
+            # For G20 aggregate view, show neutrality year values
+            for i, row in g20_data.iterrows():
                 fig.add_annotation(
                     x=row['Scenario_Scope'],
-                    y=row['max'],  # Position above the error bar (max value)
-                    text=str(int(row['mean'])),
+                    y=row['Neutrality_year_numeric'],
+                    text=str(int(row['Neutrality_year_numeric'])),
                     showarrow=False,
                     font=dict(size=11, color="black", weight="bold"),
-                    yshift=20,  # More space above error bars
+                    yshift=15,  # Space above the bar
                     xanchor="center",
                     yanchor="bottom"
                 )
