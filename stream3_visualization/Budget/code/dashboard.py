@@ -935,15 +935,21 @@ def update_top_cumulative_emitters(selected_country, selected_scope, g20_filter)
 @app.callback(
     Output('top-per-capita-emitters', 'figure'),
     [Input('country-dropdown', 'value'),
-     Input('emissions-scope-dropdown', 'value')]
+     Input('emissions-scope-dropdown', 'value'),
+     Input('g20-filter-dropdown', 'value')]
 )
-def update_top_per_capita_emitters(selected_country, selected_scope):
+def update_top_per_capita_emitters(selected_country, selected_scope, g20_filter):
     try:
         # Filter data by emissions scope
         filtered_data = historical_data[historical_data['Emissions_scope'] == selected_scope].copy()
         
-        # Get latest year data for each country (exclude aggregates)
-        filtered_data = filtered_data[~filtered_data['ISO2'].isin(['WLD', 'EU', 'G20'])]
+        # Get latest year data for each country (exclude aggregates based on G20 filter)
+        if g20_filter == 'Yes':
+            # When G20 filter is active, show only G20 countries
+            filtered_data = filtered_data[filtered_data['G20_country'] == True]
+        else:
+            # Exclude aggregates for normal view
+            filtered_data = filtered_data[~filtered_data['ISO2'].isin(['WLD', 'EU', 'G20'])]
         
         # Remove rows with missing data
         filtered_data = filtered_data.dropna(subset=['ISO2', 'Year', 'Emissions_per_capita_ton'])
@@ -971,13 +977,19 @@ def update_top_per_capita_emitters(selected_country, selected_scope):
         # Highlight selected country if it exists in top 20 (using colors from your palette)
         colors = ['#FB8072' if country == selected_country else '#B3DE69' for country in top_20['ISO2']]
         
+        # Set title based on G20 filter
+        if g20_filter == 'Yes':
+            title_text = 'Top 20 G20 Countries by CO2 Emissions Per Capita - Tons'
+        else:
+            title_text = 'Top 20 Countries by CO2 Emissions Per Capita - Tons'
+            
         fig = px.bar(
             top_20,
             x='Emissions_per_capita_ton',
             y='Country',
             orientation='h',
             color_discrete_sequence=colors,
-            title='Top 20 Countries by CO2 Emissions Per Capita - Tons'
+            title=title_text
         )
         
         # Update traces for better hover formatting
