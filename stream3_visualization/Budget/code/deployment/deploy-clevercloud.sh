@@ -30,12 +30,14 @@ fi
 
 echo -e "${GREEN}✅ Clever Cloud CLI ready${NC}"
 
-# Check if git repository is initialized
-if [ ! -d ".git" ]; then
+# Check if git repository is initialized (go up one level to code directory)
+if [ ! -d "../.git" ]; then
     echo -e "${YELLOW}📦 Initializing git repository...${NC}"
+    cd ..
     git init
     git add .
     git commit -m "Initial commit for Clever Cloud deployment"
+    cd deployment
 fi
 
 # Check if app is linked

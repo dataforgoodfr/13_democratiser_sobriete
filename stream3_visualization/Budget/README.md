@@ -5,8 +5,8 @@
 This document outlines the end-to-end data processing pipeline for the Carbon Budget Visualization project. The goal is to ingest raw data from various sources, clean and process it, and then generate a series of carbon budget scenarios based on different ethical principles of distribution.
 
 The pipeline is executed by two main Python scripts:
-1.  `Budget/code/ETL_preprocessing.py`: Handles data ingestion, cleaning, aggregation, and the calculation of key metrics.
-2.  `Budget/code/ETL_scenarios.py`: Takes the processed data and generates the different future carbon budget scenarios.
+1.  `ETL_preprocessing.py`: Handles data ingestion, cleaning, aggregation, and the calculation of key metrics.
+2.  `ETL_scenarios.py`: Takes the processed data and generates the different future carbon budget scenarios.
 
 ---
 
@@ -87,6 +87,28 @@ For countries with negative carbon budgets (indicating they have already exceede
 The script generates two files that are ready for visualization:
 *   `scenario_parameters.csv`: Contains the detailed parameters for every unique scenario combination (country, warming target, probability, distribution principle), including the calculated neutrality year and country-specific budget.
 *   `forecast_data.csv`: A long-format file containing the year-by-year forecasted emissions for every scenario, showing a linear decrease to zero.
+
+---
+
+## Deployment
+
+This application is deployed on CleverCloud as a standalone service.
+
+### Deployment Files
+All deployment-related files are organized in the `deployment/` folder:
+- `deployment/clevercloud.json`: CleverCloud configuration
+- `deployment/Procfile`: Process definition for CleverCloud
+- `deployment/requirements.txt`: Python dependencies
+- `deployment/deploy-clevercloud.sh`: Deployment script
+- `deployment/deploy-clevercloud.md`: Deployment documentation
+
+### Quick Deploy
+```bash
+cd deployment
+./deploy-clevercloud.sh
+```
+
+For detailed deployment instructions, see [deployment/DEPLOYMENT.md](deployment/DEPLOYMENT.md).
 
 ---
 

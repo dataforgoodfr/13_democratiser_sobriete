@@ -5,10 +5,10 @@
     ]
   },
   "deploy": {
-    "module": "Budget.code.dashboard:asgi_app"
+    "module": "../dashboard:server"
   },
   "hooks": {
-    "pre_build": "pip install -r requirements.txt"
+    "pre_build": "pip install -r deployment/requirements.txt"
   },
   "build": {
     "cache_directories": [
