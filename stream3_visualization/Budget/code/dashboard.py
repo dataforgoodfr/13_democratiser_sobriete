@@ -809,7 +809,8 @@ def update_line_chart(budget_dist, probability, emissions_scope, selected_countr
             y=hist_data['Annual_CO2_emissions_Mt'],
             mode='lines',
             name='Historical Emissions',
-            line=dict(color='#8DD3C7', width=3)  # Cyan from palette as requested
+            line=dict(color='#8DD3C7', width=3),  # Cyan from palette as requested
+            hovertemplate="<b>%{x}</b><br>%{y:.2f}<extra></extra>"
         ))
 
     # Forecasted emissions
@@ -819,7 +820,8 @@ def update_line_chart(budget_dist, probability, emissions_scope, selected_countr
             y=forecast_country['Forecasted_emissions_Mt'],
             mode='lines',
             name='Required Trajectory',
-            line=dict(dash='dash', color='#FDB462', width=3)  # Orange from palette, different from bar chart
+            line=dict(dash='dash', color='#FDB462', width=3),  # Orange from palette, different from bar chart
+            hovertemplate="<b>%{x}</b><br>%{y:.2f}<extra></extra>"
         ))
     
     fig.update_layout(
