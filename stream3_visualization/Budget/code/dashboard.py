@@ -115,7 +115,7 @@ app.layout = html.Div([
                     style={'marginTop': '8px'},
                     clearable=False
                 )
-            ], style={'width': '19%', 'display': 'inline-block', 'margin-right': '1%'}),
+            ], style={'width': '17%', 'display': 'inline-block', 'margin-right': '2%'}),
             
             html.Div([
                 html.Label("G20 Only", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
@@ -129,7 +129,7 @@ app.layout = html.Div([
                     style={'marginTop': '8px'},
                     clearable=False
                 )
-            ], style={'width': '19%', 'display': 'inline-block', 'margin-right': '1%'}),
+            ], style={'width': '17%', 'display': 'inline-block', 'margin-right': '2%'}),
 
             html.Div([
                 html.Label("Zero Carbon Emissions Trajectory", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
@@ -140,18 +140,7 @@ app.layout = html.Div([
                     style={'marginTop': '8px'},
                     clearable=False
                 )
-            ], style={'width': '19%', 'display': 'inline-block', 'margin-right': '1%'}),
-            
-            html.Div([
-                html.Label("Probability of holding temperature rise to 1.5°C", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
-                dcc.Dropdown(
-                    id='probability-dropdown',
-                    options=[{'label': i, 'value': i} for i in scenario_parameters['Probability_of_reach'].unique()],
-                    value='50%',
-                    style={'marginTop': '8px'},
-                    clearable=False
-                )
-            ], style={'width': '19%', 'display': 'inline-block', 'margin-right': '1%'}),
+            ], style={'width': '17%', 'display': 'inline-block', 'margin-right': '2%'}),
             
             html.Div([
                 html.Label("Scope of Emissions", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
@@ -162,7 +151,18 @@ app.layout = html.Div([
                     style={'marginTop': '8px'},
                     clearable=False
                 )
-            ], style={'width': '19%', 'display': 'inline-block'}),
+            ], style={'width': '17%', 'display': 'inline-block', 'margin-right': '2%'}),
+            
+            html.Div([
+                html.Label("Probability of holding temperature rise to 1.5°C", style={'fontWeight': 'bold', 'color': '#2c3e50', 'whiteSpace': 'nowrap', 'overflow': 'visible'}),
+                dcc.Dropdown(
+                    id='probability-dropdown',
+                    options=[{'label': i, 'value': i} for i in scenario_parameters['Probability_of_reach'].unique()],
+                    value='50%',
+                    style={'marginTop': '8px'},
+                    clearable=False
+                )
+            ], style={'width': '17%', 'display': 'inline-block'}),
         ], style={
             'padding': '15px 20px',
             'backgroundColor': '#fdf6e3',
@@ -543,23 +543,27 @@ def update_bar_chart(probability, selected_country, g20_filter):
             )
         
     else:
-        # For all countries, show min, max, mean
-        summary_data = filtered_data.groupby('Scenario_Scope')['Neutrality_year_numeric'].agg(['min', 'max', 'mean']).reset_index()
+        # For all countries, use WLD aggregate data (more mathematically correct)
+        wld_data = scenario_parameters[
+            (scenario_parameters['Probability_of_reach'] == probability) &
+            (scenario_parameters['Warming_scenario'] == '1.5°C') &
+            (scenario_parameters['ISO2'] == 'WLD') &
+            (scenario_parameters['Budget_distribution_scenario'].isin(['NDC Pledges', 'Responsibility', 'Capacity']))
+        ].copy()
         
-        # Add emissions scope for coloring
-        summary_data['Emissions_scope'] = summary_data['Scenario_Scope'].apply(lambda x: x.split(' - ')[1])
+        # Convert 'Neutrality_year' to numeric
+        wld_data['Neutrality_year_numeric'] = pd.to_numeric(wld_data['Neutrality_year'], errors='coerce')
+        
+        # Create scenario-scope combinations for x-axis
+        wld_data['Scenario_Scope'] = wld_data['Budget_distribution_scenario'] + ' - ' + wld_data['Emissions_scope']
         
         # Create bar heights from 2025 baseline
-        summary_data['bar_height'] = summary_data['mean'] - 2025
-        summary_data['error_y_adj'] = summary_data['max'] - summary_data['mean']
-        summary_data['error_y_minus_adj'] = summary_data['mean'] - summary_data['min']
+        wld_data['bar_height'] = wld_data['Neutrality_year_numeric'] - 2025
         
         fig = px.bar(
-            summary_data,
+            wld_data,
             x='Scenario_Scope',
             y='bar_height',
-            error_y='error_y_adj',
-            error_y_minus='error_y_minus_adj',
             title=chart_title,
             labels={'bar_height': 'Years from 2025', 'Scenario_Scope': 'Budget Distribution Scenario'},
             color='Emissions_scope',
@@ -665,28 +669,16 @@ def update_bar_chart(probability, selected_country, g20_filter):
             yanchor="top"
         )
     
-    # Add explanation text for min/max bars as a note below the chart (only for global view)
+    # For global view, add text labels on bars showing neutrality year
     if selected_country == 'ALL':
-        fig.add_annotation(
-            text="Note: Min/Max bars show the range of neutrality years across all countries in each scenario",
-            xref="paper", yref="paper",
-            x=0.5, y=-0.15,  # Centered below the chart
-            xanchor="center", yanchor="top",
-            showarrow=False,
-            font=dict(size=12, color="#2c3e50", weight="bold"),
-            bgcolor="rgba(255,255,255,0.95)"
-        )
-    
-    # For global view, add text labels on bars showing average neutrality year
-    if selected_country == 'ALL':
-        for i, row in summary_data.iterrows():
+        for i, row in wld_data.iterrows():
             fig.add_annotation(
                 x=row['Scenario_Scope'],
-                y=row['max'],  # Position above the error bar (max value)
-                text=str(int(row['mean'])),
+                y=row['Neutrality_year_numeric'],
+                text=str(int(row['Neutrality_year_numeric'])),
                 showarrow=False,
                 font=dict(size=11, color="black", weight="bold"),
-                yshift=20,  # More space above error bars
+                yshift=15,  # Space above the bar
                 xanchor="center",
                 yanchor="bottom"
             )
