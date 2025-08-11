@@ -1071,8 +1071,6 @@ server = app.server
 
 if __name__ == '__main__':
     app.run(
-        debug=False,
-        dev_tools_hot_reload=False,
         port=8080,
-        host="0.0.0.0"
+        host='0.0.0.0',
     )
