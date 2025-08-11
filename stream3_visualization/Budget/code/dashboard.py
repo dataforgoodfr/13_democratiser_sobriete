@@ -543,15 +543,26 @@ def update_bar_chart(probability, selected_country, g20_filter):
         
         # Add text labels on top of bars showing the zero carbon year
         for i, row in filtered_data.iterrows():
+            # Determine if the bar is negative (below 2025) or positive (above 2025)
+            bar_height = row['Neutrality_year_numeric'] - 2025
+            if bar_height < 0:
+                # For negative bars, place label below the bar
+                yshift = -15
+                yanchor = "top"
+            else:
+                # For positive bars, place label above the bar
+                yshift = 15
+                yanchor = "bottom"
+            
             fig.add_annotation(
                 x=row['Scenario_Scope'],
                 y=row['Neutrality_year_numeric'],
                 text=str(int(row['Neutrality_year_numeric'])),
                 showarrow=False,
                 font=dict(size=11, color="black", weight="bold"),
-                yshift=15,  # More space above the bar
+                yshift=yshift,  # Dynamic positioning based on bar direction
                 xanchor="center",  # Center the text horizontally
-                yanchor="bottom"   # Anchor text at bottom so it sits above the bar
+                yanchor=yanchor   # Dynamic anchor based on bar direction
             )
         
     else:
@@ -725,28 +736,50 @@ def update_bar_chart(probability, selected_country, g20_filter):
         if g20_filter == 'Yes':
             # For G20 aggregate view, show zero carbon year values
             for i, row in g20_data.iterrows():
+                # Determine if the bar is negative (below 2025) or positive (above 2025)
+                bar_height = row['Neutrality_year_numeric'] - 2025
+                if bar_height < 0:
+                    # For negative bars, place label below the bar
+                    yshift = -15
+                    yanchor = "top"
+                else:
+                    # For positive bars, place label above the bar
+                    yshift = 15
+                    yanchor = "bottom"
+                
                 fig.add_annotation(
                     x=row['Scenario_Scope'],
                     y=row['Neutrality_year_numeric'],
                     text=str(int(row['Neutrality_year_numeric'])),
                     showarrow=False,
                     font=dict(size=11, color="black", weight="bold"),
-                    yshift=15,  # Space above the bar
+                    yshift=yshift,  # Dynamic positioning based on bar direction
                     xanchor="center",
-                    yanchor="bottom"
+                    yanchor=yanchor
                 )
         else:
             # For WLD aggregate view, show zero carbon year values
             for i, row in wld_data.iterrows():
+                # Determine if the bar is negative (below 2025) or positive (above 2025)
+                bar_height = row['Neutrality_year_numeric'] - 2025
+                if bar_height < 0:
+                    # For negative bars, place label below the bar
+                    yshift = -15
+                    yanchor = "top"
+                else:
+                    # For positive bars, place label above the bar
+                    yshift = 15
+                    yanchor = "bottom"
+                
                 fig.add_annotation(
                     x=row['Scenario_Scope'],
                     y=row['Neutrality_year_numeric'],
                     text=str(int(row['Neutrality_year_numeric'])),
                     showarrow=False,
                     font=dict(size=11, color="black", weight="bold"),
-                    yshift=15,  # Space above the bar
+                    yshift=yshift,  # Dynamic positioning based on bar direction
                     xanchor="center",
-                    yanchor="bottom"
+                    yanchor=yanchor
                 )
     
     return fig
@@ -766,14 +799,14 @@ def update_line_chart(budget_dist, probability, emissions_scope, selected_countr
         # For G20 filter, we need to aggregate data from individual G20 countries
         # We'll use the first G20 country as a placeholder and aggregate the data
         target_iso = 'G20'
-        chart_title = f'Global Historical Emissions and Trajectory Under the ICJ Ruling - G20 Countries ({get_scope_display_label(emissions_scope)}) - Million Tons'
+        chart_title = f'Historical Emissions and Trajectory Under the ICJ Ruling - G20 ({get_scope_display_label(emissions_scope)}) - Million Tons'
     elif selected_country == 'ALL':
         target_iso = 'WLD'
-        chart_title = f'Global Historical Emissions and Trajectory Under the ICJ Ruling ({get_scope_display_label(emissions_scope)}) - Million Tons'
+        chart_title = f'Historical Emissions and Trajectory Under the ICJ Ruling - Global ({get_scope_display_label(emissions_scope)}) - Million Tons'
     else:
         target_iso = selected_country
         country_name = scenario_parameters[scenario_parameters['ISO2'] == selected_country]['Country'].iloc[0] if len(scenario_parameters[scenario_parameters['ISO2'] == selected_country]) > 0 else selected_country
-        chart_title = f'Global Historical Emissions and Trajectory Under the ICJ Ruling ({get_scope_display_label(emissions_scope)}) - Million Tons'
+        chart_title = f'Historical Emissions and Trajectory Under the ICJ Ruling ({get_scope_display_label(emissions_scope)}) - Million Tons'
     
     # Filter historical data (exclude 2050 as it's only for population data)
     hist_data = historical_data[
