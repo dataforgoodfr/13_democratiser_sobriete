@@ -443,9 +443,10 @@ def update_map(budget_dist, probability, emissions_scope, selected_country, g20_
 @app.callback(
     Output('scenario-comparison-bar', 'figure'),
     [Input('probability-dropdown', 'value'),
-     Input('country-dropdown', 'value')]
+     Input('country-dropdown', 'value'),
+     Input('g20-filter-dropdown', 'value')]
 )
-def update_bar_chart(probability, selected_country):
+def update_bar_chart(probability, selected_country, g20_filter):
     # Use selected probability and 1.5°C
     filtered_data = scenario_parameters[
         (scenario_parameters['Probability_of_reach'] == probability) &
@@ -453,7 +454,11 @@ def update_bar_chart(probability, selected_country):
     ].copy()
     
     # Apply country filter
-    if selected_country != 'ALL':
+    if g20_filter == 'Yes':
+        # When G20 filter is active, show only G20 aggregate data
+        filtered_data = filtered_data[filtered_data['ISO2'] == 'G20']
+        chart_title = f'Neutrality Year by Budget Distribution Scenario - G20 Countries'
+    elif selected_country != 'ALL':
         filtered_data = filtered_data[filtered_data['ISO2'] == selected_country]
         chart_title = f'Neutrality Year by Budget Distribution Scenario'
     else:
