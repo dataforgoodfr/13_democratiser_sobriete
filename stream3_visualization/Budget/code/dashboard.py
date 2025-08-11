@@ -840,7 +840,7 @@ def update_top_cumulative_emitters(selected_country, selected_scope, g20_filter)
         # Get latest year data for each country (exclude aggregates based on G20 filter)
         if g20_filter == 'Yes':
             # When G20 filter is active, show only G20 countries
-            filtered_data = filtered_data[filtered_data['G20_country'] == True]
+            filtered_data = filtered_data[filtered_data['G20_country'] == 'Yes']
         else:
             # Exclude aggregates for normal view
             filtered_data = filtered_data[~filtered_data['ISO2'].isin(['WLD', 'EU', 'G20'])]
@@ -959,7 +959,7 @@ def update_top_per_capita_emitters(selected_country, selected_scope, g20_filter)
         # Get latest year data for each country (exclude aggregates based on G20 filter)
         if g20_filter == 'Yes':
             # When G20 filter is active, show only G20 countries
-            filtered_data = filtered_data[filtered_data['G20_country'] == True]
+            filtered_data = filtered_data[filtered_data['G20_country'] == 'Yes']
         else:
             # Exclude aggregates for normal view
             filtered_data = filtered_data[~filtered_data['ISO2'].isin(['WLD', 'EU', 'G20'])]
