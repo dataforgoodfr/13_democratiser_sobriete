@@ -530,6 +530,73 @@ for scope in emission_scopes:
 
 print("=== END WORLD AGGREGATE UPDATE ===\n")
 
+# Inject aggregate responsibility shares (EU, G20, IPCC regions) by summing member-country shares
+def _aggregate_members_by_scope(df: pd.DataFrame, scope: str):
+    # Countries with emissions data in this scope (align with existing filters)
+    members_scope = df[
+        (df['Emissions_scope'] == scope) &
+        (df['Annual_CO2_emissions_Mt'].notna()) &
+        (df['Annual_CO2_emissions_Mt'] != 0) &
+        (df['Year'] < 2050) &
+        (df['Country'] != 'All')
+    ][['ISO2', 'EU_country', 'G20_country', 'Region']].drop_duplicates()
+
+    eu_members = members_scope[members_scope['EU_country'] == 'Yes']['ISO2'].unique().tolist()
+    g20_members = members_scope[members_scope['G20_country'] == 'Yes']['ISO2'].unique().tolist()
+
+    # Map Region -> list of ISO2 members (exclude aggregates)
+    region_members_map = (
+        members_scope[['Region', 'ISO2']]
+        .drop_duplicates()
+        .groupby('Region')['ISO2']
+        .apply(list)
+        .to_dict()
+    )
+    return eu_members, g20_members, region_members_map
+
+
+def inject_aggregate_responsibility_shares(base_df: pd.DataFrame, combined_df: pd.DataFrame, scopes):
+    print("\n=== INJECTING AGGREGATE RESPONSIBILITY SHARES ===")
+    for scope in scopes:
+        print(f"Calculating aggregate responsibility shares for {scope}...")
+        col_1970_2050 = f'Share_of_cumulative_population_1970_to_2050_{scope}'
+        col_1970_latest = f'Share_of_cumulative_population_1970_to_latest_{scope}'
+
+        eu_members, g20_members, region_members = _aggregate_members_by_scope(combined_df, scope)
+
+        # EU
+        if 'EU' in base_df['ISO2'].values and eu_members:
+            eu_share_1970_2050 = base_df[base_df['ISO2'].isin(eu_members)][col_1970_2050].sum()
+            eu_share_1970_latest = base_df[base_df['ISO2'].isin(eu_members)][col_1970_latest].sum()
+            base_df.loc[base_df['ISO2'] == 'EU', col_1970_2050] = eu_share_1970_2050
+            base_df.loc[base_df['ISO2'] == 'EU', col_1970_latest] = eu_share_1970_latest
+            print(f"  EU shares set: 1970-2050={eu_share_1970_2050:.6f}, 1970-latest={eu_share_1970_latest:.6f}")
+
+        # G20
+        if 'G20' in base_df['ISO2'].values and g20_members:
+            g20_share_1970_2050 = base_df[base_df['ISO2'].isin(g20_members)][col_1970_2050].sum()
+            g20_share_1970_latest = base_df[base_df['ISO2'].isin(g20_members)][col_1970_latest].sum()
+            base_df.loc[base_df['ISO2'] == 'G20', col_1970_2050] = g20_share_1970_2050
+            base_df.loc[base_df['ISO2'] == 'G20', col_1970_latest] = g20_share_1970_latest
+            print(f"  G20 shares set: 1970-2050={g20_share_1970_2050:.6f}, 1970-latest={g20_share_1970_latest:.6f}")
+
+        # IPCC Regions (exclude WLD/EU/G20)
+        existing_aggregates = set(base_df[base_df['Country'] == 'All']['ISO2'].unique())
+        for region, members in region_members.items():
+            if region in existing_aggregates and region not in ['WLD', 'EU', 'G20'] and members:
+                reg_share_1970_2050 = base_df[base_df['ISO2'].isin(members)][col_1970_2050].sum()
+                reg_share_1970_latest = base_df[base_df['ISO2'].isin(members)][col_1970_latest].sum()
+                mask = (base_df['ISO2'] == region) & (base_df['Country'] == 'All')
+                base_df.loc[mask, col_1970_2050] = reg_share_1970_2050
+                base_df.loc[mask, col_1970_latest] = reg_share_1970_latest
+                print(f"  {region} shares set: 1970-2050={reg_share_1970_2050:.6f}, 1970-latest={reg_share_1970_latest:.6f}")
+
+    print("=== END INJECT ===\n")
+
+
+# Call injection before building scenarios
+inject_aggregate_responsibility_shares(base_df, combined_df, emission_scopes)
+
 # FINAL VERIFICATION: Check that shares sum to 1.0
 print("\n=== FINAL VERIFICATION: CUMULATIVE POPULATION SHARES ===")
 for scope in emission_scopes:
@@ -756,6 +823,9 @@ for _, row in base_df.iterrows():
                             else:
                                 # If allocated budget is also negative, they never had a valid budget
                                 neutrality_year = 1970
+
+                            # Compute years to neutrality from latest available year (can be negative)
+                            years_to_neutrality = int(neutrality_year - latest_year)
                                 
 
                         else:
