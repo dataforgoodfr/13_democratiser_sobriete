@@ -553,19 +553,133 @@ def main():
         0
     )
     
-    # Verify exact normalization
+    # Step 3.5: Calculate G20 aggregate capacity
+    print("\nStep 3.5: Calculating G20 aggregate capacity...")
+    # Get G20 member countries from the main dataset
+    g20_members = final_df[
+        (final_df['G20_country'] == 'Yes') & 
+        (final_df['ISO2'].isin(capacity_calc['ISO2']))  # Only countries with capacity data
+    ]['ISO2'].unique()
+    
+    print(f"G20 member countries with capacity data: {len(g20_members)}")
+    
+    # Calculate G20 capacity for each scope
+    g20_capacity = []
     for scope in ['Territory', 'Consumption']:
-        scope_data = capacity_calc[capacity_calc['Emissions_scope'] == scope]
-        current_sum = scope_data['share_of_capacity'].sum()
-        count = len(scope_data)
-        print(f"  {scope}: {count} countries, sum = {current_sum:.10f}")
+        scope_capacity = capacity_calc[capacity_calc['Emissions_scope'] == scope]
+        g20_scope_capacity = scope_capacity[scope_capacity['ISO2'].isin(g20_members)]['capacity_absolute'].sum()
+        g20_capacity.append({
+            'ISO2': 'G20',
+            'Emissions_scope': scope,
+            'capacity_absolute': g20_scope_capacity,
+            'world_total_capacity': world_capacity_total[world_capacity_total['Emissions_scope'] == scope]['world_total_capacity'].iloc[0]
+        })
+        print(f"  {scope}: G20 capacity = {g20_scope_capacity:,.0f} (sum of {len(g20_members)} countries)")
+    
+    # G20 capacity share is the sum of its member countries' shares (no normalization needed)
+    g20_capacity_df = pd.DataFrame(g20_capacity)
+    g20_capacity_df['share_of_capacity'] = g20_capacity_df['capacity_absolute'] / g20_capacity_df['world_total_capacity']
+    
+    print(f"  G20 Territory: capacity share = {g20_capacity_df[g20_capacity_df['Emissions_scope'] == 'Territory']['share_of_capacity'].iloc[0]:.6f}")
+    print(f"  G20 Consumption: capacity share = {g20_capacity_df[g20_capacity_df['Emissions_scope'] == 'Consumption']['share_of_capacity'].iloc[0]:.6f}")
+    
+    # Extract G20 final shares for later use
+    g20_final_shares = g20_capacity_df[['ISO2', 'Emissions_scope', 'share_of_capacity']].copy()
+    
+    # Keep individual countries unchanged - they still sum to 1.0
+    # No need to renormalize since we're not adding G20 to the individual country total
+    
+    # Step 3.6: Calculate EU aggregate capacity
+    print("\nStep 3.6: Calculating EU aggregate capacity...")
+    # Get EU member countries from the main dataset
+    eu_members = final_df[
+        (final_df['EU_country'] == 'Yes') & 
+        (final_df['ISO2'].isin(capacity_calc['ISO2']))  # Only countries with capacity data
+    ]['ISO2'].unique()
+    
+    print(f"EU member countries with capacity data: {len(eu_members)}")
+    
+    # Calculate EU capacity for each scope
+    eu_capacity = []
+    for scope in ['Territory', 'Consumption']:
+        scope_capacity = capacity_calc[capacity_calc['Emissions_scope'] == scope]
+        eu_scope_capacity = scope_capacity[scope_capacity['ISO2'].isin(eu_members)]['capacity_absolute'].sum()
+        eu_capacity.append({
+            'ISO2': 'EU',
+            'Emissions_scope': scope,
+            'capacity_absolute': eu_scope_capacity,
+            'world_total_capacity': world_capacity_total[world_capacity_total['Emissions_scope'] == scope]['world_total_capacity'].iloc[0]
+        })
+        print(f"  {scope}: EU capacity = {eu_scope_capacity:,.0f} (sum of {len(eu_members)} countries)")
+    
+    # EU capacity share is the sum of its member countries' shares (no normalization needed)
+    eu_capacity_df = pd.DataFrame(eu_capacity)
+    eu_capacity_df['share_of_capacity'] = eu_capacity_df['capacity_absolute'] / eu_capacity_df['world_total_capacity']
+    
+    print(f"  EU Territory: capacity share = {eu_capacity_df[eu_capacity_df['Emissions_scope'] == 'Territory']['share_of_capacity'].iloc[0]:.6f}")
+    print(f"  EU Consumption: capacity share = {eu_capacity_df[eu_capacity_df['Emissions_scope'] == 'Consumption']['share_of_capacity'].iloc[0]:.6f}")
+    
+    # Extract EU final shares for later use
+    eu_final_shares = eu_capacity_df[['ISO2', 'Emissions_scope', 'share_of_capacity']].copy()
+    
+    # Keep individual countries unchanged - they still sum to 1.0
+    # No need to renormalize since we're not adding EU to the individual country total
+    
+    # Step 3.7: Calculate IPCC regions aggregate capacity
+    print("\nStep 3.7: Calculating IPCC regions aggregate capacity...")
+    # Get IPCC regions from the main dataset (excluding WLD, EU, G20)
+    ipcc_regions_list = final_df[
+        (~final_df['ISO2'].isin(['WLD', 'EU', 'G20'])) & 
+        (final_df['Country'] == 'All')  # These are the region aggregates
+    ]['ISO2'].unique()
+    
+    print(f"IPCC regions found: {len(ipcc_regions_list)}")
+    print(f"IPCC regions: {ipcc_regions_list}")
+    
+    # Calculate capacity for each IPCC region
+    ipcc_capacity = []
+    for region in ipcc_regions_list:
+        # Get member countries for this region
+        region_members = final_df[
+            (final_df['Region'] == region) & 
+            (final_df['ISO2'].isin(capacity_calc['ISO2'])) &  # Only countries with capacity data
+            (~final_df['ISO2'].isin(['WLD', 'EU', 'G20'])) &  # Exclude aggregates
+            (final_df['Country'] != 'All')  # Exclude region aggregates
+        ]['ISO2'].unique()
         
-        # Ensure exactly 1.0 (handle floating point precision)
-        if current_sum > 0 and abs(current_sum - 1.0) > 1e-10:
-            capacity_calc.loc[capacity_calc['Emissions_scope'] == scope, 'share_of_capacity'] = \
-                capacity_calc.loc[capacity_calc['Emissions_scope'] == scope, 'share_of_capacity'] / current_sum
-            new_sum = capacity_calc[capacity_calc['Emissions_scope'] == scope]['share_of_capacity'].sum()
-            print(f"    Renormalized to: {new_sum:.10f}")
+        if len(region_members) > 0:
+            print(f"  {region}: {len(region_members)} member countries")
+            
+            for scope in ['Territory', 'Consumption']:
+                scope_capacity = capacity_calc[capacity_calc['Emissions_scope'] == scope]
+                region_scope_capacity = scope_capacity[scope_capacity['ISO2'].isin(region_members)]['capacity_absolute'].sum()
+                
+                if region_scope_capacity > 0:
+                    ipcc_capacity.append({
+                        'ISO2': region,
+                        'Emissions_scope': scope,
+                        'capacity_absolute': region_scope_capacity,
+                        'world_total_capacity': world_capacity_total[world_capacity_total['Emissions_scope'] == scope]['world_total_capacity'].iloc[0]
+                    })
+                    print(f"    {scope}: {region} capacity = {region_scope_capacity:,.0f}")
+    
+    # IPCC regions capacity shares are the sum of their member countries' shares (no normalization needed)
+    if ipcc_capacity:
+        ipcc_capacity_df = pd.DataFrame(ipcc_capacity)
+        ipcc_capacity_df['share_of_capacity'] = ipcc_capacity_df['capacity_absolute'] / ipcc_capacity_df['world_total_capacity']
+        
+        print(f"\nIPCC regions capacity shares:")
+        for _, row in ipcc_capacity_df.iterrows():
+            print(f"  {row['ISO2']} {row['Emissions_scope']}: capacity share = {row['share_of_capacity']:.6f}")
+        
+        # Extract IPCC regions final shares for later use
+        ipcc_final_shares = ipcc_capacity_df[['ISO2', 'Emissions_scope', 'share_of_capacity']].copy()
+    else:
+        print("  No IPCC regions with capacity data found")
+        ipcc_final_shares = pd.DataFrame(columns=['ISO2', 'Emissions_scope', 'share_of_capacity'])
+    
+    # Keep individual countries unchanged - they still sum to 1.0
+    # No need to renormalize since we're not adding regions to the individual country total
     
     # Step 4: Merge capacity shares back to final_df
     print("\nStep 4: Merging capacity shares back to main dataset...")
@@ -580,8 +694,23 @@ def main():
     # World aggregate gets capacity share of 1.0 (represents sum of all countries)
     final_df.loc[final_df['ISO2'] == 'WLD', 'share_of_capacity'] = 1.0
     
-    # Regional aggregates (EU, G20) get capacity share of 0 (they don't participate in capacity allocation)
-    final_df.loc[final_df['ISO2'].isin(['EU', 'G20']), 'share_of_capacity'] = 0.0
+    # G20 aggregate gets calculated capacity share
+    for _, row in g20_final_shares.iterrows():
+        mask = (final_df['ISO2'] == row['ISO2']) & (final_df['Emissions_scope'] == row['Emissions_scope'])
+        final_df.loc[mask, 'share_of_capacity'] = row['share_of_capacity']
+        print(f"  G20 {row['Emissions_scope']}: capacity share = {row['share_of_capacity']:.6f}")
+    
+    # EU aggregate gets calculated capacity share
+    for _, row in eu_final_shares.iterrows():
+        mask = (final_df['ISO2'] == row['ISO2']) & (final_df['Emissions_scope'] == row['Emissions_scope'])
+        final_df.loc[mask, 'share_of_capacity'] = row['share_of_capacity']
+        print(f"  EU {row['Emissions_scope']}: capacity share = {row['share_of_capacity']:.6f}")
+    
+    # IPCC regions get calculated capacity shares
+    for _, row in ipcc_final_shares.iterrows():
+        mask = (final_df['ISO2'] == row['ISO2']) & (final_df['Emissions_scope'] == row['Emissions_scope'])
+        final_df.loc[mask, 'share_of_capacity'] = row['share_of_capacity']
+        print(f"  {row['ISO2']} {row['Emissions_scope']}: capacity share = {row['share_of_capacity']:.6f}")
     
     # All other missing values get 0 (countries without GDP data)
     final_df['share_of_capacity'] = final_df['share_of_capacity'].fillna(0)
@@ -609,6 +738,27 @@ def main():
     world_data = final_df[final_df['ISO2'] == 'WLD'].head(2)  # Show first 2 rows (Territory and Consumption)
     for _, row in world_data.iterrows():
         print(f"  {row['Emissions_scope']}: GDP={row['GDP_PPP']:,.0f}, Population={row['Population']:,.0f}, Capacity_share={row['share_of_capacity']:.6f}")
+    
+    # Show G20 aggregate data for verification
+    print("\nG20 aggregate data verification:")
+    g20_data = final_df[final_df['ISO2'] == 'G20'].head(2)  # Show first 2 rows (Territory and Consumption)
+    for _, row in g20_data.iterrows():
+        print(f"  {row['Emissions_scope']}: GDP={row['GDP_PPP']:,.0f}, Population={row['Population']:,.0f}, Capacity_share={row['share_of_capacity']:.6f}")
+    
+    # Show EU aggregate data for verification
+    print("\nEU aggregate data verification:")
+    eu_data = final_df[final_df['ISO2'] == 'EU'].head(2)  # Show first 2 rows (Territory and Consumption)
+    for _, row in eu_data.iterrows():
+        print(f"  {row['Emissions_scope']}: GDP={row['GDP_PPP']:,.0f}, Population={row['Population']:,.0f}, Capacity_share={row['share_of_capacity']:.6f}")
+    
+    # Show IPCC regions data for verification (first few)
+    print("\nIPCC regions aggregate data verification (first 3):")
+    ipcc_data = final_df[
+        (final_df['ISO2'].isin(ipcc_regions_list)) & 
+        (final_df['Emissions_scope'] == 'Territory')
+    ].head(3)
+    for _, row in ipcc_data.iterrows():
+        print(f"  {row['ISO2']}: GDP={row['GDP_PPP']:,.0f}, Population={row['Population']:,.0f}, Capacity_share={row['share_of_capacity']:.6f}")
     
     print("=== End Capacity Verification ===\n")
 

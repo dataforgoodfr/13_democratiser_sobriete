@@ -62,6 +62,15 @@ except FileNotFoundError as e:
     print(f"Please ensure that the CSV files are in the '{DATA_DIR}' directory.")
     exit()
 
+# Helper function to convert emissions scope values to display labels
+def get_scope_display_label(scope_value):
+    """Convert internal scope values to user-friendly display labels"""
+    scope_mapping = {
+        'Territory': 'Territorial',
+        'Consumption': 'Consumption-based'
+    }
+    return scope_mapping.get(scope_value, scope_value)
+
 # Initialize the Dash app
 app = dash.Dash(__name__)
 server = app.server
@@ -757,14 +766,14 @@ def update_line_chart(budget_dist, probability, emissions_scope, selected_countr
         # For G20 filter, we need to aggregate data from individual G20 countries
         # We'll use the first G20 country as a placeholder and aggregate the data
         target_iso = 'G20'
-        chart_title = f'Global Historical Emissions and Trajectory Under the ICJ Ruling - G20 Countries ({emissions_scope})'
+        chart_title = f'Global Historical Emissions and Trajectory Under the ICJ Ruling - G20 Countries ({get_scope_display_label(emissions_scope)})'
     elif selected_country == 'ALL':
         target_iso = 'WLD'
-        chart_title = f'Global Historical Emissions and Trajectory Under the ICJ Ruling ({emissions_scope})'
+        chart_title = f'Global Historical Emissions and Trajectory Under the ICJ Ruling ({get_scope_display_label(emissions_scope)})'
     else:
         target_iso = selected_country
         country_name = scenario_parameters[scenario_parameters['ISO2'] == selected_country]['Country'].iloc[0] if len(scenario_parameters[scenario_parameters['ISO2'] == selected_country]) > 0 else selected_country
-        chart_title = f'Global Historical Emissions and Trajectory Under the ICJ Ruling ({emissions_scope})'
+        chart_title = f'Global Historical Emissions and Trajectory Under the ICJ Ruling ({get_scope_display_label(emissions_scope)})'
     
     # Filter historical data (exclude 2050 as it's only for population data)
     hist_data = historical_data[
@@ -910,7 +919,7 @@ def update_top_cumulative_emitters(selected_country, selected_scope, g20_filter)
         
         if filtered_data.empty:
             # Return empty chart if no data
-            fig = px.bar(title=f'No data available for {selected_scope}')
+            fig = px.bar(title=f'No data available for {get_scope_display_label(selected_scope)}')
             return fig
         
         # Get the latest year for each country safely
@@ -943,7 +952,7 @@ def update_top_cumulative_emitters(selected_country, selected_scope, g20_filter)
         
         if top_20.empty:
             # Return empty chart if no data
-            fig = px.bar(title=f'No emission data available for {selected_scope}')
+            fig = px.bar(title=f'No emission data available for {get_scope_display_label(selected_scope)}')
             return fig
         
         # Highlight selected country if it exists in top 20 (using colors from your palette)
@@ -955,9 +964,9 @@ def update_top_cumulative_emitters(selected_country, selected_scope, g20_filter)
         
         # Set title based on G20 filter
         if g20_filter == 'Yes':
-            title_text = f'Top 20 G20 Countries by Share of Cumulative CO2 Emissions since 1970 - % ({selected_scope}, 1970-{2023 if selected_scope == "Territory" else 2022})'
+            title_text = f'Top 20 G20 Countries by Share of Cumulative CO2 Emissions ({get_scope_display_label(selected_scope)}, 1970-{2023 if selected_scope == "Territory" else 2022})'
         else:
-            title_text = f'Top 20 Countries by Share of Cumulative CO2 Emissions since 1970 - % ({selected_scope}, 1970-{2023 if selected_scope == "Territory" else 2022})'
+            title_text = f'Top 20 Countries by Share of Cumulative CO2 Emissions ({get_scope_display_label(selected_scope)}, 1970-{2023 if selected_scope == "Territory" else 2022})'
             
         fig = px.bar(
             top_20_display,
@@ -1029,7 +1038,7 @@ def update_top_per_capita_emitters(selected_country, selected_scope, g20_filter)
         
         if filtered_data.empty:
             # Return empty chart if no data
-            fig = px.bar(title=f'No data available for {selected_scope}')
+            fig = px.bar(title=f'No data available for {get_scope_display_label(selected_scope)}')
             return fig
         
         # Get the latest year for each country safely
@@ -1041,7 +1050,7 @@ def update_top_per_capita_emitters(selected_country, selected_scope, g20_filter)
         
         if latest_data.empty:
             # Return empty chart if no valid data
-            fig = px.bar(title=f'No emission data available for {selected_scope}')
+            fig = px.bar(title=f'No emission data available for {get_scope_display_label(selected_scope)}')
             return fig
         
         # Sort by emissions per capita and get top 20
@@ -1052,9 +1061,9 @@ def update_top_per_capita_emitters(selected_country, selected_scope, g20_filter)
         
         # Set title based on G20 filter
         if g20_filter == 'Yes':
-            title_text = f'Top 20 G20 Countries by CO2 Emissions Per Capita - Tons ({selected_scope}, {2023 if selected_scope == "Territory" else 2022})'
+            title_text = f'Top 20 G20 Countries by CO2 Emissions Per Capita - Tons ({get_scope_display_label(selected_scope)}, {2023 if selected_scope == "Territory" else 2022})'
         else:
-            title_text = f'Top 20 Countries by CO2 Emissions Per Capita - Tons ({selected_scope}, {2023 if selected_scope == "Territory" else 2022})'
+            title_text = f'Top 20 Countries by CO2 Emissions Per Capita - Tons ({get_scope_display_label(selected_scope)}, {2023 if selected_scope == "Territory" else 2022})'
             
         fig = px.bar(
             top_20,

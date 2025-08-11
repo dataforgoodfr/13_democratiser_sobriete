@@ -142,6 +142,22 @@ def create_base_dataframe(df):
             (df['Annual_CO2_emissions_Mt'] != 0) &
             (df['Year'] < 2050)
         ]
+        
+        # FIX: Include aggregates (G20, EU, IPCC regions) even if they have GDP_PPP = 0.0
+        # as long as they have valid capacity values
+        # Include all aggregates (where Country == 'All' and ISO2 != WLD) that have valid capacity
+        # But treat G20 and EU as regular countries with capacity data
+        aggregates_with_capacity = df[
+            (df['Emissions_scope'] == scope) &
+            (df['Year'] < 2050) &
+            (df['Country'] == 'All') &
+            (~df['ISO2'].isin(['WLD'])) &  # Only exclude WLD (world aggregate)
+            (df['share_of_capacity'].notna()) &
+            (df['share_of_capacity'] > 0)
+        ]
+        
+        # Combine individual countries with aggregates that have capacity
+        scope_data = pd.concat([scope_data, aggregates_with_capacity], ignore_index=True).drop_duplicates()
 
         latest_years = scope_data.groupby('ISO2')['Year'].max().reset_index()
         latest_years.columns = ['ISO2', f'Latest_year_{scope}']
@@ -268,9 +284,16 @@ for scope in emission_scopes:
         (combined_df['Year'] < 2050)
     ]
     countries_with_data = set(scope_data['ISO2'].unique())
-    # Exclude aggregates (WLD, EU, G20, and any ISO2 where Country == 'All')
-    aggregate_iso2s = set(['WLD', 'EU', 'G20']) | set(base_df[base_df['Country'] == 'All']['ISO2'].unique())
-    country_rows = base_df[(base_df['ISO2'].isin(countries_with_data)) & (~base_df['ISO2'].isin(aggregate_iso2s))]
+    
+    # FIX: Include aggregates (G20, EU, IPCC regions) in the base dataframe
+    # Get all aggregates (where Country == 'All' and ISO2 != WLD)
+    aggregates = set(base_df[base_df['Country'] == 'All']['ISO2'].unique()) - set(['WLD'])
+    all_countries_with_data = countries_with_data | aggregates
+    
+    # Get country rows for this scope (including aggregates)
+    country_rows = base_df[
+        (base_df['ISO2'].isin(all_countries_with_data))
+    ]
     sum_country_cumulative = country_rows[f'Latest_cumulative_CO2_emissions_Mt_{scope}'].sum()
     world_cumulative = base_df[base_df['ISO2'] == 'WLD'][f'Latest_cumulative_CO2_emissions_Mt_{scope}'].iloc[0]
     print(f"\n[DATA CHECK] Scope: {scope}")
@@ -549,12 +572,27 @@ for _, row in base_df.iterrows():
                         country_cumulative = row[f'Latest_cumulative_CO2_emissions_Mt_{emissions_scope}']
                         capacity_share = row[f'share_of_capacity_{emissions_scope}']
                         
-                        # FIX: Exclude countries with missing GDP data from Capacity scenario
+                        # FIX: Include aggregates (G20, EU, IPCC regions) even if they have GDP_PPP = 0.0
+                        # as long as they have valid capacity values
+                        is_aggregate = (row['ISO2'] in ['G20', 'EU']) or (row['Country'] == 'All' and row['ISO2'] not in ['WLD'])
+                        
+
+                        
                         if capacity_share == 0 or pd.isna(capacity_share):
-                            # Skip this scenario for countries with missing GDP data
+                            # Skip this scenario for countries with missing capacity data
                             continue
                         
                         country_budget = (total_available * capacity_share) - country_cumulative
+                        
+                        # DEBUG: Add debug output for G20 Territory Capacity budget calculation
+                        if (row['ISO2'] == 'G20' and 
+                            emissions_scope == 'Territory' and 
+                            warming_scenario == '1.5°C'):
+                            print(f"  Global budget: {global_budget}")
+                            print(f"  World cumulative: {world_cumulative}")
+                            print(f"  Total available: {total_available}")
+                            print(f"  Country cumulative: {country_cumulative}")
+                            print(f"  Country budget: {country_budget}")
                     elif distribution == 'NDC Pledges':
                         # NDC Pledges only apply to Territory emissions, not Consumption
                         if emissions_scope == 'Territory':
@@ -595,6 +633,8 @@ for _, row in base_df.iterrows():
                             country_cumulative_emissions = row[f'Latest_cumulative_CO2_emissions_Mt_{emissions_scope}']
                             allocated_budget = country_budget + country_cumulative_emissions  # This is the positive budget they should have had
                             
+
+                            
                             # Find the exact year when cumulative emissions exceeded the allocated budget
                             # Use the same approach as the planetary boundary calculation
                             if allocated_budget > 0:
@@ -608,21 +648,31 @@ for _, row in base_df.iterrows():
                                     (combined_df['Year'] != 2050)  # Exclude 2050 which has NaN values
                                 ].sort_values('Year')
                                 
+
+                                
                                 if len(country_historical) > 0:
                                     # Find the first year when cumulative emissions exceeded the allocated budget
                                     overshoot_mask = country_historical['Cumulative_CO2_emissions_Mt'] > allocated_budget
                                     if overshoot_mask.any():
                                         overshoot_year = country_historical[overshoot_mask]['Year'].iloc[0]
                                         neutrality_year = overshoot_year
+                                        
+
                                     else:
                                         # If no overshoot found in historical data, use 1970
                                         neutrality_year = 1970
+                                        
+
                                 else:
                                     # No historical data available, use 1970
                                     neutrality_year = 1970
+                                    
+
                             else:
                                 # If allocated budget is also negative, they never had a valid budget
                                 neutrality_year = 1970
+                                
+
                         else:
                             # For positive budgets: use the standard linear decrease approach
                             years_to_neutrality = int(round(2 * country_budget / latest_annual))
