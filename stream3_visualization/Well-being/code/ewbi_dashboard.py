@@ -20,6 +20,16 @@ ISO2_TO_ISO3 = {
     'SK': 'SVK', 'UK': 'GBR'
 }
 
+# ISO-2 to full country names mapping
+ISO2_TO_FULL_NAME = {
+    'AT': 'Austria', 'BE': 'Belgium', 'BG': 'Bulgaria', 'CH': 'Switzerland', 'CY': 'Cyprus', 'CZ': 'Czech Republic',
+    'DE': 'Germany', 'DK': 'Denmark', 'EE': 'Estonia', 'EL': 'Greece', 'ES': 'Spain', 'FI': 'Finland',
+    'FR': 'France', 'HR': 'Croatia', 'HU': 'Hungary', 'IE': 'Ireland', 'IS': 'Iceland', 'IT': 'Italy',
+    'LT': 'Lithuania', 'LU': 'Luxembourg', 'LV': 'Latvia', 'MT': 'Malta', 'NL': 'Netherlands', 'NO': 'Norway',
+    'PL': 'Poland', 'PT': 'Portugal', 'RO': 'Romania', 'RS': 'Serbia', 'SE': 'Sweden', 'SI': 'Slovenia',
+    'SK': 'Slovakia', 'UK': 'United Kingdom'
+}
+
 # Load the data
 try:
     master_df = pd.read_csv(os.path.join(DATA_DIR, 'master_dataframe.csv'))
@@ -137,19 +147,18 @@ app.layout = html.Div([
             
             html.Div([
                 html.Label("Countries", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
-                                        dcc.Dropdown(
+                dcc.Dropdown(
                     id='countries-filter',
                     options=[
                         {'label': 'EU Countries Average', 'value': 'EU Countries Average'},
-                        {'label': 'All Countries Average', 'value': 'All Countries Average'},
-                        {'label': 'Individual Countries', 'value': 'individual'}
-                    ] + [{'label': country, 'value': country} for country in COUNTRIES],
+                        {'label': 'All Countries Average', 'value': 'All Countries Average'}
+                    ] + [{'label': ISO2_TO_FULL_NAME.get(country, country), 'value': country} for country in COUNTRIES],
                     value=['EU Countries Average'],  # Default to EU Countries Average
                     multi=True,
                     placeholder='Select countries to display (default: EU Countries Average)',
                     style={'marginTop': '8px'}
                 )
-                            ], style={'width': '20%', 'display': 'inline-block'}),
+            ], style={'width': '20%', 'display': 'inline-block'}),
         ], style={
             'padding': '15px 20px',
             'backgroundColor': '#fdf6e3',
@@ -507,7 +516,11 @@ def create_overview_charts(map_df, analysis_df, time_df):
         ))
     
     decile_analysis.update_layout(
-        title='EWBI Scores by Decile - Selected Countries',
+        title=dict(
+            text='EWBI Scores by Decile - Selected Countries',
+            font=dict(size=18, color="#f4d03f", weight="bold"),
+            x=0.5
+        ),
         xaxis_title='Income Decile',
         yaxis_title='EWBI Score',
         height=400,
@@ -560,7 +573,11 @@ def create_overview_charts(map_df, analysis_df, time_df):
                 range=[0, 1]  # Already set to 0-1
             )),
         showlegend=True,
-        title='EU Priorities Comparison - Selected Countries',
+        title=dict(
+            text='EU Priorities Comparison - Selected Countries',
+            font=dict(size=18, color="#f4d03f", weight="bold"),
+            x=0.5
+        ),
         height=400,
         font=dict(family='Arial, sans-serif', size=12)
     )
@@ -598,7 +615,11 @@ def create_overview_charts(map_df, analysis_df, time_df):
         
         # Update the title to reflect what we're actually showing
         time_series.update_layout(
-            title='EWBI Score Evolution Over Time - Selected Countries',
+            title=dict(
+                text='EWBI Score Evolution Over Time - Selected Countries',
+                font=dict(size=18, color="#f4d03f", weight="bold"),
+                x=0.5
+            ),
             xaxis_title='Year',
             yaxis_title='EWBI Score',
             height=400,
@@ -616,7 +637,11 @@ def create_overview_charts(map_df, analysis_df, time_df):
         )
         
         time_series.update_layout(
-            title='EWBI Score Evolution Over Time - Selected Countries',
+            title=dict(
+                text='EWBI Score Evolution Over Time - Selected Countries',
+                font=dict(size=18, color="#f4d03f", weight="bold"),
+                x=0.5
+            ),
             xaxis_title='Year',
             yaxis_title='EWBI Score',
             height=400,
@@ -756,7 +781,11 @@ def create_eu_priority_charts(map_df, analysis_df, time_df, eu_priority):
             ))
     
     decile_analysis.update_layout(
-        title=f'{eu_priority} Scores by Decile - Selected Countries',
+        title=dict(
+            text=f'{eu_priority} Scores by Decile - Selected Countries',
+            font=dict(size=18, color="#f4d03f", weight="bold"),
+            x=0.5
+        ),
         xaxis_title='Income Decile',
         yaxis_title='Score',
         height=400,
@@ -768,18 +797,22 @@ def create_eu_priority_charts(map_df, analysis_df, time_df, eu_priority):
     # 3. Country comparison chart (EU priority vs secondary indicators)
     radar_chart = go.Figure()
     
-    # Get all individual countries (excluding aggregates) for the comparison
-    individual_countries = [c for c in map_df['country'].unique() if 'Average' not in c]
-    individual_countries.sort()  # Sort alphabetically
+    # Get all individual countries (excluding aggregates) and their scores
+    country_scores = []
+    for country in map_df['country'].unique():
+        if 'Average' not in country:
+            if eu_priority in map_df.columns:
+                country_score = map_df[map_df['country'] == country][eu_priority].mean()
+                country_scores.append((country, country_score))
+            else:
+                country_scores.append((country, 0))
     
-    # Get the EU priority score for each country
-    eu_priority_scores = []
-    for country in individual_countries:
-        if eu_priority in map_df.columns:
-            country_score = map_df[map_df['country'] == country][eu_priority].mean()
-            eu_priority_scores.append(country_score)
-        else:
-            eu_priority_scores.append(0)
+    # Sort by score from highest to lowest
+    country_scores.sort(key=lambda x: x[1], reverse=True)
+    
+    # Extract sorted countries and scores
+    individual_countries = [country for country, score in country_scores]
+    eu_priority_scores = [score for country, score in country_scores]
     
     # Add the main EU priority line
     radar_chart.add_trace(
@@ -834,11 +867,8 @@ def create_eu_priority_charts(map_df, analysis_df, time_df, eu_priority):
     radar_chart.update_layout(
         title=dict(
             text=f'{eu_priority} and Secondary Indicators by Country',
-            y=0.9,
-            x=0.5,
-            xanchor='center',
-            yanchor='top',
-            font=dict(size=16, color="#2c3e50", weight="bold")
+            font=dict(size=18, color="#f4d03f", weight="bold"),
+            x=0.5
         ),
         xaxis=dict(
             tickangle=45,
@@ -920,7 +950,11 @@ def create_eu_priority_charts(map_df, analysis_df, time_df, eu_priority):
         )
     
     time_series.update_layout(
-        title=f'{eu_priority} Evolution Over Time',
+        title=dict(
+            text=f'{eu_priority} Evolution Over Time',
+            font=dict(size=18, color="#f4d03f", weight="bold"),
+            x=0.5
+        ),
         xaxis_title='Year',
         yaxis_title='Score',
         height=400,
@@ -1026,7 +1060,11 @@ def create_primary_indicator_charts(map_df, analysis_df, time_df, eu_priority, s
             ))
         
         decile_analysis.update_layout(
-            title=f'{primary_indicator} Scores by Income Decile',
+            title=dict(
+                text=f'{primary_indicator} Scores by Income Decile',
+                font=dict(size=18, color="#f4d03f", weight="bold"),
+                x=0.5
+            ),
             xaxis_title='Income Decile',
             yaxis_title='Score',
             height=400,
@@ -1045,18 +1083,19 @@ def create_primary_indicator_charts(map_df, analysis_df, time_df, eu_priority, s
     radar_chart = go.Figure()
     
     if primary_col in map_df.columns:
-        # Get individual countries (excluding aggregates)
-        individual_countries = [c for c in map_df['country'].unique() if 'Average' not in c]
-        individual_countries.sort()
-        
-        # Get scores for the selected primary indicator only
-        primary_scores = []
-        for country in individual_countries:
-            if country in map_df['country'].values:
+        # Get individual countries (excluding aggregates) and their scores
+        country_scores = []
+        for country in map_df['country'].unique():
+            if 'Average' not in country:
                 score = map_df[map_df['country'] == country][primary_col].mean()
-                primary_scores.append(score)
-            else:
-                primary_scores.append(0)
+                country_scores.append((country, score))
+        
+        # Sort by score from highest to lowest
+        country_scores.sort(key=lambda x: x[1], reverse=True)
+        
+        # Extract sorted countries and scores
+        individual_countries = [country for country, score in country_scores]
+        primary_scores = [score for country, score in country_scores]
         
         radar_chart.add_trace(
             go.Scatter(
@@ -1075,7 +1114,11 @@ def create_primary_indicator_charts(map_df, analysis_df, time_df, eu_priority, s
         )
         
         radar_chart.update_layout(
-            title=f'{primary_indicator} Scores by Country',
+            title=dict(
+                text=f'{primary_indicator} Scores by Country',
+                font=dict(size=18, color="#f4d03f", weight="bold"),
+                x=0.5
+            ),
             xaxis=dict(tickangle=45, tickfont=dict(size=12)),
             yaxis=dict(range=[0, 1], tickformat='.1f', gridwidth=0.2, title='Score'),
             hovermode='closest',
@@ -1131,7 +1174,11 @@ def create_primary_indicator_charts(map_df, analysis_df, time_df, eu_priority, s
                         )
                 
                 time_series.update_layout(
-                    title=f'{primary_indicator} Evolution Over Time',
+                    title=dict(
+                        text=f'{primary_indicator} Evolution Over Time',
+                        font=dict(size=18, color="#f4d03f", weight="bold"),
+                        x=0.5
+                    ),
                     xaxis_title='Year',
                     yaxis_title='Score',
                     height=400,
@@ -1259,7 +1306,11 @@ def create_secondary_indicator_charts(map_df, analysis_df, time_df, eu_priority,
             ))
         
         decile_analysis.update_layout(
-            title=f'{secondary_indicator} Scores by Income Decile',
+            title=dict(
+                text=f'{secondary_indicator} Scores by Income Decile',
+                font=dict(size=18, color="#f4d03f", weight="bold"),
+                x=0.5
+            ),
             xaxis_title='Income Decile',
             yaxis_title='Score',
             height=400,
@@ -1295,18 +1346,19 @@ def create_secondary_indicator_charts(map_df, analysis_df, time_df, eu_priority,
                             break
                     break
             
-            # Get individual countries (excluding aggregates)
-            individual_countries = [c for c in map_df['country'].unique() if 'Average' not in c]
-            individual_countries.sort()
-            
-            # Add the secondary indicator line
-            secondary_scores = []
-            for country in individual_countries:
-                if country in map_df['country'].values:
+            # Get individual countries (excluding aggregates) and their scores
+            country_scores = []
+            for country in map_df['country'].unique():
+                if 'Average' not in country:
                     score = map_df[map_df['country'] == country][secondary_col].mean()
-                    secondary_scores.append(score)
-                else:
-                    secondary_scores.append(0)
+                    country_scores.append((country, score))
+            
+            # Sort by score from highest to lowest
+            country_scores.sort(key=lambda x: x[1], reverse=True)
+            
+            # Extract sorted countries and scores
+            individual_countries = [country for country, score in country_scores]
+            secondary_scores = [score for country, score in country_scores]
             
             radar_chart.add_trace(
                 go.Scatter(
@@ -1355,7 +1407,11 @@ def create_secondary_indicator_charts(map_df, analysis_df, time_df, eu_priority,
                         )
             
             radar_chart.update_layout(
-                title=f'{secondary_indicator} vs Primary Indicators by Country',
+                title=dict(
+                    text=f'{secondary_indicator} vs Primary Indicators by Country',
+                    font=dict(size=18, color="#f4d03f", weight="bold"),
+                    x=0.5
+                ),
                 xaxis=dict(tickangle=45, tickfont=dict(size=12)),
                 yaxis=dict(range=[0, 1], tickformat='.1f', gridwidth=0.2, title='Score'),
                 hovermode='closest',
@@ -1419,7 +1475,11 @@ def create_secondary_indicator_charts(map_df, analysis_df, time_df, eu_priority,
                         )
                 
                 time_series.update_layout(
-                    title=f'{secondary_indicator} Evolution Over Time',
+                    title=dict(
+                        text=f'{secondary_indicator} Evolution Over Time',
+                        font=dict(size=18, color="#f4d03f", weight="bold"),
+                        x=0.5
+                    ),
                     xaxis_title='Year',
                     yaxis_title='Score',
                     height=400,
