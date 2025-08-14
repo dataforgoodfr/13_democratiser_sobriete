@@ -1296,51 +1296,62 @@ def create_primary_indicator_charts(map_df, analysis_df, time_df, eu_priority, s
     # 4. Time series chart - using time_df for historical data
     time_series = go.Figure()
     
-    if time_df is not None and not time_df.empty and primary_col in time_df.columns:
-        # Get the latest year available
-        latest_year = time_df['year'].max()
-        
-        # Filter for the specific primary indicator
-        primary_time_data = time_df[['country', 'year', primary_col]].copy()
-        
-        if not primary_time_data.empty:
-            # For time series, prioritize EU Countries Average, then add individual countries
-            countries_to_show = []
-            if 'EU Countries Average' in primary_time_data['country'].values:
-                countries_to_show.append('EU Countries Average')
+    if time_df is not None and not time_df.empty:
+        # Check if we have the primary indicator data in the time series
+        if 'primary_score' in time_df.columns:
+            # Get the latest year available
+            latest_year = time_df['year'].max()
             
-            # Add individual countries from the analysis dataframe
-            individual_countries = [c for c in analysis_df['country'].unique() if 'Average' not in c]
-            countries_to_show.extend(individual_countries[:5])  # Limit to 5 for readability
+            # Filter for the specific primary indicator (we'll use primary_score for now)
+            # In the future, this should be the specific primary indicator column
+            primary_time_data = time_df[['country', 'year', 'primary_score']].copy()
             
-            for country in countries_to_show:
-                if country in primary_time_data['country'].values:
-                    country_data = primary_time_data[primary_time_data['country'] == country]
-                    country_data = country_data.sort_values('year')
-                    
-                    time_series.add_trace(
-                        go.Scatter(
-                            x=country_data['year'],
-                            y=country_data[primary_col],
-                            name=country,
-                            mode='lines+markers',
-                            hovertemplate='%{y:.3f}<extra></extra>'
+            if not primary_time_data.empty:
+                # For time series, prioritize EU Countries Average, then add individual countries
+                countries_to_show = []
+                if 'EU Countries Average' in primary_time_data['country'].values:
+                    countries_to_show.append('EU Countries Average')
+                
+                # Add individual countries from the analysis dataframe
+                individual_countries = [c for c in analysis_df['country'].unique() if 'Average' not in c]
+                countries_to_show.extend(individual_countries[:5])  # Limit to 5 for readability
+                
+                for country in countries_to_show:
+                    if country in primary_time_data['country'].values:
+                        country_data = primary_time_data[primary_time_data['country'] == country]
+                        country_data = country_data.sort_values('year')
+                        
+                        time_series.add_trace(
+                            go.Scatter(
+                                x=country_data['year'],
+                                y=country_data['primary_score'],
+                                name=country,
+                                mode='lines+markers',
+                                hovertemplate='%{y:.3f}<extra></extra>'
+                            )
                         )
-                    )
-            
-            time_series.update_layout(
-                title=dict(
-                    text=f'{primary_indicator} Evolution Over Time',
-                    font=dict(size=18, color="#f4d03f", weight="bold"),
-                    x=0.5
-                ),
-                height=343,  # 30% less tall than previous height
-                font=dict(family='Arial, sans-serif', size=12),
-                yaxis=dict(range=[0, 1])
-            )
+                
+                time_series.update_layout(
+                    title=dict(
+                        text=f'{primary_indicator} Evolution Over Time (Primary Score)',
+                        font=dict(size=18, color="#f4d03f", weight="bold"),
+                        x=0.5
+                    ),
+                    height=343,  # 30% less tall than previous height
+                    font=dict(family='Arial, sans-serif', size=12),
+                    yaxis=dict(range=[0, 1])
+                )
+            else:
+                time_series.add_annotation(
+                    text=f"No time series data found for {primary_indicator}",
+                    xref="paper", yref="paper",
+                    x=0.5, y=0.5, showarrow=False,
+                    font=dict(size=16)
+                )
         else:
+            # Fallback: show a message that time series data needs to be regenerated
             time_series.add_annotation(
-                text=f"No time series data found for {primary_indicator}",
+                text=f"Time series data structure needs to be updated for {primary_indicator}",
                 xref="paper", yref="paper",
                 x=0.5, y=0.5, showarrow=False,
                 font=dict(size=16)
