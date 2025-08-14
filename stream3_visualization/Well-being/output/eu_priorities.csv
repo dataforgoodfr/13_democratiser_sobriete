@@ -9,18 +9,18 @@ AT,Agriculture and Food,7,0.8393437305506989
 AT,Agriculture and Food,8,0.8393437305506989
 AT,Agriculture and Food,9,0.7760174965546697
 AT,Agriculture and Food,10,0.7760174965546697
-AT,Energy and Housing,1,0.5266441261055304
+AT,Energy and Housing,1,0.5266441261055305
 AT,Energy and Housing,2,0.5283858850145688
 AT,Energy and Housing,3,0.5826089639503199
-AT,Energy and Housing,4,0.5948045597988694
+AT,Energy and Housing,4,0.5948045597988695
 AT,Energy and Housing,5,0.6097784407005788
-AT,Energy and Housing,6,0.6019414937843367
+AT,Energy and Housing,6,0.6019414937843366
 AT,Energy and Housing,7,0.6139705879225725
 AT,Energy and Housing,8,0.6275619711164172
 AT,Energy and Housing,9,0.6153482248186581
 AT,Energy and Housing,10,0.623057645882904
 AT,Equality,1,0.7604941767965896
-AT,Equality,2,0.805204069132932
+AT,Equality,2,0.8052040691329321
 AT,Equality,3,0.8632985865708827
 AT,Equality,4,0.8809186901032473
 AT,Equality,5,0.8721169638579219
@@ -29,16 +29,16 @@ AT,Equality,7,0.8607574049162054
 AT,Equality,8,0.8609219225188358
 AT,Equality,9,0.8757813231237751
 AT,Equality,10,0.8921732847073509
-AT,Health and Animal Welfare,1,0.5784521135619783
+AT,Health and Animal Welfare,1,0.5784521135619785
 AT,Health and Animal Welfare,2,0.6020990393887331
 AT,Health and Animal Welfare,3,0.6011140646571828
 AT,Health and Animal Welfare,4,0.6007552565346812
 AT,Health and Animal Welfare,5,0.5784972295401822
-AT,Health and Animal Welfare,6,0.5585304416754586
+AT,Health and Animal Welfare,6,0.5585304416754587
 AT,Health and Animal Welfare,7,0.5432741018955014
 AT,Health and Animal Welfare,8,0.5466468324127683
 AT,Health and Animal Welfare,9,0.5293761186675241
-AT,Health and Animal Welfare,10,0.5345690974547952
+AT,Health and Animal Welfare,10,0.5345690974547953
 AT,"Intergenerational Fairness, Youth, Culture and Sport",1,1.0
 AT,"Intergenerational Fairness, Youth, Culture and Sport",2,1.0
 AT,"Intergenerational Fairness, Youth, Culture and Sport",3,1.0
@@ -81,7 +81,7 @@ BE,Energy and Housing,9,0.9750276808530114
 BE,Energy and Housing,10,0.9689200785183971
 BE,Equality,1,0.6156679155436368
 BE,Equality,2,0.6922004708945853
-BE,Equality,3,0.7940932838880919
+BE,Equality,3,0.794093283888092
 BE,Equality,4,0.8210621795848678
 BE,Equality,5,0.7842522527471187
 BE,Equality,6,0.8084562593450821
@@ -89,13 +89,13 @@ BE,Equality,7,0.8625666519264189
 BE,Equality,8,0.8877400951981531
 BE,Equality,9,0.9072343465416185
 BE,Equality,10,0.9149835464541847
-BE,Health and Animal Welfare,1,0.5196157896750316
+BE,Health and Animal Welfare,1,0.5196157896750317
 BE,Health and Animal Welfare,2,0.529146810288653
 BE,Health and Animal Welfare,3,0.5564048051624693
 BE,Health and Animal Welfare,4,0.5973896717396451
 BE,Health and Animal Welfare,5,0.5576731681895958
-BE,Health and Animal Welfare,6,0.5515946656328303
-BE,Health and Animal Welfare,7,0.5340629430434083
+BE,Health and Animal Welfare,6,0.5515946656328304
+BE,Health and Animal Welfare,7,0.5340629430434084
 BE,Health and Animal Welfare,8,0.5687925278751935
 BE,Health and Animal Welfare,9,0.6149019680202826
 BE,Health and Animal Welfare,10,0.6277945386065439
@@ -135,24 +135,24 @@ BG,Energy and Housing,3,0.4296888208117376
 BG,Energy and Housing,4,0.40842079948454274
 BG,Energy and Housing,5,0.4014541939725247
 BG,Energy and Housing,6,0.3880198169462049
-BG,Energy and Housing,7,0.37174568648911976
+BG,Energy and Housing,7,0.3717456864891198
 BG,Energy and Housing,8,0.35928964651931966
 BG,Energy and Housing,9,0.31374114409745907
 BG,Energy and Housing,10,0.28438762310574683
-BG,Equality,1,0.16517075862710792
-BG,Equality,2,0.16730605898520473
-BG,Equality,3,0.17474906527506423
-BG,Equality,4,0.19233164469290392
+BG,Equality,1,0.1651707586271079
+BG,Equality,2,0.1673060589852047
+BG,Equality,3,0.17474906527506426
+BG,Equality,4,0.19233164469290398
 BG,Equality,5,0.3184481679010949
 BG,Equality,6,0.327166959880247
-BG,Equality,7,0.3743421928702298
+BG,Equality,7,0.37434219287022985
 BG,Equality,8,0.4257485026319167
-BG,Equality,9,0.4797059500705492
+BG,Equality,9,0.4797059500705493
 BG,Equality,10,0.516372180795253
 BG,Health and Animal Welfare,1,0.49611481625218623
-BG,Health and Animal Welfare,2,0.49944187819907004
-BG,Health and Animal Welfare,3,0.4791001533069614
-BG,Health and Animal Welfare,4,0.502801901511729
+BG,Health and Animal Welfare,2,0.4994418781990701
+BG,Health and Animal Welfare,3,0.47910015330696143
+BG,Health and Animal Welfare,4,0.5028019015117291
 BG,Health and Animal Welfare,5,0.5435747066403327
 BG,Health and Animal Welfare,6,0.5485583648165158
 BG,Health and Animal Welfare,7,0.5562847155963564
@@ -239,7 +239,7 @@ CY,Agriculture and Food,7,0.6510581846349288
 CY,Agriculture and Food,8,0.6510581846349288
 CY,Agriculture and Food,9,0.839033614012636
 CY,Agriculture and Food,10,0.839033614012636
-CY,Energy and Housing,1,0.5757523345374335
+CY,Energy and Housing,1,0.5757523345374336
 CY,Energy and Housing,2,0.5526111051933049
 CY,Energy and Housing,3,0.5285488027684129
 CY,Energy and Housing,4,0.5241503191379839
@@ -249,13 +249,13 @@ CY,Energy and Housing,7,0.5476143956043332
 CY,Energy and Housing,8,0.5539853335665847
 CY,Energy and Housing,9,0.5858869508176744
 CY,Energy and Housing,10,0.6139061511951931
-CY,Equality,1,0.47053687544991357
+CY,Equality,1,0.4705368754499136
 CY,Equality,2,0.5114433377787602
 CY,Equality,3,0.5365739658005677
 CY,Equality,4,0.5381124585410882
-CY,Equality,5,0.5541520502486552
+CY,Equality,5,0.5541520502486553
 CY,Equality,6,0.5653700658275923
-CY,Equality,7,0.5319920903464491
+CY,Equality,7,0.5319920903464492
 CY,Equality,8,0.5537009513458092
 CY,Equality,9,0.6255115952098403
 CY,Equality,10,0.6705634242863692
@@ -267,8 +267,8 @@ CY,Health and Animal Welfare,5,0.5849641681501428
 CY,Health and Animal Welfare,6,0.5840652123816735
 CY,Health and Animal Welfare,7,0.5830895855120846
 CY,Health and Animal Welfare,8,0.577223789573541
-CY,Health and Animal Welfare,9,0.5952173663475427
-CY,Health and Animal Welfare,10,0.6001875233120704
+CY,Health and Animal Welfare,9,0.5952173663475429
+CY,Health and Animal Welfare,10,0.6001875233120705
 CY,"Intergenerational Fairness, Youth, Culture and Sport",1,0.3191129830918078
 CY,"Intergenerational Fairness, Youth, Culture and Sport",2,0.36912882334453956
 CY,"Intergenerational Fairness, Youth, Culture and Sport",3,0.3202146084147213
@@ -302,16 +302,16 @@ CZ,Agriculture and Food,10,0.354019245932184
 CZ,Energy and Housing,1,0.465757386248549
 CZ,Energy and Housing,2,0.5160291394709793
 CZ,Energy and Housing,3,0.46904181975438414
-CZ,Energy and Housing,4,0.4765658796173839
+CZ,Energy and Housing,4,0.47656587961738384
 CZ,Energy and Housing,5,0.4877300633657562
 CZ,Energy and Housing,6,0.4801552191477399
-CZ,Energy and Housing,7,0.4645766633064483
-CZ,Energy and Housing,8,0.46990179517767733
+CZ,Energy and Housing,7,0.46457666330644826
+CZ,Energy and Housing,8,0.4699017951776773
 CZ,Energy and Housing,9,0.46902128127263737
 CZ,Energy and Housing,10,0.47339558545174665
 CZ,Equality,1,0.6516141450723469
-CZ,Equality,2,0.7349281652355039
-CZ,Equality,3,0.7473617523938991
+CZ,Equality,2,0.7349281652355037
+CZ,Equality,3,0.7473617523938992
 CZ,Equality,4,0.7726053075599515
 CZ,Equality,5,0.8056421845966387
 CZ,Equality,6,0.8079764216618562
@@ -323,10 +323,10 @@ CZ,Health and Animal Welfare,1,0.4341776939985331
 CZ,Health and Animal Welfare,2,0.5027182233175254
 CZ,Health and Animal Welfare,3,0.6202389224241021
 CZ,Health and Animal Welfare,4,0.569025174379099
-CZ,Health and Animal Welfare,5,0.5976054373508286
+CZ,Health and Animal Welfare,5,0.5976054373508287
 CZ,Health and Animal Welfare,6,0.6304177551961907
 CZ,Health and Animal Welfare,7,0.6037228738965098
-CZ,Health and Animal Welfare,8,0.6042901272659973
+CZ,Health and Animal Welfare,8,0.6042901272659974
 CZ,Health and Animal Welfare,9,0.6296737701793338
 CZ,Health and Animal Welfare,10,0.6228618942695313
 CZ,"Social Rights and Skills, Quality Jobs and Preparedness",1,0.7213210509095531
@@ -374,11 +374,11 @@ DE,Health and Animal Welfare,2,0.571868072431719
 DE,Health and Animal Welfare,3,0.5776536908267897
 DE,Health and Animal Welfare,4,0.566894981822832
 DE,Health and Animal Welfare,5,0.5388644873987442
-DE,Health and Animal Welfare,6,0.5234384852150828
+DE,Health and Animal Welfare,6,0.523438485215083
 DE,Health and Animal Welfare,7,0.5277889779747863
 DE,Health and Animal Welfare,8,0.5443033239781571
 DE,Health and Animal Welfare,9,0.5580322384017866
-DE,Health and Animal Welfare,10,0.5825762153015257
+DE,Health and Animal Welfare,10,0.5825762153015258
 DE,"Intergenerational Fairness, Youth, Culture and Sport",1,1.0
 DE,"Intergenerational Fairness, Youth, Culture and Sport",2,1.0
 DE,"Intergenerational Fairness, Youth, Culture and Sport",3,1.0
@@ -410,7 +410,7 @@ DK,Agriculture and Food,8,0.6908608867266248
 DK,Agriculture and Food,9,0.7568274687800788
 DK,Agriculture and Food,10,0.7568274687800788
 DK,Energy and Housing,1,0.4767399397795281
-DK,Energy and Housing,2,0.6087024860730182
+DK,Energy and Housing,2,0.6087024860730181
 DK,Energy and Housing,3,0.6414758931938849
 DK,Energy and Housing,4,0.6386731251171841
 DK,Energy and Housing,5,0.6425274299526893
@@ -421,7 +421,7 @@ DK,Energy and Housing,9,0.6712096279802682
 DK,Energy and Housing,10,0.6709423864357689
 DK,Equality,1,0.6879083219135818
 DK,Equality,2,0.7038738726325957
-DK,Equality,3,0.8067484679652621
+DK,Equality,3,0.8067484679652622
 DK,Equality,4,0.8126155231979417
 DK,Equality,5,0.8450997356089026
 DK,Equality,6,0.8514295371500535
@@ -431,9 +431,9 @@ DK,Equality,9,0.7854703974557921
 DK,Equality,10,0.7834285598723972
 DK,Health and Animal Welfare,1,0.6542127310808958
 DK,Health and Animal Welfare,2,0.6438843319876537
-DK,Health and Animal Welfare,3,0.6589265660444575
-DK,Health and Animal Welfare,4,0.6641558819270952
-DK,Health and Animal Welfare,5,0.6463165261779511
+DK,Health and Animal Welfare,3,0.6589265660444577
+DK,Health and Animal Welfare,4,0.6641558819270953
+DK,Health and Animal Welfare,5,0.6463165261779512
 DK,Health and Animal Welfare,6,0.6572126118080283
 DK,Health and Animal Welfare,7,0.668169287497639
 DK,Health and Animal Welfare,8,0.6598282377258874
@@ -481,22 +481,22 @@ EE,Energy and Housing,9,0.5190688412770136
 EE,Energy and Housing,10,0.5326415787579647
 EE,Equality,1,0.611383215692974
 EE,Equality,2,0.6475974171136396
-EE,Equality,3,0.7133620398599633
+EE,Equality,3,0.7133620398599634
 EE,Equality,4,0.7259240913568757
 EE,Equality,5,0.7687447556201303
-EE,Equality,6,0.7743227341185243
+EE,Equality,6,0.7743227341185244
 EE,Equality,7,0.7711198578171636
 EE,Equality,8,0.7700440848088033
 EE,Equality,9,0.803783896780761
-EE,Equality,10,0.8359605426099755
-EE,Health and Animal Welfare,1,0.5102457513590759
+EE,Equality,10,0.8359605426099757
+EE,Health and Animal Welfare,1,0.5102457513590758
 EE,Health and Animal Welfare,2,0.34629944377895955
 EE,Health and Animal Welfare,3,0.4740805315091777
 EE,Health and Animal Welfare,4,0.47892939839450177
-EE,Health and Animal Welfare,5,0.4264560304218989
+EE,Health and Animal Welfare,5,0.42645603042189895
 EE,Health and Animal Welfare,6,0.46613961178243085
 EE,Health and Animal Welfare,7,0.5594480835511297
-EE,Health and Animal Welfare,8,0.5716283455195877
+EE,Health and Animal Welfare,8,0.5716283455195876
 EE,Health and Animal Welfare,9,0.5748459222150385
 EE,Health and Animal Welfare,10,0.5985818439057129
 EE,"Intergenerational Fairness, Youth, Culture and Sport",1,1.0
@@ -529,34 +529,34 @@ EL,Agriculture and Food,7,0.37586745885138173
 EL,Agriculture and Food,8,0.37586745885138173
 EL,Agriculture and Food,9,0.4902365563123063
 EL,Agriculture and Food,10,0.4902365563123063
-EL,Energy and Housing,1,0.49087751519822426
+EL,Energy and Housing,1,0.4908775151982243
 EL,Energy and Housing,2,0.4265647969610006
 EL,Energy and Housing,3,0.4584737830686918
 EL,Energy and Housing,4,0.4657261082127879
-EL,Energy and Housing,5,0.47756726509792885
-EL,Energy and Housing,6,0.4890639441744828
+EL,Energy and Housing,5,0.4775672650979289
+EL,Energy and Housing,6,0.48906394417448273
 EL,Energy and Housing,7,0.48114933294134526
 EL,Energy and Housing,8,0.5061398513706781
 EL,Energy and Housing,9,0.5216481086225363
 EL,Energy and Housing,10,0.5615590964395522
-EL,Equality,1,0.31253702517175436
-EL,Equality,2,0.3654573563877703
+EL,Equality,1,0.3125370251717544
+EL,Equality,2,0.36545735638777044
 EL,Equality,3,0.42319227836537765
 EL,Equality,4,0.45046327347401244
-EL,Equality,5,0.38687643062420285
-EL,Equality,6,0.4078118439528439
-EL,Equality,7,0.4038744118183536
-EL,Equality,8,0.4369742232589907
+EL,Equality,5,0.3868764306242029
+EL,Equality,6,0.407811843952844
+EL,Equality,7,0.40387441181835365
+EL,Equality,8,0.43697422325899077
 EL,Equality,9,0.495396953001084
-EL,Equality,10,0.5166242143398816
-EL,Health and Animal Welfare,1,0.5528975814199146
+EL,Equality,10,0.5166242143398815
+EL,Health and Animal Welfare,1,0.5528975814199145
 EL,Health and Animal Welfare,2,0.5487770873887026
 EL,Health and Animal Welfare,3,0.5585921061324012
 EL,Health and Animal Welfare,4,0.5684286185948442
 EL,Health and Animal Welfare,5,0.5364966892517535
 EL,Health and Animal Welfare,6,0.5321670065880191
 EL,Health and Animal Welfare,7,0.4940519733646971
-EL,Health and Animal Welfare,8,0.5096471054382453
+EL,Health and Animal Welfare,8,0.5096471054382452
 EL,Health and Animal Welfare,9,0.5389548680932966
 EL,Health and Animal Welfare,10,0.5420489405618977
 EL,"Intergenerational Fairness, Youth, Culture and Sport",1,0.5839033384525341
@@ -584,20 +584,20 @@ ES,Energy and Housing,2,0.9095716681001025
 ES,Energy and Housing,3,0.9108743975639804
 ES,Energy and Housing,4,0.9150304392184857
 ES,Energy and Housing,5,0.9122616030003041
-ES,Energy and Housing,6,0.9202802028725996
+ES,Energy and Housing,6,0.9202802028725997
 ES,Energy and Housing,7,0.9261200506097678
 ES,Energy and Housing,8,0.9222021726885459
 ES,Energy and Housing,9,0.9262168859922858
 ES,Energy and Housing,10,0.9346897156820131
 ES,Equality,1,0.6439755511637487
-ES,Equality,2,0.690682545805822
+ES,Equality,2,0.6906825458058221
 ES,Equality,3,0.7006870037954647
-ES,Equality,4,0.7134400766595814
+ES,Equality,4,0.7134400766595815
 ES,Equality,5,0.7132985199666015
 ES,Equality,6,0.7423054914374182
 ES,Equality,7,0.7693117332424053
 ES,Equality,8,0.770559130998921
-ES,Equality,9,0.7911037071146307
+ES,Equality,9,0.7911037071146308
 ES,Equality,10,0.8228415518684032
 ES,Health and Animal Welfare,1,0.6022997625716109
 ES,Health and Animal Welfare,2,0.5740001690284668
@@ -643,9 +643,9 @@ FI,Energy and Housing,1,0.6815301151292593
 FI,Energy and Housing,2,0.7468426830087228
 FI,Energy and Housing,3,0.8014736356630615
 FI,Energy and Housing,4,0.8196745591108324
-FI,Energy and Housing,5,0.8504683348996431
+FI,Energy and Housing,5,0.8504683348996432
 FI,Energy and Housing,6,0.8672803355717885
-FI,Energy and Housing,7,0.8778784880427976
+FI,Energy and Housing,7,0.8778784880427974
 FI,Energy and Housing,8,0.8928705841055181
 FI,Energy and Housing,9,0.9056194919534776
 FI,Energy and Housing,10,0.9156797310899332
@@ -711,7 +711,7 @@ FR,Energy and Housing,9,0.9398815124165008
 FR,Energy and Housing,10,0.9485145148621283
 FR,Equality,1,0.5450764105885013
 FR,Equality,2,0.5864823457317146
-FR,Equality,3,0.6366149084597663
+FR,Equality,3,0.6366149084597664
 FR,Equality,4,0.6638960966997565
 FR,Equality,5,0.7396864280588626
 FR,Equality,6,0.7514426009681311
@@ -720,11 +720,11 @@ FR,Equality,8,0.7921337274393601
 FR,Equality,9,0.8296529699952854
 FR,Equality,10,0.8465245016547244
 FR,Health and Animal Welfare,1,0.41093943387561466
-FR,Health and Animal Welfare,2,0.43385494794638013
+FR,Health and Animal Welfare,2,0.4338549479463802
 FR,Health and Animal Welfare,3,0.4145278355225141
 FR,Health and Animal Welfare,4,0.42009611273730796
-FR,Health and Animal Welfare,5,0.4900314266591313
-FR,Health and Animal Welfare,6,0.48204348630778493
+FR,Health and Animal Welfare,5,0.49003142665913135
+FR,Health and Animal Welfare,6,0.4820434863077849
 FR,Health and Animal Welfare,7,0.4812020481422053
 FR,Health and Animal Welfare,8,0.4760970549096053
 FR,Health and Animal Welfare,9,0.5412268608569201
@@ -760,17 +760,17 @@ HR,Agriculture and Food,8,0.7974377566999238
 HR,Agriculture and Food,9,0.7508504142993945
 HR,Agriculture and Food,10,0.7508504142993945
 HR,Energy and Housing,1,0.5236173837529327
-HR,Energy and Housing,2,0.48307416925168595
-HR,Energy and Housing,3,0.48807840909476197
+HR,Energy and Housing,2,0.483074169251686
+HR,Energy and Housing,3,0.488078409094762
 HR,Energy and Housing,4,0.4141125650006704
 HR,Energy and Housing,5,0.4098436225166256
-HR,Energy and Housing,6,0.41985639006698355
+HR,Energy and Housing,6,0.4198563900669836
 HR,Energy and Housing,7,0.4167909047386732
-HR,Energy and Housing,8,0.4066806810440853
-HR,Energy and Housing,9,0.4082170961284847
+HR,Energy and Housing,8,0.40668068104408533
+HR,Energy and Housing,9,0.40821709612848467
 HR,Energy and Housing,10,0.3859444730420617
 HR,Equality,1,0.3381190604908568
-HR,Equality,2,0.4128578884326555
+HR,Equality,2,0.4128578884326556
 HR,Equality,3,0.5053962329250141
 HR,Equality,4,0.5279164266815286
 HR,Equality,5,0.5646032955253124
@@ -780,15 +780,15 @@ HR,Equality,8,0.5650299587698219
 HR,Equality,9,0.6002168156820135
 HR,Equality,10,0.6625531273841432
 HR,Health and Animal Welfare,1,0.311525585198631
-HR,Health and Animal Welfare,2,0.3496238037411696
+HR,Health and Animal Welfare,2,0.34962380374116964
 HR,Health and Animal Welfare,3,0.3690667264362091
 HR,Health and Animal Welfare,4,0.40536630901967924
-HR,Health and Animal Welfare,5,0.42880791700119025
-HR,Health and Animal Welfare,6,0.4294322960815464
+HR,Health and Animal Welfare,5,0.4288079170011903
+HR,Health and Animal Welfare,6,0.4294322960815465
 HR,Health and Animal Welfare,7,0.36288551494996063
 HR,Health and Animal Welfare,8,0.3746454973318116
 HR,Health and Animal Welfare,9,0.46124181781742646
-HR,Health and Animal Welfare,10,0.47726610247929846
+HR,Health and Animal Welfare,10,0.4772661024792985
 HR,"Intergenerational Fairness, Youth, Culture and Sport",1,0.8448046616876008
 HR,"Intergenerational Fairness, Youth, Culture and Sport",2,0.856048177968605
 HR,"Intergenerational Fairness, Youth, Culture and Sport",3,0.9158268867768227
@@ -820,35 +820,35 @@ HU,Agriculture and Food,8,0.5086749254104485
 HU,Agriculture and Food,9,0.6012289186162947
 HU,Agriculture and Food,10,0.6012289186162947
 HU,Energy and Housing,1,0.6584060794496017
-HU,Energy and Housing,2,0.6727516795906687
-HU,Energy and Housing,3,0.6486509146969816
+HU,Energy and Housing,2,0.6727516795906686
+HU,Energy and Housing,3,0.6486509146969817
 HU,Energy and Housing,4,0.5954702890463635
 HU,Energy and Housing,5,0.5847166786589689
 HU,Energy and Housing,6,0.5737378739434318
 HU,Energy and Housing,7,0.5823646695961323
 HU,Energy and Housing,8,0.5862127392333754
-HU,Energy and Housing,9,0.5597884638285221
+HU,Energy and Housing,9,0.559788463828522
 HU,Energy and Housing,10,0.5887410136850314
-HU,Equality,1,0.3754072853630086
-HU,Equality,2,0.4337608094988075
+HU,Equality,1,0.37540728536300866
+HU,Equality,2,0.4337608094988076
 HU,Equality,3,0.5364750903788958
-HU,Equality,4,0.5357826106583158
+HU,Equality,4,0.5357826106583159
 HU,Equality,5,0.5400260806896515
 HU,Equality,6,0.5624500387750725
 HU,Equality,7,0.5365584128735428
 HU,Equality,8,0.5432312578793813
 HU,Equality,9,0.5397590473797392
-HU,Equality,10,0.5463849124190363
+HU,Equality,10,0.5463849124190364
 HU,Health and Animal Welfare,1,0.40515747657691464
-HU,Health and Animal Welfare,2,0.3990552329916321
-HU,Health and Animal Welfare,3,0.43335836783321874
+HU,Health and Animal Welfare,2,0.39905523299163215
+HU,Health and Animal Welfare,3,0.4333583678332188
 HU,Health and Animal Welfare,4,0.4451830702922076
-HU,Health and Animal Welfare,5,0.463210618477408
-HU,Health and Animal Welfare,6,0.454496271300214
+HU,Health and Animal Welfare,5,0.4632106184774081
+HU,Health and Animal Welfare,6,0.4544962713002141
 HU,Health and Animal Welfare,7,0.45908825745031284
-HU,Health and Animal Welfare,8,0.4826238597963106
+HU,Health and Animal Welfare,8,0.4826238597963107
 HU,Health and Animal Welfare,9,0.5330108290738226
-HU,Health and Animal Welfare,10,0.5519386245084518
+HU,Health and Animal Welfare,10,0.5519386245084519
 HU,"Intergenerational Fairness, Youth, Culture and Sport",1,0.9482267299776959
 HU,"Intergenerational Fairness, Youth, Culture and Sport",2,0.9380322215841451
 HU,"Intergenerational Fairness, Youth, Culture and Sport",3,0.9728602576817152
@@ -889,18 +889,18 @@ IE,Energy and Housing,7,0.9443043258189292
 IE,Energy and Housing,8,0.952266637056364
 IE,Energy and Housing,9,0.9688557024360206
 IE,Energy and Housing,10,0.9546799275777914
-IE,Equality,1,0.6871389427272637
+IE,Equality,1,0.6871389427272636
 IE,Equality,2,0.7075831375926595
 IE,Equality,3,0.6865383763325723
-IE,Equality,4,0.6793313439983379
-IE,Equality,5,0.7106890844556636
+IE,Equality,4,0.679331343998338
+IE,Equality,5,0.7106890844556637
 IE,Equality,6,0.7328121659628568
 IE,Equality,7,0.677645628910681
 IE,Equality,8,0.6961785576642207
 IE,Equality,9,0.6991688457227937
 IE,Equality,10,0.7291325571325009
-IE,Health and Animal Welfare,1,0.6613909212423802
-IE,Health and Animal Welfare,2,0.7089647683301721
+IE,Health and Animal Welfare,1,0.6613909212423803
+IE,Health and Animal Welfare,2,0.7089647683301722
 IE,Health and Animal Welfare,3,0.6523160672207996
 IE,Health and Animal Welfare,4,0.6786096390690299
 IE,Health and Animal Welfare,5,0.7393839578430544
@@ -943,7 +943,7 @@ IS,Energy and Housing,1,0.790824282248554
 IS,Energy and Housing,2,0.7981551390960636
 IS,Energy and Housing,3,0.8617186763290144
 IS,Energy and Housing,4,0.8130988815509165
-IS,Energy and Housing,5,0.8536472922768686
+IS,Energy and Housing,5,0.8536472922768688
 IS,Energy and Housing,6,0.8685280696862454
 IS,Energy and Housing,7,0.8849507663626993
 IS,Energy and Housing,8,0.8929389760537974
@@ -959,13 +959,13 @@ IS,Equality,7,0.7932890553928788
 IS,Equality,8,0.7951918373541326
 IS,Equality,9,0.8042959308688581
 IS,Equality,10,0.7860420478418328
-IS,Health and Animal Welfare,1,0.6535826761943508
+IS,Health and Animal Welfare,1,0.653582676194351
 IS,Health and Animal Welfare,2,0.6661088943181385
 IS,Health and Animal Welfare,3,0.6952769433750363
 IS,Health and Animal Welfare,4,0.7070578152750167
 IS,Health and Animal Welfare,5,0.7282862866692325
 IS,Health and Animal Welfare,6,0.7202706465338955
-IS,Health and Animal Welfare,7,0.5969826695657539
+IS,Health and Animal Welfare,7,0.596982669565754
 IS,Health and Animal Welfare,8,0.6244980710079121
 IS,Health and Animal Welfare,9,0.695425757412927
 IS,Health and Animal Welfare,10,0.6869362703202044
@@ -997,16 +997,16 @@ IT,Energy and Housing,5,0.6971525566419822
 IT,Energy and Housing,6,0.6872803649310766
 IT,Energy and Housing,7,0.6792458533594852
 IT,Energy and Housing,8,0.6951686457308561
-IT,Energy and Housing,9,0.6967780885662282
+IT,Energy and Housing,9,0.6967780885662284
 IT,Energy and Housing,10,0.702324360296223
 IT,Equality,1,0.6209375853582919
 IT,Equality,2,0.6466532789437287
 IT,Equality,3,0.6789524501010583
 IT,Equality,4,0.6928446402574878
 IT,Equality,5,0.6850053873503783
-IT,Equality,6,0.6968979727965818
-IT,Equality,7,0.6623002806474008
-IT,Equality,8,0.6790345054486951
+IT,Equality,6,0.6968979727965819
+IT,Equality,7,0.6623002806474009
+IT,Equality,8,0.6790345054486953
 IT,Equality,9,0.6896871075832518
 IT,Equality,10,0.6870519787368337
 IT,Health and Animal Welfare,1,0.5342360091658186
@@ -1016,7 +1016,7 @@ IT,Health and Animal Welfare,4,0.5709591231243294
 IT,Health and Animal Welfare,5,0.5628396223603924
 IT,Health and Animal Welfare,6,0.5521064013941014
 IT,Health and Animal Welfare,7,0.4889943605336609
-IT,Health and Animal Welfare,8,0.4980145299520707
+IT,Health and Animal Welfare,8,0.49801452995207074
 IT,Health and Animal Welfare,9,0.49750163446501916
 IT,Health and Animal Welfare,10,0.503760007907692
 IT,"Intergenerational Fairness, Youth, Culture and Sport",1,0.45549827386415415
@@ -1062,15 +1062,15 @@ LT,Energy and Housing,10,0.5281586205498022
 LT,Equality,1,0.48865338905643796
 LT,Equality,2,0.5111980259199959
 LT,Equality,3,0.49282360394318986
-LT,Equality,4,0.4961238696030907
+LT,Equality,4,0.49612386960309063
 LT,Equality,5,0.570197048563276
 LT,Equality,6,0.5998905122471705
 LT,Equality,7,0.6146289556044845
 LT,Equality,8,0.628636233163055
 LT,Equality,9,0.6703407300568062
 LT,Equality,10,0.7394573032911081
-LT,Health and Animal Welfare,1,0.5285214281295857
-LT,Health and Animal Welfare,2,0.43057605453819775
+LT,Health and Animal Welfare,1,0.5285214281295858
+LT,Health and Animal Welfare,2,0.4305760545381978
 LT,Health and Animal Welfare,3,0.46404630951926423
 LT,Health and Animal Welfare,4,0.5089729550108566
 LT,Health and Animal Welfare,5,0.50961850577961
@@ -1112,7 +1112,7 @@ LU,Agriculture and Food,10,0.6895200163172049
 LU,Energy and Housing,1,0.6820147403715587
 LU,Energy and Housing,2,0.8162502418053472
 LU,Energy and Housing,3,0.8573207796467738
-LU,Energy and Housing,4,0.8721073896028257
+LU,Energy and Housing,4,0.8721073896028256
 LU,Energy and Housing,5,0.8900880204299256
 LU,Energy and Housing,6,0.8929010883924283
 LU,Energy and Housing,7,0.9031949029473242
@@ -1122,7 +1122,7 @@ LU,Energy and Housing,10,0.919397216025612
 LU,Equality,1,0.6746584598026426
 LU,Equality,2,0.7561341068774294
 LU,Equality,3,0.8121978537185756
-LU,Equality,4,0.8218916784335984
+LU,Equality,4,0.8218916784335983
 LU,Equality,5,0.8815059292603008
 LU,Equality,6,0.8807607980894253
 LU,Equality,7,0.8341827287907374
@@ -1133,11 +1133,11 @@ LU,Health and Animal Welfare,1,0.5938175463929919
 LU,Health and Animal Welfare,2,0.6347407587808458
 LU,Health and Animal Welfare,3,0.6388405206162681
 LU,Health and Animal Welfare,4,0.6414904924281598
-LU,Health and Animal Welfare,5,0.6698868421636961
+LU,Health and Animal Welfare,5,0.6698868421636962
 LU,Health and Animal Welfare,6,0.6417699180677386
 LU,Health and Animal Welfare,7,0.6463678458532779
 LU,Health and Animal Welfare,8,0.6417952389427374
-LU,Health and Animal Welfare,9,0.5772594334349702
+LU,Health and Animal Welfare,9,0.5772594334349703
 LU,Health and Animal Welfare,10,0.5752646686173202
 LU,"Intergenerational Fairness, Youth, Culture and Sport",1,0.796818929861047
 LU,"Intergenerational Fairness, Youth, Culture and Sport",2,0.7960065656646542
@@ -1170,34 +1170,34 @@ LV,Agriculture and Food,8,0.5262365097031069
 LV,Agriculture and Food,9,0.7006893605275196
 LV,Agriculture and Food,10,0.7006893605275196
 LV,Energy and Housing,1,0.44272046472970034
-LV,Energy and Housing,2,0.4477689142961733
-LV,Energy and Housing,3,0.41789333829147796
+LV,Energy and Housing,2,0.4477689142961734
+LV,Energy and Housing,3,0.4178933382914779
 LV,Energy and Housing,4,0.3716674778413102
-LV,Energy and Housing,5,0.4069225120517866
-LV,Energy and Housing,6,0.4047207023492167
-LV,Energy and Housing,7,0.418906499793349
+LV,Energy and Housing,5,0.4069225120517865
+LV,Energy and Housing,6,0.40472070234921675
+LV,Energy and Housing,7,0.41890649979334893
 LV,Energy and Housing,8,0.41610085368146893
 LV,Energy and Housing,9,0.42959637657162597
-LV,Energy and Housing,10,0.47741408329051943
-LV,Equality,1,0.3655259157409633
+LV,Energy and Housing,10,0.4774140832905195
+LV,Equality,1,0.36552591574096344
 LV,Equality,2,0.38925518472785575
 LV,Equality,3,0.46584675346079507
-LV,Equality,4,0.4741501563387062
-LV,Equality,5,0.4912577946044808
+LV,Equality,4,0.4741501563387063
+LV,Equality,5,0.49125779460448077
 LV,Equality,6,0.5176116278384612
 LV,Equality,7,0.49608744783175107
 LV,Equality,8,0.5040894525921817
-LV,Equality,9,0.5887429181122799
-LV,Equality,10,0.6352250508344552
+LV,Equality,9,0.58874291811228
+LV,Equality,10,0.6352250508344554
 LV,Health and Animal Welfare,1,0.4616683995297406
 LV,Health and Animal Welfare,2,0.3408023061459837
-LV,Health and Animal Welfare,3,0.4749318476888062
+LV,Health and Animal Welfare,3,0.47493184768880625
 LV,Health and Animal Welfare,4,0.47288511583719894
-LV,Health and Animal Welfare,5,0.482970455953221
+LV,Health and Animal Welfare,5,0.4829704559532211
 LV,Health and Animal Welfare,6,0.49173931928765396
-LV,Health and Animal Welfare,7,0.450801749623167
+LV,Health and Animal Welfare,7,0.45080174962316705
 LV,Health and Animal Welfare,8,0.4611251457843921
-LV,Health and Animal Welfare,9,0.4868874859623767
+LV,Health and Animal Welfare,9,0.48688748596237674
 LV,Health and Animal Welfare,10,0.5080727215099863
 LV,"Intergenerational Fairness, Youth, Culture and Sport",1,0.9206530887266847
 LV,"Intergenerational Fairness, Youth, Culture and Sport",2,0.8732687755054304
@@ -1247,7 +1247,7 @@ MT,Equality,5,0.6127949815643985
 MT,Equality,6,0.6418672875630469
 MT,Equality,7,0.5815382272083223
 MT,Equality,8,0.5736220397274672
-MT,Equality,9,0.58514432862513
+MT,Equality,9,0.5851443286251301
 MT,Equality,10,0.5903291305894587
 MT,Health and Animal Welfare,1,0.5936394783031684
 MT,Health and Animal Welfare,2,0.6082109171230744
@@ -1255,7 +1255,7 @@ MT,Health and Animal Welfare,3,0.5940869954953988
 MT,Health and Animal Welfare,4,0.6360179049594511
 MT,Health and Animal Welfare,5,0.6617565724864038
 MT,Health and Animal Welfare,6,0.6675183804070466
-MT,Health and Animal Welfare,7,0.6042789266552515
+MT,Health and Animal Welfare,7,0.6042789266552516
 MT,Health and Animal Welfare,8,0.6107024238677498
 MT,Health and Animal Welfare,9,0.5908205352030501
 MT,Health and Animal Welfare,10,0.5933375944083925
@@ -1294,7 +1294,7 @@ NL,Energy and Housing,2,0.6496098809585519
 NL,Energy and Housing,3,0.6666897311534855
 NL,Energy and Housing,4,0.6672786086781733
 NL,Energy and Housing,5,0.6791622094153842
-NL,Energy and Housing,6,0.6828380162326875
+NL,Energy and Housing,6,0.6828380162326876
 NL,Energy and Housing,7,0.6853932331637685
 NL,Energy and Housing,8,0.6888827040784097
 NL,Energy and Housing,9,0.6874047251444506
@@ -1310,12 +1310,12 @@ NL,Equality,8,0.9180505528451296
 NL,Equality,9,0.9256415966467274
 NL,Equality,10,0.9236459047604532
 NL,Health and Animal Welfare,1,0.4722934039408751
-NL,Health and Animal Welfare,2,0.4546329008985189
-NL,Health and Animal Welfare,3,0.4769273337334607
-NL,Health and Animal Welfare,4,0.4975571181935468
-NL,Health and Animal Welfare,5,0.5357774183139743
+NL,Health and Animal Welfare,2,0.45463290089851893
+NL,Health and Animal Welfare,3,0.47692733373346075
+NL,Health and Animal Welfare,4,0.49755711819354687
+NL,Health and Animal Welfare,5,0.5357774183139744
 NL,Health and Animal Welfare,6,0.5247134868985203
-NL,Health and Animal Welfare,7,0.5396807809685475
+NL,Health and Animal Welfare,7,0.5396807809685477
 NL,Health and Animal Welfare,8,0.5607613405255556
 NL,Health and Animal Welfare,9,0.568560464987905
 NL,Health and Animal Welfare,10,0.5627301183725968
@@ -1354,8 +1354,8 @@ NO,Energy and Housing,2,0.6415938828527598
 NO,Energy and Housing,3,0.637740986286117
 NO,Energy and Housing,4,0.6509759412847524
 NO,Energy and Housing,5,0.6653087557593794
-NO,Energy and Housing,6,0.6682621484466377
-NO,Energy and Housing,7,0.6686673684074556
+NO,Energy and Housing,6,0.6682621484466376
+NO,Energy and Housing,7,0.6686673684074557
 NO,Energy and Housing,8,0.6776576951469577
 NO,Energy and Housing,9,0.6881214927699182
 NO,Energy and Housing,10,0.6877530588907954
@@ -1374,7 +1374,7 @@ NO,Health and Animal Welfare,2,0.7118224435768655
 NO,Health and Animal Welfare,3,0.776332335498034
 NO,Health and Animal Welfare,4,0.7839744384657493
 NO,Health and Animal Welfare,5,0.8124955189600664
-NO,Health and Animal Welfare,6,0.7999902012354737
+NO,Health and Animal Welfare,6,0.7999902012354738
 NO,Health and Animal Welfare,7,0.750473796714668
 NO,Health and Animal Welfare,8,0.7527865308304149
 NO,Health and Animal Welfare,9,0.7315006288118311
@@ -1411,14 +1411,14 @@ PL,Agriculture and Food,9,0.5940863003766343
 PL,Agriculture and Food,10,0.5940863003766343
 PL,Energy and Housing,1,0.47126638094248696
 PL,Energy and Housing,2,0.428357340452273
-PL,Energy and Housing,3,0.4584906387484917
-PL,Energy and Housing,4,0.39089515336665787
+PL,Energy and Housing,3,0.45849063874849166
+PL,Energy and Housing,4,0.3908951533666578
 PL,Energy and Housing,5,0.4486868614253583
-PL,Energy and Housing,6,0.4871466620361999
+PL,Energy and Housing,6,0.48714666203619994
 PL,Energy and Housing,7,0.49747007555868694
 PL,Energy and Housing,8,0.5245874382760266
 PL,Energy and Housing,9,0.5235602667531852
-PL,Energy and Housing,10,0.5945836534417659
+PL,Energy and Housing,10,0.594583653441766
 PL,Equality,1,0.5839115042517439
 PL,Equality,2,0.6580382634701575
 PL,Equality,3,0.7053565825936369
@@ -1426,7 +1426,7 @@ PL,Equality,4,0.7191940466263266
 PL,Equality,5,0.7331353385122144
 PL,Equality,6,0.7546207588671449
 PL,Equality,7,0.7281964782722751
-PL,Equality,8,0.7230132758733889
+PL,Equality,8,0.723013275873389
 PL,Equality,9,0.7657384255280838
 PL,Equality,10,0.7661261921747164
 PL,Health and Animal Welfare,1,0.5364198851890556
@@ -1438,7 +1438,7 @@ PL,Health and Animal Welfare,6,0.5509798868888395
 PL,Health and Animal Welfare,7,0.514265499304666
 PL,Health and Animal Welfare,8,0.5368404852990147
 PL,Health and Animal Welfare,9,0.5593476013918423
-PL,Health and Animal Welfare,10,0.5734716674522709
+PL,Health and Animal Welfare,10,0.573471667452271
 PL,"Intergenerational Fairness, Youth, Culture and Sport",1,0.9059873803843235
 PL,"Intergenerational Fairness, Youth, Culture and Sport",2,0.9296029894562483
 PL,"Intergenerational Fairness, Youth, Culture and Sport",3,0.9306042370667414
@@ -1482,23 +1482,23 @@ PT,Energy and Housing,10,0.6708822953640615
 PT,Equality,1,0.5150610361415978
 PT,Equality,2,0.5569578845546107
 PT,Equality,3,0.6174273725435916
-PT,Equality,4,0.6300662101574044
-PT,Equality,5,0.6264209538699813
+PT,Equality,4,0.6300662101574045
+PT,Equality,5,0.6264209538699812
 PT,Equality,6,0.655772877128713
-PT,Equality,7,0.5708203956132795
-PT,Equality,8,0.601987198632098
+PT,Equality,7,0.5708203956132796
+PT,Equality,8,0.6019871986320982
 PT,Equality,9,0.685838398077981
 PT,Equality,10,0.7152490903788251
 PT,Health and Animal Welfare,1,0.3682281172048868
-PT,Health and Animal Welfare,2,0.3809443215395848
+PT,Health and Animal Welfare,2,0.38094432153958485
 PT,Health and Animal Welfare,3,0.35194452110075825
-PT,Health and Animal Welfare,4,0.38228307444789317
-PT,Health and Animal Welfare,5,0.3737297220150494
-PT,Health and Animal Welfare,6,0.35949335305464075
-PT,Health and Animal Welfare,7,0.3142179670877076
-PT,Health and Animal Welfare,8,0.30592314283981514
-PT,Health and Animal Welfare,9,0.37896194024801183
-PT,Health and Animal Welfare,10,0.37129519057004506
+PT,Health and Animal Welfare,4,0.3822830744478932
+PT,Health and Animal Welfare,5,0.37372972201504945
+PT,Health and Animal Welfare,6,0.35949335305464086
+PT,Health and Animal Welfare,7,0.31421796708770766
+PT,Health and Animal Welfare,8,0.3059231428398152
+PT,Health and Animal Welfare,9,0.3789619402480119
+PT,Health and Animal Welfare,10,0.371295190570045
 PT,"Intergenerational Fairness, Youth, Culture and Sport",1,0.2545863056853756
 PT,"Intergenerational Fairness, Youth, Culture and Sport",2,0.2990561276567067
 PT,"Intergenerational Fairness, Youth, Culture and Sport",3,0.3764948725006597
@@ -1533,7 +1533,7 @@ RO,Energy and Housing,1,0.621135168598899
 RO,Energy and Housing,2,0.5780198198192181
 RO,Energy and Housing,3,0.559090926932286
 RO,Energy and Housing,4,0.5143607828277436
-RO,Energy and Housing,5,0.4670397738130152
+RO,Energy and Housing,5,0.46703977381301515
 RO,Energy and Housing,6,0.40361382039621874
 RO,Energy and Housing,7,0.358926572916628
 RO,Energy and Housing,8,0.3551334495569325
@@ -1542,7 +1542,7 @@ RO,Energy and Housing,10,0.32613830772644137
 RO,Equality,1,0.5124339069444932
 RO,Equality,2,0.5308390056678083
 RO,Equality,3,0.5604182575364013
-RO,Equality,4,0.5874159004947338
+RO,Equality,4,0.5874159004947339
 RO,Equality,5,0.5958026679329523
 RO,Equality,6,0.6052145399110235
 RO,Equality,7,0.6086216155411558
@@ -1553,7 +1553,7 @@ RO,Health and Animal Welfare,1,0.6218981605799374
 RO,Health and Animal Welfare,2,0.6097145652585478
 RO,Health and Animal Welfare,3,0.60891965401627
 RO,Health and Animal Welfare,4,0.6208656710716643
-RO,Health and Animal Welfare,5,0.5749481082888075
+RO,Health and Animal Welfare,5,0.5749481082888076
 RO,Health and Animal Welfare,6,0.557683674505203
 RO,Health and Animal Welfare,7,0.5352605652756866
 RO,Health and Animal Welfare,8,0.5374853286484124
@@ -1579,25 +1579,25 @@ RO,"Social Rights and Skills, Quality Jobs and Preparedness",7,0.926754443659750
 RO,"Social Rights and Skills, Quality Jobs and Preparedness",8,0.9298782000863205
 RO,"Social Rights and Skills, Quality Jobs and Preparedness",9,0.9239164053099177
 RO,"Social Rights and Skills, Quality Jobs and Preparedness",10,0.9374358125142948
-RS,Energy and Housing,1,0.13859289319539622
-RS,Energy and Housing,2,0.15315882998540717
+RS,Energy and Housing,1,0.13859289319539625
+RS,Energy and Housing,2,0.1531588299854071
 RS,Energy and Housing,3,0.21016123532673714
 RS,Energy and Housing,4,0.23814221339553426
 RS,Energy and Housing,5,0.1812230810603592
 RS,Energy and Housing,6,0.20539433094368287
-RS,Energy and Housing,7,0.21947369314720888
+RS,Energy and Housing,7,0.21947369314720877
 RS,Energy and Housing,8,0.23442477927615407
-RS,Energy and Housing,9,0.20666798987516205
+RS,Energy and Housing,9,0.20666798987516202
 RS,Energy and Housing,10,0.2725438600882771
-RS,Equality,1,0.18456656745712263
-RS,Equality,2,0.15960571696328876
+RS,Equality,1,0.1845665674571227
+RS,Equality,2,0.1596057169632888
 RS,Equality,3,0.22701601793357262
-RS,Equality,4,0.23366789790888107
+RS,Equality,4,0.23366789790888112
 RS,Equality,5,0.2452063166870674
 RS,Equality,6,0.3204796912960528
-RS,Equality,7,0.16842976056570344
-RS,Equality,8,0.22695822095167273
-RS,Equality,9,0.4170485328142524
+RS,Equality,7,0.1684297605657035
+RS,Equality,8,0.22695822095167276
+RS,Equality,9,0.41704853281425247
 RS,Equality,10,0.4547849265616147
 RS,Health and Animal Welfare,1,0.4904477218400573
 RS,Health and Animal Welfare,2,0.45934857494909964
@@ -1642,7 +1642,7 @@ SE,Agriculture and Food,10,0.7521915521577375
 SE,Energy and Housing,1,0.5231302776655927
 SE,Energy and Housing,2,0.654591886363607
 SE,Energy and Housing,3,0.6778690970429332
-SE,Energy and Housing,4,0.6950803006487991
+SE,Energy and Housing,4,0.6950803006487992
 SE,Energy and Housing,5,0.7370171415051521
 SE,Energy and Housing,6,0.7431464531790078
 SE,Energy and Housing,7,0.7535221854163082
@@ -1702,29 +1702,29 @@ SI,Agriculture and Food,10,0.556759464282765
 SI,Energy and Housing,1,0.7006680841509269
 SI,Energy and Housing,2,0.6930898762859825
 SI,Energy and Housing,3,0.668391666272013
-SI,Energy and Housing,4,0.6674289724434999
+SI,Energy and Housing,4,0.6674289724434997
 SI,Energy and Housing,5,0.6809219205474798
 SI,Energy and Housing,6,0.685072730637556
 SI,Energy and Housing,7,0.6855509592519737
 SI,Energy and Housing,8,0.7033602934077462
 SI,Energy and Housing,9,0.6933944039648424
 SI,Energy and Housing,10,0.6964362285426589
-SI,Equality,1,0.49669597318994285
+SI,Equality,1,0.4966959731899429
 SI,Equality,2,0.5810229101246669
-SI,Equality,3,0.6693562026250637
-SI,Equality,4,0.6893141804920705
+SI,Equality,3,0.6693562026250638
+SI,Equality,4,0.6893141804920706
 SI,Equality,5,0.7141839240431707
 SI,Equality,6,0.7277326023985676
 SI,Equality,7,0.7092873217490411
 SI,Equality,8,0.7216435567031452
 SI,Equality,9,0.730595794717499
 SI,Equality,10,0.7603845375552097
-SI,Health and Animal Welfare,1,0.4093477080522139
-SI,Health and Animal Welfare,2,0.482823765602039
+SI,Health and Animal Welfare,1,0.40934770805221393
+SI,Health and Animal Welfare,2,0.48282376560203905
 SI,Health and Animal Welfare,3,0.5246773943321417
 SI,Health and Animal Welfare,4,0.5291447578846376
 SI,Health and Animal Welfare,5,0.5068448956650068
-SI,Health and Animal Welfare,6,0.5089568340691552
+SI,Health and Animal Welfare,6,0.5089568340691553
 SI,Health and Animal Welfare,7,0.5303971440836878
 SI,Health and Animal Welfare,8,0.5243423009275482
 SI,Health and Animal Welfare,9,0.509720472867266
@@ -1764,16 +1764,16 @@ SK,Energy and Housing,2,0.5804239163779681
 SK,Energy and Housing,3,0.5625753365460594
 SK,Energy and Housing,4,0.5787019227867705
 SK,Energy and Housing,5,0.5655810441861581
-SK,Energy and Housing,6,0.5410653634097998
+SK,Energy and Housing,6,0.5410653634097997
 SK,Energy and Housing,7,0.5156325787412774
 SK,Energy and Housing,8,0.4999022576995408
 SK,Energy and Housing,9,0.44149225216930554
 SK,Energy and Housing,10,0.3738410020799122
 SK,Equality,1,0.6251509476802501
 SK,Equality,2,0.7084393905350472
-SK,Equality,3,0.7385614169887086
-SK,Equality,4,0.7561968823087409
-SK,Equality,5,0.7508031938610652
+SK,Equality,3,0.7385614169887087
+SK,Equality,4,0.756196882308741
+SK,Equality,5,0.7508031938610653
 SK,Equality,6,0.7400898431426661
 SK,Equality,7,0.7622107328476313
 SK,Equality,8,0.7573328430828736
@@ -1830,7 +1830,7 @@ UK,Energy and Housing,8,0.9283472576084815
 UK,Energy and Housing,9,0.9271635897811342
 UK,Energy and Housing,10,0.9265965060395053
 UK,Equality,1,0.6507262191094878
-UK,Equality,2,0.6467926543030761
+UK,Equality,2,0.6467926543030762
 UK,Equality,3,0.6983126179986152
 UK,Equality,4,0.6907311759393013
 UK,Equality,5,0.7396965130098041
@@ -1839,8 +1839,8 @@ UK,Equality,7,0.6668846020206156
 UK,Equality,8,0.6753496405008156
 UK,Equality,9,0.7356312847647362
 UK,Equality,10,0.7528709420289759
-UK,Health and Animal Welfare,1,0.5478401913383205
-UK,Health and Animal Welfare,2,0.5558197392684193
+UK,Health and Animal Welfare,1,0.5478401913383206
+UK,Health and Animal Welfare,2,0.5558197392684194
 UK,Health and Animal Welfare,3,0.5843435444741137
 UK,Health and Animal Welfare,4,0.6057906700804122
 UK,Health and Animal Welfare,5,0.6337574551243904
@@ -1848,7 +1848,7 @@ UK,Health and Animal Welfare,6,0.6297768347039029
 UK,Health and Animal Welfare,7,0.5717046931346398
 UK,Health and Animal Welfare,8,0.5854432581928323
 UK,Health and Animal Welfare,9,0.6160200567802929
-UK,Health and Animal Welfare,10,0.6339409583398312
+UK,Health and Animal Welfare,10,0.6339409583398313
 UK,"Social Rights and Skills, Quality Jobs and Preparedness",1,0.6116736181347849
 UK,"Social Rights and Skills, Quality Jobs and Preparedness",2,0.6231076350316108
 UK,"Social Rights and Skills, Quality Jobs and Preparedness",3,0.6701242639383295
