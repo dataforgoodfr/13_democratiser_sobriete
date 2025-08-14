@@ -29,27 +29,22 @@ def simple_average(data):
     else:
         return pd.Series(dtype=float)
 
-def weighted_geometric_mean(data):
+def geometric_mean(data):
     """
-    Calculate weighted geometric mean of indicators
+    Calculate geometric mean of indicators (treating all values equally)
     Args:
         data: list of tuples (values, weight) where values is a pandas Series
     Returns:
-        pandas Series with the weighted geometric mean values
+        pandas Series with the geometric mean values
     """
     if not data:
         return pd.Series(dtype=float)
     
-    # Extract values and weights
+    # Extract values (ignore weights, treat all equally)
     values_list = [item[0] for item in data]
-    weights = [item[1] for item in data]
     
-    # Normalize weights to sum to 1
-    total_weight = sum(weights)
-    normalized_weights = [w / total_weight for w in weights]
-    
-    # Calculate weighted geometric mean
-    # For each position, calculate: exp(sum(weight * log(value)))
+    # Calculate geometric mean
+    # For each position, calculate: exp(mean(log(values)))
     result = pd.Series(index=values_list[0].index, dtype=float)
     
     for idx in result.index:
@@ -57,16 +52,13 @@ def weighted_geometric_mean(data):
         idx_values = [series.loc[idx] for series in values_list]
         
         # Filter out non-positive values (geometric mean requires positive numbers)
-        valid_pairs = [(val, weight) for val, weight in zip(idx_values, normalized_weights) if val > 0]
+        valid_values = [val for val in idx_values if val > 0]
         
-        if valid_pairs:
-            # Calculate weighted geometric mean
-            log_values = [np.log(val) for val, _ in valid_pairs]
-            log_weights = [weight for _, weight in valid_pairs]
-            
-            # Weighted sum of log values
-            weighted_log_sum = sum(log_val * weight for log_val, weight in zip(log_values, log_weights))
-            result.loc[idx] = np.exp(weighted_log_sum)
+        if valid_values:
+            # Calculate geometric mean: exp(mean(log(values)))
+            log_values = [np.log(val) for val in valid_values]
+            geometric_mean = np.exp(np.mean(log_values))
+            result.loc[idx] = geometric_mean
         else:
             result.loc[idx] = np.nan
     
@@ -144,7 +136,7 @@ def calculate_eu_priorities(secondary_df, config):
                         factors.append((cpdf.loc[name], weight))
 
                 if factors:
-                    priorities[country, pname] = weighted_geometric_mean(factors)
+                    priorities[country, pname] = simple_average(factors)
                 else:
                     print('Missing', country, pname)
     
