@@ -105,9 +105,8 @@ app.layout = html.Div([
                 dcc.Dropdown(
                     id='analysis-level-dropdown',
                     options=[
-                        {'label': 'Overview (EWBI + EU Priorities)', 'value': 'overview'},
-                        {'label': 'EU Priority + Secondary Indicators', 'value': 'eu_priority'},
-                        {'label': 'Secondary Indicator + Primary Indicators', 'value': 'secondary'}
+                        {'label': 'Overview', 'value': 'overview'},
+                        {'label': 'By EU Priority', 'value': 'by_eu_priority'}
                     ],
                     value='overview',
                     style={'marginTop': '8px'},
@@ -119,8 +118,8 @@ app.layout = html.Div([
                 html.Label("EU Priority", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
                 dcc.Dropdown(
                     id='eu-priority-dropdown',
-                    options=[{'label': prio, 'value': prio} for prio in EU_PRIORITIES],
-                    value=EU_PRIORITIES[0] if EU_PRIORITIES else None,
+                    options=[{'label': 'ALL', 'value': 'ALL'}] + [{'label': prio, 'value': prio} for prio in EU_PRIORITIES],
+                    value='ALL',
                     style={'marginTop': '8px'},
                     clearable=False,
                     disabled=True
@@ -131,7 +130,8 @@ app.layout = html.Div([
                 html.Label("Secondary Indicator", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
                 dcc.Dropdown(
                     id='secondary-indicator-dropdown',
-                    options=[],
+                    options=[{'label': 'ALL', 'value': 'ALL'}],
+                    value='ALL',
                     style={'marginTop': '8px'},
                     clearable=False,
                     disabled=True
@@ -287,8 +287,10 @@ app.layout = html.Div([
 )
 def update_eu_priority_dropdown(analysis_level):
     if analysis_level == 'overview':
-        return True, None
+        # In overview mode, show ALL EU priorities
+        return True, 'ALL'
     else:
+        # In by_eu_priority mode, allow selection of specific priority
         return False, EU_PRIORITIES[0] if EU_PRIORITIES else None
 
 # Callback to update secondary indicator dropdown based on EU priority
@@ -300,16 +302,22 @@ def update_eu_priority_dropdown(analysis_level):
     Input('analysis-level-dropdown', 'value')
 )
 def update_secondary_indicator_dropdown(eu_priority, analysis_level):
-    if analysis_level != 'secondary' or not eu_priority:
-        return [], None, True
-    
-    # Filter secondary indicators for the selected EU priority
-    filtered_indicators = [ind for ind in SECONDARY_INDICATORS if ind['eu_priority'] == eu_priority]
-    
-    if filtered_indicators:
-        return filtered_indicators, filtered_indicators[0]['value'], False
+    if analysis_level == 'overview':
+        # In overview mode, show ALL secondary indicators
+        return [{'label': 'ALL', 'value': 'ALL'}], 'ALL', True
+    elif analysis_level == 'by_eu_priority' and eu_priority:
+        # In by_eu_priority mode, show ALL secondary indicators for the selected EU priority
+        filtered_indicators = [
+            indicator for indicator in SECONDARY_INDICATORS 
+            if indicator['eu_priority'] == eu_priority
+        ]
+        options = [{'label': 'ALL', 'value': 'ALL'}] + [
+            {'label': indicator['secondary'], 'value': indicator['secondary']} 
+            for indicator in filtered_indicators
+        ]
+        return options, 'ALL', False
     else:
-        return [], None, True
+        return [{'label': 'ALL', 'value': 'ALL'}], 'ALL', True
 
 # Callback to update all charts
 @app.callback(
@@ -340,12 +348,12 @@ def update_charts(analysis_level, eu_priority, secondary_indicator, selected_cou
     if analysis_level == 'overview':
         # Show EWBI and EU priorities
         return create_overview_charts(map_df, filtered_df, time_filtered_df)
-    elif analysis_level == 'eu_priority':
+    elif analysis_level == 'by_eu_priority':
         # Show EU priority and its secondary indicators
         return create_eu_priority_charts(map_df, filtered_df, time_filtered_df, eu_priority)
     else:
-        # Show secondary indicator and its primary indicators
-        return create_secondary_indicator_charts(map_df, filtered_df, time_filtered_df, eu_priority, secondary_indicator)
+        # Fallback to overview
+        return create_overview_charts(map_df, filtered_df, time_filtered_df)
 
 def create_overview_charts(map_df, analysis_df, time_df):
     """Create charts for overview level (EWBI + EU priorities)"""
@@ -790,21 +798,6 @@ def create_eu_priority_charts(map_df, analysis_df, time_df, eu_priority):
     )
     
     return european_map, decile_analysis, radar_chart, time_series
-
-def create_secondary_indicator_charts(df, time_df, eu_priority, secondary_indicator):
-    """Create charts for secondary indicator level"""
-    
-    if not secondary_indicator:
-        return create_overview_charts(df, time_df)
-    
-    # Parse secondary indicator
-    eu_prio, sec_ind = secondary_indicator.split('|')
-    
-    # Get primary indicators for this secondary indicator
-    # This would need to be implemented based on the actual data structure
-    
-    # For now, return overview charts
-    return create_overview_charts(df, time_df)
 
 if __name__ == '__main__':
     app.run_server(debug=True, host='0.0.0.0', port=8050) 
