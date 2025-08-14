@@ -401,17 +401,20 @@ def update_charts(analysis_level, eu_priority, secondary_indicator, primary_indi
         filtered_df = master_df[master_df['country'].isin(selected_countries)].copy()
         time_filtered_df = time_series_df[time_series_df['country'].isin(selected_countries)].copy()
     
-    # Determine what to show based on analysis level
+    # Determine what to show based on analysis level and filter selections
     if analysis_level == 'overview':
         # Show EWBI and EU priorities
         return create_overview_charts(map_df, filtered_df, time_filtered_df)
     elif analysis_level == 'by_eu_priority':
-        # Check if we have a specific secondary indicator and primary indicator selected
+        # Handle the three levels of drill-down
         if secondary_indicator and secondary_indicator != 'ALL' and primary_indicator and primary_indicator != 'ALL':
-            # Show specific primary indicator data
+            # Level 3: Specific Primary Indicator selected
             return create_primary_indicator_charts(map_df, filtered_df, time_filtered_df, eu_priority, secondary_indicator, primary_indicator)
+        elif secondary_indicator and secondary_indicator != 'ALL':
+            # Level 2: Specific Secondary Indicator selected (Primary = ALL)
+            return create_secondary_indicator_charts(map_df, filtered_df, time_filtered_df, eu_priority, secondary_indicator)
         else:
-            # Show EU priority and its secondary indicators
+            # Level 1: Only EU Priority selected (Secondary = ALL, Primary = ALL)
             return create_eu_priority_charts(map_df, filtered_df, time_filtered_df, eu_priority)
     else:
         # Fallback to overview
@@ -1192,6 +1195,264 @@ def create_primary_indicator_charts(map_df, analysis_df, time_df, eu_priority, s
     except:
         time_series.add_annotation(
             text=f"Error loading time series data for {primary_indicator}",
+            xref="paper", yref="paper",
+            x=0.5, y=0.5, showarrow=False,
+            font=dict(size=16)
+        )
+    
+    return european_map, decile_analysis, radar_chart, time_series
+
+def create_secondary_indicator_charts(map_df, analysis_df, time_df, eu_priority, secondary_indicator):
+    """Create charts for secondary indicator level (EU Priority + Specific Secondary)"""
+    
+    # 1. European map chart (secondary indicator scores)
+    european_map = go.Figure()
+    
+    # Get the secondary indicator column name
+    secondary_col = f"secondary_{eu_priority.replace(' ', '_and_')}_{secondary_indicator.replace(' ', '_and_')}"
+    
+    if secondary_col in map_df.columns:
+        # Create choropleth map for the secondary indicator
+        european_map.add_trace(
+            go.Choropleth(
+                locations=[ISO2_TO_ISO3.get(country, country) for country in map_df['country']],
+                z=map_df[secondary_col],
+                text=map_df['country'],
+                locationmode='ISO-3',
+                colorscale='Viridis',
+                zmin=0,
+                zmax=1,
+                colorbar=dict(title='Score', tickformat='.3f'),
+                hovertemplate='<b>%{text}</b><br>Score: %{z:.3f}<extra></extra>'
+            )
+        )
+        
+        european_map.update_layout(
+            title=f'{secondary_indicator} Scores by Country',
+            geo=dict(
+                scope='europe',
+                projection=dict(type='natural earth'),
+                showland=True,
+                landcolor='rgb(243, 243, 243)',
+                coastlinecolor='rgb(204, 204, 204)',
+                showocean=True,
+                oceancolor='rgb(230, 230, 250)',
+                showcountries=True,
+                countrycolor='rgb(128, 128, 128)',
+                showframe=False
+            ),
+            height=550,
+            font=dict(family='Arial, sans-serif', size=12)
+        )
+    else:
+        european_map.add_annotation(
+            text=f"Secondary indicator {secondary_indicator} not found in data",
+            xref="paper", yref="paper",
+            x=0.5, y=0.5, showarrow=False,
+            font=dict(size=16)
+        )
+    
+    # 2. Decile analysis chart
+    decile_analysis = go.Figure()
+    
+    if secondary_col in analysis_df.columns:
+        # Get decile data for the selected countries
+        decile_data = analysis_df.groupby('decile')[secondary_col].mean().reset_index()
+        
+        decile_analysis.add_trace(
+            go.Bar(
+                x=decile_data['decile'],
+                y=decile_data[secondary_col],
+                marker_color='#3498db',
+                hovertemplate='Decile %{x}: %{y:.3f}<extra></extra>'
+            )
+        )
+        
+        decile_analysis.update_layout(
+            title=f'{secondary_indicator} Scores by Income Decile',
+            xaxis_title='Income Decile',
+            yaxis_title='Score',
+            height=400,
+            font=dict(family='Arial, sans-serif', size=12),
+            yaxis=dict(range=[0, 1])
+        )
+    else:
+        decile_analysis.add_annotation(
+            text=f"Secondary indicator {secondary_indicator} not found in data",
+            xref="paper", yref="paper",
+            x=0.5, y=0.5, showarrow=False,
+            font=dict(size=16)
+        )
+    
+    # 3. Country comparison chart (secondary indicator vs primary indicators)
+    radar_chart = go.Figure()
+    
+    # Get all primary indicators for this secondary indicator
+    if secondary_col in map_df.columns:
+        # Find primary indicators that belong to this secondary indicator
+        # We need to get this from the EWBI structure
+        try:
+            with open(os.path.join(DATA_DIR, '..', 'data', 'ewbi_indicators.json'), 'r') as f:
+                config = json.load(f)['EWBI']
+            
+            primary_indicators = []
+            for priority in config:
+                if priority['name'] == eu_priority:
+                    for component in priority['components']:
+                        if component['name'] == secondary_indicator:
+                            for indicator in component['indicators']:
+                                primary_indicators.append(indicator['code'])
+                            break
+                    break
+            
+            # Get individual countries (excluding aggregates)
+            individual_countries = [c for c in map_df['country'].unique() if 'Average' not in c]
+            individual_countries.sort()
+            
+            # Add the secondary indicator line
+            secondary_scores = []
+            for country in individual_countries:
+                if country in map_df['country'].values:
+                    score = map_df[map_df['country'] == country][secondary_col].mean()
+                    secondary_scores.append(score)
+                else:
+                    secondary_scores.append(0)
+            
+            radar_chart.add_trace(
+                go.Scatter(
+                    x=individual_countries,
+                    y=secondary_scores,
+                    name=secondary_indicator,
+                    mode='lines+markers',
+                    line=dict(width=4, color='#1f77b4'),
+                    marker=dict(
+                        size=10,
+                        color='white',
+                        line=dict(color='#1f77b4', width=2)
+                    ),
+                    hovertemplate='%{y:.3f}'
+                )
+            )
+            
+            # Add primary indicator lines
+            colors = ['#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2']
+            for i, primary_code in enumerate(primary_indicators):
+                if i < len(colors):
+                    primary_col = f"primary_{primary_code}"
+                    if primary_col in map_df.columns:
+                        primary_scores = []
+                        for country in individual_countries:
+                            if country in map_df['country'].values:
+                                score = map_df[map_df['country'] == country][primary_col].mean()
+                                primary_scores.append(score)
+                            else:
+                                primary_scores.append(0)
+                        
+                        radar_chart.add_trace(
+                            go.Scatter(
+                                x=individual_countries,
+                                y=primary_scores,
+                                name=primary_code,
+                                mode='lines+markers',
+                                line=dict(color=colors[i]),
+                                marker=dict(
+                                    size=8,
+                                    color='white',
+                                    line=dict(color=colors[i], width=2)
+                                ),
+                                hovertemplate='%{y:.3f}'
+                            )
+                        )
+            
+            radar_chart.update_layout(
+                title=f'{secondary_indicator} vs Primary Indicators by Country',
+                xaxis=dict(tickangle=45, tickfont=dict(size=12)),
+                yaxis=dict(range=[0, 1], tickformat='.1f', gridwidth=0.2, title='Score'),
+                hovermode='closest',
+                showlegend=True,
+                legend=dict(x=1, y=1, xanchor='right', yanchor='top'),
+                height=400,
+                font=dict(family='Arial, sans-serif', size=12)
+            )
+        except:
+            radar_chart.add_annotation(
+                text=f"Error loading EWBI structure for {secondary_indicator}",
+                xref="paper", yref="paper",
+                x=0.5, y=0.5, showarrow=False,
+                font=dict(size=16)
+            )
+    else:
+        radar_chart.add_annotation(
+            text=f"Secondary indicator {secondary_indicator} not found in data",
+            xref="paper", yref="paper",
+            x=0.5, y=0.5, showarrow=False,
+            font=dict(size=16)
+        )
+    
+    # 4. Time series chart
+    time_series = go.Figure()
+    
+    # For time series, we'll use the time series dataframe
+    try:
+        time_series_df = pd.read_csv(os.path.join(DATA_DIR, 'master_dataframe_time_series.csv'))
+        
+        # Filter for the specific secondary indicator
+        if 'secondary_indicator' in time_series_df.columns:
+            indicator_time_data = time_series_df[time_series_df['secondary_indicator'] == secondary_indicator]
+            
+            if not indicator_time_data.empty:
+                # Group by country and year, average across deciles
+                country_year_data = indicator_time_data.groupby(['country', 'year'])['value'].mean().reset_index()
+                
+                # For time series, prioritize EU Countries Average, then add individual countries
+                countries_to_show = []
+                if 'EU Countries Average' in country_year_data['country'].values:
+                    countries_to_show.append('EU Countries Average')
+                
+                # Add individual countries from the filter
+                individual_countries = [c for c in analysis_df['country'].unique() if 'Average' not in c]
+                countries_to_show.extend(individual_countries[:5])  # Limit to 5 for readability
+                
+                for country in countries_to_show:
+                    if country in country_year_data['country'].values:
+                        country_data = country_year_data[country_year_data['country'] == country]
+                        country_data = country_data.sort_values('year')
+                        
+                        time_series.add_trace(
+                            go.Scatter(
+                                x=country_data['year'],
+                                y=country_data['value'],
+                                name=country,
+                                mode='lines+markers',
+                                hovertemplate='%{y:.3f}<extra></extra>'
+                            )
+                        )
+                
+                time_series.update_layout(
+                    title=f'{secondary_indicator} Evolution Over Time',
+                    xaxis_title='Year',
+                    yaxis_title='Score',
+                    height=400,
+                    font=dict(family='Arial, sans-serif', size=12),
+                    yaxis=dict(range=[0, 1])
+                )
+            else:
+                time_series.add_annotation(
+                    text=f"No time series data found for {secondary_indicator}",
+                    xref="paper", yref="paper",
+                    x=0.5, y=0.5, showarrow=False,
+                    font=dict(size=16)
+                )
+        else:
+            time_series.add_annotation(
+                text=f"Time series data not available",
+                xref="paper", yref="paper",
+                x=0.5, y=0.5, showarrow=False,
+                font=dict(size=16)
+            )
+    except:
+        time_series.add_annotation(
+            text=f"Error loading time series data for {secondary_indicator}",
             xref="paper", yref="paper",
             x=0.5, y=0.5, showarrow=False,
             font=dict(size=16)
