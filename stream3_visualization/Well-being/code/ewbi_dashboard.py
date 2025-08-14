@@ -966,75 +966,236 @@ def create_primary_indicator_charts(map_df, analysis_df, time_df, eu_priority, s
     # 1. European map chart (primary indicator scores)
     european_map = go.Figure()
     
-    # For now, we'll show a placeholder since we need to implement the primary indicator data loading
-    # In the future, this would show the specific primary indicator scores by country
+    # Get the primary indicator column name
+    primary_col = f"primary_{primary_indicator}"
     
-    european_map.add_annotation(
-        text=f"Primary indicator charts for {primary_indicator} will be implemented in the next iteration",
-        xref="paper", yref="paper",
-        x=0.5, y=0.5, showarrow=False,
-        font=dict(size=16)
-    )
-    
-    european_map.update_layout(
-        title=f'{primary_indicator} Scores Map',
-        height=550,
-        font=dict(family='Arial, sans-serif', size=12)
-    )
+    if primary_col in map_df.columns:
+        # Create choropleth map for the primary indicator
+        european_map.add_trace(
+            go.Choropleth(
+                locations=[ISO2_TO_ISO3.get(country, country) for country in map_df['country']],
+                z=map_df[primary_col],
+                text=map_df['country'],
+                locationmode='ISO-3',
+                colorscale='Viridis',
+                zmin=0,
+                zmax=1,
+                colorbar=dict(title='Score', tickformat='.3f'),
+                hovertemplate='<b>%{text}</b><br>Score: %{z:.3f}<extra></extra>'
+            )
+        )
+        
+        european_map.update_layout(
+            title=f'{primary_indicator} Scores by Country',
+            geo=dict(
+                scope='europe',
+                projection=dict(type='natural earth'),
+                showland=True,
+                landcolor='rgb(243, 243, 243)',
+                coastlinecolor='rgb(204, 204, 204)',
+                showocean=True,
+                oceancolor='rgb(230, 230, 250)',
+                showcountries=True,
+                countrycolor='rgb(128, 128, 128)',
+                showframe=False
+            ),
+            height=550,
+            font=dict(family='Arial, sans-serif', size=12)
+        )
+    else:
+        european_map.add_annotation(
+            text=f"Primary indicator {primary_indicator} not found in data",
+            xref="paper", yref="paper",
+            x=0.5, y=0.5, showarrow=False,
+            font=dict(size=16)
+        )
     
     # 2. Decile analysis chart
     decile_analysis = go.Figure()
     
-    decile_analysis.add_annotation(
-        text=f"Primary indicator decile analysis for {primary_indicator} will be implemented in the next iteration",
-        xref="paper", yref="paper",
-        x=0.5, y=0.5, showarrow=False,
-        font=dict(size=16)
-    )
-    
-    decile_analysis.update_layout(
-        title=f'{primary_indicator} Scores by Decile',
-        xaxis_title='Income Decile',
-        yaxis_title='Score',
-        height=400,
-        font=dict(family='Arial, sans-serif', size=12),
-        yaxis=dict(range=[0, 1])
-    )
+    if primary_col in analysis_df.columns:
+        # Get decile data for the selected countries
+        decile_data = analysis_df.groupby('decile')[primary_col].mean().reset_index()
+        
+        decile_analysis.add_trace(
+            go.Bar(
+                x=decile_data['decile'],
+                y=decile_data[primary_col],
+                marker_color='#3498db',
+                hovertemplate='Decile %{x}: %{y:.3f}<extra></extra>'
+            )
+        )
+        
+        decile_analysis.update_layout(
+            title=f'{primary_indicator} Scores by Income Decile',
+            xaxis_title='Income Decile',
+            yaxis_title='Score',
+            height=400,
+            font=dict(family='Arial, sans-serif', size=12),
+            yaxis=dict(range=[0, 1])
+        )
+    else:
+        decile_analysis.add_annotation(
+            text=f"Primary indicator {primary_indicator} not found in data",
+            xref="paper", yref="paper",
+            x=0.5, y=0.5, showarrow=False,
+            font=dict(size=16)
+        )
     
     # 3. Country comparison chart (primary indicator vs other primary indicators in same secondary)
     radar_chart = go.Figure()
     
-    radar_chart.add_annotation(
-        text=f"Primary indicator comparison for {primary_indicator} will be implemented in the next iteration",
-        xref="paper", yref="paper",
-        x=0.5, y=0.5, showarrow=False,
-        font=dict(size=16)
-    )
-    
-    radar_chart.update_layout(
-        title=f'{primary_indicator} Comparison',
-        height=400,
-        font=dict(family='Arial, sans-serif', size=12)
-    )
+    # Get all primary indicators for the same secondary indicator
+    if primary_col in map_df.columns:
+        # Find other primary indicators in the same secondary group
+        # For now, we'll show the selected primary indicator vs a few others
+        other_primary_cols = [col for col in map_df.columns if col.startswith('primary_') and col != primary_col][:3]
+        
+        # Get individual countries (excluding aggregates)
+        individual_countries = [c for c in map_df['country'].unique() if 'Average' not in c]
+        individual_countries.sort()
+        
+        # Add the main primary indicator
+        main_scores = []
+        for country in individual_countries:
+            if country in map_df['country'].values:
+                score = map_df[map_df['country'] == country][primary_col].mean()
+                main_scores.append(score)
+            else:
+                main_scores.append(0)
+        
+        radar_chart.add_trace(
+            go.Scatter(
+                x=individual_countries,
+                y=main_scores,
+                name=primary_indicator,
+                mode='lines+markers',
+                line=dict(width=4, color='#1f77b4'),
+                marker=dict(
+                    size=10,
+                    color='white',
+                    line=dict(color='#1f77b4', width=2)
+                ),
+                hovertemplate='%{y:.3f}'
+            )
+        )
+        
+        # Add other primary indicators
+        colors = ['#ff7f0e', '#2ca02c', '#d62728']
+        for i, col in enumerate(other_primary_cols):
+            if i < len(colors):
+                other_scores = []
+                for country in individual_countries:
+                    if country in map_df['country'].values:
+                        score = map_df[map_df['country'] == country][col].mean()
+                        other_scores.append(score)
+                    else:
+                        other_scores.append(0)
+                
+                other_name = col.replace('primary_', '')
+                
+                radar_chart.add_trace(
+                    go.Scatter(
+                        x=individual_countries,
+                        y=other_scores,
+                        name=other_name,
+                        mode='lines+markers',
+                        line=dict(color=colors[i]),
+                        marker=dict(
+                            size=8,
+                            color='white',
+                            line=dict(color=colors[i], width=2)
+                        ),
+                        hovertemplate='%{y:.3f}'
+                    )
+                )
+        
+        radar_chart.update_layout(
+            title=f'{primary_indicator} vs Other Primary Indicators',
+            xaxis=dict(tickangle=45, tickfont=dict(size=12)),
+            yaxis=dict(range=[0, 1], tickformat='.1f', gridwidth=0.2, title='Score'),
+            hovermode='closest',
+            showlegend=True,
+            legend=dict(x=1, y=1, xanchor='right', yanchor='top'),
+            height=400,
+            font=dict(family='Arial, sans-serif', size=12)
+        )
+    else:
+        radar_chart.add_annotation(
+            text=f"Primary indicator {primary_indicator} not found in data",
+            xref="paper", yref="paper",
+            x=0.5, y=0.5, showarrow=False,
+            font=dict(size=16)
+        )
     
     # 4. Time series chart
     time_series = go.Figure()
     
-    time_series.add_annotation(
-        text=f"Primary indicator time series for {primary_indicator} will be implemented in the next iteration",
-        xref="paper", yref="paper",
-        x=0.5, y=0.5, showarrow=False,
-        font=dict(size=16)
-    )
-    
-    time_series.update_layout(
-        title=f'{primary_indicator} Evolution Over Time',
-        xaxis_title='Year',
-        yaxis_title='Score',
-        height=400,
-        font=dict(family='Arial, sans-serif', size=12),
-        yaxis=dict(range=[0, 1])
-    )
+    # For time series, we'll use the time series dataframe
+    try:
+        time_series_df = pd.read_csv(os.path.join(DATA_DIR, 'master_dataframe_time_series.csv'))
+        
+        # Filter for the specific primary indicator
+        if 'primary_index' in time_series_df.columns:
+            indicator_time_data = time_series_df[time_series_df['primary_index'] == primary_indicator]
+            
+            if not indicator_time_data.empty:
+                # Group by country and year, average across deciles
+                country_year_data = indicator_time_data.groupby(['country', 'year'])['value'].mean().reset_index()
+                
+                # For time series, prioritize EU Countries Average, then add individual countries
+                countries_to_show = []
+                if 'EU Countries Average' in country_year_data['country'].values:
+                    countries_to_show.append('EU Countries Average')
+                
+                # Add individual countries from the filter
+                individual_countries = [c for c in analysis_df['country'].unique() if 'Average' not in c]
+                countries_to_show.extend(individual_countries[:5])  # Limit to 5 for readability
+                
+                for country in countries_to_show:
+                    if country in country_year_data['country'].values:
+                        country_data = country_year_data[country_year_data['country'] == country]
+                        country_data = country_data.sort_values('year')
+                        
+                        time_series.add_trace(
+                            go.Scatter(
+                                x=country_data['year'],
+                                y=country_data['value'],
+                                name=country,
+                                mode='lines+markers',
+                                hovertemplate='%{y:.3f}<extra></extra>'
+                            )
+                        )
+                
+                time_series.update_layout(
+                    title=f'{primary_indicator} Evolution Over Time',
+                    xaxis_title='Year',
+                    yaxis_title='Score',
+                    height=400,
+                    font=dict(family='Arial, sans-serif', size=12),
+                    yaxis=dict(range=[0, 1])
+                )
+            else:
+                time_series.add_annotation(
+                    text=f"No time series data found for {primary_indicator}",
+                    xref="paper", yref="paper",
+                    x=0.5, y=0.5, showarrow=False,
+                    font=dict(size=16)
+                )
+        else:
+            time_series.add_annotation(
+                text=f"Time series data not available",
+                xref="paper", yref="paper",
+                x=0.5, y=0.5, showarrow=False,
+                font=dict(size=16)
+            )
+    except:
+        time_series.add_annotation(
+            text=f"Error loading time series data for {primary_indicator}",
+            xref="paper", yref="paper",
+            x=0.5, y=0.5, showarrow=False,
+            font=dict(size=16)
+        )
     
     return european_map, decile_analysis, radar_chart, time_series
 

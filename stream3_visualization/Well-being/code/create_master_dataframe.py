@@ -328,6 +328,15 @@ def main():
     
     all_countries_aggregate['country'] = 'All Countries Average'
     
+    # Add primary indicator averages to EU aggregate
+    primary_cols = [col for col in master_df.columns if col.startswith('primary_')]
+    for col in primary_cols:
+        eu_aggregate[col] = eu_only_df.groupby('decile')[col].mean().values
+    
+    # Add primary indicator averages to All Countries aggregate
+    for col in primary_cols:
+        all_countries_aggregate[col] = master_df.groupby('decile')[col].mean().values
+    
     # Add both aggregates to master dataframe
     master_df_with_aggregates = pd.concat([master_df, eu_aggregate, all_countries_aggregate], ignore_index=True)
     
