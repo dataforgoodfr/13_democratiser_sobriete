@@ -590,7 +590,7 @@ def create_overview_charts(map_df, analysis_df, time_df):
             font=dict(family='Arial, sans-serif', size=12)
         )
     
-    return european_map, decile_analysis, country_comparison, time_series
+    return european_map, decile_analysis, radar_chart, time_series
 
 def create_eu_priority_charts(map_df, analysis_df, time_df, eu_priority):
     """Create charts for EU priority level"""
@@ -733,7 +733,7 @@ def create_eu_priority_charts(map_df, analysis_df, time_df, eu_priority):
     )
     
     # 3. Country comparison chart (EU priority vs secondary indicators)
-    country_comparison = go.Figure()
+    radar_chart = go.Figure()
     
     # Get all individual countries (excluding aggregates) for the comparison
     individual_countries = [c for c in map_df['country'].unique() if 'Average' not in c]
@@ -798,7 +798,7 @@ def create_eu_priority_charts(map_df, analysis_df, time_df, eu_priority):
             )
     
     # Update layout to match your styling
-    country_comparison.update_layout(
+    radar_chart.update_layout(
         title=dict(
             text=f'{eu_priority} and Secondary Indicators by Country',
             y=0.9,
@@ -830,7 +830,7 @@ def create_eu_priority_charts(map_df, analysis_df, time_df, eu_priority):
     )
     
     # Set y-axis scale from 0 to 1
-    country_comparison.update_layout(yaxis=dict(range=[0, 1]))
+    radar_chart.update_layout(yaxis=dict(range=[0, 1]))
     
     # 4. Time series chart - Bar chart implementation
     time_series = go.Figure()
