@@ -749,7 +749,7 @@ def create_eu_priority_charts(map_df, analysis_df, time_df, eu_priority):
             eu_priority_scores.append(0)
     
     # Add the main EU priority line
-    country_comparison.add_trace(
+    radar_chart.add_trace(
         go.Scatter(
             x=individual_countries,
             y=eu_priority_scores,
@@ -781,7 +781,7 @@ def create_eu_priority_charts(map_df, analysis_df, time_df, eu_priority):
             # Clean up the secondary indicator name for display
             secondary_name = secondary_col.replace(f"{priority_name_clean}_", "")
             
-            country_comparison.add_trace(
+            radar_chart.add_trace(
                 go.Scatter(
                     x=individual_countries,
                     y=secondary_scores,
