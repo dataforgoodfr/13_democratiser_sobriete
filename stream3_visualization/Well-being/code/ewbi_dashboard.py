@@ -1210,7 +1210,8 @@ def create_secondary_indicator_charts(map_df, analysis_df, time_df, eu_priority,
     
     # Get the secondary indicator column name
     # The actual columns don't have 'secondary_' prefix
-    secondary_col = f"{eu_priority.replace(' ', '_and_')}_{secondary_indicator.replace(' ', '_and_')}"
+    # Fix the replacement logic to only replace ' and ' with '_and_', not every space
+    secondary_col = f"{eu_priority.replace(' and ', '_and_').replace(' ', '_')}_{secondary_indicator.replace(' and ', '_and_').replace(' ', '_')}"
     
     if secondary_col in map_df.columns:
         # Create choropleth map for the secondary indicator
