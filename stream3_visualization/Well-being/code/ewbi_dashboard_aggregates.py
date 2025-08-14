@@ -36,8 +36,8 @@ FULL_NAME_TO_ISO2 = {v: k for k, v in ISO2_TO_FULL_NAME.items()}
 
 # Load the data
 try:
-    master_df = pd.read_csv(os.path.join(DATA_DIR, 'master_dataframe_with_decile_aggregates.csv'))
-    time_series_df = pd.read_csv(os.path.join(DATA_DIR, 'master_dataframe_time_series.csv'))
+    master_df = pd.read_csv(os.path.join(DATA_DIR, 'ewbi_master.csv'))
+    time_series_df = pd.read_csv(os.path.join(DATA_DIR, 'ewbi_time_series.csv'))
     
     # Load EWBI structure for hierarchical navigation
     with open(os.path.join(DATA_DIR, '..', 'data', 'ewbi_indicators.json'), 'r') as f:
@@ -45,95 +45,44 @@ try:
     
     print("All data files loaded successfully.")
     
-    # Transform the new aggregated data structure to match what the dashboard expects
-    def transform_aggregated_data(df):
-        """
-        Transform the new aggregated data structure to match the old dashboard format.
-        The new structure has source-based filtering, we need to create wide-format columns.
-        """
-        # Start with EWBI data
-        ewbi_data = df[df['source'] == 'ewbi'].copy()
-        
-        # Create the base dataframe with country, decile, and ewbi_score
-        transformed_df = ewbi_data[['country', 'decile', 'ewbi_score']].copy()
-        
-        # Add EU priority columns
-        eu_priorities_data = df[df['source'] == 'eu_priorities'].copy()
-        for _, row in eu_priorities_data.iterrows():
-            country = row['country']
-            priority = row['eu_priority']
-            score = row['eu_priority_score']
-            
-            # Find the corresponding row in transformed_df
-            mask = transformed_df['country'] == country
-            if mask.any():
-                transformed_df.loc[mask, priority] = score
-        
-        # Add secondary indicator columns with proper naming convention
-        secondary_data = df[df['source'] == 'secondary_indicators'].copy()
-        for _, row in secondary_data.iterrows():
-            country = row['country']
-            eu_priority = row['eu_priority']
-            secondary_indicator = row['secondary_indicator']
-            score = row['secondary_score']
-            
-            # Create the column name in the format the dashboard expects
-            # Format: "EU_Priority_Secondary_Indicator"
-            # Example: "Agriculture and Food_Nutrition expense" -> "Agriculture_and_Food_Nutrition_expense"
-            # Handle all special cases to match the dashboard's expectation
-            priority_clean = eu_priority.replace(' ', '_').replace(',', '').replace('-', '_').replace(' and ', '_and_')
-            indicator_clean = secondary_indicator.replace(' ', '_').replace('-', '_')
-            column_name = f"{priority_clean}_{indicator_clean}"
-            
-            # Find the corresponding row in transformed_df
-            mask = transformed_df['country'] == country
-            if mask.any():
-                transformed_df.loc[mask, column_name] = score
-        
-        # Fill NaN values with 0 for missing indicators
-        transformed_df = transformed_df.fillna(0)
-        
-        return transformed_df
+except Exception as e:
+    print(f"Error loading data: {e}")
+    exit(1)
     
-    # Transform the data
-    master_df = transform_aggregated_data(master_df)
+# No need to transform data - it's already in the correct format!
+# master_df = transform_aggregated_data(master_df)
+
+# Get unique countries and sort them (excluding aggregates for individual selection)
+COUNTRIES = sorted([c for c in master_df['country'].unique() if 'Average' not in c])
     
-    # Get unique countries and sort them (excluding aggregates for individual selection)
-    COUNTRIES = sorted([c for c in master_df['country'].unique() if 'Average' not in c])
+# Get aggregate countries
+AGGREGATE_COUNTRIES = sorted([c for c in master_df['country'].unique() if 'Average' in c])
     
-    # Get aggregate countries
-    AGGREGATE_COUNTRIES = sorted([c for c in master_df['country'].unique() if 'Average' in c])
+print(f"Found {len(COUNTRIES)} individual countries and {len(AGGREGATE_COUNTRIES)} aggregates")
     
-    print(f"Found {len(COUNTRIES)} individual countries and {len(AGGREGATE_COUNTRIES)} aggregates")
+# Create EU priority options - only the 6 main priorities
+EU_PRIORITIES = [
+    'Agriculture and Food',
+    'Energy and Housing', 
+    'Equality',
+    'Health and Animal Welfare',
+    'Intergenerational Fairness, Youth, Culture and Sport',
+    'Social Rights and Skills, Quality Jobs and Preparedness'
+]
     
-    # Create EU priority options - only the 6 main priorities
-    EU_PRIORITIES = [
-        'Agriculture and Food',
-        'Energy and Housing', 
-        'Equality',
-        'Health and Animal Welfare',
-        'Intergenerational Fairness, Youth, Culture and Sport',
-        'Social Rights and Skills, Quality Jobs and Preparedness'
-    ]
-    
-    # Create secondary indicator options
-    SECONDARY_INDICATORS = []
-    for prio in ewbi_structure:
-        for component in prio['components']:
-            SECONDARY_INDICATORS.append({
-                'label': f"{prio['name']} - {component['name']}",
-                'value': f"{prio['name']}|{component['name']}",
-                'eu_priority': prio['name'],
-                'secondary': component['name']
-            })
+# Create secondary indicator options
+SECONDARY_INDICATORS = []
+for prio in ewbi_structure:
+    for component in prio['components']:
+        SECONDARY_INDICATORS.append({
+            'label': f"{prio['name']} - {component['name']}",
+            'value': f"{prio['name']}|{component['name']}",
+            'eu_priority': prio['name'],
+            'secondary': component['name']
+        })
     
     print(f"Dashboard initialized with {len(EU_PRIORITIES)} EU priorities and {len(SECONDARY_INDICATORS)} secondary indicators")
     
-except FileNotFoundError as e:
-    print(f"Error loading data files: {e}")
-    print(f"Please ensure that the CSV files are in the '{DATA_DIR}' directory.")
-    exit()
-
 # Initialize the Dash app
 app = dash.Dash(__name__)
 server = app.server
@@ -447,7 +396,9 @@ def update_charts(eu_priority, secondary_indicator, primary_indicator, selected_
         # Handle the three levels of drill-down for specific EU priority
         if secondary_indicator and secondary_indicator != 'ALL' and primary_indicator and primary_indicator != 'ALL':
             # Level 3: Specific Primary Indicator selected
-            return create_primary_indicator_charts(map_df, filtered_df, time_filtered_df, eu_priority, secondary_indicator, primary_indicator)
+            # Add the 'primary_' prefix to match our data structure
+            primary_indicator_with_prefix = f"primary_{primary_indicator}"
+            return create_primary_indicator_charts(map_df, filtered_df, time_filtered_df, eu_priority, secondary_indicator, primary_indicator_with_prefix)
         elif secondary_indicator and secondary_indicator != 'ALL':
             # Level 2: Specific Secondary Indicator selected (Primary = ALL)
             return create_secondary_indicator_charts(map_df, filtered_df, time_filtered_df, eu_priority, secondary_indicator)
@@ -1038,7 +989,8 @@ def create_eu_priority_charts(map_df, analysis_df, time_df, eu_priority):
                         
                         for country in countries_to_show:
                             if country in country_year_data['country'].values:
-                                country_data = country_year_data[country_year_data['country'] == country].sort_values('year')
+                                country_data = country_year_data[country_year_data['country'] == country]
+                                country_data = country_data.sort_values('year')
                                 
                                 time_series.add_trace(
                                     go.Scatter(
@@ -1160,97 +1112,104 @@ def create_primary_indicator_charts(map_df, analysis_df, time_df, eu_priority, s
     european_map = go.Figure()
     
     # Get primary indicator data from time series for the latest year
-    if 'time_series_df' in globals():
+    if time_df is not None and not time_df.empty:
         # Get the latest year available
-        latest_year = time_series_df['year'].max()
+        latest_year = time_df['year'].max()
         
         # Filter for the specific primary indicator and latest year
-        primary_data = time_series_df[
-            (time_series_df['primary_index'] == primary_indicator) & 
-            (time_series_df['year'] == latest_year)
-        ].copy()
-        
-        if not primary_data.empty:
-            # Group by country and get average scores
-            primary_by_country = primary_data.groupby('country')['value'].mean().reset_index()
+        # Our time series has primary indicators as columns, not as 'primary_index'
+        if primary_indicator in time_df.columns:
+            primary_data = time_df[['country', 'year', primary_indicator]].copy()
+            primary_data = primary_data[primary_data['year'] == latest_year]
             
-            # Convert ISO-2 codes to ISO-3 codes for the map
-            primary_by_country['iso3'] = primary_by_country['country'].map(ISO2_TO_ISO3)
-            
-            # Filter out countries without ISO-3 codes (like aggregates)
-            primary_by_country = primary_by_country[primary_by_country['iso3'].notna()].copy()
-            
-            if not primary_by_country.empty:
-                # Create the choropleth map
-                european_map = go.Figure(data=go.Choropleth(
-                    locations=primary_by_country['iso3'],
-                    z=primary_by_country['value'],
-                    locationmode='ISO-3',
-                    colorscale='RdYlGn',  # Red to Green scale
-                    colorbar_title=f"{primary_indicator} Score",
-                    text=primary_by_country['country'] + ': ' + primary_by_country['value'].round(2).astype(str),
-                    hovertemplate='<b>%{text}</b><br>' +
-                                  f'{primary_indicator} Score: %{{z:.2f}}<br>' +
-                                  '<extra></extra>'
-                ))
+            if not primary_data.empty:
+                # Group by country and get average scores
+                primary_by_country = primary_data.groupby('country')[primary_indicator].mean().reset_index()
                 
-                # Update traces for better styling
-                european_map.update_traces(
-                    marker_line_color="white",
-                    marker_line_width=0.5,
-                    colorbar=dict(
-                        x=0.95,  # Position to the right
-                        xanchor="right",
-                        thickness=15,
-                        len=0.7,
-                        title=dict(
-                            text=f"{primary_indicator} Score",
-                            font=dict(size=14, color="#2c3e50"),
-                            side="top"
+                # Convert ISO-2 codes to ISO-3 codes for the map
+                primary_by_country['iso3'] = primary_by_country['country'].map(ISO2_TO_ISO3)
+                
+                # Filter out countries without ISO-3 codes (like aggregates)
+                primary_by_country = primary_by_country[primary_by_country['iso3'].notna()].copy()
+                
+                if not primary_by_country.empty:
+                    # Create the choropleth map
+                    european_map = go.Figure(data=go.Choropleth(
+                        locations=primary_by_country['iso3'],
+                        z=primary_by_country[primary_indicator],
+                        locationmode='ISO-3',
+                        colorscale='RdYlGn',  # Red to Green scale
+                        colorbar_title=f"{primary_indicator} Score",
+                        text=primary_by_country['country'] + ': ' + primary_by_country[primary_indicator].round(2).astype(str),
+                        hovertemplate='<b>%{text}</b><br>' +
+                                      f'{primary_indicator} Score: %{{z:.2f}}<br>' +
+                                      '<extra></extra>'
+                    ))
+                    
+                    # Update traces for better styling
+                    european_map.update_traces(
+                        marker_line_color="white",
+                        marker_line_width=0.5,
+                        colorbar=dict(
+                            x=0.95,  # Position to the right
+                            xanchor="right",
+                            thickness=15,
+                            len=0.7,
+                            title=dict(
+                                text=f"{primary_indicator} Score",
+                                font=dict(size=14, color="#2c3e50"),
+                                side="top"
+                            )
                         )
                     )
-                )
-                
-                european_map.update_layout(
-                    title=dict(
-                        text=f'{primary_indicator} Scores Map',
-                        font=dict(size=20, color="#2c3e50", weight="bold"),
-                        x=0.5
-                    ),
-                    height=700,  # Match overview map height
-                    font=dict(family='Arial, sans-serif', size=12),
-                    geo=dict(
-                        scope='europe',
-                        projection=dict(type='equirectangular'),
-                        showland=True,
-                        landcolor='rgb(243, 243, 243)',
-                        coastlinecolor='rgb(204, 204, 204)',
-                        lataxis_range=[35, 75],  # Focus on Europe (southern to northern bounds)
-                        lonaxis_range=[-15, 45]  # Focus on Europe (western to eastern bounds)
-                    ),
-                    margin=dict(l=0, r=0, t=50, b=0)
-                )
-                
-                # Add annotation for data source
-                european_map.add_annotation(
-                    text=f"Data: {latest_year} - All Deciles",
-                    xref="paper", yref="paper",
-                    x=0.02, y=0.02, showarrow=False,
-                    font=dict(size=10, color="#7f8c8d"),
-                    bgcolor="rgba(255,255,255,0.8)",
-                    bordercolor="rgba(0,0,0,0.1)",
-                    borderwidth=1
-                )
+                    
+                    european_map.update_layout(
+                        title=dict(
+                            text=f'{primary_indicator} Scores Map',
+                            font=dict(size=20, color="#2c3e50", weight="bold"),
+                            x=0.5
+                        ),
+                        height=700,  # Match overview map height
+                        font=dict(family='Arial, sans-serif', size=12),
+                        geo=dict(
+                            scope='europe',
+                            projection=dict(type='equirectangular'),
+                            showland=True,
+                            landcolor='rgb(243, 243, 243)',
+                            coastlinecolor='rgb(204, 204, 204)',
+                            lataxis_range=[35, 75],  # Focus on Europe (southern to northern bounds)
+                            lonaxis_range=[-15, 45]  # Focus on Europe (western to eastern bounds)
+                        ),
+                        margin=dict(l=0, r=0, t=50, b=0)
+                    )
+                    
+                    # Add annotation for data source
+                    european_map.add_annotation(
+                        text=f"Data: {latest_year} - All Deciles",
+                        xref="paper", yref="paper",
+                        x=0.02, y=0.02, showarrow=False,
+                        font=dict(size=10, color="#7f8c8d"),
+                        bgcolor="rgba(255,255,255,0.8)",
+                        bordercolor="rgba(0,0,0,0.1)",
+                        borderwidth=1
+                    )
+                else:
+                    european_map.add_annotation(
+                        text=f"No country data available for {primary_indicator}",
+                        xref="paper", yref="paper",
+                        x=0.5, y=0.5, showarrow=False,
+                        font=dict(size=16)
+                    )
             else:
                 european_map.add_annotation(
-                    text=f"No country data available for {primary_indicator}",
+                    text=f"No data found for primary indicator {primary_indicator}",
                     xref="paper", yref="paper",
                     x=0.5, y=0.5, showarrow=False,
                     font=dict(size=16)
                 )
         else:
             european_map.add_annotation(
-                text=f"No data found for primary indicator {primary_indicator}",
+                text=f"Primary indicator {primary_indicator} not found in data",
                 xref="paper", yref="paper",
                 x=0.5, y=0.5, showarrow=False,
                 font=dict(size=16)
@@ -1276,21 +1235,21 @@ def create_primary_indicator_charts(map_df, analysis_df, time_df, eu_priority, s
     # 2. Decile analysis chart
     decile_analysis = go.Figure()
     
-    if primary_indicator in time_series_df.columns:
+    if time_df is not None and not time_df.empty and primary_indicator in time_df.columns:
         # For decile analysis, prioritize EU Countries Average, then add individual countries
         countries_to_show = []
         
         # Always show EU Countries Average first if available
-        if 'EU Countries Average' in time_series_df['country'].values:
+        if 'EU Countries Average' in time_df['country'].values:
             countries_to_show.append('EU Countries Average')
         
         # Then add any other selected countries (excluding EU Countries Average to avoid duplication)
-        other_countries = [c for c in time_series_df['country'].unique() if c != 'EU Countries Average' and 'Average' not in c]
+        other_countries = [c for c in time_df['country'].unique() if c != 'EU Countries Average' and 'Average' not in c]
         countries_to_show.extend(other_countries)
         
         # Show countries in the determined order
         for country in countries_to_show:
-            country_data = time_series_df[time_series_df['country'] == country].sort_values('year')
+            country_data = time_df[time_df['country'] == country].sort_values('year')
             decile_analysis.add_trace(go.Bar(
                 x=[str(d) for d in country_data['year']],
                 y=country_data[primary_indicator],
@@ -1332,12 +1291,12 @@ def create_primary_indicator_charts(map_df, analysis_df, time_df, eu_priority, s
     # 3. Country comparison chart (primary indicator only - no underlying indicators)
     radar_chart = go.Figure()
     
-    if primary_indicator in time_series_df.columns:
+    if primary_indicator in time_df.columns:
         # Get individual countries (excluding aggregates) and their scores
         country_scores = []
-        for country in time_series_df['country'].unique():
+        for country in time_df['country'].unique():
             if 'Average' not in country:
-                score = time_series_df[time_series_df['country'] == country][primary_indicator].mean()
+                score = time_df[time_df['country'] == country][primary_indicator].mean()
                 country_scores.append((country, score))
         
         # Sort by score from highest to lowest
@@ -1387,69 +1346,59 @@ def create_primary_indicator_charts(map_df, analysis_df, time_df, eu_priority, s
     # 4. Time series chart
     time_series = go.Figure()
     
-    # For time series, we'll use the time series dataframe
-    try:
-        time_series_df = pd.read_csv(os.path.join(DATA_DIR, 'master_dataframe_time_series.csv'))
+    # For time series, we'll use the passed time_df parameter
+    if time_df is not None and not time_df.empty and primary_indicator in time_df.columns:
+        # Get the latest year available
+        latest_year = time_df['year'].max()
         
         # Filter for the specific primary indicator
-        if 'primary_index' in time_series_df.columns:
-            indicator_time_data = time_series_df[time_series_df['primary_index'] == primary_indicator]
+        primary_time_data = time_df[['country', 'year', primary_indicator]].copy()
+        
+        if not primary_time_data.empty:
+            # For time series, prioritize EU Countries Average, then add individual countries
+            countries_to_show = []
+            if 'EU Countries Average' in primary_time_data['country'].values:
+                countries_to_show.append('EU Countries Average')
             
-            if not indicator_time_data.empty:
-                # Group by country and year, average across deciles
-                country_year_data = indicator_time_data.groupby(['country', 'year'])['value'].mean().reset_index()
-                
-                # For time series, prioritize EU Countries Average, then add individual countries
-                countries_to_show = []
-                if 'EU Countries Average' in country_year_data['country'].values:
-                    countries_to_show.append('EU Countries Average')
-                
-                # Add individual countries from the filter
-                individual_countries = [c for c in analysis_df['country'].unique() if 'Average' not in c]
-                countries_to_show.extend(individual_countries[:5])  # Limit to 5 for readability
-                
-                for country in countries_to_show:
-                    if country in country_year_data['country'].values:
-                        country_data = country_year_data[country_year_data['country'] == country]
-                        country_data = country_data.sort_values('year')
-                        
-                        time_series.add_trace(
-                            go.Scatter(
-                                x=country_data['year'],
-                                y=country_data['value'],
-                                name=country,
-                                mode='lines+markers',
-                                hovertemplate='%{y:.3f}<extra></extra>'
-                            )
+            # Add individual countries from the analysis dataframe
+            individual_countries = [c for c in analysis_df['country'].unique() if 'Average' not in c]
+            countries_to_show.extend(individual_countries[:5])  # Limit to 5 for readability
+            
+            for country in countries_to_show:
+                if country in primary_time_data['country'].values:
+                    country_data = primary_time_data[primary_time_data['country'] == country]
+                    country_data = country_data.sort_values('year')
+                    
+                    time_series.add_trace(
+                        go.Scatter(
+                            x=country_data['year'],
+                            y=country_data[primary_indicator],
+                            name=country,
+                            mode='lines+markers',
+                            hovertemplate='%{y:.3f}<extra></extra>'
                         )
-                
-                time_series.update_layout(
-                    title=dict(
-                        text=f'{primary_indicator} Evolution Over Time',
-                        font=dict(size=18, color="#f4d03f", weight="bold"),
-                        x=0.5
-                    ),
-                    height=343,  # 30% less tall than previous height
-                    font=dict(family='Arial, sans-serif', size=12),
-                    yaxis=dict(range=[0, 1])
-                )
-            else:
-                time_series.add_annotation(
-                    text=f"No time series data found for {primary_indicator}",
-                    xref="paper", yref="paper",
-                    x=0.5, y=0.5, showarrow=False,
-                    font=dict(size=16)
-                )
+                    )
+            
+            time_series.update_layout(
+                title=dict(
+                    text=f'{primary_indicator} Evolution Over Time',
+                    font=dict(size=18, color="#f4d03f", weight="bold"),
+                    x=0.5
+                ),
+                height=343,  # 30% less tall than previous height
+                font=dict(family='Arial, sans-serif', size=12),
+                yaxis=dict(range=[0, 1])
+            )
         else:
             time_series.add_annotation(
-                text=f"Time series data not available",
+                text=f"No time series data found for {primary_indicator}",
                 xref="paper", yref="paper",
                 x=0.5, y=0.5, showarrow=False,
                 font=dict(size=16)
             )
-    except:
+    else:
         time_series.add_annotation(
-            text=f"Error loading time series data for {primary_indicator}",
+            text=f"Time series data not available for {primary_indicator}",
             xref="paper", yref="paper",
             x=0.5, y=0.5, showarrow=False,
             font=dict(size=16)
