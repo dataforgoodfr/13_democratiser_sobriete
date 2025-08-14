@@ -1,1861 +1,2047 @@
-country,eu_priority,decile,0
-AT,Agriculture and Food,1,0.9029543865772581
-AT,Agriculture and Food,2,0.9029543865772581
-AT,Agriculture and Food,3,0.8735010159072067
-AT,Agriculture and Food,4,0.8735010159072067
-AT,Agriculture and Food,5,0.8353463141731952
-AT,Agriculture and Food,6,0.8353463141731952
-AT,Agriculture and Food,7,0.8393437305506989
-AT,Agriculture and Food,8,0.8393437305506989
-AT,Agriculture and Food,9,0.7760174965546697
-AT,Agriculture and Food,10,0.7760174965546697
-AT,Energy and Housing,1,0.5266441261055305
-AT,Energy and Housing,2,0.5283858850145688
-AT,Energy and Housing,3,0.5826089639503199
-AT,Energy and Housing,4,0.5948045597988695
-AT,Energy and Housing,5,0.6097784407005788
-AT,Energy and Housing,6,0.6019414937843366
-AT,Energy and Housing,7,0.6139705879225725
-AT,Energy and Housing,8,0.6275619711164172
-AT,Energy and Housing,9,0.6153482248186581
-AT,Energy and Housing,10,0.623057645882904
-AT,Equality,1,0.7604941767965896
-AT,Equality,2,0.8052040691329321
-AT,Equality,3,0.8632985865708827
-AT,Equality,4,0.8809186901032473
-AT,Equality,5,0.8721169638579219
-AT,Equality,6,0.867341316767449
-AT,Equality,7,0.8607574049162054
-AT,Equality,8,0.8609219225188358
-AT,Equality,9,0.8757813231237751
-AT,Equality,10,0.8921732847073509
-AT,Health and Animal Welfare,1,0.5784521135619785
-AT,Health and Animal Welfare,2,0.6020990393887331
-AT,Health and Animal Welfare,3,0.6011140646571828
-AT,Health and Animal Welfare,4,0.6007552565346812
-AT,Health and Animal Welfare,5,0.5784972295401822
-AT,Health and Animal Welfare,6,0.5585304416754587
-AT,Health and Animal Welfare,7,0.5432741018955014
-AT,Health and Animal Welfare,8,0.5466468324127683
-AT,Health and Animal Welfare,9,0.5293761186675241
-AT,Health and Animal Welfare,10,0.5345690974547953
-AT,"Intergenerational Fairness, Youth, Culture and Sport",1,1.0
-AT,"Intergenerational Fairness, Youth, Culture and Sport",2,1.0
-AT,"Intergenerational Fairness, Youth, Culture and Sport",3,1.0
-AT,"Intergenerational Fairness, Youth, Culture and Sport",4,1.0
-AT,"Intergenerational Fairness, Youth, Culture and Sport",5,1.0
-AT,"Intergenerational Fairness, Youth, Culture and Sport",6,1.0
-AT,"Intergenerational Fairness, Youth, Culture and Sport",7,1.0
-AT,"Intergenerational Fairness, Youth, Culture and Sport",8,1.0
-AT,"Intergenerational Fairness, Youth, Culture and Sport",9,1.0
-AT,"Intergenerational Fairness, Youth, Culture and Sport",10,1.0
-AT,"Social Rights and Skills, Quality Jobs and Preparedness",1,0.7104657391768352
-AT,"Social Rights and Skills, Quality Jobs and Preparedness",2,0.714305033433453
-AT,"Social Rights and Skills, Quality Jobs and Preparedness",3,0.7302329340288493
-AT,"Social Rights and Skills, Quality Jobs and Preparedness",4,0.7308068643690053
-AT,"Social Rights and Skills, Quality Jobs and Preparedness",5,0.7499790222946221
-AT,"Social Rights and Skills, Quality Jobs and Preparedness",6,0.7421522835369129
-AT,"Social Rights and Skills, Quality Jobs and Preparedness",7,0.767506622808455
-AT,"Social Rights and Skills, Quality Jobs and Preparedness",8,0.7695539357152644
-AT,"Social Rights and Skills, Quality Jobs and Preparedness",9,0.7448056851715829
-AT,"Social Rights and Skills, Quality Jobs and Preparedness",10,0.7290261935984551
-BE,Agriculture and Food,1,0.40493121678941646
-BE,Agriculture and Food,2,0.40493121678941646
-BE,Agriculture and Food,3,0.6364645446721973
-BE,Agriculture and Food,4,0.6364645446721973
-BE,Agriculture and Food,5,0.19548645349682717
-BE,Agriculture and Food,6,0.19548645349682717
-BE,Agriculture and Food,7,0.4154066270890502
-BE,Agriculture and Food,8,0.4154066270890502
-BE,Agriculture and Food,9,0.47036548898771535
-BE,Agriculture and Food,10,0.47036548898771535
-BE,Energy and Housing,1,0.876258566326239
-BE,Energy and Housing,2,0.9306101908438487
-BE,Energy and Housing,3,0.9387012846199805
-BE,Energy and Housing,4,0.9511641677283951
-BE,Energy and Housing,5,0.9535336099901119
-BE,Energy and Housing,6,0.96024241317622
-BE,Energy and Housing,7,0.9634889072751261
-BE,Energy and Housing,8,0.9724676717033682
-BE,Energy and Housing,9,0.9750276808530114
-BE,Energy and Housing,10,0.9689200785183971
-BE,Equality,1,0.6156679155436368
-BE,Equality,2,0.6922004708945853
-BE,Equality,3,0.794093283888092
-BE,Equality,4,0.8210621795848678
-BE,Equality,5,0.7842522527471187
-BE,Equality,6,0.8084562593450821
-BE,Equality,7,0.8625666519264189
-BE,Equality,8,0.8877400951981531
-BE,Equality,9,0.9072343465416185
-BE,Equality,10,0.9149835464541847
-BE,Health and Animal Welfare,1,0.5196157896750317
-BE,Health and Animal Welfare,2,0.529146810288653
-BE,Health and Animal Welfare,3,0.5564048051624693
-BE,Health and Animal Welfare,4,0.5973896717396451
-BE,Health and Animal Welfare,5,0.5576731681895958
-BE,Health and Animal Welfare,6,0.5515946656328304
-BE,Health and Animal Welfare,7,0.5340629430434084
-BE,Health and Animal Welfare,8,0.5687925278751935
-BE,Health and Animal Welfare,9,0.6149019680202826
-BE,Health and Animal Welfare,10,0.6277945386065439
-BE,"Intergenerational Fairness, Youth, Culture and Sport",1,0.7179653619207861
-BE,"Intergenerational Fairness, Youth, Culture and Sport",2,0.8164572044720553
-BE,"Intergenerational Fairness, Youth, Culture and Sport",3,0.7797248243613685
-BE,"Intergenerational Fairness, Youth, Culture and Sport",4,0.8646868731636813
-BE,"Intergenerational Fairness, Youth, Culture and Sport",5,0.9038793752398429
-BE,"Intergenerational Fairness, Youth, Culture and Sport",6,0.8680654682972871
-BE,"Intergenerational Fairness, Youth, Culture and Sport",7,0.9099401286288369
-BE,"Intergenerational Fairness, Youth, Culture and Sport",8,0.9008434741343031
-BE,"Intergenerational Fairness, Youth, Culture and Sport",9,0.8824881044545485
-BE,"Intergenerational Fairness, Youth, Culture and Sport",10,0.8449698187864223
-BE,"Social Rights and Skills, Quality Jobs and Preparedness",1,0.6278592812694447
-BE,"Social Rights and Skills, Quality Jobs and Preparedness",2,0.6089720847782909
-BE,"Social Rights and Skills, Quality Jobs and Preparedness",3,0.6219543635807424
-BE,"Social Rights and Skills, Quality Jobs and Preparedness",4,0.6632546908536401
-BE,"Social Rights and Skills, Quality Jobs and Preparedness",5,0.6507978884031068
-BE,"Social Rights and Skills, Quality Jobs and Preparedness",6,0.6402178501670692
-BE,"Social Rights and Skills, Quality Jobs and Preparedness",7,0.6917352690444464
-BE,"Social Rights and Skills, Quality Jobs and Preparedness",8,0.7190454120899666
-BE,"Social Rights and Skills, Quality Jobs and Preparedness",9,0.7306487217422887
-BE,"Social Rights and Skills, Quality Jobs and Preparedness",10,0.7108742570875791
-BG,Agriculture and Food,1,0.0010000000000000002
-BG,Agriculture and Food,2,0.0010000000000000002
-BG,Agriculture and Food,3,0.0076662150542632255
-BG,Agriculture and Food,4,0.0076662150542632255
-BG,Agriculture and Food,5,0.007819647232140646
-BG,Agriculture and Food,6,0.007819647232140646
-BG,Agriculture and Food,7,0.6417173096772667
-BG,Agriculture and Food,8,0.6417173096772667
-BG,Agriculture and Food,9,0.6227707588910519
-BG,Agriculture and Food,10,0.6227707588910519
-BG,Energy and Housing,1,0.47749874768592715
-BG,Energy and Housing,2,0.47931785308685854
-BG,Energy and Housing,3,0.4296888208117376
-BG,Energy and Housing,4,0.40842079948454274
-BG,Energy and Housing,5,0.4014541939725247
-BG,Energy and Housing,6,0.3880198169462049
-BG,Energy and Housing,7,0.3717456864891198
-BG,Energy and Housing,8,0.35928964651931966
-BG,Energy and Housing,9,0.31374114409745907
-BG,Energy and Housing,10,0.28438762310574683
-BG,Equality,1,0.1651707586271079
-BG,Equality,2,0.1673060589852047
-BG,Equality,3,0.17474906527506426
-BG,Equality,4,0.19233164469290398
-BG,Equality,5,0.3184481679010949
-BG,Equality,6,0.327166959880247
-BG,Equality,7,0.37434219287022985
-BG,Equality,8,0.4257485026319167
-BG,Equality,9,0.4797059500705493
-BG,Equality,10,0.516372180795253
-BG,Health and Animal Welfare,1,0.49611481625218623
-BG,Health and Animal Welfare,2,0.4994418781990701
-BG,Health and Animal Welfare,3,0.47910015330696143
-BG,Health and Animal Welfare,4,0.5028019015117291
-BG,Health and Animal Welfare,5,0.5435747066403327
-BG,Health and Animal Welfare,6,0.5485583648165158
-BG,Health and Animal Welfare,7,0.5562847155963564
-BG,Health and Animal Welfare,8,0.5639146102470065
-BG,Health and Animal Welfare,9,0.5878309965579942
-BG,Health and Animal Welfare,10,0.5759398114764315
-BG,"Intergenerational Fairness, Youth, Culture and Sport",1,0.5341165789018085
-BG,"Intergenerational Fairness, Youth, Culture and Sport",2,0.7890308660050598
-BG,"Intergenerational Fairness, Youth, Culture and Sport",3,0.7652388018098091
-BG,"Intergenerational Fairness, Youth, Culture and Sport",4,0.9176112323300492
-BG,"Intergenerational Fairness, Youth, Culture and Sport",5,0.9490930195680214
-BG,"Intergenerational Fairness, Youth, Culture and Sport",6,0.9521935053948649
-BG,"Intergenerational Fairness, Youth, Culture and Sport",7,0.8513404852216215
-BG,"Intergenerational Fairness, Youth, Culture and Sport",8,0.8398740694347234
-BG,"Intergenerational Fairness, Youth, Culture and Sport",9,0.835794976839142
-BG,"Intergenerational Fairness, Youth, Culture and Sport",10,0.6758107743370034
-BG,"Social Rights and Skills, Quality Jobs and Preparedness",1,0.4938021399736342
-BG,"Social Rights and Skills, Quality Jobs and Preparedness",2,0.5422270619484645
-BG,"Social Rights and Skills, Quality Jobs and Preparedness",3,0.5219987163637972
-BG,"Social Rights and Skills, Quality Jobs and Preparedness",4,0.5364752947791323
-BG,"Social Rights and Skills, Quality Jobs and Preparedness",5,0.5672266878418818
-BG,"Social Rights and Skills, Quality Jobs and Preparedness",6,0.5149018240070781
-BG,"Social Rights and Skills, Quality Jobs and Preparedness",7,0.5768946136070453
-BG,"Social Rights and Skills, Quality Jobs and Preparedness",8,0.5674327792575717
-BG,"Social Rights and Skills, Quality Jobs and Preparedness",9,0.5819648028570271
-BG,"Social Rights and Skills, Quality Jobs and Preparedness",10,0.5993672039622631
-CH,Energy and Housing,1,0.8708768703847255
-CH,Energy and Housing,2,0.8753350972109248
-CH,Energy and Housing,3,0.8986718872778787
-CH,Energy and Housing,4,0.9037920706413761
-CH,Energy and Housing,5,0.9239854626826255
-CH,Energy and Housing,6,0.928404690128471
-CH,Energy and Housing,7,0.9252321105420768
-CH,Energy and Housing,8,0.9349306062576668
-CH,Energy and Housing,9,0.9222891192804586
-CH,Energy and Housing,10,0.9360879873966711
-CH,Equality,1,0.9336327611422887
-CH,Equality,2,0.9229521334599091
-CH,Equality,3,0.9193073464317476
-CH,Equality,4,0.9270275110097442
-CH,Equality,5,0.9424099031976227
-CH,Equality,6,0.9388727332544827
-CH,Equality,7,0.9206849719174846
-CH,Equality,8,0.9501722304644207
-CH,Equality,9,0.9444525958153853
-CH,Equality,10,0.9676975514286388
-CH,Health and Animal Welfare,1,0.461564167369317
-CH,Health and Animal Welfare,2,0.5799569806633141
-CH,Health and Animal Welfare,3,0.5588970795769523
-CH,Health and Animal Welfare,4,0.5852745318154041
-CH,Health and Animal Welfare,5,0.5566413618620711
-CH,Health and Animal Welfare,6,0.5026283314272544
-CH,Health and Animal Welfare,7,0.451361861865331
-CH,Health and Animal Welfare,8,0.45242599399372335
-CH,Health and Animal Welfare,9,0.44904764156127513
-CH,Health and Animal Welfare,10,0.42313605247162844
-CH,"Intergenerational Fairness, Youth, Culture and Sport",1,0.9595021209278066
-CH,"Intergenerational Fairness, Youth, Culture and Sport",2,0.9453215169346386
-CH,"Intergenerational Fairness, Youth, Culture and Sport",3,0.9799120938825444
-CH,"Intergenerational Fairness, Youth, Culture and Sport",4,0.9944342826917941
-CH,"Intergenerational Fairness, Youth, Culture and Sport",5,0.9707962172573168
-CH,"Intergenerational Fairness, Youth, Culture and Sport",6,0.9916967529107815
-CH,"Intergenerational Fairness, Youth, Culture and Sport",7,0.9972607432543429
-CH,"Intergenerational Fairness, Youth, Culture and Sport",8,0.990818364256109
-CH,"Intergenerational Fairness, Youth, Culture and Sport",9,0.9879565770407062
-CH,"Intergenerational Fairness, Youth, Culture and Sport",10,1.0
-CH,"Social Rights and Skills, Quality Jobs and Preparedness",1,0.663386303555518
-CH,"Social Rights and Skills, Quality Jobs and Preparedness",2,0.5638171987926864
-CH,"Social Rights and Skills, Quality Jobs and Preparedness",3,0.5335650286911828
-CH,"Social Rights and Skills, Quality Jobs and Preparedness",4,0.6458889155904577
-CH,"Social Rights and Skills, Quality Jobs and Preparedness",5,0.7201423510724682
-CH,"Social Rights and Skills, Quality Jobs and Preparedness",6,0.7141441321257592
-CH,"Social Rights and Skills, Quality Jobs and Preparedness",7,0.7644794950986717
-CH,"Social Rights and Skills, Quality Jobs and Preparedness",8,0.7478531504614396
-CH,"Social Rights and Skills, Quality Jobs and Preparedness",9,0.7659552435503441
-CH,"Social Rights and Skills, Quality Jobs and Preparedness",10,0.7140157590550579
-CY,Agriculture and Food,1,0.3312232489482961
-CY,Agriculture and Food,2,0.3312232489482961
-CY,Agriculture and Food,3,0.7570871434438233
-CY,Agriculture and Food,4,0.7570871434438233
-CY,Agriculture and Food,5,0.7241541943522983
-CY,Agriculture and Food,6,0.7241541943522983
-CY,Agriculture and Food,7,0.6510581846349288
-CY,Agriculture and Food,8,0.6510581846349288
-CY,Agriculture and Food,9,0.839033614012636
-CY,Agriculture and Food,10,0.839033614012636
-CY,Energy and Housing,1,0.5757523345374336
-CY,Energy and Housing,2,0.5526111051933049
-CY,Energy and Housing,3,0.5285488027684129
-CY,Energy and Housing,4,0.5241503191379839
-CY,Energy and Housing,5,0.5316464540572791
-CY,Energy and Housing,6,0.5146947715362504
-CY,Energy and Housing,7,0.5476143956043332
-CY,Energy and Housing,8,0.5539853335665847
-CY,Energy and Housing,9,0.5858869508176744
-CY,Energy and Housing,10,0.6139061511951931
-CY,Equality,1,0.4705368754499136
-CY,Equality,2,0.5114433377787602
-CY,Equality,3,0.5365739658005677
-CY,Equality,4,0.5381124585410882
-CY,Equality,5,0.5541520502486553
-CY,Equality,6,0.5653700658275923
-CY,Equality,7,0.5319920903464492
-CY,Equality,8,0.5537009513458092
-CY,Equality,9,0.6255115952098403
-CY,Equality,10,0.6705634242863692
-CY,Health and Animal Welfare,1,0.46435480700323756
-CY,Health and Animal Welfare,2,0.49865925086697394
-CY,Health and Animal Welfare,3,0.5211954796782934
-CY,Health and Animal Welfare,4,0.5888043990701679
-CY,Health and Animal Welfare,5,0.5849641681501428
-CY,Health and Animal Welfare,6,0.5840652123816735
-CY,Health and Animal Welfare,7,0.5830895855120846
-CY,Health and Animal Welfare,8,0.577223789573541
-CY,Health and Animal Welfare,9,0.5952173663475429
-CY,Health and Animal Welfare,10,0.6001875233120705
-CY,"Intergenerational Fairness, Youth, Culture and Sport",1,0.3191129830918078
-CY,"Intergenerational Fairness, Youth, Culture and Sport",2,0.36912882334453956
-CY,"Intergenerational Fairness, Youth, Culture and Sport",3,0.3202146084147213
-CY,"Intergenerational Fairness, Youth, Culture and Sport",4,0.7681247071039906
-CY,"Intergenerational Fairness, Youth, Culture and Sport",5,0.7166790520871716
-CY,"Intergenerational Fairness, Youth, Culture and Sport",6,0.7898908316671002
-CY,"Intergenerational Fairness, Youth, Culture and Sport",7,0.8947171093711617
-CY,"Intergenerational Fairness, Youth, Culture and Sport",8,0.7904926341078451
-CY,"Intergenerational Fairness, Youth, Culture and Sport",9,0.8726720657578795
-CY,"Intergenerational Fairness, Youth, Culture and Sport",10,0.8592145690759893
-CY,"Social Rights and Skills, Quality Jobs and Preparedness",1,0.7524784458333187
-CY,"Social Rights and Skills, Quality Jobs and Preparedness",2,0.6993887330625
-CY,"Social Rights and Skills, Quality Jobs and Preparedness",3,0.7367512559660564
-CY,"Social Rights and Skills, Quality Jobs and Preparedness",4,0.6906416268119235
-CY,"Social Rights and Skills, Quality Jobs and Preparedness",5,0.7038467646928476
-CY,"Social Rights and Skills, Quality Jobs and Preparedness",6,0.6882035392399722
-CY,"Social Rights and Skills, Quality Jobs and Preparedness",7,0.720141916144067
-CY,"Social Rights and Skills, Quality Jobs and Preparedness",8,0.70528138373004
-CY,"Social Rights and Skills, Quality Jobs and Preparedness",9,0.7134152307016715
-CY,"Social Rights and Skills, Quality Jobs and Preparedness",10,0.6969001311389885
-CZ,Agriculture and Food,1,0.6366846488359892
-CZ,Agriculture and Food,2,0.6366846488359892
-CZ,Agriculture and Food,3,0.7830432785729561
-CZ,Agriculture and Food,4,0.7830432785729561
-CZ,Agriculture and Food,5,0.6591306284893944
-CZ,Agriculture and Food,6,0.6591306284893944
-CZ,Agriculture and Food,7,0.6327914971044517
-CZ,Agriculture and Food,8,0.6327914971044517
-CZ,Agriculture and Food,9,0.354019245932184
-CZ,Agriculture and Food,10,0.354019245932184
-CZ,Energy and Housing,1,0.465757386248549
-CZ,Energy and Housing,2,0.5160291394709793
-CZ,Energy and Housing,3,0.46904181975438414
-CZ,Energy and Housing,4,0.47656587961738384
-CZ,Energy and Housing,5,0.4877300633657562
-CZ,Energy and Housing,6,0.4801552191477399
-CZ,Energy and Housing,7,0.46457666330644826
-CZ,Energy and Housing,8,0.4699017951776773
-CZ,Energy and Housing,9,0.46902128127263737
-CZ,Energy and Housing,10,0.47339558545174665
-CZ,Equality,1,0.6516141450723469
-CZ,Equality,2,0.7349281652355037
-CZ,Equality,3,0.7473617523938992
-CZ,Equality,4,0.7726053075599515
-CZ,Equality,5,0.8056421845966387
-CZ,Equality,6,0.8079764216618562
-CZ,Equality,7,0.7388964934392499
-CZ,Equality,8,0.7780786811450622
-CZ,Equality,9,0.8374099137785399
-CZ,Equality,10,0.8629821234305519
-CZ,Health and Animal Welfare,1,0.4341776939985331
-CZ,Health and Animal Welfare,2,0.5027182233175254
-CZ,Health and Animal Welfare,3,0.6202389224241021
-CZ,Health and Animal Welfare,4,0.569025174379099
-CZ,Health and Animal Welfare,5,0.5976054373508287
-CZ,Health and Animal Welfare,6,0.6304177551961907
-CZ,Health and Animal Welfare,7,0.6037228738965098
-CZ,Health and Animal Welfare,8,0.6042901272659974
-CZ,Health and Animal Welfare,9,0.6296737701793338
-CZ,Health and Animal Welfare,10,0.6228618942695313
-CZ,"Social Rights and Skills, Quality Jobs and Preparedness",1,0.7213210509095531
-CZ,"Social Rights and Skills, Quality Jobs and Preparedness",2,0.8100567165214423
-CZ,"Social Rights and Skills, Quality Jobs and Preparedness",3,0.7724496353627078
-CZ,"Social Rights and Skills, Quality Jobs and Preparedness",4,0.8760846880605162
-CZ,"Social Rights and Skills, Quality Jobs and Preparedness",5,0.808743484367321
-CZ,"Social Rights and Skills, Quality Jobs and Preparedness",6,0.8132494853197644
-CZ,"Social Rights and Skills, Quality Jobs and Preparedness",7,0.8400323874368495
-CZ,"Social Rights and Skills, Quality Jobs and Preparedness",8,0.8313696196350238
-CZ,"Social Rights and Skills, Quality Jobs and Preparedness",9,0.8411259382914187
-CZ,"Social Rights and Skills, Quality Jobs and Preparedness",10,0.7973548184701338
-DE,Agriculture and Food,1,0.7163390941203877
-DE,Agriculture and Food,2,0.7163390941203877
-DE,Agriculture and Food,3,0.784261491444702
-DE,Agriculture and Food,4,0.784261491444702
-DE,Agriculture and Food,5,0.5459004827678187
-DE,Agriculture and Food,6,0.5459004827678187
-DE,Agriculture and Food,7,0.5568667629077655
-DE,Agriculture and Food,8,0.5568667629077655
-DE,Agriculture and Food,9,0.5604631199763757
-DE,Agriculture and Food,10,0.5604631199763757
-DE,Energy and Housing,1,0.7567520863507254
-DE,Energy and Housing,2,0.8088674893889474
-DE,Energy and Housing,3,0.8433432026818799
-DE,Energy and Housing,4,0.8569889689563308
-DE,Energy and Housing,5,0.8679294709074494
-DE,Energy and Housing,6,0.8740159167734867
-DE,Energy and Housing,7,0.8752344316773515
-DE,Energy and Housing,8,0.8785948842419303
-DE,Energy and Housing,9,0.886334080716639
-DE,Energy and Housing,10,0.8937415371518392
-DE,Equality,1,0.6255282662406272
-DE,Equality,2,0.6570320971669847
-DE,Equality,3,0.7418366713389984
-DE,Equality,4,0.7714558183361155
-DE,Equality,5,0.7777286526672317
-DE,Equality,6,0.784578353723845
-DE,Equality,7,0.740495353145729
-DE,Equality,8,0.7474809362549301
-DE,Equality,9,0.7638621312006276
-DE,Equality,10,0.801949170947994
-DE,Health and Animal Welfare,1,0.5472092833490121
-DE,Health and Animal Welfare,2,0.571868072431719
-DE,Health and Animal Welfare,3,0.5776536908267897
-DE,Health and Animal Welfare,4,0.566894981822832
-DE,Health and Animal Welfare,5,0.5388644873987442
-DE,Health and Animal Welfare,6,0.523438485215083
-DE,Health and Animal Welfare,7,0.5277889779747863
-DE,Health and Animal Welfare,8,0.5443033239781571
-DE,Health and Animal Welfare,9,0.5580322384017866
-DE,Health and Animal Welfare,10,0.5825762153015258
-DE,"Intergenerational Fairness, Youth, Culture and Sport",1,1.0
-DE,"Intergenerational Fairness, Youth, Culture and Sport",2,1.0
-DE,"Intergenerational Fairness, Youth, Culture and Sport",3,1.0
-DE,"Intergenerational Fairness, Youth, Culture and Sport",4,1.0
-DE,"Intergenerational Fairness, Youth, Culture and Sport",5,1.0
-DE,"Intergenerational Fairness, Youth, Culture and Sport",6,1.0
-DE,"Intergenerational Fairness, Youth, Culture and Sport",7,1.0
-DE,"Intergenerational Fairness, Youth, Culture and Sport",8,1.0
-DE,"Intergenerational Fairness, Youth, Culture and Sport",9,1.0
-DE,"Intergenerational Fairness, Youth, Culture and Sport",10,1.0
-DE,"Social Rights and Skills, Quality Jobs and Preparedness",1,0.6202759380269501
-DE,"Social Rights and Skills, Quality Jobs and Preparedness",2,0.61956488846082
-DE,"Social Rights and Skills, Quality Jobs and Preparedness",3,0.669455785685586
-DE,"Social Rights and Skills, Quality Jobs and Preparedness",4,0.7065655312200262
-DE,"Social Rights and Skills, Quality Jobs and Preparedness",5,0.7357861305340242
-DE,"Social Rights and Skills, Quality Jobs and Preparedness",6,0.7427063889411415
-DE,"Social Rights and Skills, Quality Jobs and Preparedness",7,0.764290153289413
-DE,"Social Rights and Skills, Quality Jobs and Preparedness",8,0.7756050524583298
-DE,"Social Rights and Skills, Quality Jobs and Preparedness",9,0.7536383097864172
-DE,"Social Rights and Skills, Quality Jobs and Preparedness",10,0.766619891630879
-DK,Agriculture and Food,1,0.8169463970046711
-DK,Agriculture and Food,2,0.8169463970046711
-DK,Agriculture and Food,3,0.7989388702336275
-DK,Agriculture and Food,4,0.7989388702336275
-DK,Agriculture and Food,5,0.8472898416803866
-DK,Agriculture and Food,6,0.8472898416803866
-DK,Agriculture and Food,7,0.6908608867266248
-DK,Agriculture and Food,8,0.6908608867266248
-DK,Agriculture and Food,9,0.7568274687800788
-DK,Agriculture and Food,10,0.7568274687800788
-DK,Energy and Housing,1,0.4767399397795281
-DK,Energy and Housing,2,0.6087024860730181
-DK,Energy and Housing,3,0.6414758931938849
-DK,Energy and Housing,4,0.6386731251171841
-DK,Energy and Housing,5,0.6425274299526893
-DK,Energy and Housing,6,0.6465766879380116
-DK,Energy and Housing,7,0.6440460216009957
-DK,Energy and Housing,8,0.657074738603058
-DK,Energy and Housing,9,0.6712096279802682
-DK,Energy and Housing,10,0.6709423864357689
-DK,Equality,1,0.6879083219135818
-DK,Equality,2,0.7038738726325957
-DK,Equality,3,0.8067484679652622
-DK,Equality,4,0.8126155231979417
-DK,Equality,5,0.8450997356089026
-DK,Equality,6,0.8514295371500535
-DK,Equality,7,0.8000557784504592
-DK,Equality,8,0.8137975906169249
-DK,Equality,9,0.7854703974557921
-DK,Equality,10,0.7834285598723972
-DK,Health and Animal Welfare,1,0.6542127310808958
-DK,Health and Animal Welfare,2,0.6438843319876537
-DK,Health and Animal Welfare,3,0.6589265660444577
-DK,Health and Animal Welfare,4,0.6641558819270953
-DK,Health and Animal Welfare,5,0.6463165261779512
-DK,Health and Animal Welfare,6,0.6572126118080283
-DK,Health and Animal Welfare,7,0.668169287497639
-DK,Health and Animal Welfare,8,0.6598282377258874
-DK,Health and Animal Welfare,9,0.6487518799429559
-DK,Health and Animal Welfare,10,0.6549018252972678
-DK,"Intergenerational Fairness, Youth, Culture and Sport",1,1.0
-DK,"Intergenerational Fairness, Youth, Culture and Sport",2,1.0
-DK,"Intergenerational Fairness, Youth, Culture and Sport",3,1.0
-DK,"Intergenerational Fairness, Youth, Culture and Sport",4,1.0
-DK,"Intergenerational Fairness, Youth, Culture and Sport",5,1.0
-DK,"Intergenerational Fairness, Youth, Culture and Sport",6,1.0
-DK,"Intergenerational Fairness, Youth, Culture and Sport",7,1.0
-DK,"Intergenerational Fairness, Youth, Culture and Sport",8,1.0
-DK,"Intergenerational Fairness, Youth, Culture and Sport",9,1.0
-DK,"Intergenerational Fairness, Youth, Culture and Sport",10,1.0
-DK,"Social Rights and Skills, Quality Jobs and Preparedness",1,0.6863236421664487
-DK,"Social Rights and Skills, Quality Jobs and Preparedness",2,0.6178653756283662
-DK,"Social Rights and Skills, Quality Jobs and Preparedness",3,0.6793484917746652
-DK,"Social Rights and Skills, Quality Jobs and Preparedness",4,0.7460148780264622
-DK,"Social Rights and Skills, Quality Jobs and Preparedness",5,0.774667886510481
-DK,"Social Rights and Skills, Quality Jobs and Preparedness",6,0.7430959511293899
-DK,"Social Rights and Skills, Quality Jobs and Preparedness",7,0.7649201393768552
-DK,"Social Rights and Skills, Quality Jobs and Preparedness",8,0.7548417443392759
-DK,"Social Rights and Skills, Quality Jobs and Preparedness",9,0.7876935196052495
-DK,"Social Rights and Skills, Quality Jobs and Preparedness",10,0.7607259885616287
-EE,Agriculture and Food,1,0.5852381190671433
-EE,Agriculture and Food,2,0.5852381190671433
-EE,Agriculture and Food,3,0.8353367930415619
-EE,Agriculture and Food,4,0.8353367930415619
-EE,Agriculture and Food,5,0.6957162133699734
-EE,Agriculture and Food,6,0.6957162133699734
-EE,Agriculture and Food,7,0.7537156169672226
-EE,Agriculture and Food,8,0.7537156169672226
-EE,Agriculture and Food,9,0.7510177293580361
-EE,Agriculture and Food,10,0.7510177293580361
-EE,Energy and Housing,1,0.5567042027958561
-EE,Energy and Housing,2,0.5865824928928192
-EE,Energy and Housing,3,0.5632912689849473
-EE,Energy and Housing,4,0.5315363513487807
-EE,Energy and Housing,5,0.5408511790989633
-EE,Energy and Housing,6,0.522399770226476
-EE,Energy and Housing,7,0.5243587663409698
-EE,Energy and Housing,8,0.5243206174556496
-EE,Energy and Housing,9,0.5190688412770136
-EE,Energy and Housing,10,0.5326415787579647
-EE,Equality,1,0.611383215692974
-EE,Equality,2,0.6475974171136396
-EE,Equality,3,0.7133620398599634
-EE,Equality,4,0.7259240913568757
-EE,Equality,5,0.7687447556201303
-EE,Equality,6,0.7743227341185244
-EE,Equality,7,0.7711198578171636
-EE,Equality,8,0.7700440848088033
-EE,Equality,9,0.803783896780761
-EE,Equality,10,0.8359605426099757
-EE,Health and Animal Welfare,1,0.5102457513590758
-EE,Health and Animal Welfare,2,0.34629944377895955
-EE,Health and Animal Welfare,3,0.4740805315091777
-EE,Health and Animal Welfare,4,0.47892939839450177
-EE,Health and Animal Welfare,5,0.42645603042189895
-EE,Health and Animal Welfare,6,0.46613961178243085
-EE,Health and Animal Welfare,7,0.5594480835511297
-EE,Health and Animal Welfare,8,0.5716283455195876
-EE,Health and Animal Welfare,9,0.5748459222150385
-EE,Health and Animal Welfare,10,0.5985818439057129
-EE,"Intergenerational Fairness, Youth, Culture and Sport",1,1.0
-EE,"Intergenerational Fairness, Youth, Culture and Sport",2,0.9740643792976362
-EE,"Intergenerational Fairness, Youth, Culture and Sport",3,0.9715426922416442
-EE,"Intergenerational Fairness, Youth, Culture and Sport",4,0.9846153168458358
-EE,"Intergenerational Fairness, Youth, Culture and Sport",5,0.9973221037410964
-EE,"Intergenerational Fairness, Youth, Culture and Sport",6,0.9961953756447818
-EE,"Intergenerational Fairness, Youth, Culture and Sport",7,0.9864450758125602
-EE,"Intergenerational Fairness, Youth, Culture and Sport",8,0.9479013598391843
-EE,"Intergenerational Fairness, Youth, Culture and Sport",9,0.9217484534200981
-EE,"Intergenerational Fairness, Youth, Culture and Sport",10,1.0
-EE,"Social Rights and Skills, Quality Jobs and Preparedness",1,0.7348322544698483
-EE,"Social Rights and Skills, Quality Jobs and Preparedness",2,0.8491644780382744
-EE,"Social Rights and Skills, Quality Jobs and Preparedness",3,0.7854415895667057
-EE,"Social Rights and Skills, Quality Jobs and Preparedness",4,0.8019173456143287
-EE,"Social Rights and Skills, Quality Jobs and Preparedness",5,0.8039128944048064
-EE,"Social Rights and Skills, Quality Jobs and Preparedness",6,0.7749522625610524
-EE,"Social Rights and Skills, Quality Jobs and Preparedness",7,0.8035898549826727
-EE,"Social Rights and Skills, Quality Jobs and Preparedness",8,0.810606169399175
-EE,"Social Rights and Skills, Quality Jobs and Preparedness",9,0.7931163706821499
-EE,"Social Rights and Skills, Quality Jobs and Preparedness",10,0.7870091163412741
-EL,Agriculture and Food,1,0.44888239308657485
-EL,Agriculture and Food,2,0.44888239308657485
-EL,Agriculture and Food,3,0.6431241202864776
-EL,Agriculture and Food,4,0.6431241202864776
-EL,Agriculture and Food,5,0.35518191620494
-EL,Agriculture and Food,6,0.35518191620494
-EL,Agriculture and Food,7,0.37586745885138173
-EL,Agriculture and Food,8,0.37586745885138173
-EL,Agriculture and Food,9,0.4902365563123063
-EL,Agriculture and Food,10,0.4902365563123063
-EL,Energy and Housing,1,0.4908775151982243
-EL,Energy and Housing,2,0.4265647969610006
-EL,Energy and Housing,3,0.4584737830686918
-EL,Energy and Housing,4,0.4657261082127879
-EL,Energy and Housing,5,0.4775672650979289
-EL,Energy and Housing,6,0.48906394417448273
-EL,Energy and Housing,7,0.48114933294134526
-EL,Energy and Housing,8,0.5061398513706781
-EL,Energy and Housing,9,0.5216481086225363
-EL,Energy and Housing,10,0.5615590964395522
-EL,Equality,1,0.3125370251717544
-EL,Equality,2,0.36545735638777044
-EL,Equality,3,0.42319227836537765
-EL,Equality,4,0.45046327347401244
-EL,Equality,5,0.3868764306242029
-EL,Equality,6,0.407811843952844
-EL,Equality,7,0.40387441181835365
-EL,Equality,8,0.43697422325899077
-EL,Equality,9,0.495396953001084
-EL,Equality,10,0.5166242143398815
-EL,Health and Animal Welfare,1,0.5528975814199145
-EL,Health and Animal Welfare,2,0.5487770873887026
-EL,Health and Animal Welfare,3,0.5585921061324012
-EL,Health and Animal Welfare,4,0.5684286185948442
-EL,Health and Animal Welfare,5,0.5364966892517535
-EL,Health and Animal Welfare,6,0.5321670065880191
-EL,Health and Animal Welfare,7,0.4940519733646971
-EL,Health and Animal Welfare,8,0.5096471054382452
-EL,Health and Animal Welfare,9,0.5389548680932966
-EL,Health and Animal Welfare,10,0.5420489405618977
-EL,"Intergenerational Fairness, Youth, Culture and Sport",1,0.5839033384525341
-EL,"Intergenerational Fairness, Youth, Culture and Sport",2,0.490903803453838
-EL,"Intergenerational Fairness, Youth, Culture and Sport",3,0.44889221407173974
-EL,"Intergenerational Fairness, Youth, Culture and Sport",4,0.5026556832943525
-EL,"Intergenerational Fairness, Youth, Culture and Sport",5,0.36829398163516763
-EL,"Intergenerational Fairness, Youth, Culture and Sport",6,0.48451982263203985
-EL,"Intergenerational Fairness, Youth, Culture and Sport",7,0.5416762625548105
-EL,"Intergenerational Fairness, Youth, Culture and Sport",8,0.40626250312287515
-EL,"Intergenerational Fairness, Youth, Culture and Sport",9,0.5119988210587556
-EL,"Intergenerational Fairness, Youth, Culture and Sport",10,0.48602544195022057
-EL,"Social Rights and Skills, Quality Jobs and Preparedness",1,0.5125612974649
-EL,"Social Rights and Skills, Quality Jobs and Preparedness",2,0.5788166616553553
-EL,"Social Rights and Skills, Quality Jobs and Preparedness",3,0.6023566610372458
-EL,"Social Rights and Skills, Quality Jobs and Preparedness",4,0.5908331013377243
-EL,"Social Rights and Skills, Quality Jobs and Preparedness",5,0.5816880500516814
-EL,"Social Rights and Skills, Quality Jobs and Preparedness",6,0.5718085625842475
-EL,"Social Rights and Skills, Quality Jobs and Preparedness",7,0.558177907066775
-EL,"Social Rights and Skills, Quality Jobs and Preparedness",8,0.5285819185914598
-EL,"Social Rights and Skills, Quality Jobs and Preparedness",9,0.5641624187864468
-EL,"Social Rights and Skills, Quality Jobs and Preparedness",10,0.5607715885070016
-ES,Energy and Housing,1,0.8875963150389614
-ES,Energy and Housing,2,0.9095716681001025
-ES,Energy and Housing,3,0.9108743975639804
-ES,Energy and Housing,4,0.9150304392184857
-ES,Energy and Housing,5,0.9122616030003041
-ES,Energy and Housing,6,0.9202802028725997
-ES,Energy and Housing,7,0.9261200506097678
-ES,Energy and Housing,8,0.9222021726885459
-ES,Energy and Housing,9,0.9262168859922858
-ES,Energy and Housing,10,0.9346897156820131
-ES,Equality,1,0.6439755511637487
-ES,Equality,2,0.6906825458058221
-ES,Equality,3,0.7006870037954647
-ES,Equality,4,0.7134400766595815
-ES,Equality,5,0.7132985199666015
-ES,Equality,6,0.7423054914374182
-ES,Equality,7,0.7693117332424053
-ES,Equality,8,0.770559130998921
-ES,Equality,9,0.7911037071146308
-ES,Equality,10,0.8228415518684032
-ES,Health and Animal Welfare,1,0.6022997625716109
-ES,Health and Animal Welfare,2,0.5740001690284668
-ES,Health and Animal Welfare,3,0.5928228334512049
-ES,Health and Animal Welfare,4,0.6031220389582801
-ES,Health and Animal Welfare,5,0.582827589497947
-ES,Health and Animal Welfare,6,0.5369530935938999
-ES,Health and Animal Welfare,7,0.5100003750908684
-ES,Health and Animal Welfare,8,0.506747884773754
-ES,Health and Animal Welfare,9,0.5364037412975908
-ES,Health and Animal Welfare,10,0.5742204593935407
-ES,"Intergenerational Fairness, Youth, Culture and Sport",1,0.0010000000000000002
-ES,"Intergenerational Fairness, Youth, Culture and Sport",2,0.0010000000000000002
-ES,"Intergenerational Fairness, Youth, Culture and Sport",3,0.0010000000000000002
-ES,"Intergenerational Fairness, Youth, Culture and Sport",4,0.0010000000000000002
-ES,"Intergenerational Fairness, Youth, Culture and Sport",5,0.0010000000000000002
-ES,"Intergenerational Fairness, Youth, Culture and Sport",6,0.0010000000000000002
-ES,"Intergenerational Fairness, Youth, Culture and Sport",7,0.0010000000000000002
-ES,"Intergenerational Fairness, Youth, Culture and Sport",8,0.0010000000000000002
-ES,"Intergenerational Fairness, Youth, Culture and Sport",9,0.0010000000000000002
-ES,"Intergenerational Fairness, Youth, Culture and Sport",10,0.055422011112301404
-ES,"Social Rights and Skills, Quality Jobs and Preparedness",1,0.43121208748614565
-ES,"Social Rights and Skills, Quality Jobs and Preparedness",2,0.49071061851688696
-ES,"Social Rights and Skills, Quality Jobs and Preparedness",3,0.493247440256912
-ES,"Social Rights and Skills, Quality Jobs and Preparedness",4,0.5164620945526083
-ES,"Social Rights and Skills, Quality Jobs and Preparedness",5,0.543282252049122
-ES,"Social Rights and Skills, Quality Jobs and Preparedness",6,0.5436424203703848
-ES,"Social Rights and Skills, Quality Jobs and Preparedness",7,0.5639734750835298
-ES,"Social Rights and Skills, Quality Jobs and Preparedness",8,0.5292304027727062
-ES,"Social Rights and Skills, Quality Jobs and Preparedness",9,0.5621224965048269
-ES,"Social Rights and Skills, Quality Jobs and Preparedness",10,0.5975681962984067
-FI,Agriculture and Food,1,0.7111437553695955
-FI,Agriculture and Food,2,0.7111437553695955
-FI,Agriculture and Food,3,0.7323475565876424
-FI,Agriculture and Food,4,0.7323475565876424
-FI,Agriculture and Food,5,0.6405584139005165
-FI,Agriculture and Food,6,0.6405584139005165
-FI,Agriculture and Food,7,0.3646592859856689
-FI,Agriculture and Food,8,0.3646592859856689
-FI,Agriculture and Food,9,0.7300028018706821
-FI,Agriculture and Food,10,0.7300028018706821
-FI,Energy and Housing,1,0.6815301151292593
-FI,Energy and Housing,2,0.7468426830087228
-FI,Energy and Housing,3,0.8014736356630615
-FI,Energy and Housing,4,0.8196745591108324
-FI,Energy and Housing,5,0.8504683348996432
-FI,Energy and Housing,6,0.8672803355717885
-FI,Energy and Housing,7,0.8778784880427974
-FI,Energy and Housing,8,0.8928705841055181
-FI,Energy and Housing,9,0.9056194919534776
-FI,Energy and Housing,10,0.9156797310899332
-FI,Equality,1,0.7724155790849894
-FI,Equality,2,0.7724028189046047
-FI,Equality,3,0.8454185559787303
-FI,Equality,4,0.8462805858543454
-FI,Equality,5,0.8364045270313888
-FI,Equality,6,0.8330869253122265
-FI,Equality,7,0.7847460063030117
-FI,Equality,8,0.7894257585681962
-FI,Equality,9,0.774789994062112
-FI,Equality,10,0.7834162512955175
-FI,Health and Animal Welfare,1,0.5949541717364745
-FI,Health and Animal Welfare,2,0.5740241999651092
-FI,Health and Animal Welfare,3,0.6299756382670796
-FI,Health and Animal Welfare,4,0.6626711372608145
-FI,Health and Animal Welfare,5,0.6273454407004556
-FI,Health and Animal Welfare,6,0.6054208348309036
-FI,Health and Animal Welfare,7,0.6029508740500118
-FI,Health and Animal Welfare,8,0.5953611093872027
-FI,Health and Animal Welfare,9,0.5937659838411385
-FI,Health and Animal Welfare,10,0.6011863598463909
-FI,"Intergenerational Fairness, Youth, Culture and Sport",1,1.0
-FI,"Intergenerational Fairness, Youth, Culture and Sport",2,1.0
-FI,"Intergenerational Fairness, Youth, Culture and Sport",3,1.0
-FI,"Intergenerational Fairness, Youth, Culture and Sport",4,1.0
-FI,"Intergenerational Fairness, Youth, Culture and Sport",5,1.0
-FI,"Intergenerational Fairness, Youth, Culture and Sport",6,1.0
-FI,"Intergenerational Fairness, Youth, Culture and Sport",7,1.0
-FI,"Intergenerational Fairness, Youth, Culture and Sport",8,1.0
-FI,"Intergenerational Fairness, Youth, Culture and Sport",9,1.0
-FI,"Intergenerational Fairness, Youth, Culture and Sport",10,1.0
-FI,"Social Rights and Skills, Quality Jobs and Preparedness",1,0.5225720077310336
-FI,"Social Rights and Skills, Quality Jobs and Preparedness",2,0.6157374458943214
-FI,"Social Rights and Skills, Quality Jobs and Preparedness",3,0.6363153975052451
-FI,"Social Rights and Skills, Quality Jobs and Preparedness",4,0.6586744097721077
-FI,"Social Rights and Skills, Quality Jobs and Preparedness",5,0.6910431814942433
-FI,"Social Rights and Skills, Quality Jobs and Preparedness",6,0.6770352709574295
-FI,"Social Rights and Skills, Quality Jobs and Preparedness",7,0.6979111920226043
-FI,"Social Rights and Skills, Quality Jobs and Preparedness",8,0.7308165811775837
-FI,"Social Rights and Skills, Quality Jobs and Preparedness",9,0.7556183082211693
-FI,"Social Rights and Skills, Quality Jobs and Preparedness",10,0.7604029314093863
-FR,Agriculture and Food,1,0.6654500097763172
-FR,Agriculture and Food,2,0.6654500097763172
-FR,Agriculture and Food,3,0.7506679809136401
-FR,Agriculture and Food,4,0.7506679809136401
-FR,Agriculture and Food,5,0.5120652370279798
-FR,Agriculture and Food,6,0.5120652370279798
-FR,Agriculture and Food,7,0.6326653619942023
-FR,Agriculture and Food,8,0.6326653619942023
-FR,Agriculture and Food,9,0.7997995976611741
-FR,Agriculture and Food,10,0.7997995976611741
-FR,Energy and Housing,1,0.7832381505995537
-FR,Energy and Housing,2,0.8440463478201804
-FR,Energy and Housing,3,0.8784989218987961
-FR,Energy and Housing,4,0.8872874195922908
-FR,Energy and Housing,5,0.898990479219423
-FR,Energy and Housing,6,0.9122342072337175
-FR,Energy and Housing,7,0.9213504085391381
-FR,Energy and Housing,8,0.931938296423843
-FR,Energy and Housing,9,0.9398815124165008
-FR,Energy and Housing,10,0.9485145148621283
-FR,Equality,1,0.5450764105885013
-FR,Equality,2,0.5864823457317146
-FR,Equality,3,0.6366149084597664
-FR,Equality,4,0.6638960966997565
-FR,Equality,5,0.7396864280588626
-FR,Equality,6,0.7514426009681311
-FR,Equality,7,0.7741997426109515
-FR,Equality,8,0.7921337274393601
-FR,Equality,9,0.8296529699952854
-FR,Equality,10,0.8465245016547244
-FR,Health and Animal Welfare,1,0.41093943387561466
-FR,Health and Animal Welfare,2,0.4338549479463802
-FR,Health and Animal Welfare,3,0.4145278355225141
-FR,Health and Animal Welfare,4,0.42009611273730796
-FR,Health and Animal Welfare,5,0.49003142665913135
-FR,Health and Animal Welfare,6,0.4820434863077849
-FR,Health and Animal Welfare,7,0.4812020481422053
-FR,Health and Animal Welfare,8,0.4760970549096053
-FR,Health and Animal Welfare,9,0.5412268608569201
-FR,Health and Animal Welfare,10,0.5669803549678446
-FR,"Intergenerational Fairness, Youth, Culture and Sport",1,0.6259536715987519
-FR,"Intergenerational Fairness, Youth, Culture and Sport",2,0.6966180204050161
-FR,"Intergenerational Fairness, Youth, Culture and Sport",3,0.765153405107599
-FR,"Intergenerational Fairness, Youth, Culture and Sport",4,0.8323318140986741
-FR,"Intergenerational Fairness, Youth, Culture and Sport",5,0.8622300808410681
-FR,"Intergenerational Fairness, Youth, Culture and Sport",6,0.764913764474241
-FR,"Intergenerational Fairness, Youth, Culture and Sport",7,0.8708605023758
-FR,"Intergenerational Fairness, Youth, Culture and Sport",8,0.813759805287259
-FR,"Intergenerational Fairness, Youth, Culture and Sport",9,0.8711007276923619
-FR,"Intergenerational Fairness, Youth, Culture and Sport",10,0.8524765096767559
-FR,"Social Rights and Skills, Quality Jobs and Preparedness",1,0.5294803064374336
-FR,"Social Rights and Skills, Quality Jobs and Preparedness",2,0.5559421356781771
-FR,"Social Rights and Skills, Quality Jobs and Preparedness",3,0.6335464419732507
-FR,"Social Rights and Skills, Quality Jobs and Preparedness",4,0.6383087786179629
-FR,"Social Rights and Skills, Quality Jobs and Preparedness",5,0.6511872556759759
-FR,"Social Rights and Skills, Quality Jobs and Preparedness",6,0.6661999520473131
-FR,"Social Rights and Skills, Quality Jobs and Preparedness",7,0.687540270337762
-FR,"Social Rights and Skills, Quality Jobs and Preparedness",8,0.6735049796698753
-FR,"Social Rights and Skills, Quality Jobs and Preparedness",9,0.6912388898901558
-FR,"Social Rights and Skills, Quality Jobs and Preparedness",10,0.6592889042997461
-HR,Agriculture and Food,1,0.688596470634398
-HR,Agriculture and Food,2,0.688596470634398
-HR,Agriculture and Food,3,0.682973975919752
-HR,Agriculture and Food,4,0.682973975919752
-HR,Agriculture and Food,5,0.7064569878127153
-HR,Agriculture and Food,6,0.7064569878127153
-HR,Agriculture and Food,7,0.7974377566999238
-HR,Agriculture and Food,8,0.7974377566999238
-HR,Agriculture and Food,9,0.7508504142993945
-HR,Agriculture and Food,10,0.7508504142993945
-HR,Energy and Housing,1,0.5236173837529327
-HR,Energy and Housing,2,0.483074169251686
-HR,Energy and Housing,3,0.488078409094762
-HR,Energy and Housing,4,0.4141125650006704
-HR,Energy and Housing,5,0.4098436225166256
-HR,Energy and Housing,6,0.4198563900669836
-HR,Energy and Housing,7,0.4167909047386732
-HR,Energy and Housing,8,0.40668068104408533
-HR,Energy and Housing,9,0.40821709612848467
-HR,Energy and Housing,10,0.3859444730420617
-HR,Equality,1,0.3381190604908568
-HR,Equality,2,0.4128578884326556
-HR,Equality,3,0.5053962329250141
-HR,Equality,4,0.5279164266815286
-HR,Equality,5,0.5646032955253124
-HR,Equality,6,0.576128909086849
-HR,Equality,7,0.5637585927443061
-HR,Equality,8,0.5650299587698219
-HR,Equality,9,0.6002168156820135
-HR,Equality,10,0.6625531273841432
-HR,Health and Animal Welfare,1,0.311525585198631
-HR,Health and Animal Welfare,2,0.34962380374116964
-HR,Health and Animal Welfare,3,0.3690667264362091
-HR,Health and Animal Welfare,4,0.40536630901967924
-HR,Health and Animal Welfare,5,0.4288079170011903
-HR,Health and Animal Welfare,6,0.4294322960815465
-HR,Health and Animal Welfare,7,0.36288551494996063
-HR,Health and Animal Welfare,8,0.3746454973318116
-HR,Health and Animal Welfare,9,0.46124181781742646
-HR,Health and Animal Welfare,10,0.4772661024792985
-HR,"Intergenerational Fairness, Youth, Culture and Sport",1,0.8448046616876008
-HR,"Intergenerational Fairness, Youth, Culture and Sport",2,0.856048177968605
-HR,"Intergenerational Fairness, Youth, Culture and Sport",3,0.9158268867768227
-HR,"Intergenerational Fairness, Youth, Culture and Sport",4,0.9325283993526654
-HR,"Intergenerational Fairness, Youth, Culture and Sport",5,0.9763748440901738
-HR,"Intergenerational Fairness, Youth, Culture and Sport",6,0.9550588090679509
-HR,"Intergenerational Fairness, Youth, Culture and Sport",7,0.8923556769769669
-HR,"Intergenerational Fairness, Youth, Culture and Sport",8,0.9345242380552742
-HR,"Intergenerational Fairness, Youth, Culture and Sport",9,0.9179597535401897
-HR,"Intergenerational Fairness, Youth, Culture and Sport",10,0.9077938743606735
-HR,"Social Rights and Skills, Quality Jobs and Preparedness",1,0.5485320365469064
-HR,"Social Rights and Skills, Quality Jobs and Preparedness",2,0.5498354559196615
-HR,"Social Rights and Skills, Quality Jobs and Preparedness",3,0.5477527547464329
-HR,"Social Rights and Skills, Quality Jobs and Preparedness",4,0.43190012538337463
-HR,"Social Rights and Skills, Quality Jobs and Preparedness",5,0.5011028742332176
-HR,"Social Rights and Skills, Quality Jobs and Preparedness",6,0.47675723595287467
-HR,"Social Rights and Skills, Quality Jobs and Preparedness",7,0.4698263670416318
-HR,"Social Rights and Skills, Quality Jobs and Preparedness",8,0.5098498365635682
-HR,"Social Rights and Skills, Quality Jobs and Preparedness",9,0.5126988267593175
-HR,"Social Rights and Skills, Quality Jobs and Preparedness",10,0.4810612305463442
-HU,Agriculture and Food,1,0.38589302236804723
-HU,Agriculture and Food,2,0.38589302236804723
-HU,Agriculture and Food,3,0.7015060421421169
-HU,Agriculture and Food,4,0.7015060421421169
-HU,Agriculture and Food,5,0.5343822489848897
-HU,Agriculture and Food,6,0.5343822489848897
-HU,Agriculture and Food,7,0.5086749254104485
-HU,Agriculture and Food,8,0.5086749254104485
-HU,Agriculture and Food,9,0.6012289186162947
-HU,Agriculture and Food,10,0.6012289186162947
-HU,Energy and Housing,1,0.6584060794496017
-HU,Energy and Housing,2,0.6727516795906686
-HU,Energy and Housing,3,0.6486509146969817
-HU,Energy and Housing,4,0.5954702890463635
-HU,Energy and Housing,5,0.5847166786589689
-HU,Energy and Housing,6,0.5737378739434318
-HU,Energy and Housing,7,0.5823646695961323
-HU,Energy and Housing,8,0.5862127392333754
-HU,Energy and Housing,9,0.559788463828522
-HU,Energy and Housing,10,0.5887410136850314
-HU,Equality,1,0.37540728536300866
-HU,Equality,2,0.4337608094988076
-HU,Equality,3,0.5364750903788958
-HU,Equality,4,0.5357826106583159
-HU,Equality,5,0.5400260806896515
-HU,Equality,6,0.5624500387750725
-HU,Equality,7,0.5365584128735428
-HU,Equality,8,0.5432312578793813
-HU,Equality,9,0.5397590473797392
-HU,Equality,10,0.5463849124190364
-HU,Health and Animal Welfare,1,0.40515747657691464
-HU,Health and Animal Welfare,2,0.39905523299163215
-HU,Health and Animal Welfare,3,0.4333583678332188
-HU,Health and Animal Welfare,4,0.4451830702922076
-HU,Health and Animal Welfare,5,0.4632106184774081
-HU,Health and Animal Welfare,6,0.4544962713002141
-HU,Health and Animal Welfare,7,0.45908825745031284
-HU,Health and Animal Welfare,8,0.4826238597963107
-HU,Health and Animal Welfare,9,0.5330108290738226
-HU,Health and Animal Welfare,10,0.5519386245084519
-HU,"Intergenerational Fairness, Youth, Culture and Sport",1,0.9482267299776959
-HU,"Intergenerational Fairness, Youth, Culture and Sport",2,0.9380322215841451
-HU,"Intergenerational Fairness, Youth, Culture and Sport",3,0.9728602576817152
-HU,"Intergenerational Fairness, Youth, Culture and Sport",4,0.9958251580120203
-HU,"Intergenerational Fairness, Youth, Culture and Sport",5,0.9739230125043464
-HU,"Intergenerational Fairness, Youth, Culture and Sport",6,0.9866971912953882
-HU,"Intergenerational Fairness, Youth, Culture and Sport",7,0.9763180384989028
-HU,"Intergenerational Fairness, Youth, Culture and Sport",8,0.989585097995785
-HU,"Intergenerational Fairness, Youth, Culture and Sport",9,1.0
-HU,"Intergenerational Fairness, Youth, Culture and Sport",10,0.9133112966345733
-HU,"Social Rights and Skills, Quality Jobs and Preparedness",1,0.7285791808095046
-HU,"Social Rights and Skills, Quality Jobs and Preparedness",2,0.7704622307872641
-HU,"Social Rights and Skills, Quality Jobs and Preparedness",3,0.7719482531468712
-HU,"Social Rights and Skills, Quality Jobs and Preparedness",4,0.7811226128520108
-HU,"Social Rights and Skills, Quality Jobs and Preparedness",5,0.8181219615457029
-HU,"Social Rights and Skills, Quality Jobs and Preparedness",6,0.8240358410532675
-HU,"Social Rights and Skills, Quality Jobs and Preparedness",7,0.838099066849141
-HU,"Social Rights and Skills, Quality Jobs and Preparedness",8,0.8058586990041707
-HU,"Social Rights and Skills, Quality Jobs and Preparedness",9,0.8235634271481629
-HU,"Social Rights and Skills, Quality Jobs and Preparedness",10,0.8410164413005666
-IE,Agriculture and Food,1,0.7807668098378961
-IE,Agriculture and Food,2,0.7807668098378961
-IE,Agriculture and Food,3,0.7346988011825758
-IE,Agriculture and Food,4,0.7346988011825758
-IE,Agriculture and Food,5,0.5775441190696131
-IE,Agriculture and Food,6,0.5775441190696131
-IE,Agriculture and Food,7,0.32502839310764753
-IE,Agriculture and Food,8,0.32502839310764753
-IE,Agriculture and Food,9,0.30631361377215655
-IE,Agriculture and Food,10,0.30631361377215655
-IE,Energy and Housing,1,0.931961215414291
-IE,Energy and Housing,2,0.9350220178255044
-IE,Energy and Housing,3,0.9312207583568308
-IE,Energy and Housing,4,0.9240255330530796
-IE,Energy and Housing,5,0.9226737867583672
-IE,Energy and Housing,6,0.9315040307950245
-IE,Energy and Housing,7,0.9443043258189292
-IE,Energy and Housing,8,0.952266637056364
-IE,Energy and Housing,9,0.9688557024360206
-IE,Energy and Housing,10,0.9546799275777914
-IE,Equality,1,0.6871389427272636
-IE,Equality,2,0.7075831375926595
-IE,Equality,3,0.6865383763325723
-IE,Equality,4,0.679331343998338
-IE,Equality,5,0.7106890844556637
-IE,Equality,6,0.7328121659628568
-IE,Equality,7,0.677645628910681
-IE,Equality,8,0.6961785576642207
-IE,Equality,9,0.6991688457227937
-IE,Equality,10,0.7291325571325009
-IE,Health and Animal Welfare,1,0.6613909212423803
-IE,Health and Animal Welfare,2,0.7089647683301722
-IE,Health and Animal Welfare,3,0.6523160672207996
-IE,Health and Animal Welfare,4,0.6786096390690299
-IE,Health and Animal Welfare,5,0.7393839578430544
-IE,Health and Animal Welfare,6,0.732937013039771
-IE,Health and Animal Welfare,7,0.6661990336001485
-IE,Health and Animal Welfare,8,0.6712440089192884
-IE,Health and Animal Welfare,9,0.6708909504088455
-IE,Health and Animal Welfare,10,0.6676305570970379
-IE,"Intergenerational Fairness, Youth, Culture and Sport",1,0.9565118823218377
-IE,"Intergenerational Fairness, Youth, Culture and Sport",2,0.9474790883228028
-IE,"Intergenerational Fairness, Youth, Culture and Sport",3,0.9885362339320297
-IE,"Intergenerational Fairness, Youth, Culture and Sport",4,0.9816822596491775
-IE,"Intergenerational Fairness, Youth, Culture and Sport",5,0.9662966397217059
-IE,"Intergenerational Fairness, Youth, Culture and Sport",6,0.9479905001944766
-IE,"Intergenerational Fairness, Youth, Culture and Sport",7,0.9841929435226644
-IE,"Intergenerational Fairness, Youth, Culture and Sport",8,0.9213843731658573
-IE,"Intergenerational Fairness, Youth, Culture and Sport",9,0.9174355142330256
-IE,"Intergenerational Fairness, Youth, Culture and Sport",10,0.6316939468849501
-IE,"Social Rights and Skills, Quality Jobs and Preparedness",1,0.66201135958129
-IE,"Social Rights and Skills, Quality Jobs and Preparedness",2,0.6646111656691173
-IE,"Social Rights and Skills, Quality Jobs and Preparedness",3,0.5939584454939274
-IE,"Social Rights and Skills, Quality Jobs and Preparedness",4,0.6100134689953295
-IE,"Social Rights and Skills, Quality Jobs and Preparedness",5,0.6477199529006811
-IE,"Social Rights and Skills, Quality Jobs and Preparedness",6,0.6666926686827052
-IE,"Social Rights and Skills, Quality Jobs and Preparedness",7,0.6811812554327995
-IE,"Social Rights and Skills, Quality Jobs and Preparedness",8,0.6952296761206946
-IE,"Social Rights and Skills, Quality Jobs and Preparedness",9,0.733319258910776
-IE,"Social Rights and Skills, Quality Jobs and Preparedness",10,0.7059072077179771
-IS,Agriculture and Food,1,0.8935175034869249
-IS,Agriculture and Food,2,0.8935175034869249
-IS,Agriculture and Food,3,0.8761978105622752
-IS,Agriculture and Food,4,0.8761978105622752
-IS,Agriculture and Food,5,0.7168149431376613
-IS,Agriculture and Food,6,0.7168149431376613
-IS,Agriculture and Food,7,0.7439303105494333
-IS,Agriculture and Food,8,0.7439303105494333
-IS,Agriculture and Food,9,0.7882753767830669
-IS,Agriculture and Food,10,0.7882753767830669
-IS,Energy and Housing,1,0.790824282248554
-IS,Energy and Housing,2,0.7981551390960636
-IS,Energy and Housing,3,0.8617186763290144
-IS,Energy and Housing,4,0.8130988815509165
-IS,Energy and Housing,5,0.8536472922768688
-IS,Energy and Housing,6,0.8685280696862454
-IS,Energy and Housing,7,0.8849507663626993
-IS,Energy and Housing,8,0.8929389760537974
-IS,Energy and Housing,9,0.8669941671821636
-IS,Energy and Housing,10,0.8444691710203877
-IS,Equality,1,0.7566933521656862
-IS,Equality,2,0.7368904317317524
-IS,Equality,3,0.7914080344659983
-IS,Equality,4,0.8057527383552924
-IS,Equality,5,0.8321440556254149
-IS,Equality,6,0.8315695641913475
-IS,Equality,7,0.7932890553928788
-IS,Equality,8,0.7951918373541326
-IS,Equality,9,0.8042959308688581
-IS,Equality,10,0.7860420478418328
-IS,Health and Animal Welfare,1,0.653582676194351
-IS,Health and Animal Welfare,2,0.6661088943181385
-IS,Health and Animal Welfare,3,0.6952769433750363
-IS,Health and Animal Welfare,4,0.7070578152750167
-IS,Health and Animal Welfare,5,0.7282862866692325
-IS,Health and Animal Welfare,6,0.7202706465338955
-IS,Health and Animal Welfare,7,0.596982669565754
-IS,Health and Animal Welfare,8,0.6244980710079121
-IS,Health and Animal Welfare,9,0.695425757412927
-IS,Health and Animal Welfare,10,0.6869362703202044
-IS,"Social Rights and Skills, Quality Jobs and Preparedness",1,0.6312782449296767
-IS,"Social Rights and Skills, Quality Jobs and Preparedness",2,0.6585199216948591
-IS,"Social Rights and Skills, Quality Jobs and Preparedness",3,0.6390944284428166
-IS,"Social Rights and Skills, Quality Jobs and Preparedness",4,0.5906440722886022
-IS,"Social Rights and Skills, Quality Jobs and Preparedness",5,0.6589841709398172
-IS,"Social Rights and Skills, Quality Jobs and Preparedness",6,0.6553903887254964
-IS,"Social Rights and Skills, Quality Jobs and Preparedness",7,0.6434593235515625
-IS,"Social Rights and Skills, Quality Jobs and Preparedness",8,0.6391747697175955
-IS,"Social Rights and Skills, Quality Jobs and Preparedness",9,0.714929522104574
-IS,"Social Rights and Skills, Quality Jobs and Preparedness",10,0.7071794231572087
-IT,Agriculture and Food,1,0.6942754823430438
-IT,Agriculture and Food,2,0.6942754823430438
-IT,Agriculture and Food,3,0.6963674177000713
-IT,Agriculture and Food,4,0.6963674177000713
-IT,Agriculture and Food,5,0.5058730271923364
-IT,Agriculture and Food,6,0.5058730271923364
-IT,Agriculture and Food,7,0.5157690377815798
-IT,Agriculture and Food,8,0.5157690377815798
-IT,Agriculture and Food,9,0.5632844055479828
-IT,Agriculture and Food,10,0.5632844055479828
-IT,Energy and Housing,1,0.6754435028589145
-IT,Energy and Housing,2,0.6777282058794384
-IT,Energy and Housing,3,0.6957311207488633
-IT,Energy and Housing,4,0.6913661935077421
-IT,Energy and Housing,5,0.6971525566419822
-IT,Energy and Housing,6,0.6872803649310766
-IT,Energy and Housing,7,0.6792458533594852
-IT,Energy and Housing,8,0.6951686457308561
-IT,Energy and Housing,9,0.6967780885662284
-IT,Energy and Housing,10,0.702324360296223
-IT,Equality,1,0.6209375853582919
-IT,Equality,2,0.6466532789437287
-IT,Equality,3,0.6789524501010583
-IT,Equality,4,0.6928446402574878
-IT,Equality,5,0.6850053873503783
-IT,Equality,6,0.6968979727965819
-IT,Equality,7,0.6623002806474009
-IT,Equality,8,0.6790345054486953
-IT,Equality,9,0.6896871075832518
-IT,Equality,10,0.6870519787368337
-IT,Health and Animal Welfare,1,0.5342360091658186
-IT,Health and Animal Welfare,2,0.530186508323537
-IT,Health and Animal Welfare,3,0.5566468648737046
-IT,Health and Animal Welfare,4,0.5709591231243294
-IT,Health and Animal Welfare,5,0.5628396223603924
-IT,Health and Animal Welfare,6,0.5521064013941014
-IT,Health and Animal Welfare,7,0.4889943605336609
-IT,Health and Animal Welfare,8,0.49801452995207074
-IT,Health and Animal Welfare,9,0.49750163446501916
-IT,Health and Animal Welfare,10,0.503760007907692
-IT,"Intergenerational Fairness, Youth, Culture and Sport",1,0.45549827386415415
-IT,"Intergenerational Fairness, Youth, Culture and Sport",2,0.5659494978381253
-IT,"Intergenerational Fairness, Youth, Culture and Sport",3,0.5723424692432739
-IT,"Intergenerational Fairness, Youth, Culture and Sport",4,0.597722061495831
-IT,"Intergenerational Fairness, Youth, Culture and Sport",5,0.6483332705124887
-IT,"Intergenerational Fairness, Youth, Culture and Sport",6,0.6243791973358231
-IT,"Intergenerational Fairness, Youth, Culture and Sport",7,0.6379325510573295
-IT,"Intergenerational Fairness, Youth, Culture and Sport",8,0.43845504985360717
-IT,"Intergenerational Fairness, Youth, Culture and Sport",9,0.6265548016324227
-IT,"Intergenerational Fairness, Youth, Culture and Sport",10,0.07791869147680142
-IT,"Social Rights and Skills, Quality Jobs and Preparedness",1,0.6435332293702479
-IT,"Social Rights and Skills, Quality Jobs and Preparedness",2,0.6590377221970486
-IT,"Social Rights and Skills, Quality Jobs and Preparedness",3,0.7350182164098855
-IT,"Social Rights and Skills, Quality Jobs and Preparedness",4,0.7354501751131186
-IT,"Social Rights and Skills, Quality Jobs and Preparedness",5,0.7300968365840775
-IT,"Social Rights and Skills, Quality Jobs and Preparedness",6,0.6757642396759946
-IT,"Social Rights and Skills, Quality Jobs and Preparedness",7,0.6731069081511184
-IT,"Social Rights and Skills, Quality Jobs and Preparedness",8,0.6805724883907339
-IT,"Social Rights and Skills, Quality Jobs and Preparedness",9,0.6855853568771442
-IT,"Social Rights and Skills, Quality Jobs and Preparedness",10,0.6593002580508187
-LT,Agriculture and Food,1,0.5654609125599805
-LT,Agriculture and Food,2,0.5654609125599805
-LT,Agriculture and Food,3,0.6515090989417577
-LT,Agriculture and Food,4,0.6515090989417577
-LT,Agriculture and Food,5,0.4571932122618975
-LT,Agriculture and Food,6,0.4571932122618975
-LT,Agriculture and Food,7,0.08387886006548088
-LT,Agriculture and Food,8,0.08387886006548088
-LT,Agriculture and Food,9,0.5632982788461832
-LT,Agriculture and Food,10,0.5632982788461832
-LT,Energy and Housing,1,0.59638742254431
-LT,Energy and Housing,2,0.6171678635141458
-LT,Energy and Housing,3,0.6025039215868248
-LT,Energy and Housing,4,0.5660405473830558
-LT,Energy and Housing,5,0.5465368972476272
-LT,Energy and Housing,6,0.5449437018832045
-LT,Energy and Housing,7,0.518179758169187
-LT,Energy and Housing,8,0.5124517463042805
-LT,Energy and Housing,9,0.5106273581660794
-LT,Energy and Housing,10,0.5281586205498022
-LT,Equality,1,0.48865338905643796
-LT,Equality,2,0.5111980259199959
-LT,Equality,3,0.49282360394318986
-LT,Equality,4,0.49612386960309063
-LT,Equality,5,0.570197048563276
-LT,Equality,6,0.5998905122471705
-LT,Equality,7,0.6146289556044845
-LT,Equality,8,0.628636233163055
-LT,Equality,9,0.6703407300568062
-LT,Equality,10,0.7394573032911081
-LT,Health and Animal Welfare,1,0.5285214281295858
-LT,Health and Animal Welfare,2,0.4305760545381978
-LT,Health and Animal Welfare,3,0.46404630951926423
-LT,Health and Animal Welfare,4,0.5089729550108566
-LT,Health and Animal Welfare,5,0.50961850577961
-LT,Health and Animal Welfare,6,0.5510928331854851
-LT,Health and Animal Welfare,7,0.5904770329337775
-LT,Health and Animal Welfare,8,0.6155596480808297
-LT,Health and Animal Welfare,9,0.6311840588772346
-LT,Health and Animal Welfare,10,0.6575719793117296
-LT,"Intergenerational Fairness, Youth, Culture and Sport",1,0.9804828927214404
-LT,"Intergenerational Fairness, Youth, Culture and Sport",2,0.8706171062061611
-LT,"Intergenerational Fairness, Youth, Culture and Sport",3,0.9336444225237015
-LT,"Intergenerational Fairness, Youth, Culture and Sport",4,0.9284820859482219
-LT,"Intergenerational Fairness, Youth, Culture and Sport",5,0.8764235927747496
-LT,"Intergenerational Fairness, Youth, Culture and Sport",6,0.8978554917076089
-LT,"Intergenerational Fairness, Youth, Culture and Sport",7,0.9069362245289817
-LT,"Intergenerational Fairness, Youth, Culture and Sport",8,0.8923197852234386
-LT,"Intergenerational Fairness, Youth, Culture and Sport",9,0.9551194237375098
-LT,"Intergenerational Fairness, Youth, Culture and Sport",10,1.0
-LT,"Social Rights and Skills, Quality Jobs and Preparedness",1,0.5546689701641137
-LT,"Social Rights and Skills, Quality Jobs and Preparedness",2,0.7662910232149261
-LT,"Social Rights and Skills, Quality Jobs and Preparedness",3,0.748193987839587
-LT,"Social Rights and Skills, Quality Jobs and Preparedness",4,0.714750732343617
-LT,"Social Rights and Skills, Quality Jobs and Preparedness",5,0.7836527877780723
-LT,"Social Rights and Skills, Quality Jobs and Preparedness",6,0.7458206298540603
-LT,"Social Rights and Skills, Quality Jobs and Preparedness",7,0.7746739851092028
-LT,"Social Rights and Skills, Quality Jobs and Preparedness",8,0.7772767038838471
-LT,"Social Rights and Skills, Quality Jobs and Preparedness",9,0.7687875782005584
-LT,"Social Rights and Skills, Quality Jobs and Preparedness",10,0.7601095819176585
-LU,Agriculture and Food,1,0.7835921027508659
-LU,Agriculture and Food,2,0.7835921027508659
-LU,Agriculture and Food,3,0.6851036778107514
-LU,Agriculture and Food,4,0.6851036778107514
-LU,Agriculture and Food,5,0.6702551590872586
-LU,Agriculture and Food,6,0.6702551590872586
-LU,Agriculture and Food,7,0.5429667248001222
-LU,Agriculture and Food,8,0.5429667248001222
-LU,Agriculture and Food,9,0.6895200163172049
-LU,Agriculture and Food,10,0.6895200163172049
-LU,Energy and Housing,1,0.6820147403715587
-LU,Energy and Housing,2,0.8162502418053472
-LU,Energy and Housing,3,0.8573207796467738
-LU,Energy and Housing,4,0.8721073896028256
-LU,Energy and Housing,5,0.8900880204299256
-LU,Energy and Housing,6,0.8929010883924283
-LU,Energy and Housing,7,0.9031949029473242
-LU,Energy and Housing,8,0.9022950682825117
-LU,Energy and Housing,9,0.9167582455894995
-LU,Energy and Housing,10,0.919397216025612
-LU,Equality,1,0.6746584598026426
-LU,Equality,2,0.7561341068774294
-LU,Equality,3,0.8121978537185756
-LU,Equality,4,0.8218916784335983
-LU,Equality,5,0.8815059292603008
-LU,Equality,6,0.8807607980894253
-LU,Equality,7,0.8341827287907374
-LU,Equality,8,0.8417412873826228
-LU,Equality,9,0.8480051552368312
-LU,Equality,10,0.8532156335449774
-LU,Health and Animal Welfare,1,0.5938175463929919
-LU,Health and Animal Welfare,2,0.6347407587808458
-LU,Health and Animal Welfare,3,0.6388405206162681
-LU,Health and Animal Welfare,4,0.6414904924281598
-LU,Health and Animal Welfare,5,0.6698868421636962
-LU,Health and Animal Welfare,6,0.6417699180677386
-LU,Health and Animal Welfare,7,0.6463678458532779
-LU,Health and Animal Welfare,8,0.6417952389427374
-LU,Health and Animal Welfare,9,0.5772594334349703
-LU,Health and Animal Welfare,10,0.5752646686173202
-LU,"Intergenerational Fairness, Youth, Culture and Sport",1,0.796818929861047
-LU,"Intergenerational Fairness, Youth, Culture and Sport",2,0.7960065656646542
-LU,"Intergenerational Fairness, Youth, Culture and Sport",3,0.7052192227641005
-LU,"Intergenerational Fairness, Youth, Culture and Sport",4,0.8561038954044976
-LU,"Intergenerational Fairness, Youth, Culture and Sport",5,0.9076846481695539
-LU,"Intergenerational Fairness, Youth, Culture and Sport",6,0.8313411362051548
-LU,"Intergenerational Fairness, Youth, Culture and Sport",7,0.9085319167979824
-LU,"Intergenerational Fairness, Youth, Culture and Sport",8,0.8946012768310473
-LU,"Intergenerational Fairness, Youth, Culture and Sport",9,0.7420679898506325
-LU,"Intergenerational Fairness, Youth, Culture and Sport",10,0.7671599272887654
-LU,"Social Rights and Skills, Quality Jobs and Preparedness",1,0.6919627080434925
-LU,"Social Rights and Skills, Quality Jobs and Preparedness",2,0.797752132207343
-LU,"Social Rights and Skills, Quality Jobs and Preparedness",3,0.8066101953390622
-LU,"Social Rights and Skills, Quality Jobs and Preparedness",4,0.8316270439529244
-LU,"Social Rights and Skills, Quality Jobs and Preparedness",5,0.8206928564532716
-LU,"Social Rights and Skills, Quality Jobs and Preparedness",6,0.8436294465070754
-LU,"Social Rights and Skills, Quality Jobs and Preparedness",7,0.8483950231113039
-LU,"Social Rights and Skills, Quality Jobs and Preparedness",8,0.84674203115541
-LU,"Social Rights and Skills, Quality Jobs and Preparedness",9,0.8417939722382013
-LU,"Social Rights and Skills, Quality Jobs and Preparedness",10,0.839770933244351
-LV,Agriculture and Food,1,0.6133574205721678
-LV,Agriculture and Food,2,0.6133574205721678
-LV,Agriculture and Food,3,0.7007650896985661
-LV,Agriculture and Food,4,0.7007650896985661
-LV,Agriculture and Food,5,0.5407594786916209
-LV,Agriculture and Food,6,0.5407594786916209
-LV,Agriculture and Food,7,0.5262365097031069
-LV,Agriculture and Food,8,0.5262365097031069
-LV,Agriculture and Food,9,0.7006893605275196
-LV,Agriculture and Food,10,0.7006893605275196
-LV,Energy and Housing,1,0.44272046472970034
-LV,Energy and Housing,2,0.4477689142961734
-LV,Energy and Housing,3,0.4178933382914779
-LV,Energy and Housing,4,0.3716674778413102
-LV,Energy and Housing,5,0.4069225120517865
-LV,Energy and Housing,6,0.40472070234921675
-LV,Energy and Housing,7,0.41890649979334893
-LV,Energy and Housing,8,0.41610085368146893
-LV,Energy and Housing,9,0.42959637657162597
-LV,Energy and Housing,10,0.4774140832905195
-LV,Equality,1,0.36552591574096344
-LV,Equality,2,0.38925518472785575
-LV,Equality,3,0.46584675346079507
-LV,Equality,4,0.4741501563387063
-LV,Equality,5,0.49125779460448077
-LV,Equality,6,0.5176116278384612
-LV,Equality,7,0.49608744783175107
-LV,Equality,8,0.5040894525921817
-LV,Equality,9,0.58874291811228
-LV,Equality,10,0.6352250508344554
-LV,Health and Animal Welfare,1,0.4616683995297406
-LV,Health and Animal Welfare,2,0.3408023061459837
-LV,Health and Animal Welfare,3,0.47493184768880625
-LV,Health and Animal Welfare,4,0.47288511583719894
-LV,Health and Animal Welfare,5,0.4829704559532211
-LV,Health and Animal Welfare,6,0.49173931928765396
-LV,Health and Animal Welfare,7,0.45080174962316705
-LV,Health and Animal Welfare,8,0.4611251457843921
-LV,Health and Animal Welfare,9,0.48688748596237674
-LV,Health and Animal Welfare,10,0.5080727215099863
-LV,"Intergenerational Fairness, Youth, Culture and Sport",1,0.9206530887266847
-LV,"Intergenerational Fairness, Youth, Culture and Sport",2,0.8732687755054304
-LV,"Intergenerational Fairness, Youth, Culture and Sport",3,0.9756025911151273
-LV,"Intergenerational Fairness, Youth, Culture and Sport",4,0.9426273204422427
-LV,"Intergenerational Fairness, Youth, Culture and Sport",5,0.9393104826395051
-LV,"Intergenerational Fairness, Youth, Culture and Sport",6,0.9715739537218264
-LV,"Intergenerational Fairness, Youth, Culture and Sport",7,0.9882877384571366
-LV,"Intergenerational Fairness, Youth, Culture and Sport",8,1.0
-LV,"Intergenerational Fairness, Youth, Culture and Sport",9,1.0
-LV,"Intergenerational Fairness, Youth, Culture and Sport",10,0.9079740539658884
-LV,"Social Rights and Skills, Quality Jobs and Preparedness",1,0.5631166135966877
-LV,"Social Rights and Skills, Quality Jobs and Preparedness",2,0.7304929935503531
-LV,"Social Rights and Skills, Quality Jobs and Preparedness",3,0.6961140378674657
-LV,"Social Rights and Skills, Quality Jobs and Preparedness",4,0.7094682010323504
-LV,"Social Rights and Skills, Quality Jobs and Preparedness",5,0.7241555911146922
-LV,"Social Rights and Skills, Quality Jobs and Preparedness",6,0.6932654778328633
-LV,"Social Rights and Skills, Quality Jobs and Preparedness",7,0.7248821933233429
-LV,"Social Rights and Skills, Quality Jobs and Preparedness",8,0.6620604405297917
-LV,"Social Rights and Skills, Quality Jobs and Preparedness",9,0.665180784053364
-LV,"Social Rights and Skills, Quality Jobs and Preparedness",10,0.6287635433628508
-MT,Agriculture and Food,1,0.8255994315121838
-MT,Agriculture and Food,2,0.8255994315121838
-MT,Agriculture and Food,3,0.8270880247713922
-MT,Agriculture and Food,4,0.8270880247713922
-MT,Agriculture and Food,5,0.6099839273311923
-MT,Agriculture and Food,6,0.6099839273311923
-MT,Agriculture and Food,7,0.5651016327531861
-MT,Agriculture and Food,8,0.5651016327531861
-MT,Agriculture and Food,9,0.36441412578684057
-MT,Agriculture and Food,10,0.36441412578684057
-MT,Energy and Housing,1,0.8217470693772235
-MT,Energy and Housing,2,0.8143660173850044
-MT,Energy and Housing,3,0.8164330741751401
-MT,Energy and Housing,4,0.8031720550325319
-MT,Energy and Housing,5,0.796978711249472
-MT,Energy and Housing,6,0.7982104656119102
-MT,Energy and Housing,7,0.8021654774910639
-MT,Energy and Housing,8,0.8019265839353394
-MT,Energy and Housing,9,0.804004911682212
-MT,Energy and Housing,10,0.7837128264211325
-MT,Equality,1,0.5599596157218608
-MT,Equality,2,0.5741057051659977
-MT,Equality,3,0.6542235957035778
-MT,Equality,4,0.6504078711506454
-MT,Equality,5,0.6127949815643985
-MT,Equality,6,0.6418672875630469
-MT,Equality,7,0.5815382272083223
-MT,Equality,8,0.5736220397274672
-MT,Equality,9,0.5851443286251301
-MT,Equality,10,0.5903291305894587
-MT,Health and Animal Welfare,1,0.5936394783031684
-MT,Health and Animal Welfare,2,0.6082109171230744
-MT,Health and Animal Welfare,3,0.5940869954953988
-MT,Health and Animal Welfare,4,0.6360179049594511
-MT,Health and Animal Welfare,5,0.6617565724864038
-MT,Health and Animal Welfare,6,0.6675183804070466
-MT,Health and Animal Welfare,7,0.6042789266552516
-MT,Health and Animal Welfare,8,0.6107024238677498
-MT,Health and Animal Welfare,9,0.5908205352030501
-MT,Health and Animal Welfare,10,0.5933375944083925
-MT,"Intergenerational Fairness, Youth, Culture and Sport",1,0.9992968088913013
-MT,"Intergenerational Fairness, Youth, Culture and Sport",2,0.963310592015149
-MT,"Intergenerational Fairness, Youth, Culture and Sport",3,0.9590508494676501
-MT,"Intergenerational Fairness, Youth, Culture and Sport",4,0.9782958596921185
-MT,"Intergenerational Fairness, Youth, Culture and Sport",5,0.9937656669051821
-MT,"Intergenerational Fairness, Youth, Culture and Sport",6,0.9743151779856906
-MT,"Intergenerational Fairness, Youth, Culture and Sport",7,0.9939786350037583
-MT,"Intergenerational Fairness, Youth, Culture and Sport",8,0.9897063664900811
-MT,"Intergenerational Fairness, Youth, Culture and Sport",9,0.9994983397341801
-MT,"Intergenerational Fairness, Youth, Culture and Sport",10,0.996599034828438
-MT,"Social Rights and Skills, Quality Jobs and Preparedness",1,0.8396545793949347
-MT,"Social Rights and Skills, Quality Jobs and Preparedness",2,0.8649898221023019
-MT,"Social Rights and Skills, Quality Jobs and Preparedness",3,0.8564918819666886
-MT,"Social Rights and Skills, Quality Jobs and Preparedness",4,0.8131693164882053
-MT,"Social Rights and Skills, Quality Jobs and Preparedness",5,0.8371874620755636
-MT,"Social Rights and Skills, Quality Jobs and Preparedness",6,0.8222316234566
-MT,"Social Rights and Skills, Quality Jobs and Preparedness",7,0.8430021478616165
-MT,"Social Rights and Skills, Quality Jobs and Preparedness",8,0.8282449740185455
-MT,"Social Rights and Skills, Quality Jobs and Preparedness",9,0.8060187349311595
-MT,"Social Rights and Skills, Quality Jobs and Preparedness",10,0.822060907092924
-NL,Agriculture and Food,1,0.6082509180265999
-NL,Agriculture and Food,2,0.6082509180265999
-NL,Agriculture and Food,3,0.7452441416371198
-NL,Agriculture and Food,4,0.7452441416371198
-NL,Agriculture and Food,5,0.633866988974963
-NL,Agriculture and Food,6,0.633866988974963
-NL,Agriculture and Food,7,0.6662327356024593
-NL,Agriculture and Food,8,0.6662327356024593
-NL,Agriculture and Food,9,0.7121056632965272
-NL,Agriculture and Food,10,0.7121056632965272
-NL,Energy and Housing,1,0.6122063495818519
-NL,Energy and Housing,2,0.6496098809585519
-NL,Energy and Housing,3,0.6666897311534855
-NL,Energy and Housing,4,0.6672786086781733
-NL,Energy and Housing,5,0.6791622094153842
-NL,Energy and Housing,6,0.6828380162326876
-NL,Energy and Housing,7,0.6853932331637685
-NL,Energy and Housing,8,0.6888827040784097
-NL,Energy and Housing,9,0.6874047251444506
-NL,Energy and Housing,10,0.6855277717885593
-NL,Equality,1,0.831919016668677
-NL,Equality,2,0.7759698881761096
-NL,Equality,3,0.8312377688029824
-NL,Equality,4,0.8609626911015905
-NL,Equality,5,0.8890858235979201
-NL,Equality,6,0.8938618470190735
-NL,Equality,7,0.9077903835246806
-NL,Equality,8,0.9180505528451296
-NL,Equality,9,0.9256415966467274
-NL,Equality,10,0.9236459047604532
-NL,Health and Animal Welfare,1,0.4722934039408751
-NL,Health and Animal Welfare,2,0.45463290089851893
-NL,Health and Animal Welfare,3,0.47692733373346075
-NL,Health and Animal Welfare,4,0.49755711819354687
-NL,Health and Animal Welfare,5,0.5357774183139744
-NL,Health and Animal Welfare,6,0.5247134868985203
-NL,Health and Animal Welfare,7,0.5396807809685477
-NL,Health and Animal Welfare,8,0.5607613405255556
-NL,Health and Animal Welfare,9,0.568560464987905
-NL,Health and Animal Welfare,10,0.5627301183725968
-NL,"Intergenerational Fairness, Youth, Culture and Sport",1,0.671458775699763
-NL,"Intergenerational Fairness, Youth, Culture and Sport",2,0.6867279862585651
-NL,"Intergenerational Fairness, Youth, Culture and Sport",3,0.803433422294973
-NL,"Intergenerational Fairness, Youth, Culture and Sport",4,0.869568070583021
-NL,"Intergenerational Fairness, Youth, Culture and Sport",5,0.8929814143417873
-NL,"Intergenerational Fairness, Youth, Culture and Sport",6,0.8684762938534686
-NL,"Intergenerational Fairness, Youth, Culture and Sport",7,0.9504429130765895
-NL,"Intergenerational Fairness, Youth, Culture and Sport",8,0.9324140980165083
-NL,"Intergenerational Fairness, Youth, Culture and Sport",9,0.9012523863379561
-NL,"Intergenerational Fairness, Youth, Culture and Sport",10,0.6398038358768338
-NL,"Social Rights and Skills, Quality Jobs and Preparedness",1,0.47005941062144824
-NL,"Social Rights and Skills, Quality Jobs and Preparedness",2,0.3838749085133119
-NL,"Social Rights and Skills, Quality Jobs and Preparedness",3,0.4659296439035154
-NL,"Social Rights and Skills, Quality Jobs and Preparedness",4,0.5262102918025192
-NL,"Social Rights and Skills, Quality Jobs and Preparedness",5,0.6131677285747182
-NL,"Social Rights and Skills, Quality Jobs and Preparedness",6,0.6455966745161867
-NL,"Social Rights and Skills, Quality Jobs and Preparedness",7,0.6916577376990217
-NL,"Social Rights and Skills, Quality Jobs and Preparedness",8,0.6720576175182208
-NL,"Social Rights and Skills, Quality Jobs and Preparedness",9,0.6642893158402428
-NL,"Social Rights and Skills, Quality Jobs and Preparedness",10,0.6360358270221576
-NO,Agriculture and Food,1,0.9697556479167994
-NO,Agriculture and Food,2,0.9697556479167994
-NO,Agriculture and Food,3,0.9479492396253406
-NO,Agriculture and Food,4,0.9479492396253406
-NO,Agriculture and Food,5,0.908168676337035
-NO,Agriculture and Food,6,0.908168676337035
-NO,Agriculture and Food,7,0.8442789092177763
-NO,Agriculture and Food,8,0.8442789092177763
-NO,Agriculture and Food,9,0.8813637147547796
-NO,Agriculture and Food,10,0.8813637147547796
-NO,Energy and Housing,1,0.5322258205845182
-NO,Energy and Housing,2,0.6415938828527598
-NO,Energy and Housing,3,0.637740986286117
-NO,Energy and Housing,4,0.6509759412847524
-NO,Energy and Housing,5,0.6653087557593794
-NO,Energy and Housing,6,0.6682621484466376
-NO,Energy and Housing,7,0.6686673684074557
-NO,Energy and Housing,8,0.6776576951469577
-NO,Energy and Housing,9,0.6881214927699182
-NO,Energy and Housing,10,0.6877530588907954
-NO,Equality,1,0.8352079619423723
-NO,Equality,2,0.8016440517216833
-NO,Equality,3,0.8678812977560159
-NO,Equality,4,0.8845186543252768
-NO,Equality,5,0.8862377836460842
-NO,Equality,6,0.8933411364687509
-NO,Equality,7,0.880708468256366
-NO,Equality,8,0.8800930505962222
-NO,Equality,9,0.8179629401060099
-NO,Equality,10,0.8131000528315356
-NO,Health and Animal Welfare,1,0.7305239970509363
-NO,Health and Animal Welfare,2,0.7118224435768655
-NO,Health and Animal Welfare,3,0.776332335498034
-NO,Health and Animal Welfare,4,0.7839744384657493
-NO,Health and Animal Welfare,5,0.8124955189600664
-NO,Health and Animal Welfare,6,0.7999902012354738
-NO,Health and Animal Welfare,7,0.750473796714668
-NO,Health and Animal Welfare,8,0.7527865308304149
-NO,Health and Animal Welfare,9,0.7315006288118311
-NO,Health and Animal Welfare,10,0.736177601115651
-NO,"Intergenerational Fairness, Youth, Culture and Sport",1,0.9606920020249105
-NO,"Intergenerational Fairness, Youth, Culture and Sport",2,0.9576599970905185
-NO,"Intergenerational Fairness, Youth, Culture and Sport",3,0.9686273641505009
-NO,"Intergenerational Fairness, Youth, Culture and Sport",4,0.9826266121441544
-NO,"Intergenerational Fairness, Youth, Culture and Sport",5,0.982908854023572
-NO,"Intergenerational Fairness, Youth, Culture and Sport",6,0.9854790862763748
-NO,"Intergenerational Fairness, Youth, Culture and Sport",7,0.983609553849956
-NO,"Intergenerational Fairness, Youth, Culture and Sport",8,0.9976871634824045
-NO,"Intergenerational Fairness, Youth, Culture and Sport",9,0.9977688024305834
-NO,"Intergenerational Fairness, Youth, Culture and Sport",10,0.9932251974659762
-NO,"Social Rights and Skills, Quality Jobs and Preparedness",1,0.6944847510784394
-NO,"Social Rights and Skills, Quality Jobs and Preparedness",2,0.681897266770669
-NO,"Social Rights and Skills, Quality Jobs and Preparedness",3,0.7378054948873121
-NO,"Social Rights and Skills, Quality Jobs and Preparedness",4,0.7607131567611767
-NO,"Social Rights and Skills, Quality Jobs and Preparedness",5,0.825336064613288
-NO,"Social Rights and Skills, Quality Jobs and Preparedness",6,0.8012469595624174
-NO,"Social Rights and Skills, Quality Jobs and Preparedness",7,0.8380386495409379
-NO,"Social Rights and Skills, Quality Jobs and Preparedness",8,0.8459798136988252
-NO,"Social Rights and Skills, Quality Jobs and Preparedness",9,0.83002095158694
-NO,"Social Rights and Skills, Quality Jobs and Preparedness",10,0.8242945945751243
-PL,Agriculture and Food,1,0.5800100322172598
-PL,Agriculture and Food,2,0.5800100322172598
-PL,Agriculture and Food,3,0.6297592735832721
-PL,Agriculture and Food,4,0.6297592735832721
-PL,Agriculture and Food,5,0.5562651257937836
-PL,Agriculture and Food,6,0.5562651257937836
-PL,Agriculture and Food,7,0.45768109404496865
-PL,Agriculture and Food,8,0.45768109404496865
-PL,Agriculture and Food,9,0.5940863003766343
-PL,Agriculture and Food,10,0.5940863003766343
-PL,Energy and Housing,1,0.47126638094248696
-PL,Energy and Housing,2,0.428357340452273
-PL,Energy and Housing,3,0.45849063874849166
-PL,Energy and Housing,4,0.3908951533666578
-PL,Energy and Housing,5,0.4486868614253583
-PL,Energy and Housing,6,0.48714666203619994
-PL,Energy and Housing,7,0.49747007555868694
-PL,Energy and Housing,8,0.5245874382760266
-PL,Energy and Housing,9,0.5235602667531852
-PL,Energy and Housing,10,0.594583653441766
-PL,Equality,1,0.5839115042517439
-PL,Equality,2,0.6580382634701575
-PL,Equality,3,0.7053565825936369
-PL,Equality,4,0.7191940466263266
-PL,Equality,5,0.7331353385122144
-PL,Equality,6,0.7546207588671449
-PL,Equality,7,0.7281964782722751
-PL,Equality,8,0.723013275873389
-PL,Equality,9,0.7657384255280838
-PL,Equality,10,0.7661261921747164
-PL,Health and Animal Welfare,1,0.5364198851890556
-PL,Health and Animal Welfare,2,0.5468528175494795
-PL,Health and Animal Welfare,3,0.5722429904427933
-PL,Health and Animal Welfare,4,0.5805489632072811
-PL,Health and Animal Welfare,5,0.5622146795435073
-PL,Health and Animal Welfare,6,0.5509798868888395
-PL,Health and Animal Welfare,7,0.514265499304666
-PL,Health and Animal Welfare,8,0.5368404852990147
-PL,Health and Animal Welfare,9,0.5593476013918423
-PL,Health and Animal Welfare,10,0.573471667452271
-PL,"Intergenerational Fairness, Youth, Culture and Sport",1,0.9059873803843235
-PL,"Intergenerational Fairness, Youth, Culture and Sport",2,0.9296029894562483
-PL,"Intergenerational Fairness, Youth, Culture and Sport",3,0.9306042370667414
-PL,"Intergenerational Fairness, Youth, Culture and Sport",4,0.8954777170525465
-PL,"Intergenerational Fairness, Youth, Culture and Sport",5,0.9460670450946734
-PL,"Intergenerational Fairness, Youth, Culture and Sport",6,0.8723852324352162
-PL,"Intergenerational Fairness, Youth, Culture and Sport",7,0.9057742664396722
-PL,"Intergenerational Fairness, Youth, Culture and Sport",8,0.9076348441421969
-PL,"Intergenerational Fairness, Youth, Culture and Sport",9,0.9233936500140233
-PL,"Intergenerational Fairness, Youth, Culture and Sport",10,0.7159919361955394
-PL,"Social Rights and Skills, Quality Jobs and Preparedness",1,0.6756995395788389
-PL,"Social Rights and Skills, Quality Jobs and Preparedness",2,0.6670820893361004
-PL,"Social Rights and Skills, Quality Jobs and Preparedness",3,0.67112204517365
-PL,"Social Rights and Skills, Quality Jobs and Preparedness",4,0.6302086438652157
-PL,"Social Rights and Skills, Quality Jobs and Preparedness",5,0.6567617897094253
-PL,"Social Rights and Skills, Quality Jobs and Preparedness",6,0.6432016784848845
-PL,"Social Rights and Skills, Quality Jobs and Preparedness",7,0.664993121105208
-PL,"Social Rights and Skills, Quality Jobs and Preparedness",8,0.638757373341806
-PL,"Social Rights and Skills, Quality Jobs and Preparedness",9,0.5729350318496732
-PL,"Social Rights and Skills, Quality Jobs and Preparedness",10,0.5711375320943728
-PT,Agriculture and Food,1,0.7171041139474017
-PT,Agriculture and Food,2,0.7171041139474017
-PT,Agriculture and Food,3,0.7705658462515359
-PT,Agriculture and Food,4,0.7705658462515359
-PT,Agriculture and Food,5,0.606425173247792
-PT,Agriculture and Food,6,0.606425173247792
-PT,Agriculture and Food,7,0.6948021545140227
-PT,Agriculture and Food,8,0.6948021545140227
-PT,Agriculture and Food,9,0.7656552481914174
-PT,Agriculture and Food,10,0.7656552481914174
-PT,Energy and Housing,1,0.6313945064998369
-PT,Energy and Housing,2,0.6008074939554202
-PT,Energy and Housing,3,0.5909753236475158
-PT,Energy and Housing,4,0.5918210286464405
-PT,Energy and Housing,5,0.5876348823767875
-PT,Energy and Housing,6,0.5910623101126251
-PT,Energy and Housing,7,0.5900704715473123
-PT,Energy and Housing,8,0.5982793124819419
-PT,Energy and Housing,9,0.6216157189834447
-PT,Energy and Housing,10,0.6708822953640615
-PT,Equality,1,0.5150610361415978
-PT,Equality,2,0.5569578845546107
-PT,Equality,3,0.6174273725435916
-PT,Equality,4,0.6300662101574045
-PT,Equality,5,0.6264209538699812
-PT,Equality,6,0.655772877128713
-PT,Equality,7,0.5708203956132796
-PT,Equality,8,0.6019871986320982
-PT,Equality,9,0.685838398077981
-PT,Equality,10,0.7152490903788251
-PT,Health and Animal Welfare,1,0.3682281172048868
-PT,Health and Animal Welfare,2,0.38094432153958485
-PT,Health and Animal Welfare,3,0.35194452110075825
-PT,Health and Animal Welfare,4,0.3822830744478932
-PT,Health and Animal Welfare,5,0.37372972201504945
-PT,Health and Animal Welfare,6,0.35949335305464086
-PT,Health and Animal Welfare,7,0.31421796708770766
-PT,Health and Animal Welfare,8,0.3059231428398152
-PT,Health and Animal Welfare,9,0.3789619402480119
-PT,Health and Animal Welfare,10,0.371295190570045
-PT,"Intergenerational Fairness, Youth, Culture and Sport",1,0.2545863056853756
-PT,"Intergenerational Fairness, Youth, Culture and Sport",2,0.2990561276567067
-PT,"Intergenerational Fairness, Youth, Culture and Sport",3,0.3764948725006597
-PT,"Intergenerational Fairness, Youth, Culture and Sport",4,0.47820676819100666
-PT,"Intergenerational Fairness, Youth, Culture and Sport",5,0.5573942109475841
-PT,"Intergenerational Fairness, Youth, Culture and Sport",6,0.39494573497805663
-PT,"Intergenerational Fairness, Youth, Culture and Sport",7,0.6569241115156527
-PT,"Intergenerational Fairness, Youth, Culture and Sport",8,0.4586748164411194
-PT,"Intergenerational Fairness, Youth, Culture and Sport",9,0.5235068603012099
-PT,"Intergenerational Fairness, Youth, Culture and Sport",10,0.5942269525390385
-PT,"Social Rights and Skills, Quality Jobs and Preparedness",1,0.6695600360419376
-PT,"Social Rights and Skills, Quality Jobs and Preparedness",2,0.683287809006458
-PT,"Social Rights and Skills, Quality Jobs and Preparedness",3,0.6768773860789633
-PT,"Social Rights and Skills, Quality Jobs and Preparedness",4,0.629714501266124
-PT,"Social Rights and Skills, Quality Jobs and Preparedness",5,0.6408303889642155
-PT,"Social Rights and Skills, Quality Jobs and Preparedness",6,0.622722754169342
-PT,"Social Rights and Skills, Quality Jobs and Preparedness",7,0.6288727979350094
-PT,"Social Rights and Skills, Quality Jobs and Preparedness",8,0.5917036111465871
-PT,"Social Rights and Skills, Quality Jobs and Preparedness",9,0.5923400570612289
-PT,"Social Rights and Skills, Quality Jobs and Preparedness",10,0.608307973377837
-RO,Agriculture and Food,1,0.34548592117136384
-RO,Agriculture and Food,2,0.34548592117136384
-RO,Agriculture and Food,3,0.5230373404751932
-RO,Agriculture and Food,4,0.5230373404751932
-RO,Agriculture and Food,5,0.39931925672889373
-RO,Agriculture and Food,6,0.39931925672889373
-RO,Agriculture and Food,7,0.31312651805848934
-RO,Agriculture and Food,8,0.31312651805848934
-RO,Agriculture and Food,9,0.41659358073314134
-RO,Agriculture and Food,10,0.41659358073314134
-RO,Energy and Housing,1,0.621135168598899
-RO,Energy and Housing,2,0.5780198198192181
-RO,Energy and Housing,3,0.559090926932286
-RO,Energy and Housing,4,0.5143607828277436
-RO,Energy and Housing,5,0.46703977381301515
-RO,Energy and Housing,6,0.40361382039621874
-RO,Energy and Housing,7,0.358926572916628
-RO,Energy and Housing,8,0.3551334495569325
-RO,Energy and Housing,9,0.3413292300713607
-RO,Energy and Housing,10,0.32613830772644137
-RO,Equality,1,0.5124339069444932
-RO,Equality,2,0.5308390056678083
-RO,Equality,3,0.5604182575364013
-RO,Equality,4,0.5874159004947339
-RO,Equality,5,0.5958026679329523
-RO,Equality,6,0.6052145399110235
-RO,Equality,7,0.6086216155411558
-RO,Equality,8,0.6245429414287983
-RO,Equality,9,0.6369131815875739
-RO,Equality,10,0.6428235900139921
-RO,Health and Animal Welfare,1,0.6218981605799374
-RO,Health and Animal Welfare,2,0.6097145652585478
-RO,Health and Animal Welfare,3,0.60891965401627
-RO,Health and Animal Welfare,4,0.6208656710716643
-RO,Health and Animal Welfare,5,0.5749481082888076
-RO,Health and Animal Welfare,6,0.557683674505203
-RO,Health and Animal Welfare,7,0.5352605652756866
-RO,Health and Animal Welfare,8,0.5374853286484124
-RO,Health and Animal Welfare,9,0.5515386738401233
-RO,Health and Animal Welfare,10,0.5518285788152566
-RO,"Intergenerational Fairness, Youth, Culture and Sport",1,0.5103348875280316
-RO,"Intergenerational Fairness, Youth, Culture and Sport",2,0.7124094692245433
-RO,"Intergenerational Fairness, Youth, Culture and Sport",3,0.8812460510964091
-RO,"Intergenerational Fairness, Youth, Culture and Sport",4,0.8488534610760237
-RO,"Intergenerational Fairness, Youth, Culture and Sport",5,0.9328288322759184
-RO,"Intergenerational Fairness, Youth, Culture and Sport",6,0.9355108984952274
-RO,"Intergenerational Fairness, Youth, Culture and Sport",7,0.8627875258150919
-RO,"Intergenerational Fairness, Youth, Culture and Sport",8,0.8836997952105785
-RO,"Intergenerational Fairness, Youth, Culture and Sport",9,0.9478169449567874
-RO,"Intergenerational Fairness, Youth, Culture and Sport",10,0.7328093045356725
-RO,"Social Rights and Skills, Quality Jobs and Preparedness",1,0.8978646168365988
-RO,"Social Rights and Skills, Quality Jobs and Preparedness",2,0.8851394920399593
-RO,"Social Rights and Skills, Quality Jobs and Preparedness",3,0.9126647156941169
-RO,"Social Rights and Skills, Quality Jobs and Preparedness",4,0.9246657442890835
-RO,"Social Rights and Skills, Quality Jobs and Preparedness",5,0.9261859644998777
-RO,"Social Rights and Skills, Quality Jobs and Preparedness",6,0.9194609180351343
-RO,"Social Rights and Skills, Quality Jobs and Preparedness",7,0.9267544436597507
-RO,"Social Rights and Skills, Quality Jobs and Preparedness",8,0.9298782000863205
-RO,"Social Rights and Skills, Quality Jobs and Preparedness",9,0.9239164053099177
-RO,"Social Rights and Skills, Quality Jobs and Preparedness",10,0.9374358125142948
-RS,Energy and Housing,1,0.13859289319539625
-RS,Energy and Housing,2,0.1531588299854071
-RS,Energy and Housing,3,0.21016123532673714
-RS,Energy and Housing,4,0.23814221339553426
-RS,Energy and Housing,5,0.1812230810603592
-RS,Energy and Housing,6,0.20539433094368287
-RS,Energy and Housing,7,0.21947369314720877
-RS,Energy and Housing,8,0.23442477927615407
-RS,Energy and Housing,9,0.20666798987516202
-RS,Energy and Housing,10,0.2725438600882771
-RS,Equality,1,0.1845665674571227
-RS,Equality,2,0.1596057169632888
-RS,Equality,3,0.22701601793357262
-RS,Equality,4,0.23366789790888112
-RS,Equality,5,0.2452063166870674
-RS,Equality,6,0.3204796912960528
-RS,Equality,7,0.1684297605657035
-RS,Equality,8,0.22695822095167276
-RS,Equality,9,0.41704853281425247
-RS,Equality,10,0.4547849265616147
-RS,Health and Animal Welfare,1,0.4904477218400573
-RS,Health and Animal Welfare,2,0.45934857494909964
-RS,Health and Animal Welfare,3,0.416774603772216
-RS,Health and Animal Welfare,4,0.40534458023013953
-RS,Health and Animal Welfare,5,0.4020702726289068
-RS,Health and Animal Welfare,6,0.3564421286735707
-RS,Health and Animal Welfare,7,0.3428800930052723
-RS,Health and Animal Welfare,8,0.35871155262917276
-RS,Health and Animal Welfare,9,0.35380703227099985
-RS,Health and Animal Welfare,10,0.3353476459346246
-RS,"Intergenerational Fairness, Youth, Culture and Sport",1,0.49922757898096126
-RS,"Intergenerational Fairness, Youth, Culture and Sport",2,0.770081884280952
-RS,"Intergenerational Fairness, Youth, Culture and Sport",3,0.786916489159473
-RS,"Intergenerational Fairness, Youth, Culture and Sport",4,0.9054042595552817
-RS,"Intergenerational Fairness, Youth, Culture and Sport",5,0.8567568545390017
-RS,"Intergenerational Fairness, Youth, Culture and Sport",6,0.8178340779159893
-RS,"Intergenerational Fairness, Youth, Culture and Sport",7,0.8367050973575212
-RS,"Intergenerational Fairness, Youth, Culture and Sport",8,0.8749251960485894
-RS,"Intergenerational Fairness, Youth, Culture and Sport",9,0.8689776771004987
-RS,"Intergenerational Fairness, Youth, Culture and Sport",10,0.4796839820518565
-RS,"Social Rights and Skills, Quality Jobs and Preparedness",1,0.17138550880676967
-RS,"Social Rights and Skills, Quality Jobs and Preparedness",2,0.045103086549409165
-RS,"Social Rights and Skills, Quality Jobs and Preparedness",3,0.11220729083863369
-RS,"Social Rights and Skills, Quality Jobs and Preparedness",4,0.034040542161918125
-RS,"Social Rights and Skills, Quality Jobs and Preparedness",5,0.02662351768799381
-RS,"Social Rights and Skills, Quality Jobs and Preparedness",6,0.15521969581189696
-RS,"Social Rights and Skills, Quality Jobs and Preparedness",7,0.08204116464196497
-RS,"Social Rights and Skills, Quality Jobs and Preparedness",8,0.05470619159557551
-RS,"Social Rights and Skills, Quality Jobs and Preparedness",9,0.09640151340246314
-RS,"Social Rights and Skills, Quality Jobs and Preparedness",10,0.17304915126118364
-SE,Agriculture and Food,1,0.829769401592567
-SE,Agriculture and Food,2,0.829769401592567
-SE,Agriculture and Food,3,0.5243075708352832
-SE,Agriculture and Food,4,0.5243075708352832
-SE,Agriculture and Food,5,0.556855121780899
-SE,Agriculture and Food,6,0.556855121780899
-SE,Agriculture and Food,7,0.27008611272278016
-SE,Agriculture and Food,8,0.27008611272278016
-SE,Agriculture and Food,9,0.7521915521577375
-SE,Agriculture and Food,10,0.7521915521577375
-SE,Energy and Housing,1,0.5231302776655927
-SE,Energy and Housing,2,0.654591886363607
-SE,Energy and Housing,3,0.6778690970429332
-SE,Energy and Housing,4,0.6950803006487992
-SE,Energy and Housing,5,0.7370171415051521
-SE,Energy and Housing,6,0.7431464531790078
-SE,Energy and Housing,7,0.7535221854163082
-SE,Energy and Housing,8,0.7781544205556469
-SE,Energy and Housing,9,0.7926505202274813
-SE,Energy and Housing,10,0.8042602195060118
-SE,Equality,1,0.7460757398411815
-SE,Equality,2,0.7320139542888238
-SE,Equality,3,0.7722889114908069
-SE,Equality,4,0.7858897168872064
-SE,Equality,5,0.7651482952467497
-SE,Equality,6,0.7669791899551182
-SE,Equality,7,0.8394359222438496
-SE,Equality,8,0.8548583443023897
-SE,Equality,9,0.7817753792076014
-SE,Equality,10,0.7894314451670895
-SE,Health and Animal Welfare,1,0.7507638344095385
-SE,Health and Animal Welfare,2,0.7353035557288357
-SE,Health and Animal Welfare,3,0.6542436401044059
-SE,Health and Animal Welfare,4,0.6797264419720137
-SE,Health and Animal Welfare,5,0.5853805625813037
-SE,Health and Animal Welfare,6,0.5572222616081837
-SE,Health and Animal Welfare,7,0.6824085309628778
-SE,Health and Animal Welfare,8,0.6796214964669083
-SE,Health and Animal Welfare,9,0.6594096463012552
-SE,Health and Animal Welfare,10,0.6794873805121817
-SE,"Intergenerational Fairness, Youth, Culture and Sport",1,1.0
-SE,"Intergenerational Fairness, Youth, Culture and Sport",2,1.0
-SE,"Intergenerational Fairness, Youth, Culture and Sport",3,1.0
-SE,"Intergenerational Fairness, Youth, Culture and Sport",4,1.0
-SE,"Intergenerational Fairness, Youth, Culture and Sport",5,1.0
-SE,"Intergenerational Fairness, Youth, Culture and Sport",6,1.0
-SE,"Intergenerational Fairness, Youth, Culture and Sport",7,1.0
-SE,"Intergenerational Fairness, Youth, Culture and Sport",8,1.0
-SE,"Intergenerational Fairness, Youth, Culture and Sport",9,1.0
-SE,"Intergenerational Fairness, Youth, Culture and Sport",10,1.0
-SE,"Social Rights and Skills, Quality Jobs and Preparedness",1,0.6206239993151822
-SE,"Social Rights and Skills, Quality Jobs and Preparedness",2,0.6042795085423004
-SE,"Social Rights and Skills, Quality Jobs and Preparedness",3,0.6694017577440439
-SE,"Social Rights and Skills, Quality Jobs and Preparedness",4,0.7301116094538027
-SE,"Social Rights and Skills, Quality Jobs and Preparedness",5,0.7604555892956941
-SE,"Social Rights and Skills, Quality Jobs and Preparedness",6,0.7656700960014732
-SE,"Social Rights and Skills, Quality Jobs and Preparedness",7,0.7911881800297488
-SE,"Social Rights and Skills, Quality Jobs and Preparedness",8,0.7920669899684417
-SE,"Social Rights and Skills, Quality Jobs and Preparedness",9,0.7969492803951823
-SE,"Social Rights and Skills, Quality Jobs and Preparedness",10,0.7867145150045299
-SI,Agriculture and Food,1,0.6376855462629154
-SI,Agriculture and Food,2,0.6376855462629154
-SI,Agriculture and Food,3,0.7926327565058263
-SI,Agriculture and Food,4,0.7926327565058263
-SI,Agriculture and Food,5,0.796743594193755
-SI,Agriculture and Food,6,0.796743594193755
-SI,Agriculture and Food,7,0.6232246444018125
-SI,Agriculture and Food,8,0.6232246444018125
-SI,Agriculture and Food,9,0.556759464282765
-SI,Agriculture and Food,10,0.556759464282765
-SI,Energy and Housing,1,0.7006680841509269
-SI,Energy and Housing,2,0.6930898762859825
-SI,Energy and Housing,3,0.668391666272013
-SI,Energy and Housing,4,0.6674289724434997
-SI,Energy and Housing,5,0.6809219205474798
-SI,Energy and Housing,6,0.685072730637556
-SI,Energy and Housing,7,0.6855509592519737
-SI,Energy and Housing,8,0.7033602934077462
-SI,Energy and Housing,9,0.6933944039648424
-SI,Energy and Housing,10,0.6964362285426589
-SI,Equality,1,0.4966959731899429
-SI,Equality,2,0.5810229101246669
-SI,Equality,3,0.6693562026250638
-SI,Equality,4,0.6893141804920706
-SI,Equality,5,0.7141839240431707
-SI,Equality,6,0.7277326023985676
-SI,Equality,7,0.7092873217490411
-SI,Equality,8,0.7216435567031452
-SI,Equality,9,0.730595794717499
-SI,Equality,10,0.7603845375552097
-SI,Health and Animal Welfare,1,0.40934770805221393
-SI,Health and Animal Welfare,2,0.48282376560203905
-SI,Health and Animal Welfare,3,0.5246773943321417
-SI,Health and Animal Welfare,4,0.5291447578846376
-SI,Health and Animal Welfare,5,0.5068448956650068
-SI,Health and Animal Welfare,6,0.5089568340691553
-SI,Health and Animal Welfare,7,0.5303971440836878
-SI,Health and Animal Welfare,8,0.5243423009275482
-SI,Health and Animal Welfare,9,0.509720472867266
-SI,Health and Animal Welfare,10,0.5219777106944852
-SI,"Intergenerational Fairness, Youth, Culture and Sport",1,1.0
-SI,"Intergenerational Fairness, Youth, Culture and Sport",2,1.0
-SI,"Intergenerational Fairness, Youth, Culture and Sport",3,1.0
-SI,"Intergenerational Fairness, Youth, Culture and Sport",4,1.0
-SI,"Intergenerational Fairness, Youth, Culture and Sport",5,1.0
-SI,"Intergenerational Fairness, Youth, Culture and Sport",6,1.0
-SI,"Intergenerational Fairness, Youth, Culture and Sport",7,1.0
-SI,"Intergenerational Fairness, Youth, Culture and Sport",8,1.0
-SI,"Intergenerational Fairness, Youth, Culture and Sport",9,1.0
-SI,"Intergenerational Fairness, Youth, Culture and Sport",10,1.0
-SI,"Social Rights and Skills, Quality Jobs and Preparedness",1,0.6143152358087915
-SI,"Social Rights and Skills, Quality Jobs and Preparedness",2,0.6104402738511623
-SI,"Social Rights and Skills, Quality Jobs and Preparedness",3,0.5897084390631507
-SI,"Social Rights and Skills, Quality Jobs and Preparedness",4,0.5760091825856872
-SI,"Social Rights and Skills, Quality Jobs and Preparedness",5,0.590584330759112
-SI,"Social Rights and Skills, Quality Jobs and Preparedness",6,0.6106573953981868
-SI,"Social Rights and Skills, Quality Jobs and Preparedness",7,0.6312102808815611
-SI,"Social Rights and Skills, Quality Jobs and Preparedness",8,0.6255022514153706
-SI,"Social Rights and Skills, Quality Jobs and Preparedness",9,0.6296757796608873
-SI,"Social Rights and Skills, Quality Jobs and Preparedness",10,0.598829092510786
-SK,Agriculture and Food,1,0.28797746386212053
-SK,Agriculture and Food,2,0.28797746386212053
-SK,Agriculture and Food,3,0.6001010092452391
-SK,Agriculture and Food,4,0.6001010092452391
-SK,Agriculture and Food,5,0.42417060486304003
-SK,Agriculture and Food,6,0.42417060486304003
-SK,Agriculture and Food,7,0.11357630631725163
-SK,Agriculture and Food,8,0.11357630631725163
-SK,Agriculture and Food,9,0.6129298349622392
-SK,Agriculture and Food,10,0.6129298349622392
-SK,Energy and Housing,1,0.503494990950931
-SK,Energy and Housing,2,0.5804239163779681
-SK,Energy and Housing,3,0.5625753365460594
-SK,Energy and Housing,4,0.5787019227867705
-SK,Energy and Housing,5,0.5655810441861581
-SK,Energy and Housing,6,0.5410653634097997
-SK,Energy and Housing,7,0.5156325787412774
-SK,Energy and Housing,8,0.4999022576995408
-SK,Energy and Housing,9,0.44149225216930554
-SK,Energy and Housing,10,0.3738410020799122
-SK,Equality,1,0.6251509476802501
-SK,Equality,2,0.7084393905350472
-SK,Equality,3,0.7385614169887087
-SK,Equality,4,0.756196882308741
-SK,Equality,5,0.7508031938610653
-SK,Equality,6,0.7400898431426661
-SK,Equality,7,0.7622107328476313
-SK,Equality,8,0.7573328430828736
-SK,Equality,9,0.7434816722105132
-SK,Equality,10,0.7087888401578396
-SK,Health and Animal Welfare,1,0.5051014138896587
-SK,Health and Animal Welfare,2,0.500278977468479
-SK,Health and Animal Welfare,3,0.5697962657176118
-SK,Health and Animal Welfare,4,0.5544385393737393
-SK,Health and Animal Welfare,5,0.5537032093935004
-SK,Health and Animal Welfare,6,0.5746176981485449
-SK,Health and Animal Welfare,7,0.5681082534315316
-SK,Health and Animal Welfare,8,0.5562586009717846
-SK,Health and Animal Welfare,9,0.5549033981847744
-SK,Health and Animal Welfare,10,0.5550139365946111
-SK,"Intergenerational Fairness, Youth, Culture and Sport",1,0.938668659686242
-SK,"Intergenerational Fairness, Youth, Culture and Sport",2,0.9711958379309589
-SK,"Intergenerational Fairness, Youth, Culture and Sport",3,0.9869489911706492
-SK,"Intergenerational Fairness, Youth, Culture and Sport",4,0.9634601545531412
-SK,"Intergenerational Fairness, Youth, Culture and Sport",5,0.8900972282213079
-SK,"Intergenerational Fairness, Youth, Culture and Sport",6,0.948145084832103
-SK,"Intergenerational Fairness, Youth, Culture and Sport",7,0.9772590575580778
-SK,"Intergenerational Fairness, Youth, Culture and Sport",8,0.948322630691744
-SK,"Intergenerational Fairness, Youth, Culture and Sport",9,0.9782403214216903
-SK,"Intergenerational Fairness, Youth, Culture and Sport",10,0.9113634644402634
-SK,"Social Rights and Skills, Quality Jobs and Preparedness",1,0.6850797561809112
-SK,"Social Rights and Skills, Quality Jobs and Preparedness",2,0.7955082216986559
-SK,"Social Rights and Skills, Quality Jobs and Preparedness",3,0.7658573340376498
-SK,"Social Rights and Skills, Quality Jobs and Preparedness",4,0.8182658894788698
-SK,"Social Rights and Skills, Quality Jobs and Preparedness",5,0.8089501978613112
-SK,"Social Rights and Skills, Quality Jobs and Preparedness",6,0.8028746259283228
-SK,"Social Rights and Skills, Quality Jobs and Preparedness",7,0.8046618899612975
-SK,"Social Rights and Skills, Quality Jobs and Preparedness",8,0.7584518620362453
-SK,"Social Rights and Skills, Quality Jobs and Preparedness",9,0.7535481454630593
-SK,"Social Rights and Skills, Quality Jobs and Preparedness",10,0.7512482231185652
-UK,Agriculture and Food,1,0.8060054336838136
-UK,Agriculture and Food,2,0.8060054336838136
-UK,Agriculture and Food,3,0.8060855254183867
-UK,Agriculture and Food,4,0.8060855254183867
-UK,Agriculture and Food,5,0.749426111188953
-UK,Agriculture and Food,6,0.749426111188953
-UK,Agriculture and Food,7,0.7001241756070398
-UK,Agriculture and Food,8,0.7001241756070398
-UK,Agriculture and Food,9,0.7903002338379764
-UK,Agriculture and Food,10,0.7903002338379764
-UK,Energy and Housing,1,0.9260963618184116
-UK,Energy and Housing,2,0.9221783736034329
-UK,Energy and Housing,3,0.930473818743332
-UK,Energy and Housing,4,0.9161374769949933
-UK,Energy and Housing,5,0.9135123852449047
-UK,Energy and Housing,6,0.9229952715346929
-UK,Energy and Housing,7,0.9144380426068425
-UK,Energy and Housing,8,0.9283472576084815
-UK,Energy and Housing,9,0.9271635897811342
-UK,Energy and Housing,10,0.9265965060395053
-UK,Equality,1,0.6507262191094878
-UK,Equality,2,0.6467926543030762
-UK,Equality,3,0.6983126179986152
-UK,Equality,4,0.6907311759393013
-UK,Equality,5,0.7396965130098041
-UK,Equality,6,0.7464080642611393
-UK,Equality,7,0.6668846020206156
-UK,Equality,8,0.6753496405008156
-UK,Equality,9,0.7356312847647362
-UK,Equality,10,0.7528709420289759
-UK,Health and Animal Welfare,1,0.5478401913383206
-UK,Health and Animal Welfare,2,0.5558197392684194
-UK,Health and Animal Welfare,3,0.5843435444741137
-UK,Health and Animal Welfare,4,0.6057906700804122
-UK,Health and Animal Welfare,5,0.6337574551243904
-UK,Health and Animal Welfare,6,0.6297768347039029
-UK,Health and Animal Welfare,7,0.5717046931346398
-UK,Health and Animal Welfare,8,0.5854432581928323
-UK,Health and Animal Welfare,9,0.6160200567802929
-UK,Health and Animal Welfare,10,0.6339409583398313
-UK,"Social Rights and Skills, Quality Jobs and Preparedness",1,0.6116736181347849
-UK,"Social Rights and Skills, Quality Jobs and Preparedness",2,0.6231076350316108
-UK,"Social Rights and Skills, Quality Jobs and Preparedness",3,0.6701242639383295
-UK,"Social Rights and Skills, Quality Jobs and Preparedness",4,0.6979564712376766
-UK,"Social Rights and Skills, Quality Jobs and Preparedness",5,0.7067584867641968
-UK,"Social Rights and Skills, Quality Jobs and Preparedness",6,0.7186532512772215
-UK,"Social Rights and Skills, Quality Jobs and Preparedness",7,0.7297364722412781
-UK,"Social Rights and Skills, Quality Jobs and Preparedness",8,0.7249935927202266
-UK,"Social Rights and Skills, Quality Jobs and Preparedness",9,0.7134806623657451
-UK,"Social Rights and Skills, Quality Jobs and Preparedness",10,0.6931288423954701
+0,country,eu_priority,decile,score
+0.9029543865772581,,,,
+0.9029543865772581,,,,
+0.8735010159072067,,,,
+0.8735010159072067,,,,
+0.8353463141731952,,,,
+0.8353463141731952,,,,
+0.8393437305506989,,,,
+0.8393437305506989,,,,
+0.7760174965546697,,,,
+0.7760174965546697,,,,
+0.5266441261055305,,,,
+0.5283858850145688,,,,
+0.5826089639503199,,,,
+0.5948045597988695,,,,
+0.6097784407005788,,,,
+0.6019414937843366,,,,
+0.6139705879225725,,,,
+0.6275619711164172,,,,
+0.6153482248186581,,,,
+0.623057645882904,,,,
+0.7604941767965896,,,,
+0.8052040691329321,,,,
+0.8632985865708827,,,,
+0.8809186901032473,,,,
+0.8721169638579219,,,,
+0.867341316767449,,,,
+0.8607574049162054,,,,
+0.8609219225188358,,,,
+0.8757813231237751,,,,
+0.8921732847073509,,,,
+0.5784521135619785,,,,
+0.6020990393887331,,,,
+0.6011140646571828,,,,
+0.6007552565346812,,,,
+0.5784972295401822,,,,
+0.5585304416754587,,,,
+0.5432741018955014,,,,
+0.5466468324127683,,,,
+0.5293761186675241,,,,
+0.5345690974547953,,,,
+1.0,,,,
+1.0,,,,
+1.0,,,,
+1.0,,,,
+1.0,,,,
+1.0,,,,
+1.0,,,,
+1.0,,,,
+1.0,,,,
+1.0,,,,
+0.7104657391768352,,,,
+0.714305033433453,,,,
+0.7302329340288493,,,,
+0.7308068643690053,,,,
+0.7499790222946221,,,,
+0.7421522835369129,,,,
+0.767506622808455,,,,
+0.7695539357152644,,,,
+0.7448056851715829,,,,
+0.7290261935984551,,,,
+0.40493121678941646,,,,
+0.40493121678941646,,,,
+0.6364645446721973,,,,
+0.6364645446721973,,,,
+0.19548645349682717,,,,
+0.19548645349682717,,,,
+0.4154066270890502,,,,
+0.4154066270890502,,,,
+0.47036548898771535,,,,
+0.47036548898771535,,,,
+0.876258566326239,,,,
+0.9306101908438487,,,,
+0.9387012846199805,,,,
+0.9511641677283951,,,,
+0.9535336099901119,,,,
+0.96024241317622,,,,
+0.9634889072751261,,,,
+0.9724676717033682,,,,
+0.9750276808530114,,,,
+0.9689200785183971,,,,
+0.6156679155436368,,,,
+0.6922004708945853,,,,
+0.794093283888092,,,,
+0.8210621795848678,,,,
+0.7842522527471187,,,,
+0.8084562593450821,,,,
+0.8625666519264189,,,,
+0.8877400951981531,,,,
+0.9072343465416185,,,,
+0.9149835464541847,,,,
+0.5196157896750317,,,,
+0.529146810288653,,,,
+0.5564048051624693,,,,
+0.5973896717396451,,,,
+0.5576731681895958,,,,
+0.5515946656328304,,,,
+0.5340629430434084,,,,
+0.5687925278751935,,,,
+0.6149019680202826,,,,
+0.6277945386065439,,,,
+0.7179653619207861,,,,
+0.8164572044720553,,,,
+0.7797248243613685,,,,
+0.8646868731636813,,,,
+0.9038793752398429,,,,
+0.8680654682972871,,,,
+0.9099401286288369,,,,
+0.9008434741343031,,,,
+0.8824881044545485,,,,
+0.8449698187864223,,,,
+0.6278592812694447,,,,
+0.6089720847782909,,,,
+0.6219543635807424,,,,
+0.6632546908536401,,,,
+0.6507978884031068,,,,
+0.6402178501670692,,,,
+0.6917352690444464,,,,
+0.7190454120899666,,,,
+0.7306487217422887,,,,
+0.7108742570875791,,,,
+0.0010000000000000002,,,,
+0.0010000000000000002,,,,
+0.0076662150542632255,,,,
+0.0076662150542632255,,,,
+0.007819647232140646,,,,
+0.007819647232140646,,,,
+0.6417173096772667,,,,
+0.6417173096772667,,,,
+0.6227707588910519,,,,
+0.6227707588910519,,,,
+0.47749874768592715,,,,
+0.47931785308685854,,,,
+0.4296888208117376,,,,
+0.40842079948454274,,,,
+0.4014541939725247,,,,
+0.3880198169462049,,,,
+0.3717456864891198,,,,
+0.35928964651931966,,,,
+0.31374114409745907,,,,
+0.28438762310574683,,,,
+0.1651707586271079,,,,
+0.1673060589852047,,,,
+0.17474906527506426,,,,
+0.19233164469290398,,,,
+0.3184481679010949,,,,
+0.327166959880247,,,,
+0.37434219287022985,,,,
+0.4257485026319167,,,,
+0.4797059500705493,,,,
+0.516372180795253,,,,
+0.49611481625218623,,,,
+0.4994418781990701,,,,
+0.47910015330696143,,,,
+0.5028019015117291,,,,
+0.5435747066403327,,,,
+0.5485583648165158,,,,
+0.5562847155963564,,,,
+0.5639146102470065,,,,
+0.5878309965579942,,,,
+0.5759398114764315,,,,
+0.5341165789018085,,,,
+0.7890308660050598,,,,
+0.7652388018098091,,,,
+0.9176112323300492,,,,
+0.9490930195680214,,,,
+0.9521935053948649,,,,
+0.8513404852216215,,,,
+0.8398740694347234,,,,
+0.835794976839142,,,,
+0.6758107743370034,,,,
+0.4938021399736342,,,,
+0.5422270619484645,,,,
+0.5219987163637972,,,,
+0.5364752947791323,,,,
+0.5672266878418818,,,,
+0.5149018240070781,,,,
+0.5768946136070453,,,,
+0.5674327792575717,,,,
+0.5819648028570271,,,,
+0.5993672039622631,,,,
+0.8708768703847255,,,,
+0.8753350972109248,,,,
+0.8986718872778787,,,,
+0.9037920706413761,,,,
+0.9239854626826255,,,,
+0.928404690128471,,,,
+0.9252321105420768,,,,
+0.9349306062576668,,,,
+0.9222891192804586,,,,
+0.9360879873966711,,,,
+0.9336327611422887,,,,
+0.9229521334599091,,,,
+0.9193073464317476,,,,
+0.9270275110097442,,,,
+0.9424099031976227,,,,
+0.9388727332544827,,,,
+0.9206849719174846,,,,
+0.9501722304644207,,,,
+0.9444525958153853,,,,
+0.9676975514286388,,,,
+0.461564167369317,,,,
+0.5799569806633141,,,,
+0.5588970795769523,,,,
+0.5852745318154041,,,,
+0.5566413618620711,,,,
+0.5026283314272544,,,,
+0.451361861865331,,,,
+0.45242599399372335,,,,
+0.44904764156127513,,,,
+0.42313605247162844,,,,
+0.9595021209278066,,,,
+0.9453215169346386,,,,
+0.9799120938825444,,,,
+0.9944342826917941,,,,
+0.9707962172573168,,,,
+0.9916967529107815,,,,
+0.9972607432543429,,,,
+0.990818364256109,,,,
+0.9879565770407062,,,,
+1.0,,,,
+0.663386303555518,,,,
+0.5638171987926864,,,,
+0.5335650286911828,,,,
+0.6458889155904577,,,,
+0.7201423510724682,,,,
+0.7141441321257592,,,,
+0.7644794950986717,,,,
+0.7478531504614396,,,,
+0.7659552435503441,,,,
+0.7140157590550579,,,,
+0.3312232489482961,,,,
+0.3312232489482961,,,,
+0.7570871434438233,,,,
+0.7570871434438233,,,,
+0.7241541943522983,,,,
+0.7241541943522983,,,,
+0.6510581846349288,,,,
+0.6510581846349288,,,,
+0.839033614012636,,,,
+0.839033614012636,,,,
+0.5757523345374336,,,,
+0.5526111051933049,,,,
+0.5285488027684129,,,,
+0.5241503191379839,,,,
+0.5316464540572791,,,,
+0.5146947715362504,,,,
+0.5476143956043332,,,,
+0.5539853335665847,,,,
+0.5858869508176744,,,,
+0.6139061511951931,,,,
+0.4705368754499136,,,,
+0.5114433377787602,,,,
+0.5365739658005677,,,,
+0.5381124585410882,,,,
+0.5541520502486553,,,,
+0.5653700658275923,,,,
+0.5319920903464492,,,,
+0.5537009513458092,,,,
+0.6255115952098403,,,,
+0.6705634242863692,,,,
+0.46435480700323756,,,,
+0.49865925086697394,,,,
+0.5211954796782934,,,,
+0.5888043990701679,,,,
+0.5849641681501428,,,,
+0.5840652123816735,,,,
+0.5830895855120846,,,,
+0.577223789573541,,,,
+0.5952173663475429,,,,
+0.6001875233120705,,,,
+0.3191129830918078,,,,
+0.36912882334453956,,,,
+0.3202146084147213,,,,
+0.7681247071039906,,,,
+0.7166790520871716,,,,
+0.7898908316671002,,,,
+0.8947171093711617,,,,
+0.7904926341078451,,,,
+0.8726720657578795,,,,
+0.8592145690759893,,,,
+0.7524784458333187,,,,
+0.6993887330625,,,,
+0.7367512559660564,,,,
+0.6906416268119235,,,,
+0.7038467646928476,,,,
+0.6882035392399722,,,,
+0.720141916144067,,,,
+0.70528138373004,,,,
+0.7134152307016715,,,,
+0.6969001311389885,,,,
+0.6366846488359892,,,,
+0.6366846488359892,,,,
+0.7830432785729561,,,,
+0.7830432785729561,,,,
+0.6591306284893944,,,,
+0.6591306284893944,,,,
+0.6327914971044517,,,,
+0.6327914971044517,,,,
+0.354019245932184,,,,
+0.354019245932184,,,,
+0.465757386248549,,,,
+0.5160291394709793,,,,
+0.46904181975438414,,,,
+0.47656587961738384,,,,
+0.4877300633657562,,,,
+0.4801552191477399,,,,
+0.46457666330644826,,,,
+0.4699017951776773,,,,
+0.46902128127263737,,,,
+0.47339558545174665,,,,
+0.6516141450723469,,,,
+0.7349281652355037,,,,
+0.7473617523938992,,,,
+0.7726053075599515,,,,
+0.8056421845966387,,,,
+0.8079764216618562,,,,
+0.7388964934392499,,,,
+0.7780786811450622,,,,
+0.8374099137785399,,,,
+0.8629821234305519,,,,
+0.4341776939985331,,,,
+0.5027182233175254,,,,
+0.6202389224241021,,,,
+0.569025174379099,,,,
+0.5976054373508287,,,,
+0.6304177551961907,,,,
+0.6037228738965098,,,,
+0.6042901272659974,,,,
+0.6296737701793338,,,,
+0.6228618942695313,,,,
+0.7213210509095531,,,,
+0.8100567165214423,,,,
+0.7724496353627078,,,,
+0.8760846880605162,,,,
+0.808743484367321,,,,
+0.8132494853197644,,,,
+0.8400323874368495,,,,
+0.8313696196350238,,,,
+0.8411259382914187,,,,
+0.7973548184701338,,,,
+0.7163390941203877,,,,
+0.7163390941203877,,,,
+0.784261491444702,,,,
+0.784261491444702,,,,
+0.5459004827678187,,,,
+0.5459004827678187,,,,
+0.5568667629077655,,,,
+0.5568667629077655,,,,
+0.5604631199763757,,,,
+0.5604631199763757,,,,
+0.7567520863507254,,,,
+0.8088674893889474,,,,
+0.8433432026818799,,,,
+0.8569889689563308,,,,
+0.8679294709074494,,,,
+0.8740159167734867,,,,
+0.8752344316773515,,,,
+0.8785948842419303,,,,
+0.886334080716639,,,,
+0.8937415371518392,,,,
+0.6255282662406272,,,,
+0.6570320971669847,,,,
+0.7418366713389984,,,,
+0.7714558183361155,,,,
+0.7777286526672317,,,,
+0.784578353723845,,,,
+0.740495353145729,,,,
+0.7474809362549301,,,,
+0.7638621312006276,,,,
+0.801949170947994,,,,
+0.5472092833490121,,,,
+0.571868072431719,,,,
+0.5776536908267897,,,,
+0.566894981822832,,,,
+0.5388644873987442,,,,
+0.523438485215083,,,,
+0.5277889779747863,,,,
+0.5443033239781571,,,,
+0.5580322384017866,,,,
+0.5825762153015258,,,,
+1.0,,,,
+1.0,,,,
+1.0,,,,
+1.0,,,,
+1.0,,,,
+1.0,,,,
+1.0,,,,
+1.0,,,,
+1.0,,,,
+1.0,,,,
+0.6202759380269501,,,,
+0.61956488846082,,,,
+0.669455785685586,,,,
+0.7065655312200262,,,,
+0.7357861305340242,,,,
+0.7427063889411415,,,,
+0.764290153289413,,,,
+0.7756050524583298,,,,
+0.7536383097864172,,,,
+0.766619891630879,,,,
+0.8169463970046711,,,,
+0.8169463970046711,,,,
+0.7989388702336275,,,,
+0.7989388702336275,,,,
+0.8472898416803866,,,,
+0.8472898416803866,,,,
+0.6908608867266248,,,,
+0.6908608867266248,,,,
+0.7568274687800788,,,,
+0.7568274687800788,,,,
+0.4767399397795281,,,,
+0.6087024860730181,,,,
+0.6414758931938849,,,,
+0.6386731251171841,,,,
+0.6425274299526893,,,,
+0.6465766879380116,,,,
+0.6440460216009957,,,,
+0.657074738603058,,,,
+0.6712096279802682,,,,
+0.6709423864357689,,,,
+0.6879083219135818,,,,
+0.7038738726325957,,,,
+0.8067484679652622,,,,
+0.8126155231979417,,,,
+0.8450997356089026,,,,
+0.8514295371500535,,,,
+0.8000557784504592,,,,
+0.8137975906169249,,,,
+0.7854703974557921,,,,
+0.7834285598723972,,,,
+0.6542127310808958,,,,
+0.6438843319876537,,,,
+0.6589265660444577,,,,
+0.6641558819270953,,,,
+0.6463165261779512,,,,
+0.6572126118080283,,,,
+0.668169287497639,,,,
+0.6598282377258874,,,,
+0.6487518799429559,,,,
+0.6549018252972678,,,,
+1.0,,,,
+1.0,,,,
+1.0,,,,
+1.0,,,,
+1.0,,,,
+1.0,,,,
+1.0,,,,
+1.0,,,,
+1.0,,,,
+1.0,,,,
+0.6863236421664487,,,,
+0.6178653756283662,,,,
+0.6793484917746652,,,,
+0.7460148780264622,,,,
+0.774667886510481,,,,
+0.7430959511293899,,,,
+0.7649201393768552,,,,
+0.7548417443392759,,,,
+0.7876935196052495,,,,
+0.7607259885616287,,,,
+0.5852381190671433,,,,
+0.5852381190671433,,,,
+0.8353367930415619,,,,
+0.8353367930415619,,,,
+0.6957162133699734,,,,
+0.6957162133699734,,,,
+0.7537156169672226,,,,
+0.7537156169672226,,,,
+0.7510177293580361,,,,
+0.7510177293580361,,,,
+0.5567042027958561,,,,
+0.5865824928928192,,,,
+0.5632912689849473,,,,
+0.5315363513487807,,,,
+0.5408511790989633,,,,
+0.522399770226476,,,,
+0.5243587663409698,,,,
+0.5243206174556496,,,,
+0.5190688412770136,,,,
+0.5326415787579647,,,,
+0.611383215692974,,,,
+0.6475974171136396,,,,
+0.7133620398599634,,,,
+0.7259240913568757,,,,
+0.7687447556201303,,,,
+0.7743227341185244,,,,
+0.7711198578171636,,,,
+0.7700440848088033,,,,
+0.803783896780761,,,,
+0.8359605426099757,,,,
+0.5102457513590758,,,,
+0.34629944377895955,,,,
+0.4740805315091777,,,,
+0.47892939839450177,,,,
+0.42645603042189895,,,,
+0.46613961178243085,,,,
+0.5594480835511297,,,,
+0.5716283455195876,,,,
+0.5748459222150385,,,,
+0.5985818439057129,,,,
+1.0,,,,
+0.9740643792976362,,,,
+0.9715426922416442,,,,
+0.9846153168458358,,,,
+0.9973221037410964,,,,
+0.9961953756447818,,,,
+0.9864450758125602,,,,
+0.9479013598391843,,,,
+0.9217484534200981,,,,
+1.0,,,,
+0.7348322544698483,,,,
+0.8491644780382744,,,,
+0.7854415895667057,,,,
+0.8019173456143287,,,,
+0.8039128944048064,,,,
+0.7749522625610524,,,,
+0.8035898549826727,,,,
+0.810606169399175,,,,
+0.7931163706821499,,,,
+0.7870091163412741,,,,
+0.44888239308657485,,,,
+0.44888239308657485,,,,
+0.6431241202864776,,,,
+0.6431241202864776,,,,
+0.35518191620494,,,,
+0.35518191620494,,,,
+0.37586745885138173,,,,
+0.37586745885138173,,,,
+0.4902365563123063,,,,
+0.4902365563123063,,,,
+0.4908775151982243,,,,
+0.4265647969610006,,,,
+0.4584737830686918,,,,
+0.4657261082127879,,,,
+0.4775672650979289,,,,
+0.48906394417448273,,,,
+0.48114933294134526,,,,
+0.5061398513706781,,,,
+0.5216481086225363,,,,
+0.5615590964395522,,,,
+0.3125370251717544,,,,
+0.36545735638777044,,,,
+0.42319227836537765,,,,
+0.45046327347401244,,,,
+0.3868764306242029,,,,
+0.407811843952844,,,,
+0.40387441181835365,,,,
+0.43697422325899077,,,,
+0.495396953001084,,,,
+0.5166242143398815,,,,
+0.5528975814199145,,,,
+0.5487770873887026,,,,
+0.5585921061324012,,,,
+0.5684286185948442,,,,
+0.5364966892517535,,,,
+0.5321670065880191,,,,
+0.4940519733646971,,,,
+0.5096471054382452,,,,
+0.5389548680932966,,,,
+0.5420489405618977,,,,
+0.5839033384525341,,,,
+0.490903803453838,,,,
+0.44889221407173974,,,,
+0.5026556832943525,,,,
+0.36829398163516763,,,,
+0.48451982263203985,,,,
+0.5416762625548105,,,,
+0.40626250312287515,,,,
+0.5119988210587556,,,,
+0.48602544195022057,,,,
+0.5125612974649,,,,
+0.5788166616553553,,,,
+0.6023566610372458,,,,
+0.5908331013377243,,,,
+0.5816880500516814,,,,
+0.5718085625842475,,,,
+0.558177907066775,,,,
+0.5285819185914598,,,,
+0.5641624187864468,,,,
+0.5607715885070016,,,,
+0.8875963150389614,,,,
+0.9095716681001025,,,,
+0.9108743975639804,,,,
+0.9150304392184857,,,,
+0.9122616030003041,,,,
+0.9202802028725997,,,,
+0.9261200506097678,,,,
+0.9222021726885459,,,,
+0.9262168859922858,,,,
+0.9346897156820131,,,,
+0.6439755511637487,,,,
+0.6906825458058221,,,,
+0.7006870037954647,,,,
+0.7134400766595815,,,,
+0.7132985199666015,,,,
+0.7423054914374182,,,,
+0.7693117332424053,,,,
+0.770559130998921,,,,
+0.7911037071146308,,,,
+0.8228415518684032,,,,
+0.6022997625716109,,,,
+0.5740001690284668,,,,
+0.5928228334512049,,,,
+0.6031220389582801,,,,
+0.582827589497947,,,,
+0.5369530935938999,,,,
+0.5100003750908684,,,,
+0.506747884773754,,,,
+0.5364037412975908,,,,
+0.5742204593935407,,,,
+0.0010000000000000002,,,,
+0.0010000000000000002,,,,
+0.0010000000000000002,,,,
+0.0010000000000000002,,,,
+0.0010000000000000002,,,,
+0.0010000000000000002,,,,
+0.0010000000000000002,,,,
+0.0010000000000000002,,,,
+0.0010000000000000002,,,,
+0.055422011112301404,,,,
+0.43121208748614565,,,,
+0.49071061851688696,,,,
+0.493247440256912,,,,
+0.5164620945526083,,,,
+0.543282252049122,,,,
+0.5436424203703848,,,,
+0.5639734750835298,,,,
+0.5292304027727062,,,,
+0.5621224965048269,,,,
+0.5975681962984067,,,,
+0.7111437553695955,,,,
+0.7111437553695955,,,,
+0.7323475565876424,,,,
+0.7323475565876424,,,,
+0.6405584139005165,,,,
+0.6405584139005165,,,,
+0.3646592859856689,,,,
+0.3646592859856689,,,,
+0.7300028018706821,,,,
+0.7300028018706821,,,,
+0.6815301151292593,,,,
+0.7468426830087228,,,,
+0.8014736356630615,,,,
+0.8196745591108324,,,,
+0.8504683348996432,,,,
+0.8672803355717885,,,,
+0.8778784880427974,,,,
+0.8928705841055181,,,,
+0.9056194919534776,,,,
+0.9156797310899332,,,,
+0.7724155790849894,,,,
+0.7724028189046047,,,,
+0.8454185559787303,,,,
+0.8462805858543454,,,,
+0.8364045270313888,,,,
+0.8330869253122265,,,,
+0.7847460063030117,,,,
+0.7894257585681962,,,,
+0.774789994062112,,,,
+0.7834162512955175,,,,
+0.5949541717364745,,,,
+0.5740241999651092,,,,
+0.6299756382670796,,,,
+0.6626711372608145,,,,
+0.6273454407004556,,,,
+0.6054208348309036,,,,
+0.6029508740500118,,,,
+0.5953611093872027,,,,
+0.5937659838411385,,,,
+0.6011863598463909,,,,
+1.0,,,,
+1.0,,,,
+1.0,,,,
+1.0,,,,
+1.0,,,,
+1.0,,,,
+1.0,,,,
+1.0,,,,
+1.0,,,,
+1.0,,,,
+0.5225720077310336,,,,
+0.6157374458943214,,,,
+0.6363153975052451,,,,
+0.6586744097721077,,,,
+0.6910431814942433,,,,
+0.6770352709574295,,,,
+0.6979111920226043,,,,
+0.7308165811775837,,,,
+0.7556183082211693,,,,
+0.7604029314093863,,,,
+0.6654500097763172,,,,
+0.6654500097763172,,,,
+0.7506679809136401,,,,
+0.7506679809136401,,,,
+0.5120652370279798,,,,
+0.5120652370279798,,,,
+0.6326653619942023,,,,
+0.6326653619942023,,,,
+0.7997995976611741,,,,
+0.7997995976611741,,,,
+0.7832381505995537,,,,
+0.8440463478201804,,,,
+0.8784989218987961,,,,
+0.8872874195922908,,,,
+0.898990479219423,,,,
+0.9122342072337175,,,,
+0.9213504085391381,,,,
+0.931938296423843,,,,
+0.9398815124165008,,,,
+0.9485145148621283,,,,
+0.5450764105885013,,,,
+0.5864823457317146,,,,
+0.6366149084597664,,,,
+0.6638960966997565,,,,
+0.7396864280588626,,,,
+0.7514426009681311,,,,
+0.7741997426109515,,,,
+0.7921337274393601,,,,
+0.8296529699952854,,,,
+0.8465245016547244,,,,
+0.41093943387561466,,,,
+0.4338549479463802,,,,
+0.4145278355225141,,,,
+0.42009611273730796,,,,
+0.49003142665913135,,,,
+0.4820434863077849,,,,
+0.4812020481422053,,,,
+0.4760970549096053,,,,
+0.5412268608569201,,,,
+0.5669803549678446,,,,
+0.6259536715987519,,,,
+0.6966180204050161,,,,
+0.765153405107599,,,,
+0.8323318140986741,,,,
+0.8622300808410681,,,,
+0.764913764474241,,,,
+0.8708605023758,,,,
+0.813759805287259,,,,
+0.8711007276923619,,,,
+0.8524765096767559,,,,
+0.5294803064374336,,,,
+0.5559421356781771,,,,
+0.6335464419732507,,,,
+0.6383087786179629,,,,
+0.6511872556759759,,,,
+0.6661999520473131,,,,
+0.687540270337762,,,,
+0.6735049796698753,,,,
+0.6912388898901558,,,,
+0.6592889042997461,,,,
+0.688596470634398,,,,
+0.688596470634398,,,,
+0.682973975919752,,,,
+0.682973975919752,,,,
+0.7064569878127153,,,,
+0.7064569878127153,,,,
+0.7974377566999238,,,,
+0.7974377566999238,,,,
+0.7508504142993945,,,,
+0.7508504142993945,,,,
+0.5236173837529327,,,,
+0.483074169251686,,,,
+0.488078409094762,,,,
+0.4141125650006704,,,,
+0.4098436225166256,,,,
+0.4198563900669836,,,,
+0.4167909047386732,,,,
+0.40668068104408533,,,,
+0.40821709612848467,,,,
+0.3859444730420617,,,,
+0.3381190604908568,,,,
+0.4128578884326556,,,,
+0.5053962329250141,,,,
+0.5279164266815286,,,,
+0.5646032955253124,,,,
+0.576128909086849,,,,
+0.5637585927443061,,,,
+0.5650299587698219,,,,
+0.6002168156820135,,,,
+0.6625531273841432,,,,
+0.311525585198631,,,,
+0.34962380374116964,,,,
+0.3690667264362091,,,,
+0.40536630901967924,,,,
+0.4288079170011903,,,,
+0.4294322960815465,,,,
+0.36288551494996063,,,,
+0.3746454973318116,,,,
+0.46124181781742646,,,,
+0.4772661024792985,,,,
+0.8448046616876008,,,,
+0.856048177968605,,,,
+0.9158268867768227,,,,
+0.9325283993526654,,,,
+0.9763748440901738,,,,
+0.9550588090679509,,,,
+0.8923556769769669,,,,
+0.9345242380552742,,,,
+0.9179597535401897,,,,
+0.9077938743606735,,,,
+0.5485320365469064,,,,
+0.5498354559196615,,,,
+0.5477527547464329,,,,
+0.43190012538337463,,,,
+0.5011028742332176,,,,
+0.47675723595287467,,,,
+0.4698263670416318,,,,
+0.5098498365635682,,,,
+0.5126988267593175,,,,
+0.4810612305463442,,,,
+0.38589302236804723,,,,
+0.38589302236804723,,,,
+0.7015060421421169,,,,
+0.7015060421421169,,,,
+0.5343822489848897,,,,
+0.5343822489848897,,,,
+0.5086749254104485,,,,
+0.5086749254104485,,,,
+0.6012289186162947,,,,
+0.6012289186162947,,,,
+0.6584060794496017,,,,
+0.6727516795906686,,,,
+0.6486509146969817,,,,
+0.5954702890463635,,,,
+0.5847166786589689,,,,
+0.5737378739434318,,,,
+0.5823646695961323,,,,
+0.5862127392333754,,,,
+0.559788463828522,,,,
+0.5887410136850314,,,,
+0.37540728536300866,,,,
+0.4337608094988076,,,,
+0.5364750903788958,,,,
+0.5357826106583159,,,,
+0.5400260806896515,,,,
+0.5624500387750725,,,,
+0.5365584128735428,,,,
+0.5432312578793813,,,,
+0.5397590473797392,,,,
+0.5463849124190364,,,,
+0.40515747657691464,,,,
+0.39905523299163215,,,,
+0.4333583678332188,,,,
+0.4451830702922076,,,,
+0.4632106184774081,,,,
+0.4544962713002141,,,,
+0.45908825745031284,,,,
+0.4826238597963107,,,,
+0.5330108290738226,,,,
+0.5519386245084519,,,,
+0.9482267299776959,,,,
+0.9380322215841451,,,,
+0.9728602576817152,,,,
+0.9958251580120203,,,,
+0.9739230125043464,,,,
+0.9866971912953882,,,,
+0.9763180384989028,,,,
+0.989585097995785,,,,
+1.0,,,,
+0.9133112966345733,,,,
+0.7285791808095046,,,,
+0.7704622307872641,,,,
+0.7719482531468712,,,,
+0.7811226128520108,,,,
+0.8181219615457029,,,,
+0.8240358410532675,,,,
+0.838099066849141,,,,
+0.8058586990041707,,,,
+0.8235634271481629,,,,
+0.8410164413005666,,,,
+0.7807668098378961,,,,
+0.7807668098378961,,,,
+0.7346988011825758,,,,
+0.7346988011825758,,,,
+0.5775441190696131,,,,
+0.5775441190696131,,,,
+0.32502839310764753,,,,
+0.32502839310764753,,,,
+0.30631361377215655,,,,
+0.30631361377215655,,,,
+0.931961215414291,,,,
+0.9350220178255044,,,,
+0.9312207583568308,,,,
+0.9240255330530796,,,,
+0.9226737867583672,,,,
+0.9315040307950245,,,,
+0.9443043258189292,,,,
+0.952266637056364,,,,
+0.9688557024360206,,,,
+0.9546799275777914,,,,
+0.6871389427272636,,,,
+0.7075831375926595,,,,
+0.6865383763325723,,,,
+0.679331343998338,,,,
+0.7106890844556637,,,,
+0.7328121659628568,,,,
+0.677645628910681,,,,
+0.6961785576642207,,,,
+0.6991688457227937,,,,
+0.7291325571325009,,,,
+0.6613909212423803,,,,
+0.7089647683301722,,,,
+0.6523160672207996,,,,
+0.6786096390690299,,,,
+0.7393839578430544,,,,
+0.732937013039771,,,,
+0.6661990336001485,,,,
+0.6712440089192884,,,,
+0.6708909504088455,,,,
+0.6676305570970379,,,,
+0.9565118823218377,,,,
+0.9474790883228028,,,,
+0.9885362339320297,,,,
+0.9816822596491775,,,,
+0.9662966397217059,,,,
+0.9479905001944766,,,,
+0.9841929435226644,,,,
+0.9213843731658573,,,,
+0.9174355142330256,,,,
+0.6316939468849501,,,,
+0.66201135958129,,,,
+0.6646111656691173,,,,
+0.5939584454939274,,,,
+0.6100134689953295,,,,
+0.6477199529006811,,,,
+0.6666926686827052,,,,
+0.6811812554327995,,,,
+0.6952296761206946,,,,
+0.733319258910776,,,,
+0.7059072077179771,,,,
+0.8935175034869249,,,,
+0.8935175034869249,,,,
+0.8761978105622752,,,,
+0.8761978105622752,,,,
+0.7168149431376613,,,,
+0.7168149431376613,,,,
+0.7439303105494333,,,,
+0.7439303105494333,,,,
+0.7882753767830669,,,,
+0.7882753767830669,,,,
+0.790824282248554,,,,
+0.7981551390960636,,,,
+0.8617186763290144,,,,
+0.8130988815509165,,,,
+0.8536472922768688,,,,
+0.8685280696862454,,,,
+0.8849507663626993,,,,
+0.8929389760537974,,,,
+0.8669941671821636,,,,
+0.8444691710203877,,,,
+0.7566933521656862,,,,
+0.7368904317317524,,,,
+0.7914080344659983,,,,
+0.8057527383552924,,,,
+0.8321440556254149,,,,
+0.8315695641913475,,,,
+0.7932890553928788,,,,
+0.7951918373541326,,,,
+0.8042959308688581,,,,
+0.7860420478418328,,,,
+0.653582676194351,,,,
+0.6661088943181385,,,,
+0.6952769433750363,,,,
+0.7070578152750167,,,,
+0.7282862866692325,,,,
+0.7202706465338955,,,,
+0.596982669565754,,,,
+0.6244980710079121,,,,
+0.695425757412927,,,,
+0.6869362703202044,,,,
+0.6312782449296767,,,,
+0.6585199216948591,,,,
+0.6390944284428166,,,,
+0.5906440722886022,,,,
+0.6589841709398172,,,,
+0.6553903887254964,,,,
+0.6434593235515625,,,,
+0.6391747697175955,,,,
+0.714929522104574,,,,
+0.7071794231572087,,,,
+0.6942754823430438,,,,
+0.6942754823430438,,,,
+0.6963674177000713,,,,
+0.6963674177000713,,,,
+0.5058730271923364,,,,
+0.5058730271923364,,,,
+0.5157690377815798,,,,
+0.5157690377815798,,,,
+0.5632844055479828,,,,
+0.5632844055479828,,,,
+0.6754435028589145,,,,
+0.6777282058794384,,,,
+0.6957311207488633,,,,
+0.6913661935077421,,,,
+0.6971525566419822,,,,
+0.6872803649310766,,,,
+0.6792458533594852,,,,
+0.6951686457308561,,,,
+0.6967780885662284,,,,
+0.702324360296223,,,,
+0.6209375853582919,,,,
+0.6466532789437287,,,,
+0.6789524501010583,,,,
+0.6928446402574878,,,,
+0.6850053873503783,,,,
+0.6968979727965819,,,,
+0.6623002806474009,,,,
+0.6790345054486953,,,,
+0.6896871075832518,,,,
+0.6870519787368337,,,,
+0.5342360091658186,,,,
+0.530186508323537,,,,
+0.5566468648737046,,,,
+0.5709591231243294,,,,
+0.5628396223603924,,,,
+0.5521064013941014,,,,
+0.4889943605336609,,,,
+0.49801452995207074,,,,
+0.49750163446501916,,,,
+0.503760007907692,,,,
+0.45549827386415415,,,,
+0.5659494978381253,,,,
+0.5723424692432739,,,,
+0.597722061495831,,,,
+0.6483332705124887,,,,
+0.6243791973358231,,,,
+0.6379325510573295,,,,
+0.43845504985360717,,,,
+0.6265548016324227,,,,
+0.07791869147680142,,,,
+0.6435332293702479,,,,
+0.6590377221970486,,,,
+0.7350182164098855,,,,
+0.7354501751131186,,,,
+0.7300968365840775,,,,
+0.6757642396759946,,,,
+0.6731069081511184,,,,
+0.6805724883907339,,,,
+0.6855853568771442,,,,
+0.6593002580508187,,,,
+0.5654609125599805,,,,
+0.5654609125599805,,,,
+0.6515090989417577,,,,
+0.6515090989417577,,,,
+0.4571932122618975,,,,
+0.4571932122618975,,,,
+0.08387886006548088,,,,
+0.08387886006548088,,,,
+0.5632982788461832,,,,
+0.5632982788461832,,,,
+0.59638742254431,,,,
+0.6171678635141458,,,,
+0.6025039215868248,,,,
+0.5660405473830558,,,,
+0.5465368972476272,,,,
+0.5449437018832045,,,,
+0.518179758169187,,,,
+0.5124517463042805,,,,
+0.5106273581660794,,,,
+0.5281586205498022,,,,
+0.48865338905643796,,,,
+0.5111980259199959,,,,
+0.49282360394318986,,,,
+0.49612386960309063,,,,
+0.570197048563276,,,,
+0.5998905122471705,,,,
+0.6146289556044845,,,,
+0.628636233163055,,,,
+0.6703407300568062,,,,
+0.7394573032911081,,,,
+0.5285214281295858,,,,
+0.4305760545381978,,,,
+0.46404630951926423,,,,
+0.5089729550108566,,,,
+0.50961850577961,,,,
+0.5510928331854851,,,,
+0.5904770329337775,,,,
+0.6155596480808297,,,,
+0.6311840588772346,,,,
+0.6575719793117296,,,,
+0.9804828927214404,,,,
+0.8706171062061611,,,,
+0.9336444225237015,,,,
+0.9284820859482219,,,,
+0.8764235927747496,,,,
+0.8978554917076089,,,,
+0.9069362245289817,,,,
+0.8923197852234386,,,,
+0.9551194237375098,,,,
+1.0,,,,
+0.5546689701641137,,,,
+0.7662910232149261,,,,
+0.748193987839587,,,,
+0.714750732343617,,,,
+0.7836527877780723,,,,
+0.7458206298540603,,,,
+0.7746739851092028,,,,
+0.7772767038838471,,,,
+0.7687875782005584,,,,
+0.7601095819176585,,,,
+0.7835921027508659,,,,
+0.7835921027508659,,,,
+0.6851036778107514,,,,
+0.6851036778107514,,,,
+0.6702551590872586,,,,
+0.6702551590872586,,,,
+0.5429667248001222,,,,
+0.5429667248001222,,,,
+0.6895200163172049,,,,
+0.6895200163172049,,,,
+0.6820147403715587,,,,
+0.8162502418053472,,,,
+0.8573207796467738,,,,
+0.8721073896028256,,,,
+0.8900880204299256,,,,
+0.8929010883924283,,,,
+0.9031949029473242,,,,
+0.9022950682825117,,,,
+0.9167582455894995,,,,
+0.919397216025612,,,,
+0.6746584598026426,,,,
+0.7561341068774294,,,,
+0.8121978537185756,,,,
+0.8218916784335983,,,,
+0.8815059292603008,,,,
+0.8807607980894253,,,,
+0.8341827287907374,,,,
+0.8417412873826228,,,,
+0.8480051552368312,,,,
+0.8532156335449774,,,,
+0.5938175463929919,,,,
+0.6347407587808458,,,,
+0.6388405206162681,,,,
+0.6414904924281598,,,,
+0.6698868421636962,,,,
+0.6417699180677386,,,,
+0.6463678458532779,,,,
+0.6417952389427374,,,,
+0.5772594334349703,,,,
+0.5752646686173202,,,,
+0.796818929861047,,,,
+0.7960065656646542,,,,
+0.7052192227641005,,,,
+0.8561038954044976,,,,
+0.9076846481695539,,,,
+0.8313411362051548,,,,
+0.9085319167979824,,,,
+0.8946012768310473,,,,
+0.7420679898506325,,,,
+0.7671599272887654,,,,
+0.6919627080434925,,,,
+0.797752132207343,,,,
+0.8066101953390622,,,,
+0.8316270439529244,,,,
+0.8206928564532716,,,,
+0.8436294465070754,,,,
+0.8483950231113039,,,,
+0.84674203115541,,,,
+0.8417939722382013,,,,
+0.839770933244351,,,,
+0.6133574205721678,,,,
+0.6133574205721678,,,,
+0.7007650896985661,,,,
+0.7007650896985661,,,,
+0.5407594786916209,,,,
+0.5407594786916209,,,,
+0.5262365097031069,,,,
+0.5262365097031069,,,,
+0.7006893605275196,,,,
+0.7006893605275196,,,,
+0.44272046472970034,,,,
+0.4477689142961734,,,,
+0.4178933382914779,,,,
+0.3716674778413102,,,,
+0.4069225120517865,,,,
+0.40472070234921675,,,,
+0.41890649979334893,,,,
+0.41610085368146893,,,,
+0.42959637657162597,,,,
+0.4774140832905195,,,,
+0.36552591574096344,,,,
+0.38925518472785575,,,,
+0.46584675346079507,,,,
+0.4741501563387063,,,,
+0.49125779460448077,,,,
+0.5176116278384612,,,,
+0.49608744783175107,,,,
+0.5040894525921817,,,,
+0.58874291811228,,,,
+0.6352250508344554,,,,
+0.4616683995297406,,,,
+0.3408023061459837,,,,
+0.47493184768880625,,,,
+0.47288511583719894,,,,
+0.4829704559532211,,,,
+0.49173931928765396,,,,
+0.45080174962316705,,,,
+0.4611251457843921,,,,
+0.48688748596237674,,,,
+0.5080727215099863,,,,
+0.9206530887266847,,,,
+0.8732687755054304,,,,
+0.9756025911151273,,,,
+0.9426273204422427,,,,
+0.9393104826395051,,,,
+0.9715739537218264,,,,
+0.9882877384571366,,,,
+1.0,,,,
+1.0,,,,
+0.9079740539658884,,,,
+0.5631166135966877,,,,
+0.7304929935503531,,,,
+0.6961140378674657,,,,
+0.7094682010323504,,,,
+0.7241555911146922,,,,
+0.6932654778328633,,,,
+0.7248821933233429,,,,
+0.6620604405297917,,,,
+0.665180784053364,,,,
+0.6287635433628508,,,,
+0.8255994315121838,,,,
+0.8255994315121838,,,,
+0.8270880247713922,,,,
+0.8270880247713922,,,,
+0.6099839273311923,,,,
+0.6099839273311923,,,,
+0.5651016327531861,,,,
+0.5651016327531861,,,,
+0.36441412578684057,,,,
+0.36441412578684057,,,,
+0.8217470693772235,,,,
+0.8143660173850044,,,,
+0.8164330741751401,,,,
+0.8031720550325319,,,,
+0.796978711249472,,,,
+0.7982104656119102,,,,
+0.8021654774910639,,,,
+0.8019265839353394,,,,
+0.804004911682212,,,,
+0.7837128264211325,,,,
+0.5599596157218608,,,,
+0.5741057051659977,,,,
+0.6542235957035778,,,,
+0.6504078711506454,,,,
+0.6127949815643985,,,,
+0.6418672875630469,,,,
+0.5815382272083223,,,,
+0.5736220397274672,,,,
+0.5851443286251301,,,,
+0.5903291305894587,,,,
+0.5936394783031684,,,,
+0.6082109171230744,,,,
+0.5940869954953988,,,,
+0.6360179049594511,,,,
+0.6617565724864038,,,,
+0.6675183804070466,,,,
+0.6042789266552516,,,,
+0.6107024238677498,,,,
+0.5908205352030501,,,,
+0.5933375944083925,,,,
+0.9992968088913013,,,,
+0.963310592015149,,,,
+0.9590508494676501,,,,
+0.9782958596921185,,,,
+0.9937656669051821,,,,
+0.9743151779856906,,,,
+0.9939786350037583,,,,
+0.9897063664900811,,,,
+0.9994983397341801,,,,
+0.996599034828438,,,,
+0.8396545793949347,,,,
+0.8649898221023019,,,,
+0.8564918819666886,,,,
+0.8131693164882053,,,,
+0.8371874620755636,,,,
+0.8222316234566,,,,
+0.8430021478616165,,,,
+0.8282449740185455,,,,
+0.8060187349311595,,,,
+0.822060907092924,,,,
+0.6082509180265999,,,,
+0.6082509180265999,,,,
+0.7452441416371198,,,,
+0.7452441416371198,,,,
+0.633866988974963,,,,
+0.633866988974963,,,,
+0.6662327356024593,,,,
+0.6662327356024593,,,,
+0.7121056632965272,,,,
+0.7121056632965272,,,,
+0.6122063495818519,,,,
+0.6496098809585519,,,,
+0.6666897311534855,,,,
+0.6672786086781733,,,,
+0.6791622094153842,,,,
+0.6828380162326876,,,,
+0.6853932331637685,,,,
+0.6888827040784097,,,,
+0.6874047251444506,,,,
+0.6855277717885593,,,,
+0.831919016668677,,,,
+0.7759698881761096,,,,
+0.8312377688029824,,,,
+0.8609626911015905,,,,
+0.8890858235979201,,,,
+0.8938618470190735,,,,
+0.9077903835246806,,,,
+0.9180505528451296,,,,
+0.9256415966467274,,,,
+0.9236459047604532,,,,
+0.4722934039408751,,,,
+0.45463290089851893,,,,
+0.47692733373346075,,,,
+0.49755711819354687,,,,
+0.5357774183139744,,,,
+0.5247134868985203,,,,
+0.5396807809685477,,,,
+0.5607613405255556,,,,
+0.568560464987905,,,,
+0.5627301183725968,,,,
+0.671458775699763,,,,
+0.6867279862585651,,,,
+0.803433422294973,,,,
+0.869568070583021,,,,
+0.8929814143417873,,,,
+0.8684762938534686,,,,
+0.9504429130765895,,,,
+0.9324140980165083,,,,
+0.9012523863379561,,,,
+0.6398038358768338,,,,
+0.47005941062144824,,,,
+0.3838749085133119,,,,
+0.4659296439035154,,,,
+0.5262102918025192,,,,
+0.6131677285747182,,,,
+0.6455966745161867,,,,
+0.6916577376990217,,,,
+0.6720576175182208,,,,
+0.6642893158402428,,,,
+0.6360358270221576,,,,
+0.9697556479167994,,,,
+0.9697556479167994,,,,
+0.9479492396253406,,,,
+0.9479492396253406,,,,
+0.908168676337035,,,,
+0.908168676337035,,,,
+0.8442789092177763,,,,
+0.8442789092177763,,,,
+0.8813637147547796,,,,
+0.8813637147547796,,,,
+0.5322258205845182,,,,
+0.6415938828527598,,,,
+0.637740986286117,,,,
+0.6509759412847524,,,,
+0.6653087557593794,,,,
+0.6682621484466376,,,,
+0.6686673684074557,,,,
+0.6776576951469577,,,,
+0.6881214927699182,,,,
+0.6877530588907954,,,,
+0.8352079619423723,,,,
+0.8016440517216833,,,,
+0.8678812977560159,,,,
+0.8845186543252768,,,,
+0.8862377836460842,,,,
+0.8933411364687509,,,,
+0.880708468256366,,,,
+0.8800930505962222,,,,
+0.8179629401060099,,,,
+0.8131000528315356,,,,
+0.7305239970509363,,,,
+0.7118224435768655,,,,
+0.776332335498034,,,,
+0.7839744384657493,,,,
+0.8124955189600664,,,,
+0.7999902012354738,,,,
+0.750473796714668,,,,
+0.7527865308304149,,,,
+0.7315006288118311,,,,
+0.736177601115651,,,,
+0.9606920020249105,,,,
+0.9576599970905185,,,,
+0.9686273641505009,,,,
+0.9826266121441544,,,,
+0.982908854023572,,,,
+0.9854790862763748,,,,
+0.983609553849956,,,,
+0.9976871634824045,,,,
+0.9977688024305834,,,,
+0.9932251974659762,,,,
+0.6944847510784394,,,,
+0.681897266770669,,,,
+0.7378054948873121,,,,
+0.7607131567611767,,,,
+0.825336064613288,,,,
+0.8012469595624174,,,,
+0.8380386495409379,,,,
+0.8459798136988252,,,,
+0.83002095158694,,,,
+0.8242945945751243,,,,
+0.5800100322172598,,,,
+0.5800100322172598,,,,
+0.6297592735832721,,,,
+0.6297592735832721,,,,
+0.5562651257937836,,,,
+0.5562651257937836,,,,
+0.45768109404496865,,,,
+0.45768109404496865,,,,
+0.5940863003766343,,,,
+0.5940863003766343,,,,
+0.47126638094248696,,,,
+0.428357340452273,,,,
+0.45849063874849166,,,,
+0.3908951533666578,,,,
+0.4486868614253583,,,,
+0.48714666203619994,,,,
+0.49747007555868694,,,,
+0.5245874382760266,,,,
+0.5235602667531852,,,,
+0.594583653441766,,,,
+0.5839115042517439,,,,
+0.6580382634701575,,,,
+0.7053565825936369,,,,
+0.7191940466263266,,,,
+0.7331353385122144,,,,
+0.7546207588671449,,,,
+0.7281964782722751,,,,
+0.723013275873389,,,,
+0.7657384255280838,,,,
+0.7661261921747164,,,,
+0.5364198851890556,,,,
+0.5468528175494795,,,,
+0.5722429904427933,,,,
+0.5805489632072811,,,,
+0.5622146795435073,,,,
+0.5509798868888395,,,,
+0.514265499304666,,,,
+0.5368404852990147,,,,
+0.5593476013918423,,,,
+0.573471667452271,,,,
+0.9059873803843235,,,,
+0.9296029894562483,,,,
+0.9306042370667414,,,,
+0.8954777170525465,,,,
+0.9460670450946734,,,,
+0.8723852324352162,,,,
+0.9057742664396722,,,,
+0.9076348441421969,,,,
+0.9233936500140233,,,,
+0.7159919361955394,,,,
+0.6756995395788389,,,,
+0.6670820893361004,,,,
+0.67112204517365,,,,
+0.6302086438652157,,,,
+0.6567617897094253,,,,
+0.6432016784848845,,,,
+0.664993121105208,,,,
+0.638757373341806,,,,
+0.5729350318496732,,,,
+0.5711375320943728,,,,
+0.7171041139474017,,,,
+0.7171041139474017,,,,
+0.7705658462515359,,,,
+0.7705658462515359,,,,
+0.606425173247792,,,,
+0.606425173247792,,,,
+0.6948021545140227,,,,
+0.6948021545140227,,,,
+0.7656552481914174,,,,
+0.7656552481914174,,,,
+0.6313945064998369,,,,
+0.6008074939554202,,,,
+0.5909753236475158,,,,
+0.5918210286464405,,,,
+0.5876348823767875,,,,
+0.5910623101126251,,,,
+0.5900704715473123,,,,
+0.5982793124819419,,,,
+0.6216157189834447,,,,
+0.6708822953640615,,,,
+0.5150610361415978,,,,
+0.5569578845546107,,,,
+0.6174273725435916,,,,
+0.6300662101574045,,,,
+0.6264209538699812,,,,
+0.655772877128713,,,,
+0.5708203956132796,,,,
+0.6019871986320982,,,,
+0.685838398077981,,,,
+0.7152490903788251,,,,
+0.3682281172048868,,,,
+0.38094432153958485,,,,
+0.35194452110075825,,,,
+0.3822830744478932,,,,
+0.37372972201504945,,,,
+0.35949335305464086,,,,
+0.31421796708770766,,,,
+0.3059231428398152,,,,
+0.3789619402480119,,,,
+0.371295190570045,,,,
+0.2545863056853756,,,,
+0.2990561276567067,,,,
+0.3764948725006597,,,,
+0.47820676819100666,,,,
+0.5573942109475841,,,,
+0.39494573497805663,,,,
+0.6569241115156527,,,,
+0.4586748164411194,,,,
+0.5235068603012099,,,,
+0.5942269525390385,,,,
+0.6695600360419376,,,,
+0.683287809006458,,,,
+0.6768773860789633,,,,
+0.629714501266124,,,,
+0.6408303889642155,,,,
+0.622722754169342,,,,
+0.6288727979350094,,,,
+0.5917036111465871,,,,
+0.5923400570612289,,,,
+0.608307973377837,,,,
+0.34548592117136384,,,,
+0.34548592117136384,,,,
+0.5230373404751932,,,,
+0.5230373404751932,,,,
+0.39931925672889373,,,,
+0.39931925672889373,,,,
+0.31312651805848934,,,,
+0.31312651805848934,,,,
+0.41659358073314134,,,,
+0.41659358073314134,,,,
+0.621135168598899,,,,
+0.5780198198192181,,,,
+0.559090926932286,,,,
+0.5143607828277436,,,,
+0.46703977381301515,,,,
+0.40361382039621874,,,,
+0.358926572916628,,,,
+0.3551334495569325,,,,
+0.3413292300713607,,,,
+0.32613830772644137,,,,
+0.5124339069444932,,,,
+0.5308390056678083,,,,
+0.5604182575364013,,,,
+0.5874159004947339,,,,
+0.5958026679329523,,,,
+0.6052145399110235,,,,
+0.6086216155411558,,,,
+0.6245429414287983,,,,
+0.6369131815875739,,,,
+0.6428235900139921,,,,
+0.6218981605799374,,,,
+0.6097145652585478,,,,
+0.60891965401627,,,,
+0.6208656710716643,,,,
+0.5749481082888076,,,,
+0.557683674505203,,,,
+0.5352605652756866,,,,
+0.5374853286484124,,,,
+0.5515386738401233,,,,
+0.5518285788152566,,,,
+0.5103348875280316,,,,
+0.7124094692245433,,,,
+0.8812460510964091,,,,
+0.8488534610760237,,,,
+0.9328288322759184,,,,
+0.9355108984952274,,,,
+0.8627875258150919,,,,
+0.8836997952105785,,,,
+0.9478169449567874,,,,
+0.7328093045356725,,,,
+0.8978646168365988,,,,
+0.8851394920399593,,,,
+0.9126647156941169,,,,
+0.9246657442890835,,,,
+0.9261859644998777,,,,
+0.9194609180351343,,,,
+0.9267544436597507,,,,
+0.9298782000863205,,,,
+0.9239164053099177,,,,
+0.9374358125142948,,,,
+0.13859289319539625,,,,
+0.1531588299854071,,,,
+0.21016123532673714,,,,
+0.23814221339553426,,,,
+0.1812230810603592,,,,
+0.20539433094368287,,,,
+0.21947369314720877,,,,
+0.23442477927615407,,,,
+0.20666798987516202,,,,
+0.2725438600882771,,,,
+0.1845665674571227,,,,
+0.1596057169632888,,,,
+0.22701601793357262,,,,
+0.23366789790888112,,,,
+0.2452063166870674,,,,
+0.3204796912960528,,,,
+0.1684297605657035,,,,
+0.22695822095167276,,,,
+0.41704853281425247,,,,
+0.4547849265616147,,,,
+0.4904477218400573,,,,
+0.45934857494909964,,,,
+0.416774603772216,,,,
+0.40534458023013953,,,,
+0.4020702726289068,,,,
+0.3564421286735707,,,,
+0.3428800930052723,,,,
+0.35871155262917276,,,,
+0.35380703227099985,,,,
+0.3353476459346246,,,,
+0.49922757898096126,,,,
+0.770081884280952,,,,
+0.786916489159473,,,,
+0.9054042595552817,,,,
+0.8567568545390017,,,,
+0.8178340779159893,,,,
+0.8367050973575212,,,,
+0.8749251960485894,,,,
+0.8689776771004987,,,,
+0.4796839820518565,,,,
+0.17138550880676967,,,,
+0.045103086549409165,,,,
+0.11220729083863369,,,,
+0.034040542161918125,,,,
+0.02662351768799381,,,,
+0.15521969581189696,,,,
+0.08204116464196497,,,,
+0.05470619159557551,,,,
+0.09640151340246314,,,,
+0.17304915126118364,,,,
+0.829769401592567,,,,
+0.829769401592567,,,,
+0.5243075708352832,,,,
+0.5243075708352832,,,,
+0.556855121780899,,,,
+0.556855121780899,,,,
+0.27008611272278016,,,,
+0.27008611272278016,,,,
+0.7521915521577375,,,,
+0.7521915521577375,,,,
+0.5231302776655927,,,,
+0.654591886363607,,,,
+0.6778690970429332,,,,
+0.6950803006487992,,,,
+0.7370171415051521,,,,
+0.7431464531790078,,,,
+0.7535221854163082,,,,
+0.7781544205556469,,,,
+0.7926505202274813,,,,
+0.8042602195060118,,,,
+0.7460757398411815,,,,
+0.7320139542888238,,,,
+0.7722889114908069,,,,
+0.7858897168872064,,,,
+0.7651482952467497,,,,
+0.7669791899551182,,,,
+0.8394359222438496,,,,
+0.8548583443023897,,,,
+0.7817753792076014,,,,
+0.7894314451670895,,,,
+0.7507638344095385,,,,
+0.7353035557288357,,,,
+0.6542436401044059,,,,
+0.6797264419720137,,,,
+0.5853805625813037,,,,
+0.5572222616081837,,,,
+0.6824085309628778,,,,
+0.6796214964669083,,,,
+0.6594096463012552,,,,
+0.6794873805121817,,,,
+1.0,,,,
+1.0,,,,
+1.0,,,,
+1.0,,,,
+1.0,,,,
+1.0,,,,
+1.0,,,,
+1.0,,,,
+1.0,,,,
+1.0,,,,
+0.6206239993151822,,,,
+0.6042795085423004,,,,
+0.6694017577440439,,,,
+0.7301116094538027,,,,
+0.7604555892956941,,,,
+0.7656700960014732,,,,
+0.7911881800297488,,,,
+0.7920669899684417,,,,
+0.7969492803951823,,,,
+0.7867145150045299,,,,
+0.6376855462629154,,,,
+0.6376855462629154,,,,
+0.7926327565058263,,,,
+0.7926327565058263,,,,
+0.796743594193755,,,,
+0.796743594193755,,,,
+0.6232246444018125,,,,
+0.6232246444018125,,,,
+0.556759464282765,,,,
+0.556759464282765,,,,
+0.7006680841509269,,,,
+0.6930898762859825,,,,
+0.668391666272013,,,,
+0.6674289724434997,,,,
+0.6809219205474798,,,,
+0.685072730637556,,,,
+0.6855509592519737,,,,
+0.7033602934077462,,,,
+0.6933944039648424,,,,
+0.6964362285426589,,,,
+0.4966959731899429,,,,
+0.5810229101246669,,,,
+0.6693562026250638,,,,
+0.6893141804920706,,,,
+0.7141839240431707,,,,
+0.7277326023985676,,,,
+0.7092873217490411,,,,
+0.7216435567031452,,,,
+0.730595794717499,,,,
+0.7603845375552097,,,,
+0.40934770805221393,,,,
+0.48282376560203905,,,,
+0.5246773943321417,,,,
+0.5291447578846376,,,,
+0.5068448956650068,,,,
+0.5089568340691553,,,,
+0.5303971440836878,,,,
+0.5243423009275482,,,,
+0.509720472867266,,,,
+0.5219777106944852,,,,
+1.0,,,,
+1.0,,,,
+1.0,,,,
+1.0,,,,
+1.0,,,,
+1.0,,,,
+1.0,,,,
+1.0,,,,
+1.0,,,,
+1.0,,,,
+0.6143152358087915,,,,
+0.6104402738511623,,,,
+0.5897084390631507,,,,
+0.5760091825856872,,,,
+0.590584330759112,,,,
+0.6106573953981868,,,,
+0.6312102808815611,,,,
+0.6255022514153706,,,,
+0.6296757796608873,,,,
+0.598829092510786,,,,
+0.28797746386212053,,,,
+0.28797746386212053,,,,
+0.6001010092452391,,,,
+0.6001010092452391,,,,
+0.42417060486304003,,,,
+0.42417060486304003,,,,
+0.11357630631725163,,,,
+0.11357630631725163,,,,
+0.6129298349622392,,,,
+0.6129298349622392,,,,
+0.503494990950931,,,,
+0.5804239163779681,,,,
+0.5625753365460594,,,,
+0.5787019227867705,,,,
+0.5655810441861581,,,,
+0.5410653634097997,,,,
+0.5156325787412774,,,,
+0.4999022576995408,,,,
+0.44149225216930554,,,,
+0.3738410020799122,,,,
+0.6251509476802501,,,,
+0.7084393905350472,,,,
+0.7385614169887087,,,,
+0.756196882308741,,,,
+0.7508031938610653,,,,
+0.7400898431426661,,,,
+0.7622107328476313,,,,
+0.7573328430828736,,,,
+0.7434816722105132,,,,
+0.7087888401578396,,,,
+0.5051014138896587,,,,
+0.500278977468479,,,,
+0.5697962657176118,,,,
+0.5544385393737393,,,,
+0.5537032093935004,,,,
+0.5746176981485449,,,,
+0.5681082534315316,,,,
+0.5562586009717846,,,,
+0.5549033981847744,,,,
+0.5550139365946111,,,,
+0.938668659686242,,,,
+0.9711958379309589,,,,
+0.9869489911706492,,,,
+0.9634601545531412,,,,
+0.8900972282213079,,,,
+0.948145084832103,,,,
+0.9772590575580778,,,,
+0.948322630691744,,,,
+0.9782403214216903,,,,
+0.9113634644402634,,,,
+0.6850797561809112,,,,
+0.7955082216986559,,,,
+0.7658573340376498,,,,
+0.8182658894788698,,,,
+0.8089501978613112,,,,
+0.8028746259283228,,,,
+0.8046618899612975,,,,
+0.7584518620362453,,,,
+0.7535481454630593,,,,
+0.7512482231185652,,,,
+0.8060054336838136,,,,
+0.8060054336838136,,,,
+0.8060855254183867,,,,
+0.8060855254183867,,,,
+0.749426111188953,,,,
+0.749426111188953,,,,
+0.7001241756070398,,,,
+0.7001241756070398,,,,
+0.7903002338379764,,,,
+0.7903002338379764,,,,
+0.9260963618184116,,,,
+0.9221783736034329,,,,
+0.930473818743332,,,,
+0.9161374769949933,,,,
+0.9135123852449047,,,,
+0.9229952715346929,,,,
+0.9144380426068425,,,,
+0.9283472576084815,,,,
+0.9271635897811342,,,,
+0.9265965060395053,,,,
+0.6507262191094878,,,,
+0.6467926543030762,,,,
+0.6983126179986152,,,,
+0.6907311759393013,,,,
+0.7396965130098041,,,,
+0.7464080642611393,,,,
+0.6668846020206156,,,,
+0.6753496405008156,,,,
+0.7356312847647362,,,,
+0.7528709420289759,,,,
+0.5478401913383206,,,,
+0.5558197392684194,,,,
+0.5843435444741137,,,,
+0.6057906700804122,,,,
+0.6337574551243904,,,,
+0.6297768347039029,,,,
+0.5717046931346398,,,,
+0.5854432581928323,,,,
+0.6160200567802929,,,,
+0.6339409583398313,,,,
+0.6116736181347849,,,,
+0.6231076350316108,,,,
+0.6701242639383295,,,,
+0.6979564712376766,,,,
+0.7067584867641968,,,,
+0.7186532512772215,,,,
+0.7297364722412781,,,,
+0.7249935927202266,,,,
+0.7134806623657451,,,,
+0.6931288423954701,,,,
+,AT,Agriculture and Food,All Deciles,0.8443479052372422
+,AT,Energy and Housing,All Deciles,0.5913436829604954
+,AT,Equality,All Deciles,0.8530122941572333
+,AT,Health and Animal Welfare,All Deciles,0.5666869323919201
+,AT,"Intergenerational Fairness, Youth, Culture and Sport",All Deciles,1.0
+,AT,"Social Rights and Skills, Quality Jobs and Preparedness",All Deciles,0.7386420602582943
+,BE,Agriculture and Food,All Deciles,0.3968589714273778
+,BE,Energy and Housing,All Deciles,0.9486208495657564
+,BE,Equality,All Deciles,0.8033687889247895
+,BE,Health and Animal Welfare,All Deciles,0.5646868384331021
+,BE,"Intergenerational Fairness, Youth, Culture and Sport",All Deciles,0.8467812468081282
+,BE,"Social Rights and Skills, Quality Jobs and Preparedness",All Deciles,0.6652532611579853
+,BG,Agriculture and Food,All Deciles,0.02991493236129232
+,BG,Energy and Housing,All Deciles,0.38659127321932746
+,BG,Equality,All Deciles,0.2872154833867099
+,BG,Health and Animal Welfare,All Deciles,0.5341352638873604
+,BG,"Intergenerational Fairness, Youth, Culture and Sport",All Deciles,0.800472115267625
+,BG,"Social Rights and Skills, Quality Jobs and Preparedness",All Deciles,0.5492922865197095
+,CH,Energy and Housing,All Deciles,0.9116784887679127
+,CH,Equality,All Deciles,0.9366101020251111
+,CH,Health and Animal Welfare,All Deciles,0.49865326048133946
+,CH,"Intergenerational Fairness, Youth, Culture and Sport",All Deciles,0.981620519627049
+,CH,"Social Rights and Skills, Quality Jobs and Preparedness",All Deciles,0.6786639168384857
+,CY,Agriculture and Food,All Deciles,0.6299402805665171
+,CY,Energy and Housing,All Deciles,0.5521102215362005
+,CY,Equality,All Deciles,0.5533133210527799
+,CY,Health and Animal Welfare,All Deciles,0.5578607649349305
+,CY,"Intergenerational Fairness, Youth, Culture and Sport",All Deciles,0.6222176650598338
+,CY,"Social Rights and Skills, Quality Jobs and Preparedness",All Deciles,0.7104401193967186
+,CZ,Agriculture and Food,All Deciles,0.593463247874724
+,CZ,Energy and Housing,All Deciles,0.477002979259857
+,CZ,Equality,All Deciles,0.7715803974127122
+,CZ,Health and Animal Welfare,All Deciles,0.5778719448952935
+,CZ,"Social Rights and Skills, Quality Jobs and Preparedness",All Deciles,0.8101580875894636
+,DE,Agriculture and Food,All Deciles,0.6254581731791276
+,DE,Energy and Housing,All Deciles,0.8532055701569033
+,DE,Equality,All Deciles,0.7391288573378114
+,DE,Health and Animal Welfare,All Deciles,0.5535129713244932
+,DE,"Intergenerational Fairness, Youth, Culture and Sport",All Deciles,1.0
+,DE,"Social Rights and Skills, Quality Jobs and Preparedness",All Deciles,0.7131414471573643
+,DK,Agriculture and Food,All Deciles,0.7802348073321702
+,DK,Energy and Housing,All Deciles,0.6271526170823065
+,DK,Equality,All Deciles,0.78731245842823
+,DK,Health and Animal Welfare,All Deciles,0.6555951432724507
+,DK,"Intergenerational Fairness, Youth, Culture and Sport",All Deciles,1.0
+,DK,"Social Rights and Skills, Quality Jobs and Preparedness",All Deciles,0.7297062904601191
+,EE,Agriculture and Food,All Deciles,0.7192780527138545
+,EE,Energy and Housing,All Deciles,0.539782230889198
+,EE,Equality,All Deciles,0.7391773586976584
+,EE,Health and Animal Welfare,All Deciles,0.4946857065196264
+,EE,"Intergenerational Fairness, Youth, Culture and Sport",All Deciles,0.977674882333683
+,EE,"Social Rights and Skills, Quality Jobs and Preparedness",All Deciles,0.7939750408726758
+,EL,Agriculture and Food,All Deciles,0.4521304191161288
+,EL,Energy and Housing,All Deciles,0.48664548269027263
+,EL,Equality,All Deciles,0.4159870069183815
+,EL,Health and Animal Welfare,All Deciles,0.5377816113526563
+,EL,"Intergenerational Fairness, Youth, Culture and Sport",All Deciles,0.47871062922046376
+,EL,"Social Rights and Skills, Quality Jobs and Preparedness",All Deciles,0.5643676695239237
+,ES,Energy and Housing,All Deciles,0.9164018375223006
+,ES,Equality,All Deciles,0.7340643589057002
+,ES,Health and Animal Welfare,All Deciles,0.5608496052061591
+,ES,"Intergenerational Fairness, Youth, Culture and Sport",All Deciles,0.0014940606516903115
+,ES,"Social Rights and Skills, Quality Jobs and Preparedness",All Deciles,0.525179836342367
+,FI,Agriculture and Food,All Deciles,0.6161536654783636
+,FI,Energy and Housing,All Deciles,0.8327170961461512
+,FI,Equality,All Deciles,0.803268008694578
+,FI,Health and Animal Welfare,All Deciles,0.6083151684839085
+,FI,"Intergenerational Fairness, Youth, Culture and Sport",All Deciles,1.0
+,FI,"Social Rights and Skills, Quality Jobs and Preparedness",All Deciles,0.6709584429873366
+,FR,Agriculture and Food,All Deciles,0.6643681010039643
+,FR,Energy and Housing,All Deciles,0.8932759080152027
+,FR,Equality,All Deciles,0.7095483993010033
+,FR,Health and Animal Welfare,All Deciles,0.46906229081805734
+,FR,"Intergenerational Fairness, Youth, Culture and Sport",All Deciles,0.7914096067763325
+,FR,"Social Rights and Skills, Quality Jobs and Preparedness",All Deciles,0.6364059110769624
+,HR,Agriculture and Food,All Deciles,0.7240040215237326
+,HR,Energy and Housing,All Deciles,0.43360498009712306
+,HR,Equality,All Deciles,0.5231212968495171
+,HR,Health and Animal Welfare,All Deciles,0.39384779384691243
+,HR,"Intergenerational Fairness, Youth, Culture and Sport",All Deciles,0.9124973482256067
+,HR,"Social Rights and Skills, Quality Jobs and Preparedness",All Deciles,0.5015415500669071
+,HU,Agriculture and Food,All Deciles,0.5360016312140613
+,HU,Energy and Housing,All Deciles,0.6039593741524861
+,HU,Equality,All Deciles,0.5113391271922743
+,HU,Health and Animal Welfare,All Deciles,0.4604137995799784
+,HU,"Intergenerational Fairness, Youth, Culture and Sport",All Deciles,0.9691110189379044
+,HU,"Social Rights and Skills, Quality Jobs and Preparedness",All Deciles,0.7995314389681668
+,IE,Agriculture and Food,All Deciles,0.5054296182410998
+,IE,Energy and Housing,All Deciles,0.93954517321968
+,IE,Equality,All Deciles,0.7003824688311696
+,IE,Health and Animal Welfare,All Deciles,0.6843480310531084
+,IE,"Intergenerational Fairness, Youth, Culture and Sport",All Deciles,0.9176437996902089
+,IE,"Social Rights and Skills, Quality Jobs and Preparedness",All Deciles,0.6648555851017701
+,IS,Agriculture and Food,All Deciles,0.8006901734569365
+,IS,Energy and Housing,All Deciles,0.8468528179863295
+,IS,Equality,All Deciles,0.7928275275662425
+,IS,Health and Animal Welfare,All Deciles,0.6762256520172186
+,IS,"Social Rights and Skills, Quality Jobs and Preparedness",All Deciles,0.6529785634723547
+,IT,Agriculture and Food,All Deciles,0.589276277626114
+,IT,Energy and Housing,All Deciles,0.6897640109031808
+,IT,Equality,All Deciles,0.6735419233871688
+,IT,Health and Animal Welfare,All Deciles,0.5287273939407284
+,IT,"Intergenerational Fairness, Youth, Culture and Sport",All Deciles,0.46644097656398736
+,IT,"Social Rights and Skills, Quality Jobs and Preparedness",All Deciles,0.6870069803150045
+,LT,Agriculture and Food,All Deciles,0.38033190491395896
+,LT,Energy and Housing,All Deciles,0.5530586889864942
+,LT,Equality,All Deciles,0.575730158917468
+,LT,Health and Animal Welfare,All Deciles,0.5441781413269224
+,LT,"Intergenerational Fairness, Youth, Culture and Sport",All Deciles,0.923272224295425
+,LT,"Social Rights and Skills, Quality Jobs and Preparedness",All Deciles,0.7361616163843485
+,LU,Agriculture and Food,All Deciles,0.6697015769663369
+,LU,Energy and Housing,All Deciles,0.8622743710785937
+,LU,Equality,All Deciles,0.8181142464340446
+,LU,Health and Animal Welfare,All Deciles,0.62536387080091
+,LU,"Intergenerational Fairness, Youth, Culture and Sport",All Deciles,0.817737751671391
+,LU,"Social Rights and Skills, Quality Jobs and Preparedness",All Deciles,0.8155660216808219
+,LV,Agriculture and Food,All Deciles,0.6117857321669364
+,LV,Energy and Housing,All Deciles,0.4225073053231899
+,LV,Equality,All Deciles,0.4868043149590088
+,LV,Health and Animal Welfare,All Deciles,0.46079037626670094
+,LV,"Intergenerational Fairness, Youth, Culture and Sport",All Deciles,0.9510642985619984
+,LV,"Social Rights and Skills, Quality Jobs and Preparedness",All Deciles,0.6778211722203343
+,MT,Agriculture and Food,All Deciles,0.6118884492852971
+,MT,Energy and Housing,All Deciles,0.80420456851518
+,MT,Equality,All Deciles,0.6015036009972264
+,MT,Health and Animal Welfare,All Deciles,0.6154435728912842
+,MT,"Intergenerational Fairness, Youth, Culture and Sport",All Deciles,0.9846779425449862
+,MT,"Social Rights and Skills, Quality Jobs and Preparedness",All Deciles,0.8331188112658561
+,NL,Agriculture and Food,All Deciles,0.6712896902455657
+,NL,Energy and Housing,All Deciles,0.6700998619429634
+,NL,Equality,All Deciles,0.8745104737805073
+,NL,Health and Animal Welfare,All Deciles,0.5178531671127874
+,NL,"Intergenerational Fairness, Youth, Culture and Sport",All Deciles,0.813970396717924
+,NL,"Social Rights and Skills, Quality Jobs and Preparedness",All Deciles,0.5670873148994855
+,NO,Agriculture and Food,All Deciles,0.9091823689381264
+,NO,Energy and Housing,All Deciles,0.6502574971964523
+,NO,Equality,All Deciles,0.8554112352890539
+,NO,Health and Animal Welfare,All Deciles,0.7579605566191808
+,NO,"Intergenerational Fairness, Youth, Culture and Sport",All Deciles,0.9809336230378309
+,NO,"Social Rights and Skills, Quality Jobs and Preparedness",All Deciles,0.7817605034704528
+,PL,Agriculture and Food,All Deciles,0.5603519455753658
+,PL,Energy and Housing,All Deciles,0.4794939158384069
+,PL,Equality,All Deciles,0.7116298367215136
+,PL,Health and Animal Welfare,All Deciles,0.5529755103489101
+,PL,"Intergenerational Fairness, Youth, Culture and Sport",All Deciles,0.89086025605888
+,PL,"Social Rights and Skills, Quality Jobs and Preparedness",All Deciles,0.6381125656806718
+,PT,Agriculture and Food,All Deciles,0.7082926289547252
+,PT,Energy and Housing,All Deciles,0.6069477281237625
+,PT,Equality,All Deciles,0.6148991175311787
+,PT,Health and Animal Welfare,All Deciles,0.35770453803914065
+,PT,"Intergenerational Fairness, Youth, Culture and Sport",All Deciles,0.44172880794558633
+,PT,"Social Rights and Skills, Quality Jobs and Preparedness",All Deciles,0.6336429935126326
+,RO,Agriculture and Food,All Deciles,0.39331738686446294
+,RO,Energy and Housing,All Deciles,0.44067372087112405
+,RO,Equality,All Deciles,0.5889998952894954
+,RO,Health and Animal Welfare,All Deciles,0.576067279879859
+,RO,"Intergenerational Fairness, Youth, Culture and Sport",All Deciles,0.8126975897337273
+,RO,"Social Rights and Skills, Quality Jobs and Preparedness",All Deciles,0.9182723418993907
+,RS,Energy and Housing,All Deciles,0.20226323856199585
+,RS,Equality,All Deciles,0.2482873886632278
+,RS,Health and Animal Welfare,All Deciles,0.38912587152103
+,RS,"Intergenerational Fairness, Youth, Culture and Sport",All Deciles,0.7529457080733873
+,RS,"Social Rights and Skills, Quality Jobs and Preparedness",All Deciles,0.07871784198650791
+,SE,Agriculture and Food,All Deciles,0.5475493828455598
+,SE,Energy and Housing,All Deciles,0.7110421495184006
+,SE,Equality,All Deciles,0.7825734316341763
+,SE,Health and Animal Welfare,All Deciles,0.6639201789568725
+,SE,"Intergenerational Fairness, Youth, Culture and Sport",All Deciles,1.0
+,SE,"Social Rights and Skills, Quality Jobs and Preparedness",All Deciles,0.7282068548707886
+,SI,Agriculture and Food,All Deciles,0.6746241429537102
+,SI,Energy and Housing,All Deciles,0.6873297223675269
+,SI,Equality,All Deciles,0.6751489061460227
+,SI,Health and Animal Welfare,All Deciles,0.503512664879636
+,SI,"Intergenerational Fairness, Youth, Culture and Sport",All Deciles,1.0
+,SI,"Social Rights and Skills, Quality Jobs and Preparedness",All Deciles,0.6074357631426698
+,SK,Agriculture and Food,All Deciles,0.34798809462369024
+,SK,Energy and Housing,All Deciles,0.5120302405586855
+,SK,Equality,All Deciles,0.7279924307253357
+,SK,Health and Animal Welfare,All Deciles,0.5486620220081861
+,SK,"Intergenerational Fairness, Youth, Culture and Sport",All Deciles,0.9509031445775089
+,SK,"Social Rights and Skills, Quality Jobs and Preparedness",All Deciles,0.7734697914769456
+,UK,Agriculture and Food,All Deciles,0.7692774809488152
+,UK,Energy and Housing,All Deciles,0.9227757234630779
+,UK,Equality,All Deciles,0.6992802001750725
+,UK,Health and Animal Welfare,All Deciles,0.5956605911062166
+,UK,"Social Rights and Skills, Quality Jobs and Preparedness",All Deciles,0.6877891698166626

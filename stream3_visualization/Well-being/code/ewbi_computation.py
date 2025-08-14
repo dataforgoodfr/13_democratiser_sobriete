@@ -199,6 +199,85 @@ def add_decile_level_calculations(primary_df, secondary_df, priorities_df, ewbi_
     
     return secondary_df, priorities_df, ewbi_df
 
+def create_all_deciles_aggregates(secondary_df, priorities_df, ewbi_df):
+    """
+    Create "All Deciles" aggregates using geometric mean across deciles for all indicator levels
+    Args:
+        secondary_df: DataFrame with secondary indicator scores by decile
+        priorities_df: DataFrame with EU priority scores by decile
+        ewbi_df: DataFrame with EWBI scores by decile
+    Returns:
+        Tuple of DataFrames with "All Deciles" aggregates
+    """
+    print("Creating 'All Deciles' aggregates using geometric mean...")
+    
+    # Debug: Check the actual types and structures
+    print(f"secondary_df type: {type(secondary_df)}")
+    print(f"priorities_df type: {type(priorities_df)}")
+    print(f"ewbi_df type: {type(ewbi_df)}")
+    
+    if hasattr(secondary_df, 'columns'):
+        print(f"secondary_df columns: {secondary_df.columns.tolist()}")
+    else:
+        print(f"secondary_df index names: {secondary_df.index.names}")
+        print(f"secondary_df index levels: {secondary_df.index.nlevels}")
+    
+    def geometric_mean_across_deciles(df):
+        """Calculate geometric mean across deciles for each country-indicator combination"""
+        # The DataFrame is actually a Series with MultiIndex
+        # We need to group by country and other identifiers, then calculate geometric mean across deciles
+        aggregates = []
+        
+        # Get identifier levels (excluding decile)
+        id_levels = [i for i, name in enumerate(df.index.names) if name != 'decile']
+        
+        # Group by identifier levels
+        for name, group in df.groupby(level=id_levels):
+            if len(group) > 0:
+                # Get values for this group
+                values = group.values
+                # Filter out non-positive values (geometric mean requires positive numbers)
+                valid_values = values[values > 0]
+                
+                if len(valid_values) > 0:
+                    # Calculate geometric mean
+                    geometric_mean = np.exp(np.mean(np.log(valid_values)))
+                    
+                    # Create aggregate record
+                    if isinstance(name, tuple):
+                        record = dict(zip([df.index.names[i] for i in id_levels], name))
+                    else:
+                        record = {df.index.names[id_levels[0]]: name}
+                    
+                    record['decile'] = 'All Deciles'
+                    record['score'] = geometric_mean
+                    aggregates.append(record)
+        
+        return pd.DataFrame(aggregates)
+    
+    # Create "All Deciles" aggregates for secondary indicators
+    print("Creating secondary indicator aggregates...")
+    secondary_aggregates = geometric_mean_across_deciles(secondary_df)
+    
+    # Create "All Deciles" aggregates for EU priorities
+    print("Creating EU priority aggregates...")
+    priorities_aggregates = geometric_mean_across_deciles(priorities_df)
+    
+    # Create "All Deciles" aggregates for EWBI
+    print("Creating EWBI aggregates...")
+    ewbi_aggregates = geometric_mean_across_deciles(ewbi_df)
+    
+    # Combine original data with aggregates
+    secondary_with_aggregates = pd.concat([secondary_df, secondary_aggregates], ignore_index=True)
+    priorities_with_aggregates = pd.concat([priorities_df, priorities_aggregates], ignore_index=True)
+    ewbi_with_aggregates = pd.concat([ewbi_df, ewbi_aggregates], ignore_index=True)
+    
+    print(f"Created {len(secondary_aggregates)} secondary indicator aggregates")
+    print(f"Created {len(priorities_aggregates)} EU priority aggregates")
+    print(f"Created {len(ewbi_aggregates)} EWBI aggregates")
+    
+    return secondary_with_aggregates, priorities_with_aggregates, ewbi_with_aggregates
+
 def main():
     """Main function to run the EWBI computation"""
     print("=== EWBI Computation Script ===")
@@ -269,20 +348,43 @@ def main():
         df, secondary_df, priorities_df, ewbi_df, config
     )
     
+    # Create "All Deciles" aggregates
+    secondary_with_aggregates, priorities_with_aggregates, ewbi_with_aggregates = create_all_deciles_aggregates(
+        secondary_df, priorities_df, ewbi_df
+    )
+    
     # Save results
     print("Saving results...")
-    secondary_df.to_csv('../output/secondary_indicators.csv')
-    priorities_df.to_csv('../output/eu_priorities.csv')
-    ewbi_df.to_csv('../output/ewbi_results.csv')
+    
+    # Convert Series to DataFrames for proper CSV output
+    secondary_df_csv = secondary_df.reset_index()
+    priorities_df_csv = priorities_df.reset_index()
+    ewbi_df_csv = ewbi_df.reset_index()
+    
+    # Save decile-level data
+    secondary_df_csv.to_csv('../output/secondary_indicators_deciles.csv', index=False)
+    priorities_df_csv.to_csv('../output/eu_priorities_deciles.csv', index=False)
+    ewbi_df_csv.to_csv('../output/ewbi_results_deciles.csv', index=False)
+    
+    # Save data with aggregates
+    secondary_with_aggregates.to_csv('../output/secondary_indicators.csv', index=False)
+    priorities_with_aggregates.to_csv('../output/eu_priorities.csv', index=False)
+    ewbi_with_aggregates.to_csv('../output/ewbi_results.csv', index=False)
     
     print("=== Computation Complete ===")
-    print(f"Secondary indicators: {len(secondary_df)} scores")
-    print(f"EU priorities: {len(priorities_df)} scores")
-    print(f"EWBI scores: {len(ewbi_df)} scores")
+    print(f"Secondary indicators (deciles only): {len(secondary_df)} scores")
+    print(f"Secondary indicators (with aggregates): {len(secondary_with_aggregates)} scores")
+    print(f"EU priorities (deciles only): {len(priorities_df)} scores")
+    print(f"EU priorities (with aggregates): {len(priorities_with_aggregates)} scores")
+    print(f"EWBI (deciles only): {len(ewbi_df)} scores")
+    print(f"EWBI (with aggregates): {len(ewbi_with_aggregates)} scores")
     print("\nFiles saved:")
-    print("- ../output/secondary_indicators.csv")
-    print("- ../output/eu_priorities.csv")
-    print("- ../output/ewbi_results.csv")
+    print("- ../output/secondary_indicators_deciles.csv (deciles only)")
+    print("- ../output/eu_priorities_deciles.csv (deciles only)")
+    print("- ../output/ewbi_results_deciles.csv (deciles only)")
+    print("- ../output/secondary_indicators.csv (with All Deciles aggregates)")
+    print("- ../output/eu_priorities.csv (with All Deciles aggregates)")
+    print("- ../output/ewbi_results.csv (with All Deciles aggregates)")
 
 if __name__ == "__main__":
     main() 
