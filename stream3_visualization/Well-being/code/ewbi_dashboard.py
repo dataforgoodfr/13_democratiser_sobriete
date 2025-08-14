@@ -759,17 +759,56 @@ def create_eu_priority_charts(map_df, analysis_df, time_df, eu_priority):
     # 4. Time series chart - Bar chart implementation
     time_series = go.Figure()
     
-    # For time series, we'll show the EU priority score over time if available
-    # Since we don't have direct EU priority time series, we'll show a placeholder for now
-    # In the future, this could be calculated from the primary indicators
-    
-    # Show a placeholder message
-    time_series.add_annotation(
-        text=f"Time series data for {eu_priority} will be implemented in the next iteration",
-        xref="paper", yref="paper",
-        x=0.5, y=0.5, showarrow=False,
-        font=dict(size=16)
-    )
+    # For time series, we'll use the pre-calculated historical EU priority scores
+    # Load the historical EWBI data which contains EU priority scores over time
+    try:
+        historical_ewbi_df = pd.read_csv(os.path.join(DATA_DIR, 'historical_ewbi_scores.csv'))
+        
+        # Check if the EU priority exists in the historical data
+        if eu_priority in historical_ewbi_df.columns:
+            # Create time series data by averaging across deciles for each country and year
+            eu_priority_time_data = historical_ewbi_df.groupby(['country', 'year'])[eu_priority].mean().reset_index()
+            
+            # For time series, prioritize EU Countries Average, then add individual countries
+            countries_to_show = []
+            
+            # Always show EU Countries Average first if available
+            if 'EU Countries Average' in analysis_df['country'].values:
+                countries_to_show.append('EU Countries Average')
+            
+            # Then add any other selected countries (excluding EU Countries Average to avoid duplication)
+            other_countries = [c for c in analysis_df['country'].values if c != 'EU Countries Average' and 'Average' not in c]
+            countries_to_show.extend(other_countries)
+            
+            # Show countries in the determined order
+            for country in countries_to_show:
+                if country in eu_priority_time_data['country'].values:
+                    country_data = eu_priority_time_data[eu_priority_time_data['country'] == country].sort_values('year')
+                    time_series.add_trace(go.Scatter(
+                        x=country_data['year'],
+                        y=country_data[eu_priority],
+                        mode='lines+markers',
+                        name=country,
+                        line=dict(width=2),
+                        hovertemplate=f'<b>{country}</b><br>{eu_priority} Score: %{{y:.3f}}<br>Year: %{{x}}<extra></extra>'
+                    ))
+        else:
+            # EU priority not found in historical data
+            time_series.add_annotation(
+                text=f"Historical data for {eu_priority} not found in the dataset",
+                xref="paper", yref="paper",
+                x=0.5, y=0.5, showarrow=False,
+                font=dict(size=14)
+            )
+            
+    except FileNotFoundError:
+        # Historical data file not found
+        time_series.add_annotation(
+            text=f"Historical EWBI data not found. Please run create_master_dataframe.py first.",
+            xref="paper", yref="paper",
+            x=0.5, y=0.5, showarrow=False,
+            font=dict(size=14)
+        )
     
     time_series.update_layout(
         title=f'{eu_priority} Evolution Over Time',
