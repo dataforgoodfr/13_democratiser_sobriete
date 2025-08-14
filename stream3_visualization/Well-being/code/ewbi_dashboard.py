@@ -990,20 +990,39 @@ def create_primary_indicator_charts(map_df, analysis_df, time_df, eu_priority, s
         
         european_map.update_layout(
             title=f'{primary_indicator} Scores by Country',
+            height=550,
+            margin={"r": 150, "t": 80, "l": 150, "b": 50},
             geo=dict(
                 scope='europe',
-                projection=dict(type='natural earth'),
+                projection=dict(type='equirectangular'),
                 showland=True,
-                landcolor='rgb(243, 243, 243)',
-                coastlinecolor='rgb(204, 204, 204)',
-                showocean=True,
-                oceancolor='rgb(230, 230, 250)',
+                landcolor='lightgray',
+                coastlinecolor='white',
                 showcountries=True,
-                countrycolor='rgb(128, 128, 128)',
-                showframe=False
+                countrycolor='lightgray',
+                showocean=True,
+                oceancolor='white',
+                showframe=False,
+                showcoastlines=True,
+                coastlinewidth=1,
+                projection_scale=1.0,
+                center=dict(lat=50, lon=10),
+                lataxis_range=[35, 75],
+                lonaxis_range=[-15, 45]
             ),
-            height=550,
-            font=dict(family='Arial, sans-serif', size=12)
+            paper_bgcolor='#ffffff',
+            plot_bgcolor='#ffffff',
+            font=dict(family="Arial, sans-serif", size=12, color="#2c3e50"),
+            title=dict(
+                text=f'{primary_indicator} Scores Map',
+                font=dict(size=16, color="#f4d03f", weight="bold"),
+                x=0.5
+            ),
+            hoverlabel=dict(
+                bgcolor="rgba(245, 245, 245, 0.9)",
+                bordercolor="white",
+                font=dict(color="black", size=12)
+            )
         )
     else:
         european_map.add_annotation(
@@ -1045,32 +1064,27 @@ def create_primary_indicator_charts(map_df, analysis_df, time_df, eu_priority, s
             font=dict(size=16)
         )
     
-    # 3. Country comparison chart (primary indicator vs other primary indicators in same secondary)
+    # 3. Country comparison chart (primary indicator only - no underlying indicators)
     radar_chart = go.Figure()
     
-    # Get all primary indicators for the same secondary indicator
     if primary_col in map_df.columns:
-        # Find other primary indicators in the same secondary group
-        # For now, we'll show the selected primary indicator vs a few others
-        other_primary_cols = [col for col in map_df.columns if col.startswith('primary_') and col != primary_col][:3]
-        
         # Get individual countries (excluding aggregates)
         individual_countries = [c for c in map_df['country'].unique() if 'Average' not in c]
         individual_countries.sort()
         
-        # Add the main primary indicator
-        main_scores = []
+        # Get scores for the selected primary indicator only
+        primary_scores = []
         for country in individual_countries:
             if country in map_df['country'].values:
                 score = map_df[map_df['country'] == country][primary_col].mean()
-                main_scores.append(score)
+                primary_scores.append(score)
             else:
-                main_scores.append(0)
+                primary_scores.append(0)
         
         radar_chart.add_trace(
             go.Scatter(
                 x=individual_countries,
-                y=main_scores,
+                y=primary_scores,
                 name=primary_indicator,
                 mode='lines+markers',
                 line=dict(width=4, color='#1f77b4'),
@@ -1083,43 +1097,12 @@ def create_primary_indicator_charts(map_df, analysis_df, time_df, eu_priority, s
             )
         )
         
-        # Add other primary indicators
-        colors = ['#ff7f0e', '#2ca02c', '#d62728']
-        for i, col in enumerate(other_primary_cols):
-            if i < len(colors):
-                other_scores = []
-                for country in individual_countries:
-                    if country in map_df['country'].values:
-                        score = map_df[map_df['country'] == country][col].mean()
-                        other_scores.append(score)
-                    else:
-                        other_scores.append(0)
-                
-                other_name = col.replace('primary_', '')
-                
-                radar_chart.add_trace(
-                    go.Scatter(
-                        x=individual_countries,
-                        y=other_scores,
-                        name=other_name,
-                        mode='lines+markers',
-                        line=dict(color=colors[i]),
-                        marker=dict(
-                            size=8,
-                            color='white',
-                            line=dict(color=colors[i], width=2)
-                        ),
-                        hovertemplate='%{y:.3f}'
-                    )
-                )
-        
         radar_chart.update_layout(
-            title=f'{primary_indicator} vs Other Primary Indicators',
+            title=f'{primary_indicator} Scores by Country',
             xaxis=dict(tickangle=45, tickfont=dict(size=12)),
             yaxis=dict(range=[0, 1], tickformat='.1f', gridwidth=0.2, title='Score'),
             hovermode='closest',
-            showlegend=True,
-            legend=dict(x=1, y=1, xanchor='right', yanchor='top'),
+            showlegend=False,  # No legend needed for single indicator
             height=400,
             font=dict(family='Arial, sans-serif', size=12)
         )
@@ -1231,20 +1214,39 @@ def create_secondary_indicator_charts(map_df, analysis_df, time_df, eu_priority,
         
         european_map.update_layout(
             title=f'{secondary_indicator} Scores by Country',
+            height=550,
+            margin={"r": 150, "t": 80, "l": 150, "b": 50},
             geo=dict(
                 scope='europe',
-                projection=dict(type='natural earth'),
+                projection=dict(type='equirectangular'),
                 showland=True,
-                landcolor='rgb(243, 243, 243)',
-                coastlinecolor='rgb(204, 204, 204)',
-                showocean=True,
-                oceancolor='rgb(230, 230, 250)',
+                landcolor='lightgray',
+                coastlinecolor='white',
                 showcountries=True,
-                countrycolor='rgb(128, 128, 128)',
-                showframe=False
+                countrycolor='lightgray',
+                showocean=True,
+                oceancolor='white',
+                showframe=False,
+                showcoastlines=True,
+                coastlinewidth=1,
+                projection_scale=1.0,
+                center=dict(lat=50, lon=10),
+                lataxis_range=[35, 75],
+                lonaxis_range=[-15, 45]
             ),
-            height=550,
-            font=dict(family='Arial, sans-serif', size=12)
+            paper_bgcolor='#ffffff',
+            plot_bgcolor='#ffffff',
+            font=dict(family="Arial, sans-serif", size=12, color="#2c3e50"),
+            title=dict(
+                text=f'{secondary_indicator} Scores Map',
+                font=dict(size=16, color="#f4d03f", weight="bold"),
+                x=0.5
+            ),
+            hoverlabel=dict(
+                bgcolor="rgba(245, 245, 245, 0.9)",
+                bordercolor="white",
+                font=dict(color="black", size=12)
+            )
         )
     else:
         european_map.add_annotation(

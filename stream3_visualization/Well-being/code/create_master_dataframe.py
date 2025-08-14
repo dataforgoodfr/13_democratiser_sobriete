@@ -140,7 +140,7 @@ def create_master_dataframe(ewbi_df, eu_priorities_df, secondary_df, primary_df,
     return master_df
 
 def add_time_series_data(master_df, primary_df, primary_to_secondary, secondary_to_eu_priority):
-    """Add time series data for primary indicators"""
+    """Add time series data for primary indicators with EU and All Countries averages"""
     print("Adding time series data...")
     
     # Get all years available
@@ -163,7 +163,127 @@ def add_time_series_data(master_df, primary_df, primary_to_secondary, secondary_
     
     time_series_df = pd.concat(time_series_data, ignore_index=True)
     
-    return time_series_df
+    # Create a separate list for additional aggregate data
+    additional_data = []
+    
+    # Now add EU Countries Average and All Countries Average for secondary indicators
+    print("Adding EU and All Countries averages for secondary indicators...")
+    
+    # Define EU countries
+    eu_countries = ['AT', 'BE', 'BG', 'CY', 'CZ', 'DE', 'DK', 'EE', 'EL', 'ES', 'FI', 'FR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'MT', 'NL', 'PL', 'PT', 'RO', 'SE', 'SI', 'SK']
+    
+    # Get unique secondary indicators
+    secondary_indicators = time_series_df['secondary_indicator'].dropna().unique()
+    
+    for year in year_cols:
+        year_int = int(year)
+        
+        # For each secondary indicator, calculate EU and All Countries averages
+        for secondary_indicator in secondary_indicators:
+            if pd.isna(secondary_indicator):
+                continue
+                
+            # Get data for this secondary indicator and year
+            indicator_data = time_series_df[
+                (time_series_df['secondary_indicator'] == secondary_indicator) & 
+                (time_series_df['year'] == year_int)
+            ]
+            
+            if not indicator_data.empty:
+                # Calculate EU Countries Average
+                eu_data = indicator_data[indicator_data['country'].isin(eu_countries)]
+                if not eu_data.empty:
+                    # Average across countries and deciles for this secondary indicator
+                    eu_avg_value = eu_data['value'].mean()
+                    
+                    # Add EU Countries Average record
+                    additional_data.append({
+                        'country': 'EU Countries Average',
+                        'primary_index': None,  # Not applicable for secondary indicators
+                        'decile': None,  # Not applicable for secondary indicators
+                        'value': eu_avg_value,
+                        'year': year_int,
+                        'secondary_indicator': secondary_indicator,
+                        'eu_priority': secondary_to_eu_priority.get(secondary_indicator, None)
+                    })
+                
+                # Calculate All Countries Average
+                all_avg_value = indicator_data['value'].mean()
+                
+                # Add All Countries Average record
+                additional_data.append({
+                    'country': 'All Countries Average',
+                    'primary_index': None,  # Not applicable for secondary indicators
+                    'decile': None,  # Not applicable for secondary indicators
+                    'value': all_avg_value,
+                    'year': year_int,
+                        'secondary_indicator': secondary_indicator,
+                        'eu_priority': secondary_to_eu_priority.get(secondary_indicator, None)
+                })
+    
+    # Now add EU Countries Average and All Countries Average for primary indicators
+    print("Adding EU and All Countries averages for primary indicators...")
+    
+    # Get unique primary indicators
+    primary_indicators = time_series_df['primary_index'].dropna().unique()
+    
+    for year in year_cols:
+        year_int = int(year)
+        
+        # For each primary indicator, calculate EU and All Countries averages
+        for primary_indicator in primary_indicators:
+            if pd.isna(primary_indicator):
+                continue
+                
+            # Get data for this primary indicator and year
+            indicator_data = time_series_df[
+                (time_series_df['primary_index'] == primary_indicator) & 
+                (time_series_df['year'] == year_int)
+            ]
+            
+            if not indicator_data.empty:
+                # Calculate EU Countries Average
+                eu_data = indicator_data[indicator_data['country'].isin(eu_countries)]
+                if not eu_data.empty:
+                    # Average across countries and deciles for this primary indicator
+                    eu_avg_value = eu_data['value'].mean()
+                    
+                    # Add EU Countries Average record
+                    additional_data.append({
+                        'country': 'EU Countries Average',
+                        'primary_index': primary_indicator,
+                        'decile': None,  # Not applicable for averages
+                        'value': eu_avg_value,
+                        'year': year_int,
+                        'secondary_indicator': primary_to_secondary.get(primary_indicator, None),
+                        'eu_priority': secondary_to_eu_priority.get(primary_to_secondary.get(primary_indicator, None), None)
+                    })
+                
+                # Calculate All Countries Average
+                all_avg_value = indicator_data['value'].mean()
+                
+                # Add All Countries Average record
+                additional_data.append({
+                    'country': 'All Countries Average',
+                    'primary_index': primary_indicator,
+                    'decile': None,  # Not applicable for averages
+                    'value': all_avg_value,
+                    'year': year_int,
+                    'secondary_indicator': primary_to_secondary.get(primary_indicator, None),
+                    'eu_priority': secondary_to_eu_priority.get(primary_to_secondary.get(primary_indicator, None), None)
+                })
+    
+    # Convert additional data to DataFrame and concatenate with original time series
+    if additional_data:
+        additional_df = pd.DataFrame(additional_data)
+        final_time_series_df = pd.concat([time_series_df, additional_df], ignore_index=True)
+        print(f"Added {len(additional_data)} EU and All Countries average records")
+    else:
+        final_time_series_df = time_series_df
+    
+    print(f"Final time series shape: {final_time_series_df.shape}")
+    
+    return final_time_series_df
 
 def calculate_historical_ewbi_scores(time_series_df, config):
     """Calculate historical EWBI scores for all countries over time"""
