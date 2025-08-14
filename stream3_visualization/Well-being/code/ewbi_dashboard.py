@@ -1209,7 +1209,8 @@ def create_secondary_indicator_charts(map_df, analysis_df, time_df, eu_priority,
     european_map = go.Figure()
     
     # Get the secondary indicator column name
-    secondary_col = f"secondary_{eu_priority.replace(' ', '_and_')}_{secondary_indicator.replace(' ', '_and_')}"
+    # The actual columns don't have 'secondary_' prefix
+    secondary_col = f"{eu_priority.replace(' ', '_and_')}_{secondary_indicator.replace(' ', '_and_')}"
     
     if secondary_col in map_df.columns:
         # Create choropleth map for the secondary indicator
