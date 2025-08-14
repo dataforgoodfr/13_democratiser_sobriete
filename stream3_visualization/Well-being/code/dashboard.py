@@ -1,153 +1,188 @@
 import dash
 from dash import dcc, html
-import pandas as pd
 import plotly.express as px
-import json
-import os
+import plotly.graph_objects as go
+import pandas as pd
+import numpy as np
 
 # --- 1. Load Data ---
-# Get the absolute path of the directory where the script is located
-script_dir = os.path.dirname(os.path.abspath(__file__))
-
-# Define paths to data files relative to the script's location
-DATA_DIR = os.path.abspath(os.path.join(script_dir, '..', 'output'))
-JSON_PATH = os.path.abspath(os.path.join(script_dir, '..', 'data', 'ewbi_indicators.json'))
-
-# Load the datasets
 try:
-    ewbi_results = pd.read_csv(os.path.join(DATA_DIR, 'ewbi_results.csv'))
-    eu_priorities = pd.read_csv(os.path.join(DATA_DIR, 'eu_priorities.csv'))
-    secondary_indicators = pd.read_csv(os.path.join(DATA_DIR, 'secondary_indicators.csv'))
-    # primary_indicators = pd.read_csv(os.path.join(DATA_DIR, 'primary_data_preprocessed.csv')) # This file is large, load if needed
+    # Load EWBI results
+    ewbi_results = pd.read_csv('output/ewbi_results.csv')
     print("Data loaded successfully.")
-except FileNotFoundError as e:
+    
+    # Load EU priorities for more detailed analysis
+    eu_priorities = pd.read_csv('output/eu_priorities.csv')
+    print("EU priorities loaded successfully.")
+    
+    # Load secondary indicators
+    secondary_indicators = pd.read_csv('output/secondary_indicators.csv')
+    print("Secondary indicators loaded successfully.")
+    
+except Exception as e:
     print(f"Error loading data: {e}")
-    # Initialize empty dataframes if files are not found
-    ewbi_results = pd.DataFrame()
-    eu_priorities = pd.DataFrame()
-    secondary_indicators = pd.DataFrame()
-    # primary_indicators = pd.DataFrame()
+    exit(1)
 
-# Load the indicator hierarchy
-try:
-    with open(JSON_PATH, 'r') as f:
-        indicator_hierarchy = json.load(f)
-    print("Indicator hierarchy loaded successfully.")
-except FileNotFoundError as e:
-    print(f"Error loading indicator hierarchy: {e}")
-    indicator_hierarchy = {}
+# --- 2. Data Preprocessing ---
+# Get unique countries and deciles
+countries = sorted(ewbi_results['country'].unique())
+deciles = sorted(ewbi_results['decile'].unique())
 
-# --- 2. Initialize the App ---
-app = dash.Dash(__name__, suppress_callback_exceptions=True)
-server = app.server
+# Get unique EU priorities
+eu_priority_names = sorted(eu_priorities['eu_priority'].unique())
 
-# --- 3. Define the Layout ---
-# Get years from data for slider
-years = [col for col in ewbi_results.columns if col.isdigit()]
-year_marks = {int(year): str(year) for year in years}
+# Get unique secondary indicators
+secondary_names = sorted(secondary_indicators['secondary_indicator'].unique())
+
+# --- 3. Dashboard Layout ---
+app = dash.Dash(__name__)
 
 app.layout = html.Div([
-    # Header
-    html.Div([
-        html.H1("European Well-Being Indicators Dashboard", style={'textAlign': 'center', 'color': '#2c3e50', 'fontFamily': 'Arial, sans-serif'}),
-        html.H2("Visualizing Well-Being Across EU Countries and Demographics", style={'textAlign': 'center', 'color': '#34495e', 'fontSize': '1.2rem', 'fontFamily': 'Arial, sans-serif'})
-    ], style={'backgroundColor': '#f8f9fa', 'padding': '20px'}),
-
+    html.H1("European Well-Being Indicators (EWBI) Dashboard", 
+             style={'textAlign': 'center', 'color': '#2c3e50', 'marginBottom': '30px'}),
+    
     # Filters
     html.Div([
         html.Div([
             html.Label("Select Country", style={'fontWeight': 'bold'}),
             dcc.Dropdown(
                 id='country-dropdown',
-                options=[{'label': country, 'value': iso} for country, iso in zip(ewbi_results['Country'], ewbi_results['ISO3'])],
-                value='EU27',  # Default value
+                options=[{'label': country, 'value': country} for country in countries],
+                value=countries[0] if countries else None,
                 style={'width': '100%'}
             ),
         ], style={'width': '48%', 'display': 'inline-block', 'padding': '10px'}),
 
         html.Div([
-            html.Label("Select Year", style={'fontWeight': 'bold'}),
-            dcc.Slider(
-                id='year-slider',
-                min=int(years[0]),
-                max=int(years[-1]),
-                value=int(years[-1]),
-                marks=year_marks,
-                step=None
+            html.Label("Select Decile", style={'fontWeight': 'bold'}),
+            dcc.Dropdown(
+                id='decile-dropdown',
+                options=[{'label': f'Decile {d}', 'value': d} for d in deciles],
+                value=deciles[0] if deciles else None,
+                style={'width': '100%'}
             ),
         ], style={'width': '48%', 'display': 'inline-block', 'padding': '10px', 'verticalAlign': 'top'})
     ], style={'padding': '20px', 'backgroundColor': '#ffffff', 'border': '1px solid #dee2e6', 'borderRadius': '5px'}),
 
     # Visualizations
     html.Div([
-        # Level 1: EWBI Overview
+        # Level 1: EWBI Overview by Decile
         html.Div([
-            dcc.Graph(id='ewbi-map'),
-            dcc.Graph(id='ewbi-timeseries')
-        ], style={'display': 'flex', 'marginTop': '20px'})
+            html.H3("EWBI Scores by Decile", style={'textAlign': 'center'}),
+            dcc.Graph(id='ewbi-by-decile')
+        ], style={'marginTop': '20px'}),
+        
+        # Level 2: EU Priorities Breakdown
+        html.Div([
+            html.H3("EU Priorities Breakdown", style={'textAlign': 'center'}),
+            dcc.Graph(id='eu-priorities-breakdown')
+        ], style={'marginTop': '20px'}),
+        
+        # Level 3: Secondary Indicators
+        html.Div([
+            html.H3("Secondary Indicators", style={'textAlign': 'center'}),
+            dcc.Graph(id='secondary-indicators')
+        ], style={'marginTop': '20px'})
     ])
 ])
 
 # --- 4. Callbacks ---
 @app.callback(
-    dash.dependencies.Output('ewbi-map', 'figure'),
-    [dash.dependencies.Input('year-slider', 'value')]
+    dash.dependencies.Output('ewbi-by-decile', 'figure'),
+    [dash.dependencies.Input('country-dropdown', 'value')]
 )
-def update_map(selected_year):
-    # Melt the dataframe to have years in a column
-    df_melted = ewbi_results.melt(id_vars=['ISO3', 'Country'], 
-                                  value_vars=[str(y) for y in years],
-                                  var_name='Year', 
-                                  value_name='EWBI')
-    df_melted['Year'] = pd.to_numeric(df_melted['Year'])
+def update_ewbi_by_decile(selected_country):
+    if not selected_country:
+        return go.Figure()
     
-    # Filter by selected year
-    df_filtered = df_melted[df_melted['Year'] == selected_year]
+    # Filter data for selected country
+    country_data = ewbi_results[ewbi_results['country'] == selected_country]
     
-    fig = px.choropleth(df_filtered, 
-                        locations="ISO3",
-                        color="EWBI", 
-                        hover_name="Country",
-                        color_continuous_scale=px.colors.sequential.Plasma,
-                        scope="europe",
-                        title=f"EWBI Scores in {selected_year}")
+    fig = go.Figure()
+    fig.add_trace(go.Bar(
+        x=[f'Decile {d}' for d in country_data['decile']],
+        y=country_data.iloc[:, 2],  # EWBI score column
+        name='EWBI Score',
+        marker_color='lightblue'
+    ))
     
     fig.update_layout(
-        margin={"r":0,"t":40,"l":0,"b":0},
-        geo=dict(
-            showframe=False,
-            showcoastlines=False,
-            projection_type='mercator'
-        )
+        title=f'EWBI Scores by Decile for {selected_country}',
+        xaxis_title='Decile',
+        yaxis_title='EWBI Score',
+        yaxis_range=[0, 1]
     )
     
     return fig
 
 @app.callback(
-    dash.dependencies.Output('ewbi-timeseries', 'figure'),
-    [dash.dependencies.Input('country-dropdown', 'value')]
+    dash.dependencies.Output('eu-priorities-breakdown', 'figure'),
+    [dash.dependencies.Input('country-dropdown', 'value'),
+     dash.dependencies.Input('decile-dropdown', 'value')]
 )
-def update_timeseries(selected_country_iso):
-    # Melt the dataframe
-    df_melted = ewbi_results.melt(id_vars=['ISO3', 'Country'], 
-                                  value_vars=[str(y) for y in years],
-                                  var_name='Year', 
-                                  value_name='EWBI')
-    df_melted['Year'] = pd.to_numeric(df_melted['Year'])
-
-    # Filter for the selected country
-    df_country = df_melted[df_melted['ISO3'] == selected_country_iso]
-    country_name = df_country['Country'].iloc[0]
-
-    fig = px.line(df_country, x="Year", y="EWBI", title=f"EWBI Trend for {country_name}")
+def update_eu_priorities(selected_country, selected_decile):
+    if not selected_country or not selected_decile:
+        return go.Figure()
+    
+    # Filter data for selected country and decile
+    filtered_data = eu_priorities[
+        (eu_priorities['country'] == selected_country) & 
+        (eu_priorities['decile'] == selected_decile)
+    ]
+    
+    fig = go.Figure()
+    fig.add_trace(go.Bar(
+        x=filtered_data['eu_priority'],
+        y=filtered_data.iloc[:, 3],  # Score column
+        name='Priority Score',
+        marker_color='lightgreen'
+    ))
     
     fig.update_layout(
-        xaxis_title="Year",
-        yaxis_title="EWBI Score"
+        title=f'EU Priorities for {selected_country} - Decile {selected_decile}',
+        xaxis_title='EU Priority',
+        yaxis_title='Score',
+        yaxis_range=[0, 1],
+        xaxis_tickangle=-45
     )
-
+    
     return fig
 
+@app.callback(
+    dash.dependencies.Output('secondary-indicators', 'figure'),
+    [dash.dependencies.Input('country-dropdown', 'value'),
+     dash.dependencies.Input('decile-dropdown', 'value')]
+)
+def update_secondary_indicators(selected_country, selected_decile):
+    if not selected_country or not selected_decile:
+        return go.Figure()
+    
+    # Filter data for selected country and decile
+    filtered_data = secondary_indicators[
+        (secondary_indicators['country'] == selected_country) & 
+        (secondary_indicators['decile'] == selected_decile)
+    ]
+    
+    # Group by EU priority and get average scores
+    priority_avg = filtered_data.groupby('eu_priority')['0'].mean().reset_index()
+    
+    fig = go.Figure()
+    fig.add_trace(go.Bar(
+        x=priority_avg['eu_priority'],
+        y=priority_avg['0'],
+        name='Average Secondary Score',
+        marker_color='lightcoral'
+    ))
+    
+    fig.update_layout(
+        title=f'Secondary Indicators by EU Priority for {selected_country} - Decile {selected_decile}',
+        xaxis_title='EU Priority',
+        yaxis_title='Average Score',
+        yaxis_range=[0, 1],
+        xaxis_tickangle=-45
+    )
+    
+    return fig
 
 # --- 5. Run the App ---
 if __name__ == '__main__':
