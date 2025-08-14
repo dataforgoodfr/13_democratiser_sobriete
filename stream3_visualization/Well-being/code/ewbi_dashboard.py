@@ -112,7 +112,7 @@ app.layout = html.Div([
                     style={'marginTop': '8px'},
                     clearable=False
                 )
-            ], style={'width': '24%', 'display': 'inline-block', 'margin-right': '2%'}),
+            ], style={'width': '20%', 'display': 'inline-block', 'margin-right': '2%'}),
             
             html.Div([
                 html.Label("EU Priority", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
@@ -124,7 +124,7 @@ app.layout = html.Div([
                     clearable=False,
                     disabled=True
                 )
-            ], style={'width': '24%', 'display': 'inline-block', 'margin-right': '2%'}),
+            ], style={'width': '20%', 'display': 'inline-block', 'margin-right': '2%'}),
             
             html.Div([
                 html.Label("Secondary Indicator", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
@@ -136,7 +136,19 @@ app.layout = html.Div([
                     clearable=False,
                     disabled=True
                 )
-            ], style={'width': '24%', 'display': 'inline-block', 'margin-right': '2%'}),
+            ], style={'width': '20%', 'display': 'inline-block', 'margin-right': '2%'}),
+            
+            html.Div([
+                html.Label("Primary Indicator", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
+                dcc.Dropdown(
+                    id='primary-indicator-dropdown',
+                    options=[{'label': 'ALL', 'value': 'ALL'}],
+                    value='ALL',
+                    style={'marginTop': '8px'},
+                    clearable=False,
+                    disabled=True
+                )
+            ], style={'width': '20%', 'display': 'inline-block', 'margin-right': '2%'}),
             
             html.Div([
                 html.Label("Countries", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
@@ -152,7 +164,7 @@ app.layout = html.Div([
                     placeholder='Select countries to display (default: EU Countries Average)',
                     style={'marginTop': '8px'}
                 )
-            ], style={'width': '24%', 'display': 'inline-block'}),
+                            ], style={'width': '20%', 'display': 'inline-block'}),
         ], style={
             'padding': '15px 20px',
             'backgroundColor': '#fdf6e3',
@@ -319,6 +331,50 @@ def update_secondary_indicator_dropdown(eu_priority, analysis_level):
     else:
         return [{'label': 'ALL', 'value': 'ALL'}], 'ALL', True
 
+# Callback to update primary indicator dropdown based on secondary indicator
+@app.callback(
+    Output('primary-indicator-dropdown', 'options'),
+    Output('primary-indicator-dropdown', 'value'),
+    Output('primary-indicator-dropdown', 'disabled'),
+    Input('secondary-indicator-dropdown', 'value'),
+    Input('eu-priority-dropdown', 'value'),
+    Input('analysis-level-dropdown', 'value')
+)
+def update_primary_indicator_dropdown(secondary_indicator, eu_priority, analysis_level):
+    if analysis_level == 'overview':
+        # In overview mode, show ALL primary indicators
+        return [{'label': 'ALL', 'value': 'ALL'}], 'ALL', True
+    elif analysis_level == 'by_eu_priority' and eu_priority and secondary_indicator and secondary_indicator != 'ALL':
+        # In by_eu_priority mode with specific secondary indicator, show primary indicators
+        # Load the EWBI structure to get the actual primary indicators
+        try:
+            with open(os.path.join(DATA_DIR, '..', 'data', 'ewbi_indicators.json'), 'r') as f:
+                config = json.load(f)['EWBI']
+            
+            primary_indicators = []
+            for priority in config:
+                if priority['name'] == eu_priority:
+                    for component in priority['components']:
+                        if component['name'] == secondary_indicator:
+                            for indicator in component['indicators']:
+                                primary_indicators.append({
+                                    'label': indicator['code'],
+                                    'value': indicator['code']
+                                })
+                            break
+                    break
+            
+            if primary_indicators:
+                options = [{'label': 'ALL', 'value': 'ALL'}] + primary_indicators
+                return options, 'ALL', False
+            else:
+                return [{'label': 'ALL', 'value': 'ALL'}], 'ALL', True
+        except:
+            # Fallback if JSON loading fails
+            return [{'label': 'ALL', 'value': 'ALL'}], 'ALL', True
+    else:
+        return [{'label': 'ALL', 'value': 'ALL'}], 'ALL', True
+
 # Callback to update all charts
 @app.callback(
     [Output('european-map-chart', 'figure'),
@@ -328,9 +384,10 @@ def update_secondary_indicator_dropdown(eu_priority, analysis_level):
     [Input('analysis-level-dropdown', 'value'),
      Input('eu-priority-dropdown', 'value'),
      Input('secondary-indicator-dropdown', 'value'),
+     Input('primary-indicator-dropdown', 'value'),
      Input('countries-filter', 'value')]
 )
-def update_charts(analysis_level, eu_priority, secondary_indicator, selected_countries):
+def update_charts(analysis_level, eu_priority, secondary_indicator, primary_indicator, selected_countries):
     # For the map (Graph 1), we always want to show all individual countries
     map_df = master_df[~master_df['country'].str.contains('Average')].copy()
     
@@ -349,8 +406,13 @@ def update_charts(analysis_level, eu_priority, secondary_indicator, selected_cou
         # Show EWBI and EU priorities
         return create_overview_charts(map_df, filtered_df, time_filtered_df)
     elif analysis_level == 'by_eu_priority':
-        # Show EU priority and its secondary indicators
-        return create_eu_priority_charts(map_df, filtered_df, time_filtered_df, eu_priority)
+        # Check if we have a specific secondary indicator and primary indicator selected
+        if secondary_indicator and secondary_indicator != 'ALL' and primary_indicator and primary_indicator != 'ALL':
+            # Show specific primary indicator data
+            return create_primary_indicator_charts(map_df, filtered_df, time_filtered_df, eu_priority, secondary_indicator, primary_indicator)
+        else:
+            # Show EU priority and its secondary indicators
+            return create_eu_priority_charts(map_df, filtered_df, time_filtered_df, eu_priority)
     else:
         # Fallback to overview
         return create_overview_charts(map_df, filtered_df, time_filtered_df)
@@ -894,6 +956,84 @@ def create_eu_priority_charts(map_df, analysis_df, time_df, eu_priority):
         barmode='group',
         font=dict(family='Arial, sans-serif', size=12),
         yaxis=dict(range=[0, 1])  # Set y-axis scale from 0 to 1
+    )
+    
+    return european_map, decile_analysis, radar_chart, time_series
+
+def create_primary_indicator_charts(map_df, analysis_df, time_df, eu_priority, secondary_indicator, primary_indicator):
+    """Create charts for primary indicator level"""
+    
+    # 1. European map chart (primary indicator scores)
+    european_map = go.Figure()
+    
+    # For now, we'll show a placeholder since we need to implement the primary indicator data loading
+    # In the future, this would show the specific primary indicator scores by country
+    
+    european_map.add_annotation(
+        text=f"Primary indicator charts for {primary_indicator} will be implemented in the next iteration",
+        xref="paper", yref="paper",
+        x=0.5, y=0.5, showarrow=False,
+        font=dict(size=16)
+    )
+    
+    european_map.update_layout(
+        title=f'{primary_indicator} Scores Map',
+        height=550,
+        font=dict(family='Arial, sans-serif', size=12)
+    )
+    
+    # 2. Decile analysis chart
+    decile_analysis = go.Figure()
+    
+    decile_analysis.add_annotation(
+        text=f"Primary indicator decile analysis for {primary_indicator} will be implemented in the next iteration",
+        xref="paper", yref="paper",
+        x=0.5, y=0.5, showarrow=False,
+        font=dict(size=16)
+    )
+    
+    decile_analysis.update_layout(
+        title=f'{primary_indicator} Scores by Decile',
+        xaxis_title='Income Decile',
+        yaxis_title='Score',
+        height=400,
+        font=dict(family='Arial, sans-serif', size=12),
+        yaxis=dict(range=[0, 1])
+    )
+    
+    # 3. Country comparison chart (primary indicator vs other primary indicators in same secondary)
+    radar_chart = go.Figure()
+    
+    radar_chart.add_annotation(
+        text=f"Primary indicator comparison for {primary_indicator} will be implemented in the next iteration",
+        xref="paper", yref="paper",
+        x=0.5, y=0.5, showarrow=False,
+        font=dict(size=16)
+    )
+    
+    radar_chart.update_layout(
+        title=f'{primary_indicator} Comparison',
+        height=400,
+        font=dict(family='Arial, sans-serif', size=12)
+    )
+    
+    # 4. Time series chart
+    time_series = go.Figure()
+    
+    time_series.add_annotation(
+        text=f"Primary indicator time series for {primary_indicator} will be implemented in the next iteration",
+        xref="paper", yref="paper",
+        x=0.5, y=0.5, showarrow=False,
+        font=dict(size=16)
+    )
+    
+    time_series.update_layout(
+        title=f'{primary_indicator} Evolution Over Time',
+        xaxis_title='Year',
+        yaxis_title='Score',
+        height=400,
+        font=dict(family='Arial, sans-serif', size=12),
+        yaxis=dict(range=[0, 1])
     )
     
     return european_map, decile_analysis, radar_chart, time_series
