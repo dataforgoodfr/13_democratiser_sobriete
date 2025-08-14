@@ -588,7 +588,14 @@ def create_eu_priority_charts(map_df, analysis_df, time_df, eu_priority):
     """Create charts for EU priority level"""
     
     # Get secondary indicators for this EU priority
-    secondary_cols = [col for col in analysis_df.columns if col.startswith(f"{eu_priority.replace(' ', '_').replace(',', '')}_")]
+    # The naming pattern is: "PriorityName_SecondaryIndicatorName"
+    # We need to handle spaces and special characters properly
+    priority_name_clean = eu_priority.replace(' ', '_').replace(',', '').replace(' and ', '_and_')
+    secondary_cols = [col for col in analysis_df.columns if col.startswith(f"{priority_name_clean}_")]
+    
+    print(f"Looking for secondary indicators for '{eu_priority}'")
+    print(f"Clean priority name: '{priority_name_clean}'")
+    print(f"Found secondary columns: {secondary_cols}")
     
     # 1. European map chart (EU priority scores)
     european_map = go.Figure()
@@ -682,11 +689,11 @@ def create_eu_priority_charts(map_df, analysis_df, time_df, eu_priority):
     countries_to_show = []
     
     # Always show EU Countries Average first if available
-    if 'EU Countries Average' in df['country'].values:
+    if 'EU Countries Average' in analysis_df['country'].values:
         countries_to_show.append('EU Countries Average')
     
     # Then add any other selected countries (excluding EU Countries Average to avoid duplication)
-    other_countries = [c for c in df['country'].unique() if c != 'EU Countries Average' and 'Average' not in c]
+    other_countries = [c for c in analysis_df['country'].unique() if c != 'EU Countries Average' and 'Average' not in c]
     countries_to_show.extend(other_countries)
     
     # Show countries in the determined order
@@ -728,7 +735,7 @@ def create_eu_priority_charts(map_df, analysis_df, time_df, eu_priority):
     for country in countries_to_show:
         country_data = analysis_df[analysis_df['country'] == country].iloc[0]
         values = [country_data[col] for col in secondary_cols if pd.notna(country_data[col])]
-        labels = [col.replace(f"{eu_priority.replace(' ', '_').replace(',', '')}_", "") for col in secondary_cols if pd.notna(country_data[col])]
+        labels = [col.replace(f"{priority_name_clean}_", "") for col in secondary_cols if pd.notna(country_data[col])]
         
         radar_chart.add_trace(go.Scatterpolar(
             r=values,
@@ -753,40 +760,16 @@ def create_eu_priority_charts(map_df, analysis_df, time_df, eu_priority):
     time_series = go.Figure()
     
     # For time series, we'll show the EU priority score over time if available
-    # Look for the EU priority in the time series data
-    if eu_priority in time_df['primary_index'].values:
-        priority_time_data = time_df[time_df['primary_index'] == eu_priority].groupby(['country', 'year'])['value'].mean().reset_index()
-        
-        # For time series, prioritize EU Countries Average, then add individual countries
-        countries_to_show = []
-        
-        # Always show EU Countries Average first if available
-        if 'EU Countries Average' in analysis_df['country'].values:
-            countries_to_show.append('EU Countries Average')
-        
-        # Then add any other selected countries (excluding EU Countries Average to avoid duplication)
-        other_countries = [c for c in analysis_df['country'].unique() if c != 'EU Countries Average' and 'Average' not in c]
-        countries_to_show.extend(other_countries)
-        
-        # Show countries in the determined order
-        for country in countries_to_show:
-            if country in priority_time_data['country'].values:
-                country_time_data = priority_time_data[priority_time_data['country'] == country].sort_values('year')
-                time_series.add_trace(go.Bar(
-                    x=country_time_data['year'],
-                    y=country_time_data['value'],
-                    name=country,
-                    text=country_time_data['value'].round(3),
-                    textposition='auto'
-                ))
-    else:
-        # If no time series data available, show a placeholder
-        time_series.add_annotation(
-            text=f"Time series data for {eu_priority} will be implemented in the next iteration",
-            xref="paper", yref="paper",
-            x=0.5, y=0.5, showarrow=False,
-            font=dict(size=16)
-        )
+    # Since we don't have direct EU priority time series, we'll show a placeholder for now
+    # In the future, this could be calculated from the primary indicators
+    
+    # Show a placeholder message
+    time_series.add_annotation(
+        text=f"Time series data for {eu_priority} will be implemented in the next iteration",
+        xref="paper", yref="paper",
+        x=0.5, y=0.5, showarrow=False,
+        font=dict(size=16)
+    )
     
     time_series.update_layout(
         title=f'{eu_priority} Evolution Over Time',
@@ -800,4 +783,4 @@ def create_eu_priority_charts(map_df, analysis_df, time_df, eu_priority):
     return european_map, decile_analysis, radar_chart, time_series
 
 if __name__ == '__main__':
-    app.run_server(debug=True, host='0.0.0.0', port=8050) 
+    app.run_server(debug=True, host='0.0.0.0', port=8050)
