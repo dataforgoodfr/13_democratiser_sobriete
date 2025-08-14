@@ -590,7 +590,7 @@ def create_overview_charts(map_df, analysis_df, time_df):
             font=dict(family='Arial, sans-serif', size=12)
         )
     
-    return european_map, decile_analysis, radar_chart, time_series
+    return european_map, decile_analysis, country_comparison, time_series
 
 def create_eu_priority_charts(map_df, analysis_df, time_df, eu_priority):
     """Create charts for EU priority level"""
@@ -732,44 +732,105 @@ def create_eu_priority_charts(map_df, analysis_df, time_df, eu_priority):
         yaxis=dict(range=[0, 1])  # Set y-axis scale from 0 to 1
     )
     
-    # 3. Radar chart (secondary indicators)
-    radar_chart = go.Figure()
+    # 3. Country comparison chart (EU priority vs secondary indicators)
+    country_comparison = go.Figure()
     
-    # For radar chart, prioritize EU Countries Average, then add individual countries
-    countries_to_show = []
+    # Get all individual countries (excluding aggregates) for the comparison
+    individual_countries = [c for c in map_df['country'].unique() if 'Average' not in c]
+    individual_countries.sort()  # Sort alphabetically
     
-    # Always show EU Countries Average first if available
-    if 'EU Countries Average' in analysis_df['country'].values:
-        countries_to_show.append('EU Countries Average')
+    # Get the EU priority score for each country
+    eu_priority_scores = []
+    for country in individual_countries:
+        if eu_priority in map_df.columns:
+            country_score = map_df[map_df['country'] == country][eu_priority].mean()
+            eu_priority_scores.append(country_score)
+        else:
+            eu_priority_scores.append(0)
     
-    # Then add any other selected countries (excluding EU Countries Average to avoid duplication)
-    other_countries = [c for c in analysis_df['country'].unique() if c != 'EU Countries Average' and 'Average' not in c]
-    countries_to_show.extend(other_countries)
+    # Add the main EU priority line
+    country_comparison.add_trace(
+        go.Scatter(
+            x=individual_countries,
+            y=eu_priority_scores,
+            name=eu_priority,
+            mode='lines+markers',
+            line=dict(width=4, color='#1f77b4'),
+            marker=dict(
+                size=10,
+                color='white',
+                line=dict(color='#1f77b4', width=2)
+            ),
+            hovertemplate='%{y:.3f}'
+        )
+    )
     
-    # Show countries in the determined order
-    for country in countries_to_show:
-        country_data = analysis_df[analysis_df['country'] == country].iloc[0]
-        values = [country_data[col] for col in secondary_cols if pd.notna(country_data[col])]
-        labels = [col.replace(f"{priority_name_clean}_", "") for col in secondary_cols if pd.notna(country_data[col])]
-        
-        radar_chart.add_trace(go.Scatterpolar(
-            r=values,
-            theta=labels,
-            fill='toself',
-            name=country
-        ))
+    # Add secondary indicator lines
+    colors = ['#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2']  # Different colors for each line
     
-    radar_chart.update_layout(
-        polar=dict(
-            radialaxis=dict(
-                visible=True,
-                range=[0, 1]  # Already set to 0-1
-            )),
+    for i, secondary_col in enumerate(secondary_cols):
+        if i < len(colors):  # Make sure we don't run out of colors
+            secondary_scores = []
+            for country in individual_countries:
+                if secondary_col in map_df.columns:
+                    country_score = map_df[map_df['country'] == country][secondary_col].mean()
+                    secondary_scores.append(country_score)
+                else:
+                    secondary_scores.append(0)
+            
+            # Clean up the secondary indicator name for display
+            secondary_name = secondary_col.replace(f"{priority_name_clean}_", "")
+            
+            country_comparison.add_trace(
+                go.Scatter(
+                    x=individual_countries,
+                    y=secondary_scores,
+                    name=secondary_name,
+                    mode='lines+markers',
+                    line=dict(color=colors[i]),
+                    marker=dict(
+                        size=8,
+                        color='white',
+                        line=dict(color=colors[i], width=2)
+                    ),
+                    hovertemplate='%{y:.3f}'
+                )
+            )
+    
+    # Update layout to match your styling
+    country_comparison.update_layout(
+        title=dict(
+            text=f'{eu_priority} and Secondary Indicators by Country',
+            y=0.9,
+            x=0.5,
+            xanchor='center',
+            yanchor='top',
+            font=dict(size=16, color="#2c3e50", weight="bold")
+        ),
+        xaxis=dict(
+            tickangle=45,
+            tickfont=dict(size=12)
+        ),
+        yaxis=dict(
+            range=[0, 1],
+            tickformat='.1f',
+            gridwidth=0.2,
+            title='Score'
+        ),
+        hovermode='closest',
         showlegend=True,
-        title=f'Secondary Indicators for {eu_priority} - Selected Countries',
+        legend=dict(
+            x=1,
+            y=1,
+            xanchor='right',
+            yanchor='top'
+        ),
         height=400,
         font=dict(family='Arial, sans-serif', size=12)
     )
+    
+    # Set y-axis scale from 0 to 1
+    country_comparison.update_layout(yaxis=dict(range=[0, 1]))
     
     # 4. Time series chart - Bar chart implementation
     time_series = go.Figure()
