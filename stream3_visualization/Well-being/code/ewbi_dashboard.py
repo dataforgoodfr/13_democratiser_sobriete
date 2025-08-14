@@ -171,16 +171,16 @@ app.layout = html.Div([
     
     # Visualizations
     html.Div([
-        # First row: European map and Decile analysis
+        # First row: European map and Time series
         html.Div([
             dcc.Graph(id='european-map-chart', style={'display': 'inline-block', 'width': '49%', 'verticalAlign': 'top'}),
-            dcc.Graph(id='decile-analysis-chart', style={'display': 'inline-block', 'width': '49%', 'verticalAlign': 'top'})
+            dcc.Graph(id='time-series-chart', style={'display': 'inline-block', 'width': '49%', 'verticalAlign': 'top'})
         ], style={'textAlign': 'center', 'margin': '0 auto'}),
         
-        # Second row: Radar chart and Time series
+        # Second row: Decile analysis and Radar chart
         html.Div([
-            dcc.Graph(id='radar-chart', style={'display': 'inline-block', 'width': '49%'}),
-            dcc.Graph(id='time-series-chart', style={'display': 'inline-block', 'width': '49%'})
+            dcc.Graph(id='decile-analysis-chart', style={'display': 'inline-block', 'width': '49%'}),
+            dcc.Graph(id='radar-chart', style={'display': 'inline-block', 'width': '49%'})
         ], style={'marginTop': '20px'})
     ], style={
         'margin': '0 20px',
