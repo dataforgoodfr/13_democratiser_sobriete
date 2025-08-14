@@ -442,6 +442,12 @@ def create_overview_charts(map_df, analysis_df, time_df):
         )
     )
     
+    # Set color scale from 0 to 1
+    european_map.update_traces(
+        zmin=0,
+        zmax=1
+    )
+    
     # 2. Decile analysis chart (EWBI by decile for selected countries)
     decile_analysis = go.Figure()
     
@@ -473,7 +479,8 @@ def create_overview_charts(map_df, analysis_df, time_df):
         yaxis_title='EWBI Score',
         height=400,
         barmode='group',
-        font=dict(family='Arial, sans-serif', size=12)
+        font=dict(family='Arial, sans-serif', size=12),
+        yaxis=dict(range=[0, 1])  # Set y-axis scale from 0 to 1
     )
     
     # 3. Radar chart (EU priorities for selected countries) - Only the 6 main priorities
@@ -517,7 +524,7 @@ def create_overview_charts(map_df, analysis_df, time_df):
         polar=dict(
             radialaxis=dict(
                 visible=True,
-                range=[0, 1]
+                range=[0, 1]  # Already set to 0-1
             )),
         showlegend=True,
         title='EU Priorities Comparison - Selected Countries',
@@ -562,7 +569,8 @@ def create_overview_charts(map_df, analysis_df, time_df):
             xaxis_title='Year',
             yaxis_title='EWBI Score',
             height=400,
-            font=dict(family='Arial, sans-serif', size=12)
+            font=dict(family='Arial, sans-serif', size=12),
+            yaxis=dict(range=[0, 1])  # Set y-axis scale from 0 to 1
         )
         
     except FileNotFoundError:
@@ -674,13 +682,19 @@ def create_eu_priority_charts(map_df, analysis_df, time_df, eu_priority):
                 font=dict(size=16, color="#f4d03f", weight="bold"),  # Bold, smaller, yellow like top ribbon
                 x=0.5
             ),
-            # Lighter hover box styling like Budget dashboard
-            hoverlabel=dict(
-                bgcolor="rgba(245, 245, 245, 0.9)",  # Light grey background for hover
-                bordercolor="white",
-                font=dict(color="black", size=12)
-            )
+                    # Lighter hover box styling like Budget dashboard
+        hoverlabel=dict(
+            bgcolor="rgba(245, 245, 245, 0.9)",  # Light grey background for hover
+            bordercolor="white",
+            font=dict(color="black", size=12)
         )
+    )
+    
+    # Set color scale from 0 to 1
+    european_map.update_traces(
+        zmin=0,
+        zmax=1
+    )
     
     # 2. Decile analysis chart
     decile_analysis = go.Figure()
@@ -714,7 +728,8 @@ def create_eu_priority_charts(map_df, analysis_df, time_df, eu_priority):
         yaxis_title='Score',
         height=400,
         barmode='group',
-        font=dict(family='Arial, sans-serif', size=12)
+        font=dict(family='Arial, sans-serif', size=12),
+        yaxis=dict(range=[0, 1])  # Set y-axis scale from 0 to 1
     )
     
     # 3. Radar chart (secondary indicators)
@@ -748,7 +763,7 @@ def create_eu_priority_charts(map_df, analysis_df, time_df, eu_priority):
         polar=dict(
             radialaxis=dict(
                 visible=True,
-                range=[0, 1]
+                range=[0, 1]  # Already set to 0-1
             )),
         showlegend=True,
         title=f'Secondary Indicators for {eu_priority} - Selected Countries',
@@ -816,7 +831,8 @@ def create_eu_priority_charts(map_df, analysis_df, time_df, eu_priority):
         yaxis_title='Score',
         height=400,
         barmode='group',
-        font=dict(family='Arial, sans-serif', size=12)
+        font=dict(family='Arial, sans-serif', size=12),
+        yaxis=dict(range=[0, 1])  # Set y-axis scale from 0 to 1
     )
     
     return european_map, decile_analysis, radar_chart, time_series

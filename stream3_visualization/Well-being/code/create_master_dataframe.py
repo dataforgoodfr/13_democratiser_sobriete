@@ -235,11 +235,39 @@ def calculate_historical_ewbi_scores(time_series_df, config):
         'ewbi_score': 'mean'
     }).reset_index()
     
-    # Add EU Countries Average
+    # Add EU Countries Average for EWBI
     eu_countries = ['AT', 'BE', 'BG', 'CY', 'CZ', 'DE', 'DK', 'EE', 'EL', 'ES', 'FI', 'FR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'MT', 'NL', 'PL', 'PT', 'RO', 'SE', 'SI', 'SK']
     
     eu_ewbi = historical_ewbi_df[historical_ewbi_df['country'].isin(eu_countries)].groupby('year')['ewbi_score'].mean().reset_index()
     eu_ewbi['country'] = 'EU Countries Average'
+    
+    # Also add EU Countries Average for each EU priority
+    eu_priority_cols = [col for col in historical_ewbi_df.columns if col not in ['country', 'year', 'decile', 'ewbi_score']]
+    
+    for year in sorted(historical_ewbi_df['year'].unique()):
+        year_data = historical_ewbi_df[historical_ewbi_df['year'] == year]
+        eu_year_data = year_data[year_data['country'].isin(eu_countries)]
+        
+        if not eu_year_data.empty:
+            # Calculate EU average for each priority for this year
+            eu_priority_averages = {}
+            for priority_col in eu_priority_cols:
+                eu_priority_averages[priority_col] = eu_year_data[priority_col].mean()
+            
+            # Add EU Countries Average record for this year
+            eu_priority_averages['country'] = 'EU Countries Average'
+            eu_priority_averages['year'] = year
+            eu_priority_averages['ewbi_score'] = eu_ewbi[eu_ewbi['year'] == year]['ewbi_score'].iloc[0]
+            
+            historical_ewbi.append(eu_priority_averages)
+    
+    # Convert back to DataFrame and recreate the simplified version
+    historical_ewbi_df = pd.DataFrame(historical_ewbi)
+    
+    # Recreate simplified version with EU Countries Average included
+    country_year_ewbi = historical_ewbi_df.groupby(['country', 'year']).agg({
+        'ewbi_score': 'mean'
+    }).reset_index()
     
     # Combine individual countries and EU average
     final_ewbi = pd.concat([country_year_ewbi, eu_ewbi], ignore_index=True)
