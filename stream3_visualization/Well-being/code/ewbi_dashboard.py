@@ -980,7 +980,7 @@ def create_primary_indicator_charts(map_df, analysis_df, time_df, eu_priority, s
                 z=map_df[primary_col],
                 text=map_df['country'],
                 locationmode='ISO-3',
-                colorscale='Viridis',
+                colorscale='RdYlGn',  # Same as other levels
                 zmin=0,
                 zmax=1,
                 colorbar=dict(title='Score', tickformat='.3f'),
@@ -989,7 +989,6 @@ def create_primary_indicator_charts(map_df, analysis_df, time_df, eu_priority, s
         )
         
         european_map.update_layout(
-            title=f'{primary_indicator} Scores by Country',
             height=550,
             margin={"r": 150, "t": 80, "l": 150, "b": 50},
             geo=dict(
@@ -1036,17 +1035,27 @@ def create_primary_indicator_charts(map_df, analysis_df, time_df, eu_priority, s
     decile_analysis = go.Figure()
     
     if primary_col in analysis_df.columns:
-        # Get decile data for the selected countries
-        decile_data = analysis_df.groupby('decile')[primary_col].mean().reset_index()
+        # For decile analysis, prioritize EU Countries Average, then add individual countries
+        countries_to_show = []
         
-        decile_analysis.add_trace(
-            go.Bar(
-                x=decile_data['decile'],
-                y=decile_data[primary_col],
-                marker_color='#3498db',
-                hovertemplate='Decile %{x}: %{y:.3f}<extra></extra>'
-            )
-        )
+        # Always show EU Countries Average first if available
+        if 'EU Countries Average' in analysis_df['country'].values:
+            countries_to_show.append('EU Countries Average')
+        
+        # Then add any other selected countries (excluding EU Countries Average to avoid duplication)
+        other_countries = [c for c in analysis_df['country'].unique() if c != 'EU Countries Average' and 'Average' not in c]
+        countries_to_show.extend(other_countries)
+        
+        # Show countries in the determined order
+        for country in countries_to_show:
+            country_data = analysis_df[analysis_df['country'] == country].sort_values('decile')
+            decile_analysis.add_trace(go.Bar(
+                x=[f'Decile {d}' for d in country_data['decile']],
+                y=country_data[primary_col],
+                name=country,
+                text=country_data[primary_col].round(3),
+                textposition='auto'
+            ))
         
         decile_analysis.update_layout(
             title=f'{primary_indicator} Scores by Income Decile',
@@ -1204,7 +1213,7 @@ def create_secondary_indicator_charts(map_df, analysis_df, time_df, eu_priority,
                 z=map_df[secondary_col],
                 text=map_df['country'],
                 locationmode='ISO-3',
-                colorscale='Viridis',
+                colorscale='RdYlGn',  # Same as EU priority level
                 zmin=0,
                 zmax=1,
                 colorbar=dict(title='Score', tickformat='.3f'),
@@ -1213,7 +1222,6 @@ def create_secondary_indicator_charts(map_df, analysis_df, time_df, eu_priority,
         )
         
         european_map.update_layout(
-            title=f'{secondary_indicator} Scores by Country',
             height=550,
             margin={"r": 150, "t": 80, "l": 150, "b": 50},
             geo=dict(
@@ -1260,17 +1268,27 @@ def create_secondary_indicator_charts(map_df, analysis_df, time_df, eu_priority,
     decile_analysis = go.Figure()
     
     if secondary_col in analysis_df.columns:
-        # Get decile data for the selected countries
-        decile_data = analysis_df.groupby('decile')[secondary_col].mean().reset_index()
+        # For decile analysis, prioritize EU Countries Average, then add individual countries
+        countries_to_show = []
         
-        decile_analysis.add_trace(
-            go.Bar(
-                x=decile_data['decile'],
-                y=decile_data[secondary_col],
-                marker_color='#3498db',
-                hovertemplate='Decile %{x}: %{y:.3f}<extra></extra>'
-            )
-        )
+        # Always show EU Countries Average first if available
+        if 'EU Countries Average' in analysis_df['country'].values:
+            countries_to_show.append('EU Countries Average')
+        
+        # Then add any other selected countries (excluding EU Countries Average to avoid duplication)
+        other_countries = [c for c in analysis_df['country'].unique() if c != 'EU Countries Average' and 'Average' not in c]
+        countries_to_show.extend(other_countries)
+        
+        # Show countries in the determined order
+        for country in countries_to_show:
+            country_data = analysis_df[analysis_df['country'] == country].sort_values('decile')
+            decile_analysis.add_trace(go.Bar(
+                x=[f'Decile {d}' for d in country_data['decile']],
+                y=country_data[secondary_col],
+                name=country,
+                text=country_data[secondary_col].round(3),
+                textposition='auto'
+            ))
         
         decile_analysis.update_layout(
             title=f'{secondary_indicator} Scores by Income Decile',
