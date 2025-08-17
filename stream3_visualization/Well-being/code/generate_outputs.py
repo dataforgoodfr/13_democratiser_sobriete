@@ -345,12 +345,17 @@ def create_hierarchical_master_dataframe(df, secondary_scores, eu_priority_score
     print("Creating EU Average...")
     
     # Level 1: EWBI - Arithmetic mean across countries
-    all_ewbi_scores = [item['score'] for item in ewbi_scores.get('ewbi_score', []) if item['decile'] == 'All']
+    all_ewbi_scores = []
+    for country in df.index.get_level_values('country').unique():
+        country_ewbi_data = [row for row in master_data if row['country'] == country and row['Level'] == '1 (EWBI)']
+        if country_ewbi_data and country_ewbi_data[0]['Score'] is not None:
+            all_ewbi_scores.append(country_ewbi_data[0]['Score'])
+    
     if all_ewbi_scores:
         eu_ewbi_average = np.mean(all_ewbi_scores)
         master_data.append({
             'country': 'EU Average',
-            'decile': '',
+            'decile': 'All',
             'year': latest_year,
             'EU_Priority': 'All',
             'Secondary_indicator': 'All',
@@ -362,12 +367,17 @@ def create_hierarchical_master_dataframe(df, secondary_scores, eu_priority_score
     # Level 2: EU Priorities (filtered) - Arithmetic mean across countries
     for priority in filtered_config:
         priority_name = priority['name']
-        all_priority_scores = [item['score'] for item in eu_priority_scores.get(priority_name, []) if item['decile'] == 'All']
+        all_priority_scores = []
+        for country in df.index.get_level_values('country').unique():
+            country_priority_data = [row for row in master_data if row['country'] == country and row['Level'] == '2 (EU_Priority)' and row['EU_Priority'] == priority_name]
+            if country_priority_data and country_priority_data[0]['Score'] is not None:
+                all_priority_scores.append(country_priority_data[0]['Score'])
+        
         if all_priority_scores:
             eu_priority_average = np.mean(all_priority_scores)
             master_data.append({
                 'country': 'EU Average',
-                'decile': '',
+                'decile': 'All',
                 'year': latest_year,
                 'EU_Priority': priority_name,
                 'Secondary_indicator': 'All',
