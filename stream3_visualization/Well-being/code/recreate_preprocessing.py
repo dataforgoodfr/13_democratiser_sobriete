@@ -55,10 +55,18 @@ def recreate_preprocessing():
     output_dir = os.path.join(os.path.dirname(__file__), '..', 'output')
     output_path = os.path.join(output_dir, 'primary_data_preprocessed.csv')
     
-    preprocessed.swaplevel(1, 2).sort_index().to_csv(output_path)
+    # The computation script expects: country, decile, primary_index, then years
+    # So we need to reorder the columns after swaplevel
+    reordered = preprocessed.swaplevel(1, 2).sort_index()
+    reordered = reordered.reset_index()
+    
+    # Reorder columns to match expected structure
+    reordered = reordered[['country', 'decile', 'primary_index'] + [col for col in reordered.columns if col not in ['country', 'decile', 'primary_index']]]
+    
+    reordered.to_csv(output_path, index=False)
     print(f"Saved preprocessed data to: {output_path}")
     
-    return preprocessed
+    return reordered
 
 if __name__ == "__main__":
     preprocessed_df = recreate_preprocessing()

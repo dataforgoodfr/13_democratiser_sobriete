@@ -601,10 +601,10 @@ def run_ewbi_computation():
     
     # Load primary indicator data
     print("Loading primary indicator data...")
-    primary_data = pd.read_csv('../output/primary_data_preprocessed.csv')
+    primary_data = pd.read_csv('output/primary_data_preprocessed.csv')
     
     # Load EWBI structure
-    with open('../data/ewbi_indicators.json', 'r') as f:
+    with open('data/ewbi_indicators.json', 'r') as f:
         config = json.load(f)['EWBI']
     
     print(f"Loaded {len(primary_data)} primary indicator records")
