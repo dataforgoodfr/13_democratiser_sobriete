@@ -129,6 +129,29 @@ def create_hierarchical_master_dataframe(df, secondary_scores, eu_priority_score
     year_cols = [col for col in df.columns if str(col).isdigit()]
     latest_year = max(year_cols)
     
+    # Filter out EU priorities and secondary indicators that have no underlying data
+    # Based on the red-highlighted indicators in the screenshot
+    eu_priorities_to_remove = [
+        'Sustainable Transport and Tourism'  # No underlying primary indicators
+    ]
+    
+    secondary_indicators_to_remove = [
+        'Housing expense',           # No underlying primary indicators
+        'Digital Skills',            # No underlying primary indicators
+        'Health cost and medical care',  # No underlying primary indicators
+        'Accidents and addictive behaviour',  # No underlying primary indicators
+        'Education expense',         # No underlying primary indicators
+        'Leisure and culture',       # No underlying primary indicators
+        'Transport',                 # No underlying primary indicators
+        'Tourism'                    # No underlying primary indicators
+    ]
+    
+    # Filter the config to remove unwanted EU priorities
+    filtered_config = [priority for priority in config if priority['name'] not in eu_priorities_to_remove]
+    
+    print(f"Filtered out {len(eu_priorities_to_remove)} EU priorities with no underlying data")
+    print(f"Filtered out {len(secondary_indicators_to_remove)} secondary indicators with no underlying data")
+    
     master_data = []
     
     # For each country-decile combination, create rows for all 4 levels
@@ -153,8 +176,8 @@ def create_hierarchical_master_dataframe(df, secondary_scores, eu_priority_score
                 'Level': '1 (EWBI)'
             })
             
-            # Level 2: EU Priorities
-            for priority in config:
+            # Level 2: EU Priorities (filtered)
+            for priority in filtered_config:
                 priority_name = priority['name']
                 priority_score = None
                 for item in eu_priority_scores.get(priority_name, []):
@@ -173,9 +196,14 @@ def create_hierarchical_master_dataframe(df, secondary_scores, eu_priority_score
                     'Level': '2 (EU_Priority)'
                 })
                 
-                # Level 3: Secondary Indicators
+                # Level 3: Secondary Indicators (filtered)
                 for component in priority['components']:
                     component_name = component['name']
+                    
+                    # Skip secondary indicators that have no underlying data
+                    if component_name in secondary_indicators_to_remove:
+                        continue
+                    
                     secondary_key = f"{priority_name.replace(' ', '_').replace(',', '').replace(' and ', '_and_')}_{component_name.replace(' ', '_').replace(',', '').replace(' and ', '_and_')}"
                     
                     secondary_score = None
@@ -238,8 +266,8 @@ def create_hierarchical_master_dataframe(df, secondary_scores, eu_priority_score
                 'Level': '1 (EWBI)'
             })
         
-        # Level 2: EU Priorities - Geometric mean across deciles
-        for priority in config:
+        # Level 2: EU Priorities (filtered) - Geometric mean across deciles
+        for priority in filtered_config:
             priority_name = priority['name']
             priority_values = []
             for item in eu_priority_scores.get(priority_name, []):
@@ -259,11 +287,16 @@ def create_hierarchical_master_dataframe(df, secondary_scores, eu_priority_score
                     'Level': '2 (EU_Priority)'
                 })
         
-        # Level 3: Secondary Indicators - Geometric mean across deciles
-        for priority in config:
+        # Level 3: Secondary Indicators (filtered) - Geometric mean across deciles
+        for priority in filtered_config:
             priority_name = priority['name']
             for component in priority['components']:
                 component_name = component['name']
+                
+                # Skip secondary indicators that have no underlying data
+                if component_name in secondary_indicators_to_remove:
+                    continue
+                
                 secondary_key = f"{priority_name.replace(' ', '_').replace(',', '').replace(' and ', '_and_')}_{component_name.replace(' ', '_').replace(',', '').replace(' and ', '_and_')}"
                 
                 secondary_values = []
@@ -326,8 +359,8 @@ def create_hierarchical_master_dataframe(df, secondary_scores, eu_priority_score
             'Level': '1 (EWBI)'
         })
     
-    # Level 2: EU Priorities - Arithmetic mean across countries
-    for priority in config:
+    # Level 2: EU Priorities (filtered) - Arithmetic mean across countries
+    for priority in filtered_config:
         priority_name = priority['name']
         all_priority_scores = [item['score'] for item in eu_priority_scores.get(priority_name, []) if item['decile'] == 'All']
         if all_priority_scores:
