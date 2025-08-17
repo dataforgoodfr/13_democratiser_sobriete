@@ -90,29 +90,28 @@ def calculate_secondary_indicators(primary_data, config):
             
             print(f"Processing {eu_priority_name} - {secondary_name} ({len(primary_indicators)} indicators)")
             
-            for country in primary_data['country'].unique():
-                for decile in primary_data['decile'].unique():
-                    # Get data for this country and decile
-                    country_data = primary_data[
-                        (primary_data['country'] == country) & 
-                        (primary_data['decile'] == decile)
-                    ]
+            for country in primary_data.index.get_level_values('country').unique():
+                for decile in primary_data.index.get_level_values('decile').unique():
+                    # Get data for this country and decile using MultiIndex
+                    country_data = primary_data.loc[(country, :, decile)]
                     
                     if not country_data.empty:
                         # Collect values for this secondary indicator's primary indicators
                         factors = []
                         for primary in primary_indicators:
                             primary_code = primary['code']
-                            primary_values = country_data[country_data['primary_index'] == primary_code]
-                            
-                            if not primary_values.empty:
-                                # Get the latest year value
-                                year_cols = [col for col in primary_values.columns if col.isdigit()]
-                                if year_cols:
-                                    latest_year = max(year_cols)
-                                    values = primary_values[latest_year].iloc[0]
-                                    weight = primary.get('weight', 1.0)
-                                    factors.append((values, weight))
+                            # Get data for this primary indicator
+                            if primary_code in country_data.index.get_level_values('primary_index'):
+                                primary_values = country_data.loc[primary_code]
+                                
+                                if not primary_values.empty:
+                                    # Get the latest year value
+                                    year_cols = [col for col in primary_values.index if str(col).isdigit()]
+                                    if year_cols:
+                                        latest_year = max(year_cols)
+                                        values = primary_values[latest_year]
+                                        weight = primary.get('weight', 1.0)
+                                        factors.append((values, weight))
                         
                         if factors:
                             # Calculate secondary indicator score using arithmetic mean
@@ -602,6 +601,9 @@ def run_ewbi_computation():
     # Load primary indicator data
     print("Loading primary indicator data...")
     primary_data = pd.read_csv('output/primary_data_preprocessed.csv')
+    
+    # Convert to MultiIndex exactly as in the original notebook
+    primary_data = primary_data.set_index(['country', 'primary_index', 'decile'])
     
     # Load EWBI structure
     with open('data/ewbi_indicators.json', 'r') as f:
