@@ -93,7 +93,7 @@ def calculate_secondary_indicators(primary_data, config):
             for country in primary_data.index.get_level_values('country').unique():
                 for decile in primary_data.index.get_level_values('decile').unique():
                     # Get data for this country and decile using MultiIndex
-                    country_data = primary_data.loc[(country, :, decile)]
+                    country_data = primary_data.loc[(country, slice(None), decile)]
                     
                     if not country_data.empty:
                         # Collect values for this secondary indicator's primary indicators
