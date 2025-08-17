@@ -548,6 +548,54 @@ def create_time_series_dataframe(df, secondary_scores, eu_priority_scores, ewbi_
                         'Level': '4 (Primary_indicator)'
                     })
     
+    # Add EU Average for all years
+    print("Adding EU Average to time series...")
+    
+    for year in year_cols:
+        year_int = int(year)
+        
+        # Level 1: EWBI - Arithmetic mean across countries for this year
+        year_ewbi_values = []
+        for country in df.index.get_level_values('country').unique():
+            country_ewbi_data = [row for row in time_series_data if row['country'] == country and row['year'] == year_int and row['Level'] == '1 (EWBI)']
+            if country_ewbi_data:
+                year_ewbi_values.append(country_ewbi_data[0]['Score'])
+        
+        if year_ewbi_values:
+            eu_ewbi_average = np.mean(year_ewbi_values)
+            time_series_data.append({
+                'country': 'EU Average',
+                'decile': 'All Deciles',
+                'year': year_int,
+                'EU_Priority': 'All',
+                'Secondary_indicator': 'All',
+                'primary_index': 'All',
+                'Score': eu_ewbi_average,
+                'Level': '1 (EWBI)'
+            })
+        
+        # Level 2: EU Priorities - Arithmetic mean across countries for this year
+        for priority in filtered_config:
+            priority_name = priority['name']
+            year_priority_values = []
+            for country in df.index.get_level_values('country').unique():
+                country_priority_data = [row for row in time_series_data if row['country'] == country and row['year'] == year_int and row['Level'] == '2 (EU_Priority)' and row['EU_Priority'] == priority_name]
+                if country_priority_data:
+                    year_priority_values.append(country_priority_data[0]['Score'])
+            
+            if year_priority_values:
+                eu_priority_average = np.mean(year_priority_values)
+                time_series_data.append({
+                    'country': 'EU Average',
+                    'decile': 'All Deciles',
+                    'year': year_int,
+                    'EU_Priority': priority_name,
+                    'Secondary_indicator': 'All',
+                    'primary_index': 'All',
+                    'Score': eu_priority_average,
+                    'Level': '2 (EU_Priority)'
+                })
+    
     return pd.DataFrame(time_series_data)
 
 def generate_outputs():
