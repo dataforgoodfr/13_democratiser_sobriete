@@ -378,6 +378,178 @@ def create_hierarchical_master_dataframe(df, secondary_scores, eu_priority_score
     
     return pd.DataFrame(master_data)
 
+def create_time_series_dataframe(df, secondary_scores, eu_priority_scores, ewbi_scores, config):
+    """Create the hierarchical time series dataframe with the same structure as master dataframe"""
+    
+    print("Creating hierarchical time series dataframe...")
+    
+    # Get all years
+    year_cols = [col for col in df.columns if str(col).isdigit()]
+    year_cols.sort()
+    
+    # Filter out EU priorities and secondary indicators that have no underlying data
+    # Same filtering as in master dataframe
+    eu_priorities_to_remove = [
+        'Sustainable Transport and Tourism'  # No underlying primary indicators
+    ]
+    
+    secondary_indicators_to_remove = [
+        'Housing expense',           # No underlying primary indicators
+        'Digital Skills',            # No underlying primary indicators
+        'Health cost and medical care',  # No underlying primary indicators
+        'Accidents and addictive behaviour',  # No underlying primary indicators
+        'Education expense',         # No underlying primary indicators
+        'Leisure and culture',       # No underlying primary indicators
+        'Transport',                 # No underlying primary indicators
+        'Tourism'                    # No underlying primary indicators
+    ]
+    
+    # Filter the config to remove unwanted EU priorities
+    filtered_config = [priority for priority in config if priority['name'] not in eu_priorities_to_remove]
+    
+    time_series_data = []
+    
+    # For each country, create hierarchical structure for each year
+    for country in df.index.get_level_values('country').unique():
+        for year in year_cols:
+            year_int = int(year)
+            
+            # Level 1: EWBI (Overall) - Aggregate across deciles for this year
+            ewbi_values = []
+            for decile in df.index.get_level_values('decile').unique():
+                for item in ewbi_scores.get('ewbi_score', []):
+                    if item['country'] == country and item['decile'] == decile:
+                        # We need to calculate EWBI for this specific year
+                        # For now, let's use the latest year score as a proxy
+                        ewbi_values.append(item['score'])
+                        break
+            
+            if ewbi_values:
+                # Use geometric mean across deciles for this year
+                ewbi_score = np.exp(np.mean(np.log(ewbi_values)))
+                time_series_data.append({
+                    'country': country,
+                    'decile': 'All Deciles',
+                    'year': year_int,
+                    'EU_Priority': 'All',
+                    'Secondary_indicator': 'All',
+                    'primary_index': 'All',
+                    'Score': ewbi_score,
+                    'Level': '1 (EWBI)'
+                })
+            
+            # Level 2: EU Priorities (filtered) - Aggregate across deciles for this year
+            for priority in filtered_config:
+                priority_name = priority['name']
+                
+                # For EU priorities, we need to calculate the score for this specific year
+                # This requires aggregating the secondary indicators for this year
+                priority_secondary_keys = []
+                for component in priority['components']:
+                    component_name = component['name']
+                    if component_name not in secondary_indicators_to_remove:
+                        secondary_key = f"{priority_name.replace(' ', '_').replace(',', '').replace(' and ', '_and_')}_{component_name.replace(' ', '_').replace(',', '').replace(' and ', '_and_')}"
+                        priority_secondary_keys.append(secondary_key)
+                
+                if priority_secondary_keys:
+                    # Calculate EU priority score for this year by aggregating secondary indicators
+                    secondary_values = []
+                    for key in priority_secondary_keys:
+                        for item in secondary_scores.get(key, []):
+                            if item['country'] == country:
+                                secondary_values.append(item['score'])
+                                break
+                    
+                    if secondary_values:
+                        # Level 3 to Level 2: Arithmetic mean (as specified)
+                        priority_score = np.mean(secondary_values)
+                        time_series_data.append({
+                            'country': country,
+                            'decile': 'All Deciles',
+                            'year': year_int,
+                            'EU_Priority': priority_name,
+                            'Secondary_indicator': 'All',
+                            'primary_index': 'All',
+                            'Score': priority_score,
+                            'Level': '2 (EU_Priority)'
+                        })
+            
+            # Level 3: Secondary Indicators (filtered) - Aggregate across deciles for this year
+            for priority in filtered_config:
+                priority_name = priority['name']
+                for component in priority['components']:
+                    component_name = component['name']
+                    
+                    # Skip secondary indicators that have no underlying data
+                    if component_name in secondary_indicators_to_remove:
+                        continue
+                    
+                    secondary_key = f"{priority_name.replace(' ', '_').replace(',', '').replace(' and ', '_and_')}_{component_name.replace(' ', '_').replace(',', '').replace(' and ', '_and_')}"
+                    
+                    # For secondary indicators, we need to calculate the score for this specific year
+                    # This requires aggregating the primary indicators for this year
+                    component_indicators = [ind['code'] for ind in component['indicators']]
+                    primary_values = []
+                    
+                    for indicator_code in component_indicators:
+                        if indicator_code in df.index.get_level_values('primary_index').unique():
+                            # Aggregate across deciles for this country-year-indicator combination
+                            year_values = []
+                            for decile in df.index.get_level_values('decile').unique():
+                                try:
+                                    value = df.loc[(indicator_code, country, decile), year]
+                                    if pd.notna(value):
+                                        year_values.append(value)
+                                except:
+                                    continue
+                            
+                            if year_values:
+                                # Use geometric mean across deciles for this year
+                                primary_avg = np.exp(np.mean(np.log(year_values)))
+                                primary_values.append(primary_avg)
+                    
+                    if primary_values:
+                        # Level 4 to Level 3: Arithmetic mean (as specified)
+                        secondary_score = np.mean(primary_values)
+                        time_series_data.append({
+                            'country': country,
+                            'decile': 'All Deciles',
+                            'year': year_int,
+                            'EU_Priority': priority_name,
+                            'Secondary_indicator': component_name,
+                            'primary_index': 'All',
+                            'Score': secondary_score,
+                            'Level': '3 (Secondary_indicator)'
+                        })
+            
+            # Level 4: Primary Indicators - Aggregate across deciles for this year
+            for primary_index in df.index.get_level_values('primary_index').unique():
+                # Aggregate across deciles for this country-year-primary_indicator combination
+                year_values = []
+                for decile in df.index.get_level_values('decile').unique():
+                    try:
+                        value = df.loc[(primary_index, country, decile), year]
+                        if pd.notna(value):
+                            year_values.append(value)
+                    except:
+                        continue
+                
+                if year_values:
+                    # Use geometric mean across deciles for this year
+                    primary_score = np.exp(np.mean(np.log(year_values)))
+                    time_series_data.append({
+                        'country': country,
+                        'decile': 'All Deciles',
+                        'year': year_int,
+                        'EU_Priority': 'All',
+                        'Secondary_indicator': 'All',
+                        'primary_index': primary_index,
+                        'Score': primary_score,
+                        'Level': '4 (Primary_indicator)'
+                    })
+    
+    return pd.DataFrame(time_series_data)
+
 def generate_outputs():
     """Generate the two required output files"""
     
@@ -385,7 +557,7 @@ def generate_outputs():
     
     # Load the preprocessed data
     print("Loading preprocessed data...")
-    df = pd.read_csv('../output/primary_data_preprocessed.csv')
+    df = pd.read_csv('output/primary_data_preprocessed.csv')
     print(f"Loaded data: {df.shape}")
     
     # Convert to MultiIndex exactly as in the original notebook
@@ -393,7 +565,7 @@ def generate_outputs():
     print(f"Converted to MultiIndex: {df.shape}")
     
     # Load the EWBI structure
-    with open('../data/ewbi_indicators.json', 'r') as f:
+    with open('data/ewbi_indicators.json', 'r') as f:
         config = json.load(f)['EWBI']
     
     print(f"Loaded EWBI structure with {len(config)} EU priorities")
@@ -436,49 +608,19 @@ def generate_outputs():
     
     # 2. Generate Time Series Dataframe (all years, All Deciles only)
     print("\n=== Generating Time Series Dataframe ===")
-    
-    # For time series, we want country-level aggregated data (All Deciles)
-    # We'll aggregate across deciles for each country-year-primary_indicator combination
-    
-    time_series_data = []
-    
-    for country in df.index.get_level_values('country').unique():
-        for primary_index in df.index.get_level_values('primary_index').unique():
-            # Get all deciles for this country-primary_indicator combination
-            try:
-                country_primary_data = df.loc[(primary_index, country, slice(None))]
-                
-                if not country_primary_data.empty:
-                    # Aggregate across deciles for each year
-                    for year in year_cols:
-                        year_values = country_primary_data[year]
-                        if not year_values.isna().all():  # Only add if we have some data
-                            # Calculate average across deciles
-                            avg_value = year_values.mean()
-                            
-                            time_series_data.append({
-                                'country': country,
-                                'decile': 'All Deciles',
-                                'year': int(year),
-                                'primary_index': primary_index,
-                                'primary_score': avg_value
-                            })
-            except:
-                continue
-    
-    time_series_df = pd.DataFrame(time_series_data)
+    time_series_df = create_time_series_dataframe(df, secondary_scores, eu_priority_scores, ewbi_scores, config)
     print(f"Generated time series dataframe: {time_series_df.shape}")
     
     # Save the outputs
     print("\n=== Saving Outputs ===")
     
     # Save master dataframe
-    master_output_path = '../output/ewbi_master.csv'
+    master_output_path = 'output/ewbi_master.csv'
     master_df.to_csv(master_output_path, index=False)
     print(f"Saved master dataframe to: {master_output_path}")
     
     # Save time series dataframe
-    time_series_output_path = '../output/ewbi_time_series.csv'
+    time_series_output_path = 'output/ewbi_time_series.csv'
     time_series_df.to_csv(time_series_output_path, index=False)
     print(f"Saved time series dataframe to: {time_series_output_path}")
     
