@@ -154,12 +154,11 @@ app.layout = html.Div([
                 dcc.Dropdown(
                     id='countries-filter',
                     options=[
-                        {'label': 'EU Countries Average', 'value': 'EU Countries Average'},
-                        {'label': 'All Countries Average', 'value': 'All Countries Average'}
+                        {'label': 'EU Average', 'value': 'EU Average'}
                     ] + [{'label': ISO2_TO_FULL_NAME.get(country, country), 'value': country} for country in COUNTRIES],
-                    value=['EU Countries Average'],  # Default to EU Countries Average
+                    value=['EU Average'],  # Default to EU Average
                     multi=True,
-                    placeholder='Select countries to display (default: EU Countries Average)',
+                    placeholder='Select countries to display (default: EU Average)',
                     style={'marginTop': '8px'}
                 )
             ], style={'width': '20%', 'display': 'inline-block'}),
@@ -372,34 +371,33 @@ def update_primary_indicator_dropdown(secondary_indicator, eu_priority):
      Input('countries-filter', 'value')]
 )
 def update_charts(eu_priority, secondary_indicator, primary_indicator, selected_countries):
-    # For the map (Graph 1), we always want to show all individual countries
-    map_df = master_df[~master_df['country'].str.contains('Average')].copy()
+    # For the map (Graph 1), we always want to show all individual countries (exclude EU Average)
+    map_df = master_df[(~master_df['country'].str.contains('Average')) & (master_df['decile'] == 'All')].copy()
     
     # For analysis charts (Graphs 2, 3, 4), filter based on selection
-    if not selected_countries or selected_countries == ['EU Countries Average']:
-        # Default to EU Countries Average for analysis charts
-        filtered_df = master_df[master_df['country'] == 'EU Countries Average'].copy()
-        time_filtered_df = time_series_df[time_series_df['country'] == 'EU Countries Average'].copy()
+    if not selected_countries or selected_countries == ['EU Average']:
+        # Default to EU Average for analysis charts
+        filtered_df = master_df[master_df['country'] == 'EU Average'].copy()
+        time_filtered_df = time_series_df[time_series_df['country'] == 'EU Average'].copy()
     else:
-        # The selected_countries already contain the correct country identifiers
-        # No need to convert - just filter directly
-        filtered_df = master_df[master_df['country'].isin(selected_countries)].copy()
-        time_filtered_df = time_series_df[time_series_df['country'].isin(selected_countries)].copy()
+        # Filter by selected countries, only "All" deciles for country-level analysis
+        filtered_df = master_df[(master_df['country'].isin(selected_countries)) & (master_df['decile'] == 'All')].copy()
+        time_filtered_df = time_series_df[(time_series_df['country'].isin(selected_countries)) & (time_series_df['decile'] == 'All Deciles')].copy()
     
-    # Determine what to show based on EU priority selection
+    # Determine what to show based on filter selections
     if eu_priority == 'ALL':
-        # Show EWBI and EU priorities (overview level)
+        # Level 1: Overview - Show EWBI and EU priorities
         return create_overview_charts(map_df, filtered_df, time_filtered_df)
     else:
-        # Handle the three levels of drill-down for specific EU priority
+        # Drill down based on secondary and primary indicator selections
         if secondary_indicator and secondary_indicator != 'ALL' and primary_indicator and primary_indicator != 'ALL':
-            # Level 3: Specific Primary Indicator selected
+            # Level 4: Specific Primary Indicator selected
             return create_primary_indicator_charts(map_df, filtered_df, time_filtered_df, eu_priority, secondary_indicator, primary_indicator)
         elif secondary_indicator and secondary_indicator != 'ALL':
-            # Level 2: Specific Secondary Indicator selected (Primary = ALL)
+            # Level 3: Specific Secondary Indicator selected (Primary = ALL)
             return create_secondary_indicator_charts(map_df, filtered_df, time_filtered_df, eu_priority, secondary_indicator)
         else:
-            # Level 1: Only EU Priority selected (Secondary = ALL, Primary = ALL)
+            # Level 2: Only EU Priority selected (Secondary = ALL, Primary = ALL)
             return create_eu_priority_charts(map_df, filtered_df, time_filtered_df, eu_priority)
 
 def create_overview_charts(map_df, analysis_df, time_df):
@@ -408,8 +406,13 @@ def create_overview_charts(map_df, analysis_df, time_df):
     # 1. European map chart (EWBI scores) - always shows all countries
     european_map = go.Figure()
     
-    # Get average EWBI scores by country for the map
-    ewbi_by_country = map_df.groupby('country')['ewbi_score'].mean().reset_index()
+    # Get EWBI scores by country for the map (Level 1: EWBI)
+    # Filter for EWBI level: EU_Priority='All', Secondary_indicator='All', primary_index='All'
+    ewbi_by_country = map_df[
+        (map_df['EU_Priority'] == 'All') & 
+        (map_df['Secondary_indicator'] == 'All') & 
+        (map_df['primary_index'] == 'All')
+    ].copy()
     
     # Convert ISO-2 codes to ISO-3 codes for the map
     ewbi_by_country['iso3'] = ewbi_by_country['country'].map(ISO2_TO_ISO3)
@@ -420,11 +423,11 @@ def create_overview_charts(map_df, analysis_df, time_df):
     # Create the choropleth map
     european_map = go.Figure(data=go.Choropleth(
         locations=ewbi_by_country['iso3'],
-        z=ewbi_by_country['ewbi_score'],
+        z=ewbi_by_country['Score'],
         locationmode='ISO-3',
         colorscale='RdYlGn',  # Red to Green scale
         colorbar_title="EWBI Score",
-        text=ewbi_by_country['country'] + ': ' + ewbi_by_country['ewbi_score'].round(2).astype(str),
+        text=ewbi_by_country['country'] + ': ' + ewbi_by_country['Score'].round(2).astype(str),
         hovertemplate='<b>%{text}</b><br>' +
                       'EWBI Score: %{z:.2f}<br>' +
                       '<extra></extra>'
@@ -495,85 +498,77 @@ def create_overview_charts(map_df, analysis_df, time_df):
         zmax=1
     )
     
-    # 2. Decile analysis chart (EWBI by decile for selected countries)
+    # 2. Decile analysis chart (EWBI scores by decile for selected countries)
     decile_analysis = go.Figure()
     
-    # For decile analysis, use the analysis_df (which defaults to EU Countries Average)
-    countries_to_show = []
-    
-    # Always show EU Countries Average first if available
-    if 'EU Countries Average' in analysis_df['country'].values:
-        countries_to_show.append('EU Countries Average')
-    
-    # Then add any other selected countries (excluding EU Countries Average to avoid duplication)
-    other_countries = [c for c in analysis_df['country'].unique() if c != 'EU Countries Average' and 'Average' not in c]
-    countries_to_show.extend(other_countries)
+    # Get EWBI data for selected countries (Level 1: EWBI)
+    ewbi_data = analysis_df[
+        (analysis_df['EU_Priority'] == 'All') & 
+        (analysis_df['Secondary_indicator'] == 'All') & 
+        (analysis_df['primary_index'] == 'All')
+    ].copy()
     
     # Show countries in the determined order
-    for country in countries_to_show:
-        country_data = analysis_df[analysis_df['country'] == country].sort_values('decile')
+    for country in ewbi_data['country'].unique():
+        country_data = ewbi_data[ewbi_data['country'] == country].sort_values('decile')
         decile_analysis.add_trace(go.Bar(
             x=[str(d) for d in country_data['decile']],
-            y=country_data['ewbi_score'],
+            y=country_data['Score'],
             name=country,
-            text=country_data['ewbi_score'].round(2),
+            text=country_data['Score'].round(2),
             textposition='auto'
         ))
     
-        decile_analysis.update_layout(
-            title=dict(
-                text='EWBI Scores by Decile - Selected Countries',
-                font=dict(size=16, color="#f4d03f", weight="bold"),  # Match Budget dashboard title size
-                x=0.5
-            ),
-            height=500,  # Match Budget dashboard chart height
-            margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
-            barmode='group',
-            font=dict(family='Arial, sans-serif', size=14),  # Match Budget dashboard font size
-            paper_bgcolor='white',
-            plot_bgcolor='white',
-            xaxis=dict(
-                gridcolor='lightgrey',
-                gridwidth=0.5,
-                showgrid=True
-            ),
-            yaxis=dict(
-                range=[0, 1],
-                gridcolor='lightgrey',
-                gridwidth=0.5,
-                showgrid=True
-            )
+    decile_analysis.update_layout(
+        title=dict(
+            text='EWBI Scores by Decile - Selected Countries',
+            font=dict(size=16, color="#f4d03f", weight="bold"),  # Match Budget dashboard title size
+            x=0.5
+        ),
+        height=500,  # Match Budget dashboard chart height
+        margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
+        barmode='group',
+        font=dict(family='Arial, sans-serif', size=14),  # Match Budget dashboard font size
+        paper_bgcolor='white',
+        plot_bgcolor='white',
+        xaxis=dict(
+            gridcolor='lightgrey',
+            gridwidth=0.5,
+            showgrid=True
+        ),
+        yaxis=dict(
+            range=[0, 1],
+            gridcolor='lightgrey',
+            gridwidth=0.5,
+            showgrid=True
         )
+    )
     
-    # 3. Radar chart (EU priorities for selected countries) - Only the 6 main priorities
+    # 3. Radar chart (EU priorities for selected countries)
     radar_chart = go.Figure()
     
-    # Get only the 6 main EU priority columns
-    main_eu_priorities = [
-        'Agriculture and Food',
-        'Energy and Housing', 
-        'Equality',
-        'Health and Animal Welfare',
-        'Intergenerational Fairness, Youth, Culture and Sport',
-        'Social Rights and Skills, Quality Jobs and Preparedness'
-    ]
+    # Get EU priority data for selected countries (Level 2: EU Priority)
+    eu_priority_data = analysis_df[
+        (analysis_df['EU_Priority'] != 'All') & 
+        (analysis_df['Secondary_indicator'] == 'All') & 
+        (analysis_df['primary_index'] == 'All')
+    ].copy()
     
-    # For radar chart, prioritize EU Countries Average, then add individual countries
-    countries_to_show = []
-    
-    # Always show EU Countries Average first if available
-    if 'EU Countries Average' in analysis_df['country'].values:
-        countries_to_show.append('EU Countries Average')
-    
-    # Then add any other selected countries (excluding EU Countries Average to avoid duplication)
-    other_countries = [c for c in analysis_df['country'].unique() if c != 'EU Countries Average' and 'Average' not in c]
-    countries_to_show.extend(other_countries)
+    # Get unique EU priorities
+    eu_priorities = eu_priority_data['EU_Priority'].unique()
     
     # Show countries in the determined order
-    for country in countries_to_show:
-        country_data = analysis_df[analysis_df['country'] == country].iloc[0]  # Take first row (all deciles have same values for EU priorities)
-        values = [country_data[col] for col in main_eu_priorities if col in analysis_df.columns and pd.notna(country_data[col])]
-        labels = [col for col in main_eu_priorities if col in analysis_df.columns and pd.notna(country_data[col])]
+    for country in eu_priority_data['country'].unique():
+        country_data = eu_priority_data[eu_priority_data['country'] == country]
+        
+        # Create a dictionary to map EU priority to score
+        priority_scores = {}
+        for _, row in country_data.iterrows():
+            priority_scores[row['EU_Priority']] = row['Score']
+        
+        # Get values and labels for radar chart
+        values = [priority_scores.get(priority, 0) for priority in eu_priorities]
+        labels = eu_priorities
         
         radar_chart.add_trace(go.Scatterpolar(
             r=values,
@@ -599,70 +594,45 @@ def create_overview_charts(map_df, analysis_df, time_df):
         font=dict(family='Arial, sans-serif', size=14)  # Match Budget dashboard font size
     )
     
-    # 4. Time series chart (EWBI evolution over time) - Line chart implementation
+    # 4. Time series chart (EWBI evolution over time)
     time_series = go.Figure()
     
-    # For EWBI level, we'll use the already-loaded time series data
-    try:
-        if not time_series_df.empty:
-            # Use the ewbi_score column directly, average across deciles
-            country_year_data = time_series_df.groupby(['country', 'year'])['ewbi_score'].mean().reset_index()
+    # Get EWBI time series data (Level 1: EWBI)
+    ewbi_time_data = time_df[
+        (time_df['EU_Priority'] == 'All') & 
+        (time_df['Secondary_indicator'] == 'All') & 
+        (time_df['primary_index'] == 'All')
+    ].copy()
+    
+    if not ewbi_time_data.empty:
+        # Show countries in the determined order
+        for country in ewbi_time_data['country'].unique():
+            country_data = ewbi_time_data[ewbi_time_data['country'] == country].sort_values('year')
             
-            # For time series, prioritize EU Countries Average, then add individual countries
-            countries_to_show = []
-            if 'EU Countries Average' in country_year_data['country'].values:
-                countries_to_show.append('EU Countries Average')
-            
-            # Add individual countries from the filter
-            individual_countries = [c for c in analysis_df['country'].unique() if 'Average' not in c]
-            countries_to_show.extend(individual_countries[:5])  # Limit to 5 for readability
-            
-            for country in countries_to_show:
-                if country in country_year_data['country'].values:
-                    country_data = country_year_data[country_year_data['country'] == country].sort_values('year')
-                    
-                    time_series.add_trace(
-                        go.Scatter(
-                            x=country_data['year'],
-                            y=country_data['ewbi_score'],  # Use the ewbi_score column
-                            name=country,
-                            mode='lines+markers',
-                            hovertemplate='%{y:.3f}<extra></extra>'
-                        )
-                    )
-            
-            time_series.update_layout(
-                title=dict(
-                    text='EWBI Score Evolution Over Time',
-                    font=dict(size=16, color="#f4d03f", weight="bold"),  # Match Budget dashboard title size
-                    x=0.5
-                ),
-                height=500,  # Match Budget dashboard chart height
-                margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
-                font=dict(family='Arial, sans-serif', size=14),  # Match Budget dashboard font size
-                yaxis=dict(range=[0, 1])
+            time_series.add_trace(
+                go.Scatter(
+                    x=country_data['year'],
+                    y=country_data['Score'],
+                    name=country,
+                    mode='lines+markers',
+                    hovertemplate='%{y:.3f}<extra></extra>'
+                )
             )
-        else:
-            time_series.add_annotation(
-                text="Time series data not available",
-                xref="paper", yref="paper",
-                x=0.5, y=0.5, showarrow=False,
-                font=dict(size=16)
-            )
-            
-            time_series.update_layout(
-                title=dict(
-                    text='EWBI Score Evolution Over Time',
-                    font=dict(size=16, color="#f4d03f", weight="bold"),  # Match Budget dashboard title size
-                    x=0.5
-                ),
-                height=500,  # Match Budget dashboard chart height
-                margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
-                font=dict(family='Arial, sans-serif', size=14),  # Match Budget dashboard font size
-            )
-    except Exception as e:
+        
+        time_series.update_layout(
+            title=dict(
+                text='EWBI Score Evolution Over Time',
+                font=dict(size=16, color="#f4d03f", weight="bold"),  # Match Budget dashboard title size
+                x=0.5
+            ),
+            height=500,  # Match Budget dashboard chart height
+            margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
+            font=dict(family='Arial, sans-serif', size=14),  # Match Budget dashboard font size
+            yaxis=dict(range=[0, 1])
+        )
+    else:
         time_series.add_annotation(
-            text=f"Error loading time series data for EWBI: {str(e)}",
+            text="Time series data not available",
             xref="paper", yref="paper",
             x=0.5, y=0.5, showarrow=False,
             font=dict(size=16)
