@@ -397,7 +397,7 @@ def create_time_series_dataframe(primary_data, primary_to_secondary, secondary_t
     year_cols = [col for col in primary_data.columns if col.isdigit()]
     year_cols.sort()
     
-    # Create a time series version with country-level aggregated data
+    # Create a comprehensive time series with all levels
     time_series_data = []
     
     for year in year_cols:
@@ -424,105 +424,110 @@ def create_time_series_dataframe(primary_data, primary_to_secondary, secondary_t
         
         time_series_data.append(aggregated_data)
     
-    time_series_df = pd.concat(time_series_data, ignore_index=True)
-    print(f"Created {len(time_series_df)} primary indicator records for time series")
+    # Combine all years
+    all_primary_data = pd.concat(time_series_data, ignore_index=True)
+    print(f"Created {len(all_primary_data)} primary indicator records for time series")
     
-    # Now calculate secondary indicators for each country-year combination
-    print("Calculating secondary indicators for time series...")
-    secondary_time_series = []
+    # Now create the comprehensive time series with all levels
+    comprehensive_time_series = []
     
-    for country in time_series_df['country'].unique():
-        for year in time_series_df['year'].unique():
-            for eu_priority in time_series_df['eu_priority'].unique():
-                for secondary_indicator in time_series_df['secondary_indicator'].unique():
-                    
-                    # Get primary indicators for this combination
-                    primary_data_subset = time_series_df[
-                        (time_series_df['country'] == country) & 
-                        (time_series_df['year'] == year) & 
-                        (time_series_df['eu_priority'] == eu_priority) & 
-                        (time_series_df['secondary_indicator'] == secondary_indicator)
-                    ]
-                    
-                    if not primary_data_subset.empty:
-                        # Calculate secondary indicator score using arithmetic mean
-                        secondary_score = primary_data_subset['primary_score'].mean()
-                        
-                        secondary_time_series.append({
-                            'country': country,
-                            'decile': 'All Deciles',
-                            'year': year,
-                            'eu_priority': eu_priority,
-                            'secondary_indicator': secondary_indicator,
-                            'secondary_score': secondary_score,
-                            'primary_score': primary_data_subset['primary_score'].iloc[0]  # Keep one primary score
-                        })
-    
-    # Calculate EU priority scores for each country-year combination
-    print("Calculating EU priorities for time series...")
-    eu_priorities_time_series = []
-    
-    for country in time_series_df['country'].unique():
-        for year in time_series_df['year'].unique():
-            for eu_priority in time_series_df['eu_priority'].unique():
-                
-                # Get secondary indicators for this EU priority
-                secondary_data_subset = time_series_df[
-                    (time_series_df['country'] == country) & 
-                    (time_series_df['year'] == year) & 
-                    (time_series_df['eu_priority'] == eu_priority)
-                ]
-                
-                if not secondary_data_subset.empty:
-                    # Calculate EU priority score using arithmetic mean
-                    eu_priority_score = secondary_data_subset['primary_score'].mean()  # Use primary as proxy for now
-                    
-                    eu_priorities_time_series.append({
-                        'country': country,
-                        'decile': 'All Deciles',
-                        'year': year,
-                        'eu_priority': eu_priority,
-                        'eu_priority_score': eu_priority_score,
-                        'primary_score': secondary_data_subset['primary_score'].iloc[0]
-                    })
-    
-    # Calculate EWBI scores for each country-year combination
-    print("Calculating EWBI scores for time series...")
-    ewbi_time_series = []
-    
-    for country in time_series_df['country'].unique():
-        for year in time_series_df['year'].unique():
+    for country in all_primary_data['country'].unique():
+        for year in all_primary_data['year'].unique():
+            print(f"Processing {country} - {year}...")
             
-            # Get all EU priorities for this country and year
-            eu_priorities_subset = time_series_df[
-                (time_series_df['country'] == country) & 
-                (time_series_df['year'] == year)
+            # Get data for this country and year
+            country_year_data = all_primary_data[
+                (all_primary_data['country'] == country) & 
+                (all_primary_data['year'] == year)
             ]
             
-            if not eu_priorities_subset.empty:
-                # Calculate EWBI score using arithmetic mean
-                ewbi_score = eu_priorities_subset['primary_score'].mean()  # Use primary as proxy for now
+            if not country_year_data.empty:
+                # 1. Add EWBI level (one row per country-year)
+                # Calculate EWBI as average of all primary scores for this country-year
+                ewbi_score = country_year_data['primary_score'].mean()
                 
-                ewbi_time_series.append({
+                comprehensive_time_series.append({
                     'country': country,
                     'decile': 'All Deciles',
                     'year': year,
+                    'data_level': 'EWBI',
                     'ewbi_score': ewbi_score,
-                    'primary_score': eu_priorities_subset['primary_score'].iloc[0]
+                    'eu_priority_score': np.nan,
+                    'secondary_score': np.nan,
+                    'primary_score': np.nan,
+                    'eu_priority': '',
+                    'secondary_indicator': '',
+                    'primary_index': ''
                 })
+                
+                # 2. Add EU Priority level (one row per EU priority per country-year)
+                for eu_priority in country_year_data['eu_priority'].unique():
+                    if pd.notna(eu_priority):  # Skip NaN values
+                        # Get all primary indicators for this EU priority
+                        eu_priority_data = country_year_data[country_year_data['eu_priority'] == eu_priority]
+                        if not eu_priority_data.empty:
+                            eu_priority_score = eu_priority_data['primary_score'].mean()
+                            
+                            comprehensive_time_series.append({
+                                'country': country,
+                                'decile': 'All Deciles',
+                                'year': year,
+                                'data_level': 'EU Priority',
+                                'ewbi_score': np.nan,
+                                'eu_priority_score': eu_priority_score,
+                                'secondary_score': np.nan,
+                                'primary_score': np.nan,
+                                'eu_priority': eu_priority,
+                                'secondary_indicator': '',
+                                'primary_index': ''
+                            })
+                
+                # 3. Add Secondary Indicator level (one row per secondary indicator per country-year)
+                for secondary_indicator in country_year_data['secondary_indicator'].unique():
+                    if pd.notna(secondary_indicator):  # Skip NaN values
+                        # Get all primary indicators for this secondary indicator
+                        secondary_data = country_year_data[country_year_data['secondary_indicator'] == secondary_indicator]
+                        if not secondary_data.empty:
+                            secondary_score = secondary_data['primary_score'].mean()
+                            
+                            # Get the corresponding EU priority
+                            eu_priority = secondary_to_eu_priority.get(secondary_indicator, '')
+                            
+                            comprehensive_time_series.append({
+                                'country': country,
+                                'decile': 'All Deciles',
+                                'year': year,
+                                'data_level': 'Secondary Indicator',
+                                'ewbi_score': np.nan,
+                                'eu_priority_score': np.nan,
+                                'secondary_score': secondary_score,
+                                'primary_score': np.nan,
+                                'eu_priority': eu_priority,
+                                'secondary_indicator': secondary_indicator,
+                                'primary_index': ''
+                            })
+                
+                # 4. Add Primary Indicator level (one row per primary indicator per country-year)
+                for _, row in country_year_data.iterrows():
+                    comprehensive_time_series.append({
+                        'country': country,
+                        'decile': 'All Deciles',
+                        'year': year,
+                        'data_level': 'Primary Indicator',
+                        'ewbi_score': np.nan,
+                        'eu_priority_score': np.nan,
+                        'secondary_score': np.nan,
+                        'primary_score': row['primary_score'],
+                        'eu_priority': row['eu_priority'],
+                        'secondary_indicator': row['secondary_indicator'],
+                        'primary_index': row['primary_index']
+                    })
     
-    # Create the final time series dataframe with consistent structure
-    # We'll use the EWBI time series as the base and add other columns
-    final_time_series_df = pd.DataFrame(ewbi_time_series)
+    # Create the final dataframe
+    final_time_series_df = pd.DataFrame(comprehensive_time_series)
     
-    # Now add the missing columns to match the master dataframe structure
-    final_time_series_df['eu_priority_score'] = np.nan
-    final_time_series_df['secondary_score'] = np.nan
-    final_time_series_df['eu_priority'] = final_time_series_df['country'].map(lambda x: 'placeholder')  # Will be filled later
-    final_time_series_df['secondary_indicator'] = final_time_series_df['country'].map(lambda x: 'placeholder')  # Will be filled later
-    final_time_series_df['primary_index'] = final_time_series_df['country'].map(lambda x: 'placeholder')  # Will be filled later
-    
-    print(f"Final time series shape: {final_time_series_df.shape}")
+    print(f"Final comprehensive time series shape: {final_time_series_df.shape}")
+    print(f"Data levels: {final_time_series_df['data_level'].value_counts().to_dict()}")
     
     return final_time_series_df
 

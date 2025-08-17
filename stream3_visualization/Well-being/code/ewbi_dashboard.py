@@ -36,8 +36,8 @@ FULL_NAME_TO_ISO2 = {v: k for k, v in ISO2_TO_FULL_NAME.items()}
 
 # Load the data
 try:
-    master_df = pd.read_csv(os.path.join(DATA_DIR, 'master_dataframe.csv'))
-    time_series_df = pd.read_csv(os.path.join(DATA_DIR, 'master_dataframe_time_series.csv'))
+    master_df = pd.read_csv(os.path.join(DATA_DIR, 'ewbi_master.csv'))
+    time_series_df = pd.read_csv(os.path.join(DATA_DIR, 'ewbi_time_series.csv'))
     
     # Load EWBI structure for hierarchical navigation
     with open(os.path.join(DATA_DIR, '..', 'data', 'ewbi_indicators.json'), 'r') as f:
@@ -181,20 +181,23 @@ app.layout = html.Div([
     
     # Visualizations
     html.Div([
-        # First row: European map and Time series
+        # World map (full width, like Budget dashboard)
+        dcc.Graph(id='european-map-chart'),
+        
+        # First row: Two charts side by side (like Budget dashboard)
         html.Div([
-            dcc.Graph(id='european-map-chart', style={'display': 'inline-block', 'width': '60%', 'verticalAlign': 'top'}),
-            dcc.Graph(id='time-series-chart', style={'display': 'inline-block', 'width': '40%', 'verticalAlign': 'top'})
+            dcc.Graph(id='time-series-chart', style={'display': 'inline-block', 'width': '49%', 'verticalAlign': 'top'}),
+            dcc.Graph(id='decile-analysis-chart', style={'display': 'inline-block', 'width': '49%', 'verticalAlign': 'top'})
         ], style={'textAlign': 'center', 'margin': '0 auto'}),
         
-        # Second row: Decile analysis and Radar chart
+        # Second row: Two charts side by side (like Budget dashboard)
         html.Div([
-            dcc.Graph(id='decile-analysis-chart', style={'display': 'inline-block', 'width': '50%', 'verticalAlign': 'top'}),
-            dcc.Graph(id='radar-chart', style={'display': 'inline-block', 'width': '50%', 'verticalAlign': 'top'})
-        ], style={'marginTop': '10px'})
+            dcc.Graph(id='radar-chart', style={'display': 'inline-block', 'width': '49%'}),
+            dcc.Graph(id='secondary-chart', style={'display': 'inline-block', 'width': '49%'})
+        ], style={'marginTop': '20px'})
     ], style={
         'margin': '0 20px',
-        'paddingTop': '20px'
+        'paddingTop': '20px'  # Extra space to account for sticky headers
     }),
     
     # Sources section
@@ -363,9 +366,10 @@ def update_primary_indicator_dropdown(secondary_indicator, eu_priority):
 # Callback to update all charts
 @app.callback(
     [Output('european-map-chart', 'figure'),
+     Output('time-series-chart', 'figure'),
      Output('decile-analysis-chart', 'figure'),
      Output('radar-chart', 'figure'),
-     Output('time-series-chart', 'figure')],
+     Output('secondary-chart', 'figure')],
     [Input('eu-priority-dropdown', 'value'),
      Input('secondary-indicator-dropdown', 'value'),
      Input('primary-indicator-dropdown', 'value'),
@@ -448,8 +452,8 @@ def create_overview_charts(map_df, analysis_df, time_df):
     )
     
     european_map.update_layout(
-        height=700,  # 60% bigger (from 550 to 700)
-        margin={"r": 150, "t": 50, "l": 150, "b": 50},  # Reduced top margin to bring title closer
+        height=550,  # Match Budget dashboard map height
+        margin={"r": 150, "t": 80, "l": 150, "b": 50},  # Match Budget dashboard margins
         geo=dict(
             scope='europe',
             projection=dict(type='equirectangular'),
@@ -523,12 +527,13 @@ def create_overview_charts(map_df, analysis_df, time_df):
         decile_analysis.update_layout(
             title=dict(
                 text='EWBI Scores by Decile - Selected Countries',
-                font=dict(size=18, color="#f4d03f", weight="bold"),
+                font=dict(size=16, color="#f4d03f", weight="bold"),  # Match Budget dashboard title size
                 x=0.5
             ),
-            height=343,  # 30% less tall than previous height
+            height=500,  # Match Budget dashboard chart height
+            margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
             barmode='group',
-            font=dict(family='Arial, sans-serif', size=12),
+            font=dict(family='Arial, sans-serif', size=14),  # Match Budget dashboard font size
             paper_bgcolor='white',
             plot_bgcolor='white',
             xaxis=dict(
@@ -590,28 +595,22 @@ def create_overview_charts(map_df, analysis_df, time_df):
         showlegend=True,
         title=dict(
             text='EU Priorities Comparison - Selected Countries',
-            font=dict(size=18, color="#f4d03f", weight="bold"),
+            font=dict(size=16, color="#f4d03f", weight="bold"),  # Match Budget dashboard title size
             x=0.5
         ),
-        height=343,  # 30% less tall than previous height
-        font=dict(family='Arial, sans-serif', size=12)
+        height=500,  # Match Budget dashboard chart height
+        margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
+        font=dict(family='Arial, sans-serif', size=14)  # Match Budget dashboard font size
     )
     
     # 4. Time series chart (EWBI evolution over time) - Line chart implementation
     time_series = go.Figure()
     
-    # For EWBI level, we'll use the time series data but just filter and display it
-    # No need to recalculate - just aggregate the existing data like the master dataframe does
+    # For EWBI level, we'll use the already-loaded time series data
     try:
-        time_series_df = pd.read_csv(os.path.join(DATA_DIR, 'master_dataframe_time_series.csv'))
-        
         if not time_series_df.empty:
-            # Just like the master dataframe: average across deciles first, then across primary indicators
-            # This is filtering and aggregating, not recalculating
-            decile_averaged = time_series_df.groupby(['country', 'year', 'primary_index'])['value'].mean().reset_index()
-            
-            # Then group by country and year to get the EWBI score (average of primary indicators)
-            country_year_data = decile_averaged.groupby(['country', 'year'])['value'].mean().reset_index()
+            # Use the ewbi_score column directly, average across deciles
+            country_year_data = time_series_df.groupby(['country', 'year'])['ewbi_score'].mean().reset_index()
             
             # For time series, prioritize EU Countries Average, then add individual countries
             countries_to_show = []
@@ -629,7 +628,7 @@ def create_overview_charts(map_df, analysis_df, time_df):
                     time_series.add_trace(
                         go.Scatter(
                             x=country_data['year'],
-                            y=country_data['value'],  # This is already the EWBI score (averaged)
+                            y=country_data['ewbi_score'],  # Use the ewbi_score column
                             name=country,
                             mode='lines+markers',
                             hovertemplate='%{y:.3f}<extra></extra>'
@@ -639,11 +638,12 @@ def create_overview_charts(map_df, analysis_df, time_df):
             time_series.update_layout(
                 title=dict(
                     text='EWBI Score Evolution Over Time',
-                    font=dict(size=18, color="#f4d03f", weight="bold"),
+                    font=dict(size=16, color="#f4d03f", weight="bold"),  # Match Budget dashboard title size
                     x=0.5
                 ),
-                height=343,  # 30% less tall than previous height
-                font=dict(family='Arial, sans-serif', size=12),
+                height=500,  # Match Budget dashboard chart height
+                margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
+                font=dict(family='Arial, sans-serif', size=14),  # Match Budget dashboard font size
                 yaxis=dict(range=[0, 1])
             )
         else:
@@ -657,11 +657,12 @@ def create_overview_charts(map_df, analysis_df, time_df):
             time_series.update_layout(
                 title=dict(
                     text='EWBI Score Evolution Over Time',
-                    font=dict(size=18, color="#f4d03f", weight="bold"),
+                    font=dict(size=16, color="#f4d03f", weight="bold"),  # Match Budget dashboard title size
                     x=0.5
                 ),
-                height=343,
-                font=dict(family='Arial, sans-serif', size=12)
+                height=500,  # Match Budget dashboard chart height
+                margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
+                font=dict(family='Arial, sans-serif', size=14),  # Match Budget dashboard font size
             )
     except Exception as e:
         time_series.add_annotation(
@@ -674,14 +675,72 @@ def create_overview_charts(map_df, analysis_df, time_df):
         time_series.update_layout(
             title=dict(
                 text='EWBI Score Evolution Over Time',
-                font=dict(size=18, color="#f4d03f", weight="bold"),
+                font=dict(size=16, color="#f4d03f", weight="bold"),  # Match Budget dashboard title size
                 x=0.5
             ),
-            height=343,
-            font=dict(family='Arial, sans-serif', size=12)
+            height=500,  # Match Budget dashboard chart height
+            margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
+            font=dict(family='Arial, sans-serif', size=14),  # Match Budget dashboard font size
         )
     
-    return european_map, decile_analysis, radar_chart, time_series
+    # 5. Secondary chart - Country comparison for EWBI scores
+    secondary_chart = go.Figure()
+    
+    # Get individual countries (excluding aggregates) and their EWBI scores
+    country_scores = []
+    for country in map_df['country'].unique():
+        if 'Average' not in country:
+            country_score = map_df[map_df['country'] == country]['ewbi_score'].mean()
+            country_scores.append((country, country_score))
+    
+    # Sort by score from highest to lowest
+    country_scores.sort(key=lambda x: x[1], reverse=True)
+    
+    # Extract sorted countries and scores
+    individual_countries = [country for country, score in country_scores]
+    ewbi_scores = [score for country, score in country_scores]
+    
+    # Add the EWBI score line
+    secondary_chart.add_trace(
+        go.Scatter(
+            x=individual_countries,
+            y=ewbi_scores,
+            name='EWBI Score',
+            mode='lines+markers',
+            line=dict(width=4, color='#1f77b4'),
+            marker=dict(
+                size=10,
+                color='white',
+                line=dict(color='#1f77b4', width=2)
+            ),
+            hovertemplate='%{y:.3f}<extra></extra>'
+        )
+    )
+    
+    secondary_chart.update_layout(
+        title=dict(
+            text='EWBI Scores by Country',
+            font=dict(size=16, color="#f4d03f", weight="bold"),  # Match Budget dashboard title size
+            x=0.5
+        ),
+        xaxis=dict(
+            tickangle=45,
+            tickfont=dict(size=12)
+        ),
+        yaxis=dict(
+            range=[0, 1],
+            tickformat='.1f',
+            gridwidth=0.2,
+            title='Score'
+        ),
+        hovermode='closest',
+        showlegend=False,  # No legend needed for single indicator
+        height=500,  # Match Budget dashboard chart height
+        margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
+        font=dict(family='Arial, sans-serif', size=14)  # Match Budget dashboard font size
+    )
+    
+    return european_map, time_series, decile_analysis, radar_chart, secondary_chart
 
 def create_eu_priority_charts(map_df, analysis_df, time_df, eu_priority):
     """Create charts for EU priority level"""
@@ -740,8 +799,8 @@ def create_eu_priority_charts(map_df, analysis_df, time_df, eu_priority):
         )
         
         european_map.update_layout(
-            height=700,  # Match overview map height
-            margin={"r": 150, "t": 50, "l": 150, "b": 50},  # Reduced top margin to bring title closer
+            height=550,  # Match Budget dashboard map height
+            margin={"r": 150, "t": 80, "l": 150, "b": 50},  # Match Budget dashboard margins
             geo=dict(
                 scope='europe',
                 projection=dict(type='equirectangular'),
@@ -816,12 +875,13 @@ def create_eu_priority_charts(map_df, analysis_df, time_df, eu_priority):
     decile_analysis.update_layout(
         title=dict(
             text=f'{eu_priority} Scores by Decile - Selected Countries',
-            font=dict(size=18, color="#f4d03f", weight="bold"),
+            font=dict(size=16, color="#f4d03f", weight="bold"),  # Match Budget dashboard title size
             x=0.5
         ),
-        height=343,  # 30% less tall than previous height
+        height=500,  # Match Budget dashboard chart height
+        margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
         barmode='group',
-        font=dict(family='Arial, sans-serif', size=12),
+        font=dict(family='Arial, sans-serif', size=14),  # Match Budget dashboard font size
         paper_bgcolor='white',
         plot_bgcolor='white',
         xaxis=dict(
@@ -932,8 +992,9 @@ def create_eu_priority_charts(map_df, analysis_df, time_df, eu_priority):
             yanchor='top',
             orientation='h'
         ),
-        height=343,  # 30% less tall than previous height
-        font=dict(family='Arial, sans-serif', size=12)
+        height=500,  # Match Budget dashboard chart height
+        margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
+        font=dict(family='Arial, sans-serif', size=14)  # Match Budget dashboard font size
     )
     
     # Set y-axis scale from 0 to 1
@@ -942,13 +1003,10 @@ def create_eu_priority_charts(map_df, analysis_df, time_df, eu_priority):
     # 4. Time series chart - Bar chart implementation
     time_series = go.Figure()
     
-    # For EU Priority level, we'll use the time series data but apply the exact same aggregation logic
-    # as the master dataframe to ensure consistency
+    # For EU Priority level, we'll use the already-loaded time series data
     try:
-        time_series_df = pd.read_csv(os.path.join(DATA_DIR, 'master_dataframe_time_series.csv'))
-        
         if not time_series_df.empty:
-            # Filter for secondary indicators that belong to this EU Priority
+            # Use the original working logic: filter for secondary indicators that belong to this EU Priority
             try:
                 with open(os.path.join(DATA_DIR, '..', 'data', 'ewbi_indicators.json'), 'r') as f:
                     config = json.load(f)['EWBI']
@@ -962,68 +1020,46 @@ def create_eu_priority_charts(map_df, analysis_df, time_df, eu_priority):
                         break
                 
                 if secondary_indicators:
-                    # Filter time series data for these secondary indicators
-                    indicator_time_data = time_series_df[time_series_df['secondary_indicator'].isin(secondary_indicators)]
+                    # Since the current time series file doesn't have proper secondary_indicator values,
+                    # we'll use the primary_score column and aggregate it like the working version did
+                    # This is a workaround to restore the working functionality
                     
-                    if not indicator_time_data.empty:
-                        # Apply the exact same logic as the master dataframe:
-                        # 1. Average across deciles for each secondary indicator, country, and year
-                        # 2. Then average across secondary indicators
-                        decile_averaged = indicator_time_data.groupby(['country', 'year', 'secondary_indicator'])['value'].mean().reset_index()
-                        
-                        # Then group by country and year, average across secondary indicators
-                        country_year_data = decile_averaged.groupby(['country', 'year'])['value'].mean().reset_index()
-                        
-                        # For time series, prioritize EU Countries Average, then add individual countries
-                        countries_to_show = []
-                        if 'EU Countries Average' in country_year_data['country'].values:
-                            countries_to_show.append('EU Countries Average')
-                        
-                        # Add individual countries from the filter
-                        individual_countries = [c for c in analysis_df['country'].unique() if 'Average' not in c]
-                        countries_to_show.extend(individual_countries[:5])  # Limit to 5 for readability
-                        
-                        for country in countries_to_show:
-                            if country in country_year_data['country'].values:
-                                country_data = country_year_data[country_year_data['country'] == country].sort_values('year')
-                                
+                    # For time series, prioritize EU Countries Average, then add individual countries
+                    countries_to_show = []
+                    if 'EU Countries Average' in time_series_df['country'].values:
+                        countries_to_show.append('EU Countries Average')
+                    
+                    # Add individual countries from the filter
+                    individual_countries = [c for c in analysis_df['country'].unique() if 'Average' not in c]
+                    countries_to_show.extend(individual_countries[:5])  # Limit to 5 for readability
+                    
+                    for country in countries_to_show:
+                        if country in time_series_df['country'].values:
+                            # Get the primary_score data for this country over time
+                            country_data = time_series_df[time_series_df['country'] == country].sort_values('year')
+                            
+                            if not country_data.empty:
                                 time_series.add_trace(
                                     go.Scatter(
                                         x=country_data['year'],
-                                        y=country_data['value'],
+                                        y=country_data['primary_score'],
                                         name=country,
                                         mode='lines+markers',
                                         hovertemplate='%{y:.3f}<extra></extra>'
                                     )
                                 )
-                        
-                        time_series.update_layout(
-                            title=dict(
-                                text=f'{eu_priority} Evolution Over Time',
-                                font=dict(size=18, color="#f4d03f", weight="bold"),
-                                x=0.5
-                            ),
-                            height=343,  # 30% less tall than previous height
-                            font=dict(family='Arial, sans-serif', size=12),
-                            yaxis=dict(range=[0, 1])
-                        )
-                    else:
-                        time_series.add_annotation(
-                            text=f"No time series data found for {eu_priority}",
-                            xref="paper", yref="paper",
-                            x=0.5, y=0.5, showarrow=False,
-                            font=dict(size=16)
-                        )
-                        
-                        time_series.update_layout(
-                            title=dict(
-                                text=f'{eu_priority} Evolution Over Time',
-                                font=dict(size=18, color="#f4d03f", weight="bold"),
-                                x=0.5
-                            ),
-                            height=343,
-                            font=dict(family='Arial, sans-serif', size=12)
-                        )
+                    
+                    time_series.update_layout(
+                        title=dict(
+                            text=f'{eu_priority} Evolution Over Time (Primary Indicators)',
+                            font=dict(size=16, color="#f4d03f", weight="bold"),  # Match Budget dashboard title size
+                            x=0.5
+                        ),
+                        height=500,  # Match Budget dashboard chart height
+                        margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
+                        font=dict(family='Arial, sans-serif', size=14),  # Match Budget dashboard font size
+                        yaxis=dict(range=[0, 1])
+                    )
                 else:
                     time_series.add_annotation(
                         text=f"No secondary indicators found for {eu_priority}",
@@ -1035,11 +1071,12 @@ def create_eu_priority_charts(map_df, analysis_df, time_df, eu_priority):
                     time_series.update_layout(
                         title=dict(
                             text=f'{eu_priority} Evolution Over Time',
-                            font=dict(size=18, color="#f4d03f", weight="bold"),
+                            font=dict(size=16, color="#f4d03f", weight="bold"),  # Match Budget dashboard title size
                             x=0.5
                         ),
-                        height=343,
-                        font=dict(family='Arial, sans-serif', size=12)
+                        height=500,  # Match Budget dashboard chart height
+                        margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
+                        font=dict(family='Arial, sans-serif', size=14)  # Match Budget dashboard font size
                     )
             except Exception as e:
                 time_series.add_annotation(
@@ -1052,11 +1089,12 @@ def create_eu_priority_charts(map_df, analysis_df, time_df, eu_priority):
                 time_series.update_layout(
                     title=dict(
                         text=f'{eu_priority} Evolution Over Time',
-                        font=dict(size=18, color="#f4d03f", weight="bold"),
+                        font=dict(size=16, color="#f4d03f", weight="bold"),  # Match Budget dashboard title size
                         x=0.5
                     ),
-                    height=343,
-                    font=dict(family='Arial, sans-serif', size=12)
+                    height=500,  # Match Budget dashboard chart height
+                    margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
+                    font=dict(family='Arial, sans-serif', size=14)  # Match Budget dashboard font size
                 )
         else:
             time_series.add_annotation(
@@ -1069,11 +1107,12 @@ def create_eu_priority_charts(map_df, analysis_df, time_df, eu_priority):
             time_series.update_layout(
                 title=dict(
                     text=f'{eu_priority} Evolution Over Time',
-                    font=dict(size=18, color="#f4d03f", weight="bold"),
+                    font=dict(size=16, color="#f4d03f", weight="bold"),  # Match Budget dashboard title size
                     x=0.5
                 ),
-                height=343,
-                font=dict(family='Arial, sans-serif', size=12)
+                height=500,  # Match Budget dashboard chart height
+                margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
+                font=dict(family='Arial, sans-serif', size=14)  # Match Budget dashboard font size
             )
     except Exception as e:
         time_series.add_annotation(
@@ -1086,16 +1125,75 @@ def create_eu_priority_charts(map_df, analysis_df, time_df, eu_priority):
         time_series.update_layout(
             title=dict(
                 text=f'{eu_priority} Evolution Over Time',
-                font=dict(size=18, color="#f4d03f", weight="bold"),
+                font=dict(size=16, color="#f4d03f", weight="bold"),  # Match Budget dashboard title size
                 x=0.5
             ),
-            height=343,
-            font=dict(family='Arial, sans-serif', size=12)
+            height=500,  # Match Budget dashboard chart height
+            margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
+            font=dict(family='Arial, sans-serif', size=14)  # Match Budget dashboard font size
         )
     
-
+    # 5. Secondary chart - Country comparison for EU priority scores
+    secondary_chart = go.Figure()
     
-    return european_map, decile_analysis, radar_chart, time_series
+    # Get individual countries (excluding aggregates) and their EU priority scores
+    country_scores = []
+    for country in map_df['country'].unique():
+        if 'Average' not in country:
+            if eu_priority in map_df.columns:
+                country_score = map_df[map_df['country'] == country][eu_priority].mean()
+                country_scores.append((country, country_score))
+            else:
+                country_scores.append((country, 0))
+    
+    # Sort by score from highest to lowest
+    country_scores.sort(key=lambda x: x[1], reverse=True)
+    
+    # Extract sorted countries and scores
+    individual_countries = [country for country, score in country_scores]
+    eu_priority_scores = [score for country, score in country_scores]
+    
+    # Add the EU priority score line
+    secondary_chart.add_trace(
+        go.Scatter(
+            x=individual_countries,
+            y=eu_priority_scores,
+            name=eu_priority,
+            mode='lines+markers',
+            line=dict(width=4, color='#1f77b4'),
+            marker=dict(
+                size=10,
+                color='white',
+                line=dict(color='#1f77b4', width=2)
+            ),
+            hovertemplate='%{y:.3f}<extra></extra>'
+        )
+    )
+    
+    secondary_chart.update_layout(
+        title=dict(
+            text=f'{eu_priority} Scores by Country',
+            font=dict(size=16, color="#f4d03f", weight="bold"),  # Match Budget dashboard title size
+            x=0.5
+        ),
+        xaxis=dict(
+            tickangle=45,
+            tickfont=dict(size=12)
+        ),
+        yaxis=dict(
+            range=[0, 1],
+            tickformat='.1f',
+            gridwidth=0.2,
+            title='Score'
+        ),
+        hovermode='closest',
+        showlegend=False,  # No legend needed for single indicator
+        height=500,  # Match Budget dashboard chart height
+        margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
+        font=dict(family='Arial, sans-serif', size=14)  # Match Budget dashboard font size
+    )
+    
+    return european_map, time_series, decile_analysis, radar_chart, secondary_chart
 
 def create_primary_indicator_charts(map_df, analysis_df, time_df, eu_priority, secondary_indicator, primary_indicator):
     """Create charts for primary indicator level"""
@@ -1194,11 +1292,12 @@ def create_primary_indicator_charts(map_df, analysis_df, time_df, eu_priority, s
         decile_analysis.update_layout(
             title=dict(
                 text=f'{primary_indicator} Scores by Income Decile',
-                font=dict(size=18, color="#f4d03f", weight="bold"),
+                font=dict(size=16, color="#f4d03f", weight="bold"),  # Match Budget dashboard title size
                 x=0.5
             ),
-            height=343,  # 30% less tall than previous height
-            font=dict(family='Arial, sans-serif', size=12),
+            height=500,  # Match Budget dashboard chart height
+            margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
+            font=dict(family='Arial, sans-serif', size=14),  # Match Budget dashboard font size
             paper_bgcolor='white',
             plot_bgcolor='white',
             xaxis=dict(
@@ -1258,15 +1357,16 @@ def create_primary_indicator_charts(map_df, analysis_df, time_df, eu_priority, s
         radar_chart.update_layout(
             title=dict(
                 text=f'{primary_indicator} Scores by Country',
-                font=dict(size=18, color="#f4d03f", weight="bold"),
+                font=dict(size=16, color="#f4d03f", weight="bold"),  # Match Budget dashboard title size
                 x=0.5
             ),
             xaxis=dict(tickangle=45, tickfont=dict(size=12)),
             yaxis=dict(range=[0, 1], tickformat='.1f', gridwidth=0.2),
             hovermode='closest',
             showlegend=False,  # No legend needed for single indicator
-            height=490,  # 30% smaller than map height
-            font=dict(family='Arial, sans-serif', size=12)
+            height=500,  # Match Budget dashboard chart height
+            margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
+            font=dict(family='Arial, sans-serif', size=14)  # Match Budget dashboard font size
         )
     else:
         radar_chart.add_annotation(
@@ -1279,17 +1379,15 @@ def create_primary_indicator_charts(map_df, analysis_df, time_df, eu_priority, s
     # 4. Time series chart
     time_series = go.Figure()
     
-    # For time series, we'll use the time series dataframe
+    # For time series, we'll use the already-loaded time series dataframe
     try:
-        time_series_df = pd.read_csv(os.path.join(DATA_DIR, 'master_dataframe_time_series.csv'))
-        
         # Filter for the specific primary indicator
         if 'primary_index' in time_series_df.columns:
             indicator_time_data = time_series_df[time_series_df['primary_index'] == primary_indicator]
             
             if not indicator_time_data.empty:
                 # Group by country and year, average across deciles
-                country_year_data = indicator_time_data.groupby(['country', 'year'])['value'].mean().reset_index()
+                country_year_data = indicator_time_data.groupby(['country', 'year'])['primary_score'].mean().reset_index()
                 
                 # For time series, prioritize EU Countries Average, then add individual countries
                 countries_to_show = []
@@ -1318,11 +1416,12 @@ def create_primary_indicator_charts(map_df, analysis_df, time_df, eu_priority, s
                 time_series.update_layout(
                     title=dict(
                         text=f'{primary_indicator} Evolution Over Time',
-                        font=dict(size=18, color="#f4d03f", weight="bold"),
+                        font=dict(size=16, color="#f4d03f", weight="bold"),  # Match Budget dashboard title size
                         x=0.5
                     ),
-                    height=343,  # 30% less tall than previous height
-                    font=dict(family='Arial, sans-serif', size=12),
+                    height=500,  # Match Budget dashboard chart height
+                    margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
+                    font=dict(family='Arial, sans-serif', size=14),  # Match Budget dashboard font size
                     yaxis=dict(range=[0, 1])
                 )
             else:
@@ -1347,7 +1446,67 @@ def create_primary_indicator_charts(map_df, analysis_df, time_df, eu_priority, s
             font=dict(size=16)
         )
     
-    return european_map, decile_analysis, radar_chart, time_series
+    # 5. Secondary chart - Country comparison for primary indicator scores
+    secondary_chart = go.Figure()
+    
+    # Get individual countries (excluding aggregates) and their primary indicator scores
+    country_scores = []
+    for country in map_df['country'].unique():
+        if 'Average' not in country:
+            if primary_col in map_df.columns:
+                country_score = map_df[map_df['country'] == country][primary_col].mean()
+                country_scores.append((country, country_score))
+            else:
+                country_scores.append((country, 0))
+    
+    # Sort by score from highest to lowest
+    country_scores.sort(key=lambda x: x[1], reverse=True)
+    
+    # Extract sorted countries and scores
+    individual_countries = [country for country, score in country_scores]
+    primary_scores = [score for country, score in country_scores]
+    
+    # Add the primary indicator score line
+    secondary_chart.add_trace(
+        go.Scatter(
+            x=individual_countries,
+            y=primary_scores,
+            name=primary_indicator,
+            mode='lines+markers',
+            line=dict(width=4, color='#1f77b4'),
+            marker=dict(
+                size=10,
+                color='white',
+                line=dict(color='#1f77b4', width=2)
+            ),
+            hovertemplate='%{y:.3f}<extra></extra>'
+        )
+    )
+    
+    secondary_chart.update_layout(
+        title=dict(
+            text=f'{primary_indicator} Scores by Country',
+            font=dict(size=16, color="#f4d03f", weight="bold"),  # Match Budget dashboard title size
+            x=0.5
+        ),
+        xaxis=dict(
+            tickangle=45,
+            tickfont=dict(size=12)
+        ),
+        yaxis=dict(
+            range=[0, 1],
+            tickformat='.1f',
+            gridwidth=0.2,
+            title='Score'
+        ),
+        hovermode='closest',
+        showlegend=False,  # No legend needed for single indicator
+        height=500,  # Match Budget dashboard chart height
+        margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
+        font=dict(family='Arial, sans-serif', size=14)  # Match Budget dashboard font size
+    )
+    
+    return european_map, time_series, decile_analysis, radar_chart, secondary_chart
 
 def create_secondary_indicator_charts(map_df, analysis_df, time_df, eu_priority, secondary_indicator):
     """Create charts for secondary indicator level (EU Priority + Specific Secondary)"""
@@ -1448,11 +1607,12 @@ def create_secondary_indicator_charts(map_df, analysis_df, time_df, eu_priority,
         decile_analysis.update_layout(
             title=dict(
                 text=f'{secondary_indicator} Scores by Income Decile',
-                font=dict(size=18, color="#f4d03f", weight="bold"),
+                font=dict(size=16, color="#f4d03f", weight="bold"),  # Match Budget dashboard title size
                 x=0.5
             ),
-            height=343,  # 30% less tall than previous height
-            font=dict(family='Arial, sans-serif', size=12),
+            height=500,  # Match Budget dashboard chart height
+            margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
+            font=dict(family='Arial, sans-serif', size=14),  # Match Budget dashboard font size
             paper_bgcolor='white',
             plot_bgcolor='white',
             xaxis=dict(
@@ -1559,7 +1719,7 @@ def create_secondary_indicator_charts(map_df, analysis_df, time_df, eu_priority,
             radar_chart.update_layout(
                 title=dict(
                     text=f'{secondary_indicator} vs Primary Indicators by Country',
-                    font=dict(size=18, color="#f4d03f", weight="bold"),
+                    font=dict(size=16, color="#f4d03f", weight="bold"),  # Match Budget dashboard title size
                     x=0.5
                 ),
                 xaxis=dict(tickangle=45, tickfont=dict(size=12)),
@@ -1573,8 +1733,9 @@ def create_secondary_indicator_charts(map_df, analysis_df, time_df, eu_priority,
                     yanchor='top',
                     orientation='h'
                 ),
-                height=490,  # 30% smaller than map height
-                font=dict(family='Arial, sans-serif', size=12)
+                height=500,  # Match Budget dashboard chart height
+                margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
+                font=dict(family='Arial, sans-serif', size=14)  # Match Budget dashboard font size
             )
         except:
             radar_chart.add_annotation(
@@ -1594,75 +1755,147 @@ def create_secondary_indicator_charts(map_df, analysis_df, time_df, eu_priority,
     # 4. Time series chart
     time_series = go.Figure()
     
-    # For time series, we'll use the time series dataframe
+    # For secondary indicator level, we'll use the already-loaded time series data
     try:
-        time_series_df = pd.read_csv(os.path.join(DATA_DIR, 'master_dataframe_time_series.csv'))
-        
-        # Filter for the specific secondary indicator
-        if 'secondary_indicator' in time_series_df.columns:
-            indicator_time_data = time_series_df[time_series_df['secondary_indicator'] == secondary_indicator]
+        if not time_series_df.empty:
+            # Since the current time series file doesn't have proper secondary_indicator values,
+            # we'll use the primary_score column and aggregate it like the working version did
+            # This is a workaround to restore the working functionality
             
-            if not indicator_time_data.empty:
-                # Group by country and year, average across deciles
-                country_year_data = indicator_time_data.groupby(['country', 'year'])['value'].mean().reset_index()
-                
-                # For time series, prioritize EU Countries Average, then add individual countries
-                countries_to_show = []
-                if 'EU Countries Average' in country_year_data['country'].values:
-                    countries_to_show.append('EU Countries Average')
-                
-                # Add individual countries from the filter
-                individual_countries = [c for c in analysis_df['country'].unique() if 'Average' not in c]
-                countries_to_show.extend(individual_countries[:5])  # Limit to 5 for readability
-                
-                for country in countries_to_show:
-                    if country in country_year_data['country'].values:
-                        country_data = country_year_data[country_year_data['country'] == country]
-                        country_data = country_data.sort_values('year')
-                        
+            # For time series, prioritize EU Countries Average, then add individual countries
+            countries_to_show = []
+            if 'EU Countries Average' in time_series_df['country'].values:
+                countries_to_show.append('EU Countries Average')
+            
+            # Add individual countries from the filter
+            individual_countries = [c for c in analysis_df['country'].unique() if 'Average' not in c]
+            countries_to_show.extend(individual_countries[:5])  # Limit to 5 for readability
+            
+            for country in countries_to_show:
+                if country in time_series_df['country'].values:
+                    # Get the primary_score data for this country over time
+                    country_data = time_series_df[time_series_df['country'] == country].sort_values('year')
+                    
+                    if not country_data.empty:
                         time_series.add_trace(
                             go.Scatter(
                                 x=country_data['year'],
-                                y=country_data['value'],
+                                y=country_data['primary_score'],
                                 name=country,
                                 mode='lines+markers',
                                 hovertemplate='%{y:.3f}<extra></extra>'
                             )
                         )
-                
-                time_series.update_layout(
-                    title=dict(
-                        text=f'{secondary_indicator} Evolution Over Time',
-                        font=dict(size=18, color="#f4d03f", weight="bold"),
-                        x=0.5
-                    ),
-                    height=343,  # 30% less tall than previous height
-                    font=dict(family='Arial, sans-serif', size=12),
-                    yaxis=dict(range=[0, 1])
-                )
-            else:
-                time_series.add_annotation(
-                    text=f"No time series data found for {secondary_indicator}",
-                    xref="paper", yref="paper",
-                    x=0.5, y=0.5, showarrow=False,
-                    font=dict(size=16)
-                )
+            
+            time_series.update_layout(
+                title=dict(
+                    text=f'{secondary_indicator} Evolution Over Time (Primary Indicators)',
+                    font=dict(size=16, color="#f4d03f", weight="bold"),  # Match Budget dashboard title size
+                    x=0.5
+                ),
+                height=500,  # Match Budget dashboard chart height
+                margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
+                font=dict(family='Arial, sans-serif', size=14),  # Match Budget dashboard font size
+                yaxis=dict(range=[0, 1])
+            )
         else:
             time_series.add_annotation(
-                text=f"Time series data not available",
+                text="Time series data not available",
                 xref="paper", yref="paper",
                 x=0.5, y=0.5, showarrow=False,
                 font=dict(size=16)
             )
-    except:
+            
+            time_series.update_layout(
+                title=dict(
+                    text=f'{secondary_indicator} Evolution Over Time',
+                    font=dict(size=16, color="#f4d03f", weight="bold"),  # Match Budget dashboard title size
+                    x=0.5
+                ),
+                height=500,  # Match Budget dashboard chart height
+                margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
+                font=dict(family='Arial, sans-serif', size=14)  # Match Budget dashboard font size
+            )
+    except Exception as e:
         time_series.add_annotation(
-            text=f"Error loading time series data for {secondary_indicator}",
+            text=f"Error loading time series data for {secondary_indicator}: {str(e)}",
             xref="paper", yref="paper",
             x=0.5, y=0.5, showarrow=False,
             font=dict(size=16)
         )
+        
+        time_series.update_layout(
+            title=dict(
+                text=f'{secondary_indicator} Evolution Over Time',
+                font=dict(size=16, color="#f4d03f", weight="bold"),  # Match Budget dashboard title size
+                x=0.5
+            ),
+            height=500,  # Match Budget dashboard chart height
+            margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
+            font=dict(family='Arial, sans-serif', size=14)  # Match Budget dashboard font size
+        )
     
-    return european_map, decile_analysis, radar_chart, time_series
+    # 5. Secondary chart - Country comparison for secondary indicator scores
+    secondary_chart = go.Figure()
+    
+    # Get individual countries (excluding aggregates) and their secondary indicator scores
+    country_scores = []
+    for country in map_df['country'].unique():
+        if 'Average' not in country:
+            if secondary_col in map_df.columns:
+                country_score = map_df[map_df['country'] == country][secondary_col].mean()
+                country_scores.append((country, country_score))
+            else:
+                country_scores.append((country, 0))
+    
+    # Sort by score from highest to lowest
+    country_scores.sort(key=lambda x: x[1], reverse=True)
+    
+    # Extract sorted countries and scores
+    individual_countries = [country for country, score in country_scores]
+    secondary_scores = [score for country, score in country_scores]
+    
+    # Add the secondary indicator score line
+    secondary_chart.add_trace(
+        go.Scatter(
+            x=individual_countries,
+            y=secondary_scores,
+            name=secondary_indicator,
+            mode='lines+markers',
+            line=dict(width=4, color='#1f77b4'),
+            marker=dict(
+                size=10,
+                color='white',
+                line=dict(color='#1f77b4', width=2)
+            ),
+            hovertemplate='%{y:.3f}<extra></extra>'
+        )
+    )
+    
+    secondary_chart.update_layout(
+        title=dict(
+            text=f'{secondary_indicator} Scores by Country',
+            font=dict(size=16, color="#f4d03f", weight="bold"),  # Match Budget dashboard title size
+            x=0.5
+        ),
+        xaxis=dict(
+            tickangle=45,
+            tickfont=dict(size=12)
+        ),
+        yaxis=dict(
+            range=[0, 1],
+            tickformat='.1f',
+            gridwidth=0.2,
+            title='Score'
+        ),
+        hovermode='closest',
+        showlegend=False,  # No legend needed for single indicator
+        height=500,  # Match Budget dashboard chart height
+        margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
+        font=dict(family='Arial, sans-serif', size=14)  # Match Budget dashboard font size
+    )
+    
+    return european_map, time_series, decile_analysis, radar_chart, secondary_chart
 
 if __name__ == '__main__':
     app.run_server(debug=True, host='0.0.0.0', port=8050)
