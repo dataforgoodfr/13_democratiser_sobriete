@@ -181,19 +181,16 @@ app.layout = html.Div([
     
     # Visualizations
     html.Div([
-        # World map (full width, like Budget dashboard)
-        dcc.Graph(id='european-map-chart'),
-        
-        # First row: Two charts side by side (like Budget dashboard)
+        # First row: Map and time series side by side
         html.Div([
-            dcc.Graph(id='time-series-chart', style={'display': 'inline-block', 'width': '49%', 'verticalAlign': 'top'}),
-            dcc.Graph(id='decile-analysis-chart', style={'display': 'inline-block', 'width': '49%', 'verticalAlign': 'top'})
+            dcc.Graph(id='european-map-chart', style={'display': 'inline-block', 'width': '49%', 'verticalAlign': 'top'}),
+            dcc.Graph(id='time-series-chart', style={'display': 'inline-block', 'width': '49%', 'verticalAlign': 'top'})
         ], style={'textAlign': 'center', 'margin': '0 auto'}),
         
-        # Second row: Two charts side by side (like Budget dashboard)
+        # Second row: Decile analysis and radar chart side by side
         html.Div([
-            dcc.Graph(id='radar-chart', style={'display': 'inline-block', 'width': '49%'}),
-            dcc.Graph(id='secondary-chart', style={'display': 'inline-block', 'width': '49%'})
+            dcc.Graph(id='decile-analysis-chart', style={'display': 'inline-block', 'width': '49%'}),
+            dcc.Graph(id='radar-chart', style={'display': 'inline-block', 'width': '49%'})
         ], style={'marginTop': '20px'})
     ], style={
         'margin': '0 20px',
@@ -368,8 +365,7 @@ def update_primary_indicator_dropdown(secondary_indicator, eu_priority):
     [Output('european-map-chart', 'figure'),
      Output('time-series-chart', 'figure'),
      Output('decile-analysis-chart', 'figure'),
-     Output('radar-chart', 'figure'),
-     Output('secondary-chart', 'figure')],
+     Output('radar-chart', 'figure')],
     [Input('eu-priority-dropdown', 'value'),
      Input('secondary-indicator-dropdown', 'value'),
      Input('primary-indicator-dropdown', 'value'),
@@ -683,64 +679,9 @@ def create_overview_charts(map_df, analysis_df, time_df):
             font=dict(family='Arial, sans-serif', size=14),  # Match Budget dashboard font size
         )
     
-    # 5. Secondary chart - Country comparison for EWBI scores
-    secondary_chart = go.Figure()
+
     
-    # Get individual countries (excluding aggregates) and their EWBI scores
-    country_scores = []
-    for country in map_df['country'].unique():
-        if 'Average' not in country:
-            country_score = map_df[map_df['country'] == country]['ewbi_score'].mean()
-            country_scores.append((country, country_score))
-    
-    # Sort by score from highest to lowest
-    country_scores.sort(key=lambda x: x[1], reverse=True)
-    
-    # Extract sorted countries and scores
-    individual_countries = [country for country, score in country_scores]
-    ewbi_scores = [score for country, score in country_scores]
-    
-    # Add the EWBI score line
-    secondary_chart.add_trace(
-        go.Scatter(
-            x=individual_countries,
-            y=ewbi_scores,
-            name='EWBI Score',
-            mode='lines+markers',
-            line=dict(width=4, color='#1f77b4'),
-            marker=dict(
-                size=10,
-                color='white',
-                line=dict(color='#1f77b4', width=2)
-            ),
-            hovertemplate='%{y:.3f}<extra></extra>'
-        )
-    )
-    
-    secondary_chart.update_layout(
-        title=dict(
-            text='EWBI Scores by Country',
-            font=dict(size=16, color="#f4d03f", weight="bold"),  # Match Budget dashboard title size
-            x=0.5
-        ),
-        xaxis=dict(
-            tickangle=45,
-            tickfont=dict(size=12)
-        ),
-        yaxis=dict(
-            range=[0, 1],
-            tickformat='.1f',
-            gridwidth=0.2,
-            title='Score'
-        ),
-        hovermode='closest',
-        showlegend=False,  # No legend needed for single indicator
-        height=500,  # Match Budget dashboard chart height
-        margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
-        font=dict(family='Arial, sans-serif', size=14)  # Match Budget dashboard font size
-    )
-    
-    return european_map, time_series, decile_analysis, radar_chart, secondary_chart
+    return european_map, time_series, decile_analysis, radar_chart
 
 def create_eu_priority_charts(map_df, analysis_df, time_df, eu_priority):
     """Create charts for EU priority level"""
@@ -1193,7 +1134,7 @@ def create_eu_priority_charts(map_df, analysis_df, time_df, eu_priority):
         font=dict(family='Arial, sans-serif', size=14)  # Match Budget dashboard font size
     )
     
-    return european_map, time_series, decile_analysis, radar_chart, secondary_chart
+    return european_map, time_series, decile_analysis, radar_chart
 
 def create_primary_indicator_charts(map_df, analysis_df, time_df, eu_priority, secondary_indicator, primary_indicator):
     """Create charts for primary indicator level"""
@@ -1506,7 +1447,7 @@ def create_primary_indicator_charts(map_df, analysis_df, time_df, eu_priority, s
         font=dict(family='Arial, sans-serif', size=14)  # Match Budget dashboard font size
     )
     
-    return european_map, time_series, decile_analysis, radar_chart, secondary_chart
+    return european_map, time_series, decile_analysis, radar_chart
 
 def create_secondary_indicator_charts(map_df, analysis_df, time_df, eu_priority, secondary_indicator):
     """Create charts for secondary indicator level (EU Priority + Specific Secondary)"""
@@ -1895,7 +1836,7 @@ def create_secondary_indicator_charts(map_df, analysis_df, time_df, eu_priority,
         font=dict(family='Arial, sans-serif', size=14)  # Match Budget dashboard font size
     )
     
-    return european_map, time_series, decile_analysis, radar_chart, secondary_chart
+    return european_map, time_series, decile_analysis, radar_chart
 
 if __name__ == '__main__':
     app.run_server(debug=True, host='0.0.0.0', port=8050)
