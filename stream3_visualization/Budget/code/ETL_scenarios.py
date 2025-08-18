@@ -36,7 +36,44 @@ def get_global_budget(warming_scenario, probability, emissions_scope=None, combi
         adjusted_budget = base_budget - territory_2023
         return adjusted_budget
     
-    # For consumption emissions, use the original budget (data ends in 2022, budget starts from 2023)
+    # For consumption emissions, scale the budget based on country coverage ratio
+    if emissions_scope == 'Consumption' and combined_df is not None:
+        # Calculate 2022 population for countries with data in each scope
+        # Territory scope: get 2022 population of countries with territory emissions data
+        territory_countries_2022 = combined_df[
+            (combined_df['Emissions_scope'] == 'Territory') & 
+            (combined_df['Year'] == 2022) &
+            (combined_df['Annual_CO2_emissions_Mt'].notna()) &
+            (combined_df['Annual_CO2_emissions_Mt'] > 0) &
+            (combined_df['ISO2'] != 'WLD')  # Exclude world aggregate
+        ]['Population'].sum()
+        
+        # Consumption scope: get 2022 population of countries with consumption emissions data
+        consumption_countries_2022 = combined_df[
+            (combined_df['Emissions_scope'] == 'Consumption') & 
+            (combined_df['Year'] == 2022) &
+            (combined_df['Annual_CO2_emissions_Mt'].notna()) &
+            (combined_df['Annual_CO2_emissions_Mt'] > 0) &
+            (combined_df['ISO2'] != 'WLD')  # Exclude world aggregate
+        ]['Population'].sum()
+        
+        # Calculate scaling factor and apply to budget
+        if territory_countries_2022 > 0 and consumption_countries_2022 > 0:
+            population_ratio = consumption_countries_2022 / territory_countries_2022
+            scaled_budget = base_budget * population_ratio
+            
+            print(f"  Consumption budget scaling: {base_budget:,.0f} × {population_ratio:.4f} = {scaled_budget:,.0f} MtCO2")
+            print(f"  Territory countries 2022 population: {territory_countries_2022:,.0f}")
+            print(f"  Consumption countries 2022 population: {consumption_countries_2022:,.0f}")
+            
+            return scaled_budget
+        else:
+            print(f"  Warning: Could not calculate population ratio for consumption budget scaling")
+            print(f"  Territory countries 2022 population: {territory_countries_2022:,.0f}")
+            print(f"  Consumption countries 2022 population: {consumption_countries_2022:,.0f}")
+            return base_budget
+    
+    # For consumption emissions without combined_df, use the original budget
     return base_budget
 
 def penalty_func_2(x):
@@ -861,6 +898,25 @@ for _, row in base_df.iterrows():
                     else:
                         years_to_neutrality_from_today = "N/A"
 
+                    # Calculate sanity check columns
+                    global_total_budget = global_budget + row[f'Latest_cumulative_CO2_emissions_Mt_{emissions_scope}']
+                    latest_cumulative_emissions_per_capita = row[f'Latest_cumulative_CO2_emissions_Mt_{emissions_scope}'] / row[f'Latest_cumulative_population_{emissions_scope}'] if row[f'Latest_cumulative_population_{emissions_scope}'] > 0 else None
+                    
+                    # Calculate global cumulative emissions for this scope
+                    world_data = combined_df[
+                        (combined_df['Emissions_scope'] == emissions_scope) & 
+                        (combined_df['ISO2'] == 'WLD') & 
+                        (combined_df['Year'] == latest_year)
+                    ]
+                    
+                    if len(world_data) > 0:
+                        global_cumulative_emissions = world_data['Cumulative_CO2_emissions_Mt'].iloc[0]
+                        # Calculate share of global cumulative emissions
+                        share_of_global_cumulative_emissions = row[f'Latest_cumulative_CO2_emissions_Mt_{emissions_scope}'] / global_cumulative_emissions if global_cumulative_emissions > 0 else None
+                    else:
+                        global_cumulative_emissions = None
+                        share_of_global_cumulative_emissions = None
+                    
                     scenario = {
                         'ISO2': row['ISO2'],
                         'Country': row['Country'],
@@ -885,7 +941,10 @@ for _, row in base_df.iterrows():
                         'Country_budget_per_capita': (country_budget * 1000000) / row[f'Latest_population_{emissions_scope}'] if pd.notna(country_budget) and pd.notna(row[f'Latest_population_{emissions_scope}']) and row[f'Latest_population_{emissions_scope}'] > 0 else None,
                         'Years_to_neutrality_from_latest_available': years_to_neutrality,
                         'Neutrality_year': neutrality_year,
-                        'Years_to_neutrality_from_today': years_to_neutrality_from_today
+                        'Years_to_neutrality_from_today': years_to_neutrality_from_today,
+                        'Global_Total_Budget': global_total_budget,
+                        'Latest_cumulative_emissions_per_capita': latest_cumulative_emissions_per_capita,
+                        'Share_of_global_cumulative_emissions': share_of_global_cumulative_emissions
                     }
                     scenarios.append(scenario)
 
@@ -903,7 +962,8 @@ scenario_params = scenarios_df[[
     'Share_of_cumulative_population_1970_to_2050',
     'Share_of_cumulative_population_1970_to_latest',
     'share_of_capacity', 'Global_Carbon_budget',
-    'Country_carbon_budget', 'Country_budget_per_capita', 'Share_of_cumulative_emissions'
+    'Country_carbon_budget', 'Country_budget_per_capita', 'Share_of_cumulative_emissions',
+    'Global_Total_Budget', 'Latest_cumulative_emissions_per_capita', 'Share_of_global_cumulative_emissions'
 ]].drop_duplicates()
 
 # Filter out rows where neutrality could not be calculated
