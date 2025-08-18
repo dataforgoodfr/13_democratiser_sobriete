@@ -746,7 +746,12 @@ for _, row in base_df.iterrows():
                             # Use 1970 to 2050 (current approach)
                             population_share = row[f'Share_of_cumulative_population_1970_to_2050_{emissions_scope}']
                         
-                        country_budget = (total_available * population_share) - country_cumulative
+                        # Calculate theoretical budget (this maintains the fairness concept)
+                        theoretical_budget = (total_available * population_share) - country_cumulative
+                        
+                        # Store theoretical budget for later normalization
+                        # We'll need to normalize positive budgets to sum to global_budget
+                        country_budget = theoretical_budget
                     elif distribution == 'Capacity':
                         # Get world's latest cumulative emissions
                         world_cumulative = base_df[
