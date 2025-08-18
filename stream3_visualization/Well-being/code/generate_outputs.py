@@ -318,28 +318,40 @@ def create_hierarchical_master_dataframe(df, secondary_scores, eu_priority_score
                     })
         
         # Level 4: Primary Indicators - Geometric mean across deciles
-        for primary_index in df.index.get_level_values('primary_index').unique():
-            primary_values = []
-            for decile in df.index.get_level_values('decile').unique():
-                try:
-                    value = df.loc[(primary_index, country, decile), latest_year]
-                    if pd.notna(value):
-                        primary_values.append(value)
-                except:
+        # Must maintain proper hierarchical relationships
+        for priority in filtered_config:
+            priority_name = priority['name']
+            for component in priority['components']:
+                component_name = component['name']
+                
+                # Skip secondary indicators that have no underlying data
+                if component_name in secondary_indicators_to_remove:
                     continue
-            
-            if primary_values:
-                primary_aggregate = np.exp(np.mean(np.log(primary_values)))
-                master_data.append({
-                    'country': country,
-                    'decile': 'All',
-                    'year': latest_year,
-                    'EU_Priority': 'All',
-                    'Secondary_indicator': 'All',
-                    'primary_index': primary_index,
-                    'Score': primary_aggregate,
-                    'Level': '4 (Primary_indicator)'
-                })
+                
+                for indicator in component['indicators']:
+                    indicator_code = indicator['code']
+                    if indicator_code in df.index.get_level_values('primary_index').unique():
+                        primary_values = []
+                        for decile in df.index.get_level_values('decile').unique():
+                            try:
+                                value = df.loc[(indicator_code, country, decile), latest_year]
+                                if pd.notna(value):
+                                    primary_values.append(value)
+                            except:
+                                continue
+                        
+                        if primary_values:
+                            primary_aggregate = np.exp(np.mean(np.log(primary_values)))
+                            master_data.append({
+                                'country': country,
+                                'decile': 'All',
+                                'year': latest_year,
+                                'EU_Priority': priority_name,  # Correct parent EU Priority
+                                'Secondary_indicator': component_name,  # Correct parent Secondary indicator
+                                'primary_index': indicator_code,
+                                'Score': primary_aggregate,
+                                'Level': '4 (Primary_indicator)'
+                            })
     
     # Create EU Average (comprehensive across all levels and deciles)
     print("Creating comprehensive EU Average...")
