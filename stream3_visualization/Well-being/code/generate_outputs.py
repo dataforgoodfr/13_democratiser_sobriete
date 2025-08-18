@@ -341,49 +341,37 @@ def create_hierarchical_master_dataframe(df, secondary_scores, eu_priority_score
                     'Level': '4 (Primary_indicator)'
                 })
     
-    # Create EU Average (aggregated across all countries)
-    print("Creating EU Average...")
+    # Create EU Average (comprehensive across all levels and deciles)
+    print("Creating comprehensive EU Average...")
     
-    # Level 1: EWBI - Arithmetic mean across countries
-    all_ewbi_scores = []
-    for country in df.index.get_level_values('country').unique():
-        country_ewbi_data = [row for row in master_data if row['country'] == country and row['Level'] == '1 (EWBI)']
-        if country_ewbi_data and country_ewbi_data[0]['Score'] is not None:
-            all_ewbi_scores.append(country_ewbi_data[0]['Score'])
+    # Define EU countries (same as in original ewbi_computation.py)
+    eu_countries = ['AT', 'BE', 'BG', 'CY', 'CZ', 'DE', 'DK', 'EE', 'EL', 'ES', 'FI', 'FR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'MT', 'NL', 'PL', 'PT', 'RO', 'SE', 'SI', 'SK']
     
-    if all_ewbi_scores:
-        eu_ewbi_average = np.mean(all_ewbi_scores)
-        master_data.append({
-            'country': 'EU Average',
-            'decile': 'All',
-            'year': latest_year,
-            'EU_Priority': 'All',
-            'Secondary_indicator': 'All',
-            'primary_index': 'All',
-            'Score': eu_ewbi_average,
-            'Level': '1 (EWBI)'
-        })
+    # Convert master_data to DataFrame for easier processing
+    temp_df = pd.DataFrame(master_data)
     
-    # Level 2: EU Priorities (filtered) - Arithmetic mean across countries
-    for priority in filtered_config:
-        priority_name = priority['name']
-        all_priority_scores = []
-        for country in df.index.get_level_values('country').unique():
-            country_priority_data = [row for row in master_data if row['country'] == country and row['Level'] == '2 (EU_Priority)' and row['EU_Priority'] == priority_name]
-            if country_priority_data and country_priority_data[0]['Score'] is not None:
-                all_priority_scores.append(country_priority_data[0]['Score'])
+    # Filter for EU countries only
+    eu_data = temp_df[temp_df['country'].isin(eu_countries)]
+    
+    if not eu_data.empty:
+        # Group by all combinations of decile, EU_Priority, Secondary_indicator, primary_index, Level
+        # and calculate mean Score across EU countries
+        grouping_cols = ['decile', 'year', 'EU_Priority', 'Secondary_indicator', 'primary_index', 'Level']
         
-        if all_priority_scores:
-            eu_priority_average = np.mean(all_priority_scores)
+        eu_averages = eu_data.groupby(grouping_cols)['Score'].mean().reset_index()
+        eu_averages['country'] = 'EU Average'
+        
+        # Convert back to list of dictionaries and add to master_data
+        for _, row in eu_averages.iterrows():
             master_data.append({
-                'country': 'EU Average',
-                'decile': 'All',
-                'year': latest_year,
-                'EU_Priority': priority_name,
-                'Secondary_indicator': 'All',
-                'primary_index': 'All',
-                'Score': eu_priority_average,
-                'Level': '2 (EU_Priority)'
+                'country': row['country'],
+                'decile': row['decile'], 
+                'year': row['year'],
+                'EU_Priority': row['EU_Priority'],
+                'Secondary_indicator': row['Secondary_indicator'],
+                'primary_index': row['primary_index'],
+                'Score': row['Score'],
+                'Level': row['Level']
             })
     
     return pd.DataFrame(master_data)
