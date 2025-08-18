@@ -327,18 +327,25 @@ def create_hierarchical_master_dataframe(df, secondary_scores, eu_priority_score
                 ]
                 
                 if not secondary_primaries.empty:
-                    # Arithmetic mean of primary indicator scores
-                    secondary_score = np.mean(secondary_primaries['Score'].values)
-                    master_data.append({
-                        'country': country,
-                        'decile': 'All',
-                        'year': latest_year,
-                        'EU_Priority': priority_name,
-                        'Secondary_indicator': component_name,
-                        'primary_index': 'All',
-                        'Score': secondary_score,
-                        'Level': '3 (Secondary_indicator)'
-                    })
+                    # Get primary scores and filter out NaN values
+                    primary_scores = secondary_primaries['Score'].values
+                    valid_scores = primary_scores[~pd.isna(primary_scores)]
+                    
+                    if len(valid_scores) > 0:
+                        # Arithmetic mean of valid primary indicator scores only
+                        secondary_score = np.mean(valid_scores)
+                        master_data.append({
+                            'country': country,
+                            'decile': 'All',
+                            'year': latest_year,
+                            'EU_Priority': priority_name,
+                            'Secondary_indicator': component_name,
+                            'primary_index': 'All',
+                            'Score': secondary_score,
+                            'Level': '3 (Secondary_indicator)'
+                        })
+                    else:
+                        print(f"Warning: No valid Primary scores for {country} - {priority_name} - {component_name}, skipping Secondary calculation")
     
     # Update temp_df to include Level 3 data
     temp_df = pd.DataFrame(master_data)
@@ -357,18 +364,25 @@ def create_hierarchical_master_dataframe(df, secondary_scores, eu_priority_score
             priority_secondaries = country_level3[country_level3['EU_Priority'] == priority_name]
             
             if not priority_secondaries.empty:
-                # Arithmetic mean of secondary indicator scores
-                priority_score = np.mean(priority_secondaries['Score'].values)
-                master_data.append({
-                    'country': country,
-                    'decile': 'All',
-                    'year': latest_year,
-                    'EU_Priority': priority_name,
-                    'Secondary_indicator': 'All',
-                    'primary_index': 'All',
-                    'Score': priority_score,
-                    'Level': '2 (EU_Priority)'
-                })
+                # Get secondary scores and filter out NaN values
+                secondary_scores = priority_secondaries['Score'].values
+                valid_scores = secondary_scores[~pd.isna(secondary_scores)]
+                
+                if len(valid_scores) > 0:
+                    # Arithmetic mean of valid secondary indicator scores only
+                    priority_score = np.mean(valid_scores)
+                    master_data.append({
+                        'country': country,
+                        'decile': 'All',
+                        'year': latest_year,
+                        'EU_Priority': priority_name,
+                        'Secondary_indicator': 'All',
+                        'primary_index': 'All',
+                        'Score': priority_score,
+                        'Level': '2 (EU_Priority)'
+                    })
+                else:
+                    print(f"Warning: No valid Secondary scores for {country} - {priority_name}, skipping EU Priority calculation")
     
     # Update temp_df to include Level 2 data
     temp_df = pd.DataFrame(master_data)
@@ -381,18 +395,25 @@ def create_hierarchical_master_dataframe(df, secondary_scores, eu_priority_score
         
         # Level 1: EWBI - Arithmetic mean of Level 2 (EU Priority) scores
         if not country_level2.empty:
-            # Arithmetic mean of EU priority scores
-            ewbi_score = np.mean(country_level2['Score'].values)
-            master_data.append({
-                'country': country,
-                'decile': 'All',
-                'year': latest_year,
-                'EU_Priority': 'All',
-                'Secondary_indicator': 'All',
-                'primary_index': 'All',
-                'Score': ewbi_score,
-                'Level': '1 (EWBI)'
-            })
+            # Get EU priority scores and filter out NaN values
+            eu_priority_scores = country_level2['Score'].values
+            valid_scores = eu_priority_scores[~pd.isna(eu_priority_scores)]
+            
+            if len(valid_scores) > 0:
+                # Arithmetic mean of valid EU priority scores only
+                ewbi_score = np.mean(valid_scores)
+                master_data.append({
+                    'country': country,
+                    'decile': 'All',
+                    'year': latest_year,
+                    'EU_Priority': 'All',
+                    'Secondary_indicator': 'All',
+                    'primary_index': 'All',
+                    'Score': ewbi_score,
+                    'Level': '1 (EWBI)'
+                })
+            else:
+                print(f"Warning: No valid EU Priority scores for {country}, skipping EWBI calculation")
     
     # Create EU Average (comprehensive across all levels and deciles)
     print("Creating comprehensive EU Average...")
@@ -579,20 +600,25 @@ def create_time_series_dataframe(df, secondary_scores, eu_priority_scores, ewbi_
             
             # Step 4: Calculate Level 1 (EWBI) from Level 2 country aggregates
             if level2_country_scores:
-                # Arithmetic mean (Level 2 → Level 1)
-                ewbi_score = np.mean(list(level2_country_scores.values()))
+                # Get Level 2 scores and filter out any NaN values
+                level2_scores = list(level2_country_scores.values())
+                valid_scores = [score for score in level2_scores if not pd.isna(score)]
                 
-                # Add to time series
-                time_series_data.append({
-                    'country': country,
-                    'decile': 'All Deciles',
-                    'year': year_int,
-                    'EU_Priority': 'All',
-                    'Secondary_indicator': 'All',
-                    'primary_index': 'All',
-                    'Score': ewbi_score,
-                    'Level': '1 (EWBI)'
-                })
+                if valid_scores:
+                    # Arithmetic mean (Level 2 → Level 1)
+                    ewbi_score = np.mean(valid_scores)
+                    
+                    # Add to time series
+                    time_series_data.append({
+                        'country': country,
+                        'decile': 'All Deciles',
+                        'year': year_int,
+                        'EU_Priority': 'All',
+                        'Secondary_indicator': 'All',
+                        'primary_index': 'All',
+                        'Score': ewbi_score,
+                        'Level': '1 (EWBI)'
+                    })
             
             # Level 3: Secondary Indicators (filtered) - Aggregate across deciles for this year
             for priority in filtered_config:
