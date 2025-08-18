@@ -97,7 +97,7 @@ def recreate_preprocessing():
     output_path = os.path.join(output_dir, 'primary_data_preprocessed.csv')
     
     # Output exactly as in the original - preserve MultiIndex structure
-    preprocessed.swaplevel(1, 2).sort_index().to_csv(output_path)
+    preprocessed.swaplevel(0, 1).sort_index().to_csv(output_path)
     print(f"Saved preprocessed data to: {output_path}")
     
     return preprocessed

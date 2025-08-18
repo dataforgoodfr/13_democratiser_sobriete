@@ -93,7 +93,7 @@ def calculate_secondary_indicators(primary_data, config):
             for country in primary_data.index.get_level_values('country').unique():
                 for decile in primary_data.index.get_level_values('decile').unique():
                     # Get data for this country and decile using MultiIndex
-                    country_data = primary_data.loc[(country, slice(None), decile)]
+                    country_data = primary_data.loc[(slice(None), decile, country)]
                     
                     if not country_data.empty:
                         # Collect values for this secondary indicator's primary indicators
@@ -344,7 +344,7 @@ def create_master_dataframe(secondary_df, priorities_df, ewbi_df, primary_data, 
     latest_year = max(year_cols)
     
     # Pivot primary indicators for the latest year
-    primary_latest = primary_data[['country', 'primary_index', 'decile', latest_year]].copy()
+    primary_latest = primary_data.reset_index()[['country', 'primary_index', 'decile', latest_year]].copy()
     primary_latest.columns = ['country', 'primary_index', 'decile', 'primary_score']
     
     # Map primary indicators to their corresponding secondary indicators
@@ -603,7 +603,7 @@ def run_ewbi_computation():
     primary_data = pd.read_csv('../output/primary_data_preprocessed.csv')
     
     # Convert to MultiIndex exactly as in the original notebook
-    primary_data = primary_data.set_index(['country', 'primary_index', 'decile'])
+    primary_data = primary_data.set_index(['primary_index', 'decile', 'country'])
     
     # Load EWBI structure
     with open('../data/ewbi_indicators.json', 'r') as f:
