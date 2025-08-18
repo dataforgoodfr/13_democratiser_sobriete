@@ -247,75 +247,22 @@ def create_hierarchical_master_dataframe(df, secondary_scores, eu_priority_score
     print("Creating country aggregates (All Deciles)...")
     
     for country in df.index.get_level_values('country').unique():
-        # Level 1: EWBI (Overall) - Geometric mean across deciles
-        ewbi_values = []
-        for item in ewbi_scores.get('ewbi_score', []):
-            if item['country'] == country:
-                ewbi_values.append(item['score'])
-        
-        if ewbi_values:
-            ewbi_aggregate = np.exp(np.mean(np.log(ewbi_values)))
-            master_data.append({
-                'country': country,
-                'decile': 'All',
-                'year': latest_year,
-                'EU_Priority': 'All',
-                'Secondary_indicator': 'All',
-                'primary_index': 'All',
-                'Score': ewbi_aggregate,
-                'Level': '1 (EWBI)'
-            })
-        
-        # Level 2: EU Priorities (filtered) - Geometric mean across deciles
+        # Level 1: EWBI (Overall) - Calculate from Level 2 using arithmetic mean
+        # First collect all EU Priority scores for this country (decile='All')
+        eu_priority_values = []
         for priority in filtered_config:
             priority_name = priority['name']
-            priority_values = []
-            for item in eu_priority_scores.get(priority_name, []):
-                if item['country'] == country:
-                    priority_values.append(item['score'])
-            
-            if priority_values:
-                priority_aggregate = np.exp(np.mean(np.log(priority_values)))
-                master_data.append({
-                    'country': country,
-                    'decile': 'All',
-                    'year': latest_year,
-                    'EU_Priority': priority_name,
-                    'Secondary_indicator': 'All',
-                    'primary_index': 'All',
-                    'Score': priority_aggregate,
-                    'Level': '2 (EU_Priority)'
-                })
+            # Find Level 2 score for this priority (will be calculated below)
+            # We'll calculate this after Level 2 is done
+            pass
         
-        # Level 3: Secondary Indicators (filtered) - Geometric mean across deciles
-        for priority in filtered_config:
-            priority_name = priority['name']
-            for component in priority['components']:
-                component_name = component['name']
-                
-                # Skip secondary indicators that have no underlying data
-                if component_name in secondary_indicators_to_remove:
-                    continue
-                
-                secondary_key = f"{priority_name.replace(' ', '_').replace(',', '').replace(' and ', '_and_')}_{component_name.replace(' ', '_').replace(',', '').replace(' and ', '_and_')}"
-                
-                secondary_values = []
-                for item in secondary_scores.get(secondary_key, []):
-                    if item['country'] == country:
-                        secondary_values.append(item['score'])
-                
-                if secondary_values:
-                    secondary_aggregate = np.exp(np.mean(np.log(secondary_values)))
-                    master_data.append({
-                        'country': country,
-                        'decile': 'All',
-                        'year': latest_year,
-                        'EU_Priority': priority_name,
-                        'Secondary_indicator': component_name,
-                        'primary_index': 'All',
-                        'Score': secondary_aggregate,
-                        'Level': '3 (Secondary_indicator)'
-                    })
+        # Note: EWBI calculation will be done after Level 2 calculations
+        
+        # Level 2: EU Priorities (filtered) - Calculate from Level 3 using arithmetic mean
+        # Note: Level 2 calculation will be done after Level 3 calculations
+        
+        # Level 3: Secondary Indicators (filtered) - Calculate from Level 4 using arithmetic mean
+        # Note: Level 3 calculation will be done after Level 4 calculations
         
         # Level 4: Primary Indicators - Geometric mean across deciles
         # Must maintain proper hierarchical relationships
@@ -352,6 +299,100 @@ def create_hierarchical_master_dataframe(df, secondary_scores, eu_priority_score
                                 'Score': primary_aggregate,
                                 'Level': '4 (Primary_indicator)'
                             })
+    
+    # Now calculate Level 3, 2, and 1 using proper roll-up from Level 4
+    print("Calculating Level 3 (Secondary) from Level 4 (Primary) using arithmetic mean...")
+    
+    # Convert current master_data to DataFrame for easier processing
+    temp_df = pd.DataFrame(master_data)
+    level4_data = temp_df[temp_df['Level'] == '4 (Primary_indicator)']
+    
+    for country in df.index.get_level_values('country').unique():
+        country_level4 = level4_data[level4_data['country'] == country]
+        
+        # Level 3: Secondary Indicators - Arithmetic mean of Level 4 (Primary) scores
+        for priority in filtered_config:
+            priority_name = priority['name']
+            for component in priority['components']:
+                component_name = component['name']
+                
+                # Skip secondary indicators that have no underlying data
+                if component_name in secondary_indicators_to_remove:
+                    continue
+                
+                # Find all Level 4 indicators for this secondary indicator
+                secondary_primaries = country_level4[
+                    (country_level4['EU_Priority'] == priority_name) & 
+                    (country_level4['Secondary_indicator'] == component_name)
+                ]
+                
+                if not secondary_primaries.empty:
+                    # Arithmetic mean of primary indicator scores
+                    secondary_score = np.mean(secondary_primaries['Score'].values)
+                    master_data.append({
+                        'country': country,
+                        'decile': 'All',
+                        'year': latest_year,
+                        'EU_Priority': priority_name,
+                        'Secondary_indicator': component_name,
+                        'primary_index': 'All',
+                        'Score': secondary_score,
+                        'Level': '3 (Secondary_indicator)'
+                    })
+    
+    # Update temp_df to include Level 3 data
+    temp_df = pd.DataFrame(master_data)
+    level3_data = temp_df[temp_df['Level'] == '3 (Secondary_indicator)']
+    
+    print("Calculating Level 2 (EU Priority) from Level 3 (Secondary) using arithmetic mean...")
+    
+    for country in df.index.get_level_values('country').unique():
+        country_level3 = level3_data[level3_data['country'] == country]
+        
+        # Level 2: EU Priorities - Arithmetic mean of Level 3 (Secondary) scores
+        for priority in filtered_config:
+            priority_name = priority['name']
+            
+            # Find all Level 3 indicators for this EU priority
+            priority_secondaries = country_level3[country_level3['EU_Priority'] == priority_name]
+            
+            if not priority_secondaries.empty:
+                # Arithmetic mean of secondary indicator scores
+                priority_score = np.mean(priority_secondaries['Score'].values)
+                master_data.append({
+                    'country': country,
+                    'decile': 'All',
+                    'year': latest_year,
+                    'EU_Priority': priority_name,
+                    'Secondary_indicator': 'All',
+                    'primary_index': 'All',
+                    'Score': priority_score,
+                    'Level': '2 (EU_Priority)'
+                })
+    
+    # Update temp_df to include Level 2 data
+    temp_df = pd.DataFrame(master_data)
+    level2_data = temp_df[temp_df['Level'] == '2 (EU_Priority)']
+    
+    print("Calculating Level 1 (EWBI) from Level 2 (EU Priority) using arithmetic mean...")
+    
+    for country in df.index.get_level_values('country').unique():
+        country_level2 = level2_data[level2_data['country'] == country]
+        
+        # Level 1: EWBI - Arithmetic mean of Level 2 (EU Priority) scores
+        if not country_level2.empty:
+            # Arithmetic mean of EU priority scores
+            ewbi_score = np.mean(country_level2['Score'].values)
+            master_data.append({
+                'country': country,
+                'decile': 'All',
+                'year': latest_year,
+                'EU_Priority': 'All',
+                'Secondary_indicator': 'All',
+                'primary_index': 'All',
+                'Score': ewbi_score,
+                'Level': '1 (EWBI)'
+            })
     
     # Create EU Average (comprehensive across all levels and deciles)
     print("Creating comprehensive EU Average...")
@@ -419,24 +460,129 @@ def create_time_series_dataframe(df, secondary_scores, eu_priority_scores, ewbi_
     
     time_series_data = []
     
-    # For each country, create hierarchical structure for each year
+    print("Using optimized approach: Level 4 deciles → roll-up to higher levels")
+    
+    # For each country and year, calculate hierarchically  
     for country in df.index.get_level_values('country').unique():
         for year in year_cols:
             year_int = int(year)
             
-            # Level 1: EWBI (Overall) - Aggregate across deciles for this year
-            ewbi_values = []
-            for decile in df.index.get_level_values('decile').unique():
-                for item in ewbi_scores.get('ewbi_score', []):
-                    if item['country'] == country and item['decile'] == decile:
-                        # We need to calculate EWBI for this specific year
-                        # For now, let's use the latest year score as a proxy
-                        ewbi_values.append(item['score'])
-                        break
+            # Step 1: Calculate Level 4 (Primary) country aggregates for this year
+            # This is the only level where we need decile calculations
+            level4_country_scores = {}  # {indicator_code: score}
             
-            if ewbi_values:
-                # Use geometric mean across deciles for this year
-                ewbi_score = np.exp(np.mean(np.log(ewbi_values)))
+            for priority in filtered_config:
+                priority_name = priority['name']
+                for component in priority['components']:
+                    component_name = component['name']
+                    
+                    # Skip secondary indicators that have no underlying data
+                    if component_name in secondary_indicators_to_remove:
+                        continue
+                    
+                    for indicator in component['indicators']:
+                        indicator_code = indicator['code']
+                        if indicator_code in df.index.get_level_values('primary_index').unique():
+                            decile_values = []
+                            for decile in df.index.get_level_values('decile').unique():
+                                try:
+                                    value = df.loc[(indicator_code, country, decile), year]
+                                    if pd.notna(value):
+                                        decile_values.append(value)
+                                except:
+                                    continue
+                            
+                            if decile_values:
+                                # Geometric mean across deciles (deciles → country aggregate)
+                                primary_score = np.exp(np.mean(np.log(decile_values)))
+                                level4_country_scores[indicator_code] = primary_score
+                                
+                                # Add to time series
+                                time_series_data.append({
+                                    'country': country,
+                                    'decile': 'All Deciles',
+                                    'year': year_int,
+                                    'EU_Priority': priority_name,
+                                    'Secondary_indicator': component_name,
+                                    'primary_index': indicator_code,
+                                    'Score': primary_score,
+                                    'Level': '4 (Primary_indicator)'
+                                })
+            
+            # Step 2: Calculate Level 3 (Secondary) from Level 4 country aggregates
+            level3_country_scores = {}  # {(priority_name, component_name): score}
+            
+            for priority in filtered_config:
+                priority_name = priority['name']
+                for component in priority['components']:
+                    component_name = component['name']
+                    
+                    # Skip secondary indicators that have no underlying data
+                    if component_name in secondary_indicators_to_remove:
+                        continue
+                    
+                    # Find all Level 4 scores for this secondary indicator
+                    primary_scores = []
+                    for indicator in component['indicators']:
+                        indicator_code = indicator['code']
+                        if indicator_code in level4_country_scores:
+                            primary_scores.append(level4_country_scores[indicator_code])
+                    
+                    if primary_scores:
+                        # Arithmetic mean (Level 4 → Level 3)
+                        secondary_score = np.mean(primary_scores)
+                        level3_country_scores[(priority_name, component_name)] = secondary_score
+                        
+                        # Add to time series
+                        time_series_data.append({
+                            'country': country,
+                            'decile': 'All Deciles',
+                            'year': year_int,
+                            'EU_Priority': priority_name,
+                            'Secondary_indicator': component_name,
+                            'primary_index': 'All',
+                            'Score': secondary_score,
+                            'Level': '3 (Secondary_indicator)'
+                        })
+            
+            # Step 3: Calculate Level 2 (EU Priority) from Level 3 country aggregates
+            level2_country_scores = {}  # {priority_name: score}
+            
+            for priority in filtered_config:
+                priority_name = priority['name']
+                
+                # Find all Level 3 scores for this EU priority
+                secondary_scores = []
+                for component in priority['components']:
+                    component_name = component['name']
+                    if component_name not in secondary_indicators_to_remove:
+                        key = (priority_name, component_name)
+                        if key in level3_country_scores:
+                            secondary_scores.append(level3_country_scores[key])
+                
+                if secondary_scores:
+                    # Arithmetic mean (Level 3 → Level 2)
+                    priority_score = np.mean(secondary_scores)
+                    level2_country_scores[priority_name] = priority_score
+                    
+                    # Add to time series
+                    time_series_data.append({
+                        'country': country,
+                        'decile': 'All Deciles',
+                        'year': year_int,
+                        'EU_Priority': priority_name,
+                        'Secondary_indicator': 'All',
+                        'primary_index': 'All',
+                        'Score': priority_score,
+                        'Level': '2 (EU_Priority)'
+                    })
+            
+            # Step 4: Calculate Level 1 (EWBI) from Level 2 country aggregates
+            if level2_country_scores:
+                # Arithmetic mean (Level 2 → Level 1)
+                ewbi_score = np.mean(list(level2_country_scores.values()))
+                
+                # Add to time series
                 time_series_data.append({
                     'country': country,
                     'decile': 'All Deciles',
@@ -447,42 +593,6 @@ def create_time_series_dataframe(df, secondary_scores, eu_priority_scores, ewbi_
                     'Score': ewbi_score,
                     'Level': '1 (EWBI)'
                 })
-            
-            # Level 2: EU Priorities (filtered) - Aggregate across deciles for this year
-            for priority in filtered_config:
-                priority_name = priority['name']
-                
-                # For EU priorities, we need to calculate the score for this specific year
-                # This requires aggregating the secondary indicators for this year
-                priority_secondary_keys = []
-                for component in priority['components']:
-                    component_name = component['name']
-                    if component_name not in secondary_indicators_to_remove:
-                        secondary_key = f"{priority_name.replace(' ', '_').replace(',', '').replace(' and ', '_and_')}_{component_name.replace(' ', '_').replace(',', '').replace(' and ', '_and_')}"
-                        priority_secondary_keys.append(secondary_key)
-                
-                if priority_secondary_keys:
-                    # Calculate EU priority score for this year by aggregating secondary indicators
-                    secondary_values = []
-                    for key in priority_secondary_keys:
-                        for item in secondary_scores.get(key, []):
-                            if item['country'] == country:
-                                secondary_values.append(item['score'])
-                                break
-                    
-                    if secondary_values:
-                        # Level 3 to Level 2: Arithmetic mean (as specified)
-                        priority_score = np.mean(secondary_values)
-                        time_series_data.append({
-                            'country': country,
-                            'decile': 'All Deciles',
-                            'year': year_int,
-                            'EU_Priority': priority_name,
-                            'Secondary_indicator': 'All',
-                            'primary_index': 'All',
-                            'Score': priority_score,
-                            'Level': '2 (EU_Priority)'
-                        })
             
             # Level 3: Secondary Indicators (filtered) - Aggregate across deciles for this year
             for priority in filtered_config:
