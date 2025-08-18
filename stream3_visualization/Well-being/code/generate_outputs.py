@@ -533,30 +533,42 @@ def create_time_series_dataframe(df, secondary_scores, eu_priority_scores, ewbi_
                         })
             
             # Level 4: Primary Indicators - Aggregate across deciles for this year
-            for primary_index in df.index.get_level_values('primary_index').unique():
-                # Aggregate across deciles for this country-year-primary_indicator combination
-                year_values = []
-                for decile in df.index.get_level_values('decile').unique():
-                    try:
-                        value = df.loc[(primary_index, country, decile), year]
-                        if pd.notna(value):
-                            year_values.append(value)
-                    except:
+            # Must maintain proper hierarchical relationships
+            for priority in filtered_config:
+                priority_name = priority['name']
+                for component in priority['components']:
+                    component_name = component['name']
+                    
+                    # Skip secondary indicators that have no underlying data
+                    if component_name in secondary_indicators_to_remove:
                         continue
-                
-                if year_values:
-                    # Use geometric mean across deciles for this year
-                    primary_score = np.exp(np.mean(np.log(year_values)))
-                    time_series_data.append({
-                        'country': country,
-                        'decile': 'All Deciles',
-                        'year': year_int,
-                        'EU_Priority': 'All',
-                        'Secondary_indicator': 'All',
-                        'primary_index': primary_index,
-                        'Score': primary_score,
-                        'Level': '4 (Primary_indicator)'
-                    })
+                    
+                    for indicator in component['indicators']:
+                        indicator_code = indicator['code']
+                        if indicator_code in df.index.get_level_values('primary_index').unique():
+                            # Aggregate across deciles for this country-year-primary_indicator combination
+                            year_values = []
+                            for decile in df.index.get_level_values('decile').unique():
+                                try:
+                                    value = df.loc[(indicator_code, country, decile), year]
+                                    if pd.notna(value):
+                                        year_values.append(value)
+                                except:
+                                    continue
+                            
+                            if year_values:
+                                # Use geometric mean across deciles for this year
+                                primary_score = np.exp(np.mean(np.log(year_values)))
+                                time_series_data.append({
+                                    'country': country,
+                                    'decile': 'All Deciles',
+                                    'year': year_int,
+                                    'EU_Priority': priority_name,  # Correct parent EU Priority
+                                    'Secondary_indicator': component_name,  # Correct parent Secondary indicator
+                                    'primary_index': indicator_code,
+                                    'Score': primary_score,
+                                    'Level': '4 (Primary_indicator)'
+                                })
     
     # Add EU Average for all years
     print("Adding EU Average to time series...")
