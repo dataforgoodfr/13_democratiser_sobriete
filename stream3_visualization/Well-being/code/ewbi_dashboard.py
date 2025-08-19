@@ -435,25 +435,28 @@ def update_charts(eu_priority, secondary_indicator, primary_indicator, selected_
     
     decile_chart = create_adaptive_decile_chart(decile_df, level_filters)
     
-    # Determine what to show for other charts based on filter selections
+    # Create adaptive radar/country comparison chart (works for all 4 levels)
+    radar_country_chart = create_adaptive_radar_country_chart(filtered_df, level_filters)
+    
+    # Determine what to show for time series chart based on filter selections
     if eu_priority == 'ALL':
         # Level 1: Overview - Show EWBI and EU priorities
-        time_series_chart, _, radar_chart = create_overview_charts(map_df, filtered_df, time_filtered_df)
-        return map_chart, time_series_chart, decile_chart, radar_chart
+        time_series_chart, _ = create_overview_charts(map_df, filtered_df, time_filtered_df)
+        return map_chart, time_series_chart, decile_chart, radar_country_chart
     else:
         # Drill down based on secondary and primary indicator selections
         if secondary_indicator and secondary_indicator != 'ALL' and primary_indicator and primary_indicator != 'ALL':
             # Level 4: Specific Primary Indicator selected
-            time_series_chart, _, country_comparison_chart = create_primary_indicator_charts(map_df, filtered_df, time_filtered_df, eu_priority, secondary_indicator, primary_indicator)
-            return map_chart, time_series_chart, decile_chart, country_comparison_chart
+            time_series_chart, _ = create_primary_indicator_charts(map_df, filtered_df, time_filtered_df, eu_priority, secondary_indicator, primary_indicator)
+            return map_chart, time_series_chart, decile_chart, radar_country_chart
         elif secondary_indicator and secondary_indicator != 'ALL':
             # Level 3: Specific Secondary Indicator selected (Primary = ALL)
-            time_series_chart, _, country_comparison_chart = create_secondary_indicator_charts(map_df, filtered_df, time_filtered_df, eu_priority, secondary_indicator)
-            return map_chart, time_series_chart, decile_chart, country_comparison_chart
+            time_series_chart, _ = create_secondary_indicator_charts(map_df, filtered_df, time_filtered_df, eu_priority, secondary_indicator)
+            return map_chart, time_series_chart, decile_chart, radar_country_chart
         else:
             # Level 2: Only EU Priority selected (Secondary = ALL, Primary = ALL)
-            time_series_chart, _, country_comparison_chart = create_eu_priority_charts(map_df, filtered_df, time_filtered_df, eu_priority)
-            return map_chart, time_series_chart, decile_chart, country_comparison_chart
+            time_series_chart, _ = create_eu_priority_charts(map_df, filtered_df, time_filtered_df, eu_priority)
+            return map_chart, time_series_chart, decile_chart, radar_country_chart
 
 def create_overview_charts(map_df, analysis_df, time_df):
     """Create charts for overview level (EWBI + EU priorities) - Map is now handled separately"""
@@ -611,7 +614,7 @@ def create_overview_charts(map_df, analysis_df, time_df):
     
 
     
-    return time_series, decile_analysis, radar_chart
+    return time_series, decile_analysis
 
 def create_eu_priority_charts(map_df, analysis_df, time_df, eu_priority):
     """Create charts for EU priority level"""
@@ -975,7 +978,7 @@ def create_eu_priority_charts(map_df, analysis_df, time_df, eu_priority):
         font=dict(family='Arial, sans-serif', size=14)  # Match Budget dashboard font size
     )
     
-    return time_series, decile_analysis, radar_chart
+    return time_series, decile_analysis
 
 def create_primary_indicator_charts(map_df, analysis_df, time_df, eu_priority, secondary_indicator, primary_indicator):
     """Create charts for primary indicator level"""
@@ -1228,7 +1231,7 @@ def create_primary_indicator_charts(map_df, analysis_df, time_df, eu_priority, s
         font=dict(family='Arial, sans-serif', size=14)  # Match Budget dashboard font size
     )
     
-    return time_series, decile_analysis, radar_chart
+    return time_series, decile_analysis
 
 def create_secondary_indicator_charts(map_df, analysis_df, time_df, eu_priority, secondary_indicator):
     """Create charts for secondary indicator level (EU Priority + Specific Secondary)"""
@@ -1557,7 +1560,7 @@ def create_secondary_indicator_charts(map_df, analysis_df, time_df, eu_priority,
         font=dict(family='Arial, sans-serif', size=14)  # Match Budget dashboard font size
     )
     
-    return time_series, decile_analysis, radar_chart
+    return time_series, decile_analysis
 
 def create_level_filters(eu_priority, secondary_indicator, primary_indicator):
     """Create level-based filters for the dashboard"""
@@ -1831,6 +1834,246 @@ def create_adaptive_decile_chart(analysis_df, level_filters):
     )
     
     return decile_analysis
+
+def create_adaptive_radar_country_chart(analysis_df, level_filters):
+    """Create an adaptive radar/country comparison chart that works for all 4 levels"""
+    
+    print(f"DEBUG: Creating radar/country chart for Level {level_filters['current_level']}: {level_filters['level_name']}")
+    
+    if level_filters['current_level'] == 1:
+        # Level 1: Radar chart (EU Priorities comparison)
+        return create_level1_radar_chart(analysis_df)
+    else:
+        # Levels 2-4: Country comparison chart
+        return create_levels2to4_country_chart(analysis_df, level_filters)
+
+def create_level1_radar_chart(analysis_df):
+    """Create Level 1 radar chart (EU Priorities comparison)"""
+    
+    radar_chart = go.Figure()
+    
+    # Get EU priority data for selected countries (Level 2: EU Priority)
+    eu_priority_data = analysis_df[
+        (analysis_df['EU_Priority'] != 'All') & 
+        (analysis_df['Secondary_indicator'] == 'All') & 
+        (analysis_df['primary_index'] == 'All')
+    ].copy()
+    
+    # Get unique EU priorities
+    eu_priorities = eu_priority_data['EU_Priority'].unique()
+    
+    # Show countries in the determined order
+    for country in eu_priority_data['country'].unique():
+        country_data = eu_priority_data[eu_priority_data['country'] == country]
+        
+        # Create a dictionary to map EU priority to score
+        priority_scores = {}
+        for _, row in country_data.iterrows():
+            priority_scores[row['EU_Priority']] = row['Score']
+        
+        # Get values and labels for radar chart
+        values = [priority_scores.get(priority, 0) for priority in eu_priorities]
+        labels = eu_priorities
+        
+        radar_chart.add_trace(go.Scatterpolar(
+            r=values,
+            theta=labels,
+            fill='toself',
+            name=country
+        ))
+    
+    radar_chart.update_layout(
+        polar=dict(
+            radialaxis=dict(
+                visible=True,
+                range=[0, 1]
+            )),
+        showlegend=True,
+        title=dict(
+            text='EU Priorities Comparison - Selected Countries',
+            font=dict(size=16, color="#f4d03f", weight="bold"),
+            x=0.5
+        ),
+        height=500,
+        margin=dict(t=80, b=50, l=60, r=60),
+        font=dict(family='Arial, sans-serif', size=14)
+    )
+    
+    return radar_chart
+
+def create_levels2to4_country_chart(analysis_df, level_filters):
+    """Create Levels 2-4 country comparison chart"""
+    
+    country_chart = go.Figure()
+    
+    # Filter data based on current level
+    if level_filters['current_level'] == 2:
+        # Level 2: EU Priority - show EU Priority + Secondary Indicators
+        filtered_data = analysis_df[
+            (analysis_df['EU_Priority'] == level_filters['eu_priority']) & 
+            (analysis_df['Secondary_indicator'] != 'All') & 
+            (analysis_df['primary_index'] == 'All')
+        ].copy()
+        
+        # Get unique secondary indicators for this EU priority
+        indicators = filtered_data['Secondary_indicator'].unique()
+        title = f'{level_filters["eu_priority"]} and Secondary Indicators by Country'
+        
+    elif level_filters['current_level'] == 3:
+        # Level 3: Secondary Indicator - show Secondary Indicator + Primary Indicators
+        filtered_data = analysis_df[
+            (analysis_df['EU_Priority'] == level_filters['eu_priority']) & 
+            (analysis_df['Secondary_indicator'] == level_filters['secondary_indicator']) & 
+            (analysis_df['primary_index'] != 'All')
+        ].copy()
+        
+        # Get unique primary indicators for this secondary indicator
+        indicators = filtered_data['primary_index'].unique()
+        title = f'{level_filters["secondary_indicator"]} and Primary Indicators by Country'
+        
+    else:  # Level 4: Primary Indicator - show Primary Indicator only
+        filtered_data = analysis_df[
+            (analysis_df['EU_Priority'] == level_filters['eu_priority']) & 
+            (analysis_df['Secondary_indicator'] == level_filters['secondary_indicator']) & 
+            (analysis_df['primary_index'] == level_filters['primary_indicator'])
+        ].copy()
+        
+        # For Level 4, we only have one indicator
+        indicators = [level_filters['primary_indicator']]
+        title = f'{level_filters["primary_indicator"]} by Country'
+    
+    # Get all individual countries (excluding aggregates)
+    countries = [c for c in filtered_data['country'].unique() if 'Average' not in c]
+    
+    if not countries:
+        # No individual countries found, show message
+        country_chart.add_annotation(
+            text="No individual country data available",
+            xref="paper", yref="paper",
+            x=0.5, y=0.5, showarrow=False,
+            font=dict(size=16)
+        )
+        country_chart.update_layout(
+            title=dict(text=title, font=dict(size=16, color="#f4d03f", weight="bold"), x=0.5),
+            height=500,
+            margin=dict(t=80, b=50, l=60, r=60)
+        )
+        return country_chart
+    
+    # Sort countries by their score for the main indicator (first in the list)
+    main_indicator = indicators[0]
+    country_scores = []
+    for country in countries:
+        country_data = filtered_data[
+            (filtered_data['country'] == country) & 
+            (filtered_data['decile'] == 'All')
+        ]
+        if not country_data.empty:
+            score = country_data['Score'].iloc[0]
+            country_scores.append((country, score))
+        else:
+            country_scores.append((country, 0))
+    
+    # Sort by score from highest to lowest
+    country_scores.sort(key=lambda x: x[1], reverse=True)
+    sorted_countries = [country for country, score in country_scores]
+    
+    # Add the main indicator line
+    main_scores = [score for country, score in country_scores]
+    country_chart.add_trace(
+        go.Scatter(
+            x=sorted_countries,
+            y=main_scores,
+            name=main_indicator,
+            mode='lines+markers',
+            line=dict(width=4, color='#1f77b4'),
+            marker=dict(
+                size=10,
+                color='white',
+                line=dict(color='#1f77b4', width=2)
+            ),
+            hovertemplate='%{y:.3f}'
+        )
+    )
+    
+    # Add other indicators if they exist
+    colors = ['#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2']
+    
+    for i, indicator in enumerate(indicators[1:], 1):  # Skip first indicator (already added)
+        if i < len(colors):
+            indicator_scores = []
+            for country in sorted_countries:
+                country_data = filtered_data[
+                    (filtered_data['country'] == country) & 
+                    (filtered_data['decile'] == 'All')
+                ]
+                if not country_data.empty:
+                    # Find the specific indicator data
+                    if level_filters['current_level'] == 2:
+                        # Level 2: secondary indicator
+                        indicator_data = country_data[country_data['Secondary_indicator'] == indicator]
+                    elif level_filters['current_level'] == 3:
+                        # Level 3: primary indicator
+                        indicator_data = country_data[country_data['primary_index'] == indicator]
+                    else:
+                        indicator_data = country_data
+                    
+                    if not indicator_data.empty:
+                        score = indicator_data['Score'].iloc[0]
+                        indicator_scores.append(score)
+                    else:
+                        indicator_scores.append(0)
+                else:
+                    indicator_scores.append(0)
+            
+            country_chart.add_trace(
+                go.Scatter(
+                    x=sorted_countries,
+                    y=indicator_scores,
+                    name=indicator,
+                    mode='lines+markers',
+                    line=dict(color=colors[i]),
+                    marker=dict(
+                        size=8,
+                        color='white',
+                        line=dict(color=colors[i], width=2)
+                    ),
+                    hovertemplate='%{y:.3f}'
+                )
+            )
+    
+    # Update layout
+    country_chart.update_layout(
+        title=dict(
+            text=title,
+            font=dict(size=16, color="#f4d03f", weight="bold"),
+            x=0.5
+        ),
+        xaxis=dict(
+            tickangle=45,
+            tickfont=dict(size=12)
+        ),
+        yaxis=dict(
+            range=[0, 1],
+            tickformat='.1f',
+            gridwidth=0.2,
+            title='Score'
+        ),
+        hovermode='closest',
+        showlegend=True,
+        legend=dict(
+            x=0.5,
+            y=-0.1,
+            xanchor='center',
+            yanchor='top',
+            orientation='h'
+        ),
+        height=500,
+        margin=dict(t=80, b=80, l=60, r=60),  # Increased bottom margin for legend
+        font=dict(family='Arial, sans-serif', size=14)
+    )
+    
+    return country_chart
 
 if __name__ == '__main__':
     app.run_server(debug=True, host='0.0.0.0', port=8050)
