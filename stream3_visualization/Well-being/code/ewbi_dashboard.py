@@ -1592,7 +1592,7 @@ def create_adaptive_map_chart(map_df, level_filters):
             (map_df['Secondary_indicator'] == 'All') & 
             (map_df['primary_index'] == 'All')
         ].copy()
-        title = 'Well-Being Score by Country - Level 1 (All EU Priorities)'
+        title = 'Well-Being Score by Country - All EU Priorities'
         colorbar_title = "EWBI Score"
         
     elif level_filters['current_level'] == 2:
@@ -1602,7 +1602,7 @@ def create_adaptive_map_chart(map_df, level_filters):
             (map_df['Secondary_indicator'] == 'All') & 
             (map_df['primary_index'] == 'All')
         ].copy()
-        title = f'Well-Being Score by Country - Level 2 ({level_filters["eu_priority"]})'
+        title = f'Well-Being Score by Country - {level_filters["eu_priority"]} - All Secondary Indicators'
         colorbar_title = "Score"
         
     elif level_filters['current_level'] == 3:
@@ -1612,7 +1612,7 @@ def create_adaptive_map_chart(map_df, level_filters):
             (map_df['Secondary_indicator'] == level_filters['secondary_indicator']) & 
             (map_df['primary_index'] == 'All')
         ].copy()
-        title = f'Well-Being Score by Country - Level 3 ({level_filters["eu_priority"]} - {level_filters["secondary_indicator"]})'
+        title = f'Well-Being Score by Country - {level_filters["eu_priority"]} - {level_filters["secondary_indicator"]} - All Primary Indicators'
         colorbar_title = "Score"
         
     else:  # Level 4: Primary Indicator
@@ -1621,7 +1621,7 @@ def create_adaptive_map_chart(map_df, level_filters):
             (map_df['Secondary_indicator'] == level_filters['secondary_indicator']) & 
             (map_df['primary_index'] == level_filters['primary_indicator'])
         ].copy()
-        title = f'Well-Being Score by Country - Level 4 ({level_filters["secondary_indicator"]} - {level_filters["primary_indicator"]})'
+        title = f'Well-Being Score by Country - {level_filters["eu_priority"]} - {level_filters["secondary_indicator"]} - {level_filters["primary_indicator"]}'
         colorbar_title = "Score"
     
     # Convert ISO-2 codes to ISO-3 codes for the map
