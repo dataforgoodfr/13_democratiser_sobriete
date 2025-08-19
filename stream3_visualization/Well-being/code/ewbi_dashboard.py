@@ -2194,7 +2194,7 @@ def create_levels2to4_country_chart(analysis_df, level_filters):
         ),
         xaxis=dict(
             tickangle=45,
-            tickfont=dict(size=12)
+            tickfont=dict(size=14)  # Increased font size for country names
         ),
         yaxis=dict(
             range=[0, 1],
@@ -2206,13 +2206,14 @@ def create_levels2to4_country_chart(analysis_df, level_filters):
         showlegend=True,
         legend=dict(
             x=0.5,
-            y=-0.15,  # Move legend closer to chart to reduce padding
+            y=-0.25,  # Move legend further down to prevent overlap
             xanchor='center',
             yanchor='top',
             orientation='h'
         ),
         height=500,
-        margin=dict(t=80, b=60, l=60, r=60),  # Reduced bottom margin
+        width=950,  # Make chart wider
+        margin=dict(t=80, b=80, l=30, r=120),  # Increased bottom margin to accommodate legend
         font=dict(family='Arial, sans-serif', size=14),
         paper_bgcolor='white',  # Remove grey background
         plot_bgcolor='white'    # Remove grey background
