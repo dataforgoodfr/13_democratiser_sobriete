@@ -336,17 +336,17 @@ def create_base_dataframe(df):
         cum_pop_latest_merge = cum_pop_latest_df[['ISO2', f'Cumulative_population_latest_{scope}']]
         base_df = base_df.merge(cum_pop_latest_merge, on='ISO2', how='left')
         
-        # Calculate population share for each country using WLD total (not sum of countries with data)
-        # Get the WLD cumulative population from the merged data
-        wld_cum_pop_latest = cum_pop_latest_df[
-            cum_pop_latest_df['ISO2'] == 'WLD'
-        ][f'Cumulative_population_latest_{scope}'].iloc[0] if len(cum_pop_latest_df[
-            cum_pop_latest_df['ISO2'] == 'WLD'
-        ]) > 0 else world_cum_pop_latest
+        # Calculate population share for each country using world total (sum of countries with data for this scope)
+        # This ensures consistency with the 1970_to_2050 calculation
+        # Exclude all aggregates to ensure we only sum countries with emissions data for this scope
+        aggregate_iso2s = ['WLD', 'EU', 'G20'] + [iso for iso in cum_pop_latest_df['ISO2'].unique() 
+                                                  if iso in df[df['Country'] == 'All']['ISO2'].unique()]
+        countries_only_latest = cum_pop_latest_df[~cum_pop_latest_df['ISO2'].isin(aggregate_iso2s)]
+        world_cum_pop_latest_for_share = countries_only_latest[f'Cumulative_population_latest_{scope}'].sum()
         
-        base_df[f'Share_of_cumulative_population_1970_to_latest_{scope}'] = base_df[f'Cumulative_population_latest_{scope}'] / wld_cum_pop_latest
+        base_df[f'Share_of_cumulative_population_1970_to_latest_{scope}'] = base_df[f'Cumulative_population_latest_{scope}'] / world_cum_pop_latest_for_share
         
-        # FIX: Ensure WLD (World) always has population share = 1.0
+        # Set WLD to 1.0 since it represents the world total
         base_df.loc[base_df['ISO2'] == 'WLD', f'Share_of_cumulative_population_1970_to_latest_{scope}'] = 1.0
         
         base_df.drop(columns=[f'Cumulative_population_latest_{scope}'], inplace=True)
