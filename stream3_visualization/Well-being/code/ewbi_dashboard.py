@@ -436,7 +436,14 @@ def update_charts(eu_priority, secondary_indicator, primary_indicator, selected_
     decile_chart = create_adaptive_decile_chart(decile_df, level_filters)
     
     # Create adaptive radar/country comparison chart (works for all 4 levels)
-    radar_country_chart = create_adaptive_radar_country_chart(filtered_df, level_filters)
+    # Level 1: Use filtered_df (respects country filter for radar chart)
+    # Levels 2-4: Use map_df (shows all countries for country comparison)
+    if level_filters['current_level'] == 1:
+        radar_country_df = filtered_df  # Use country filter for Level 1 radar
+    else:
+        radar_country_df = map_df  # Use all countries for Levels 2-4 country comparison
+    
+    radar_country_chart = create_adaptive_radar_country_chart(radar_country_df, level_filters)
     
     # Determine what to show for time series chart based on filter selections
     if eu_priority == 'ALL':
