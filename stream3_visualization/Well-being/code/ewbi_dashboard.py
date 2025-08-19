@@ -1736,7 +1736,7 @@ def create_adaptive_decile_chart(analysis_df, level_filters):
             (analysis_df['Secondary_indicator'] == 'All') & 
             (analysis_df['primary_index'] == 'All')
         ].copy()
-        title = 'EWBI Scores by Decile - Selected Countries'
+        title = 'Well-Being Score by Decile - All EU Priorities'
         
     elif level_filters['current_level'] == 2:
         # Level 2: EU Priority
@@ -1745,7 +1745,7 @@ def create_adaptive_decile_chart(analysis_df, level_filters):
             (analysis_df['Secondary_indicator'] == 'All') & 
             (analysis_df['primary_index'] == 'All')
         ].copy()
-        title = f'{level_filters["eu_priority"]} Scores by Decile - Selected Countries'
+        title = f'Well-Being Score by Decile - {level_filters["eu_priority"]} - All Secondary Indicators'
         
     elif level_filters['current_level'] == 3:
         # Level 3: Secondary Indicator
@@ -1754,7 +1754,7 @@ def create_adaptive_decile_chart(analysis_df, level_filters):
             (analysis_df['Secondary_indicator'] == level_filters['secondary_indicator']) & 
             (analysis_df['primary_index'] == 'All')
         ].copy()
-        title = f'{level_filters["eu_priority"]} - {level_filters["secondary_indicator"]} Scores by Decile - Selected Countries'
+        title = f'Well-Being Score by Decile - {level_filters["eu_priority"]} - {level_filters["secondary_indicator"]} - All Primary Indicators'
         
     else:  # Level 4: Primary Indicator
         filtered_data = analysis_df[
@@ -1762,7 +1762,7 @@ def create_adaptive_decile_chart(analysis_df, level_filters):
             (analysis_df['Secondary_indicator'] == level_filters['secondary_indicator']) & 
             (analysis_df['primary_index'] == level_filters['primary_indicator'])
         ].copy()
-        title = f'{level_filters["eu_priority"]} - {level_filters["secondary_indicator"]} - {level_filters["primary_indicator"]} Scores by Decile - Selected Countries'
+        title = f'Well-Being Score by Decile - {level_filters["eu_priority"]} - {level_filters["secondary_indicator"]} - {level_filters["primary_indicator"]}'
     
     # Create the decile analysis chart
     decile_analysis = go.Figure()
@@ -1781,9 +1781,15 @@ def create_adaptive_decile_chart(analysis_df, level_filters):
     # Show countries in the determined order
     for country in countries_to_show:
         if country in filtered_data['country'].values:
-            country_data = filtered_data[filtered_data['country'] == country].sort_values('decile')
+            country_data = filtered_data[filtered_data['country'] == country].copy()
+            
+            # Sort deciles in proper order: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, All
+            decile_order = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'All']
+            country_data['decile_str'] = country_data['decile'].astype(str)
+            country_data = country_data.sort_values('decile_str', key=lambda x: pd.Categorical(x, categories=decile_order, ordered=True))
+            
             decile_analysis.add_trace(go.Bar(
-                x=[str(d) for d in country_data['decile']],
+                x=country_data['decile_str'],
                 y=country_data['Score'],
                 name=country,
                 text=country_data['Score'].round(2),
@@ -1797,21 +1803,20 @@ def create_adaptive_decile_chart(analysis_df, level_filters):
             x=0.5
         ),
         height=500,
+        width=400,  # 20% less wide (500 * 0.8 = 400)
         margin=dict(t=80, b=50, l=60, r=60),
         barmode='group',
         font=dict(family='Arial, sans-serif', size=14),
         paper_bgcolor='white',
         plot_bgcolor='white',
         xaxis=dict(
-            gridcolor='lightgrey',
-            gridwidth=0.5,
-            showgrid=True
+            showgrid=False,  # Remove vertical grid lines
+            categoryorder='array',
+            categoryarray=['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'All']
         ),
         yaxis=dict(
             range=[0, 1],
-            gridcolor='lightgrey',
-            gridwidth=0.5,
-            showgrid=True
+            showgrid=False  # Remove horizontal grid lines
         )
     )
     
