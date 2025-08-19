@@ -1646,7 +1646,7 @@ def create_adaptive_map_chart(map_df, level_filters):
         colorscale='RdYlGn',  # Red to Green scale
         colorbar_title=colorbar_title,
         text=filtered_data['country'],
-        hovertemplate='<b>%{text}</b><br>Score: %{z:.2f}<extra></extra>'
+        hovertemplate='<b>%{location}</b><br>Score: %{z:.2f}<extra></extra>'
     ))
     
     # Update traces for better styling like Budget dashboard
@@ -1815,7 +1815,7 @@ def create_adaptive_decile_chart(analysis_df, level_filters):
                 x=country_data['decile_str'],
                 y=country_data['Score'],
                 name=country,
-                text=country_data['Score'].round(2),
+                text=country_data['Score'].apply(lambda x: f"{x:.2f}"),  # Force 2 decimal places
                 textposition='auto',
                 marker_color=country_colors.get(country, '#1f77b4'),  # Use consistent colors
                 hovertemplate='<b>Score:</b> %{y:.2f}<br><b>Decile:</b> %{x}<br><b>Country:</b> %{fullData.name}<extra></extra>'
