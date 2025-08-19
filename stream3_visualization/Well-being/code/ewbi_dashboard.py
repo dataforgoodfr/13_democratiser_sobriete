@@ -422,24 +422,27 @@ def update_charts(eu_priority, secondary_indicator, primary_indicator, selected_
     # Create adaptive map chart (works for all 4 levels)
     map_chart = create_adaptive_map_chart(map_df, level_filters)
     
+    # Create adaptive decile chart (works for all 4 levels)
+    decile_chart = create_adaptive_decile_chart(filtered_df, level_filters)
+    
     # Determine what to show for other charts based on filter selections
     if eu_priority == 'ALL':
         # Level 1: Overview - Show EWBI and EU priorities
-        time_series_chart, decile_chart, radar_chart = create_overview_charts(map_df, filtered_df, time_filtered_df)
+        time_series_chart, _, radar_chart = create_overview_charts(map_df, filtered_df, time_filtered_df)
         return map_chart, time_series_chart, decile_chart, radar_chart
     else:
         # Drill down based on secondary and primary indicator selections
         if secondary_indicator and secondary_indicator != 'ALL' and primary_indicator and primary_indicator != 'ALL':
             # Level 4: Specific Primary Indicator selected
-            time_series_chart, decile_chart, country_comparison_chart = create_primary_indicator_charts(map_df, filtered_df, time_filtered_df, eu_priority, secondary_indicator, primary_indicator)
+            time_series_chart, _, country_comparison_chart = create_primary_indicator_charts(map_df, filtered_df, time_filtered_df, eu_priority, secondary_indicator, primary_indicator)
             return map_chart, time_series_chart, decile_chart, country_comparison_chart
         elif secondary_indicator and secondary_indicator != 'ALL':
             # Level 3: Specific Secondary Indicator selected (Primary = ALL)
-            time_series_chart, decile_chart, country_comparison_chart = create_secondary_indicator_charts(map_df, filtered_df, time_filtered_df, eu_priority, secondary_indicator)
+            time_series_chart, _, country_comparison_chart = create_secondary_indicator_charts(map_df, filtered_df, time_filtered_df, eu_priority, secondary_indicator)
             return map_chart, time_series_chart, decile_chart, country_comparison_chart
         else:
             # Level 2: Only EU Priority selected (Secondary = ALL, Primary = ALL)
-            time_series_chart, decile_chart, country_comparison_chart = create_eu_priority_charts(map_df, filtered_df, time_filtered_df, eu_priority)
+            time_series_chart, _, country_comparison_chart = create_eu_priority_charts(map_df, filtered_df, time_filtered_df, eu_priority)
             return map_chart, time_series_chart, decile_chart, country_comparison_chart
 
 def create_overview_charts(map_df, analysis_df, time_df):
@@ -1709,6 +1712,100 @@ def create_adaptive_map_chart(map_df, level_filters):
     )
     
     return european_map
+
+def create_adaptive_decile_chart(analysis_df, level_filters):
+    """Create an adaptive decile analysis chart that works for all 4 levels"""
+    
+    print(f"DEBUG: Creating decile chart for Level {level_filters['current_level']}: {level_filters['level_name']}")
+    
+    # Filter data based on current level
+    if level_filters['current_level'] == 1:
+        # Level 1: EWBI (overall)
+        filtered_data = analysis_df[
+            (analysis_df['EU_Priority'] == 'All') & 
+            (analysis_df['Secondary_indicator'] == 'All') & 
+            (analysis_df['primary_index'] == 'All')
+        ].copy()
+        title = 'EWBI Scores by Decile - Selected Countries'
+        
+    elif level_filters['current_level'] == 2:
+        # Level 2: EU Priority
+        filtered_data = analysis_df[
+            (analysis_df['EU_Priority'] == level_filters['eu_priority']) & 
+            (analysis_df['Secondary_indicator'] == 'All') & 
+            (analysis_df['primary_index'] == 'All')
+        ].copy()
+        title = f'{level_filters["eu_priority"]} Scores by Decile - Selected Countries'
+        
+    elif level_filters['current_level'] == 3:
+        # Level 3: Secondary Indicator
+        filtered_data = analysis_df[
+            (analysis_df['EU_Priority'] == level_filters['eu_priority']) & 
+            (analysis_df['Secondary_indicator'] == level_filters['secondary_indicator']) & 
+            (analysis_df['primary_index'] == 'All')
+        ].copy()
+        title = f'{level_filters["eu_priority"]} - {level_filters["secondary_indicator"]} Scores by Decile - Selected Countries'
+        
+    else:  # Level 4: Primary Indicator
+        filtered_data = analysis_df[
+            (analysis_df['EU_Priority'] == level_filters['eu_priority']) & 
+            (analysis_df['Secondary_indicator'] == level_filters['secondary_indicator']) & 
+            (analysis_df['primary_index'] == level_filters['primary_indicator'])
+        ].copy()
+        title = f'{level_filters["eu_priority"]} - {level_filters["secondary_indicator"]} - {level_filters["primary_indicator"]} Scores by Decile - Selected Countries'
+    
+    # Create the decile analysis chart
+    decile_analysis = go.Figure()
+    
+    # For decile analysis, prioritize EU Average, then add individual countries
+    countries_to_show = []
+    
+    # Always show EU Average first if available
+    if 'EU Average' in filtered_data['country'].values:
+        countries_to_show.append('EU Average')
+    
+    # Then add any other selected countries (excluding EU Average to avoid duplication)
+    other_countries = [c for c in filtered_data['country'].unique() if c != 'EU Average' and 'Average' not in c]
+    countries_to_show.extend(other_countries)
+    
+    # Show countries in the determined order
+    for country in countries_to_show:
+        if country in filtered_data['country'].values:
+            country_data = filtered_data[filtered_data['country'] == country].sort_values('decile')
+            decile_analysis.add_trace(go.Bar(
+                x=[str(d) for d in country_data['decile']],
+                y=country_data['Score'],
+                name=country,
+                text=country_data['Score'].round(2),
+                textposition='auto'
+            ))
+    
+    decile_analysis.update_layout(
+        title=dict(
+            text=title,
+            font=dict(size=16, color="#f4d03f", weight="bold"),
+            x=0.5
+        ),
+        height=500,
+        margin=dict(t=80, b=50, l=60, r=60),
+        barmode='group',
+        font=dict(family='Arial, sans-serif', size=14),
+        paper_bgcolor='white',
+        plot_bgcolor='white',
+        xaxis=dict(
+            gridcolor='lightgrey',
+            gridwidth=0.5,
+            showgrid=True
+        ),
+        yaxis=dict(
+            range=[0, 1],
+            gridcolor='lightgrey',
+            gridwidth=0.5,
+            showgrid=True
+        )
+    )
+    
+    return decile_analysis
 
 if __name__ == '__main__':
     app.run_server(debug=True, host='0.0.0.0', port=8050)
