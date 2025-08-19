@@ -91,19 +91,19 @@ app.layout = html.Div([
         html.H2([
             "From ",
             html.A("ICJ's July 2025 Ruling", 
-                   href="https://www.icj-cij.org/sites/default/files/case-related/187/187-20250723-adv-01-01-en.pdf?__cf_chl_tk=Yr3gmWW.N9WZWS7uWgxCBO.lqeW_HYwLgAtsaO7txV8-1754635176-1.0.1.1-CTgho8.CllXbjOuGsjcZBsK2bI7y...6o_iO6c_9klI",
+                   href="https://www.icj-cij.org/sites/default/files/case-related/187/187-20250723-adv-01-00-en.pdf",
                    target="_blank",
                    style={'color': '#f39c12', 'textDecoration': 'underline'}),
-            " to Real-World Metamorphosis"
+            " to Real-World Metamorphosis: Visualizing how to Allocate Carbon Budgets Fairly Not to Exceed +1.5°C"
         ], style={
             'textAlign': 'center',
             'color': '#34495e',
-            'fontSize': '1.2rem',
+            'fontSize': '1.1rem',
             'fontWeight': 'normal',
             'marginBottom': '30px',
             'fontFamily': 'Arial, sans-serif',
             'lineHeight': '1.4',
-            'maxWidth': '900px',
+            'maxWidth': '1000px',
             'margin': '0 auto 30px auto'
         }),
         
@@ -124,7 +124,7 @@ app.layout = html.Div([
                     style={'marginTop': '8px'},
                     clearable=False
                 )
-            ], style={'width': '17%', 'display': 'inline-block', 'margin-right': '2%'}),
+            ], style={'width': '16%', 'display': 'inline-block', 'margin-right': '1.5%'}),
             
             html.Div([
                 html.Label("G20 Only", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
@@ -138,7 +138,7 @@ app.layout = html.Div([
                     style={'marginTop': '8px'},
                     clearable=False
                 )
-            ], style={'width': '17%', 'display': 'inline-block', 'margin-right': '2%'}),
+            ], style={'width': '16%', 'display': 'inline-block', 'margin-right': '1.5%'}),
 
             html.Div([
                 html.Label("Zero Carbon Emissions Trajectory", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
@@ -149,7 +149,7 @@ app.layout = html.Div([
                     style={'marginTop': '8px'},
                     clearable=False
                 )
-            ], style={'width': '17%', 'display': 'inline-block', 'margin-right': '2%'}),
+            ], style={'width': '16%', 'display': 'inline-block', 'margin-right': '1.5%'}),
             
             html.Div([
                 html.Label("Scope of Emissions", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
@@ -163,10 +163,10 @@ app.layout = html.Div([
                     style={'marginTop': '8px'},
                     clearable=False
                 )
-            ], style={'width': '17%', 'display': 'inline-block', 'margin-right': '2%'}),
+            ], style={'width': '16%', 'display': 'inline-block', 'margin-right': '1.5%'}),
             
             html.Div([
-                html.Label("Probability of holding temperature rise to 1.5°C", style={'fontWeight': 'bold', 'color': '#2c3e50', 'whiteSpace': 'nowrap', 'overflow': 'visible'}),
+                html.Label("Probability of not exceeding +1.5°C", style={'fontWeight': 'bold', 'color': '#2c3e50', 'whiteSpace': 'nowrap', 'overflow': 'visible'}),
                 dcc.Dropdown(
                     id='probability-dropdown',
                     options=[{'label': i, 'value': i} for i in scenario_parameters['Probability_of_reach'].unique()],
@@ -174,7 +174,7 @@ app.layout = html.Div([
                     style={'marginTop': '8px'},
                     clearable=False
                 )
-            ], style={'width': '17%', 'display': 'inline-block'}),
+            ], style={'width': '16%', 'display': 'inline-block'}),
         ], style={
             'padding': '15px 20px',
             'backgroundColor': '#fdf6e3',

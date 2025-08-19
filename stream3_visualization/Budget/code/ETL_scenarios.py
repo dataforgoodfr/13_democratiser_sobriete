@@ -727,7 +727,7 @@ for _, row in base_df.iterrows():
     for emissions_scope in emission_scopes:
         for warming_scenario in ['1.5°C', '2°C']:
             for probability in ['50%', '67%']:
-                for distribution in ['Population', 'Responsibility', 'NDC Pledges', 'Capacity']:
+                for distribution in ['Population', 'Responsibility', 'NDC Pledges', 'Capability']:
                     # Calculate country carbon budget based on distribution scenario
                     global_budget = get_global_budget(warming_scenario, probability, emissions_scope, combined_df)
                     if distribution == 'Population':
@@ -772,7 +772,7 @@ for _, row in base_df.iterrows():
                         
                         # For now, use theoretical budget - we'll normalize before neutrality year calculation
                         country_budget = theoretical_budget
-                    elif distribution == 'Capacity':
+                    elif distribution == 'Capability':
                         # Get world's latest cumulative emissions
                         world_cumulative = base_df[
                             (base_df['ISO2'] == 'WLD') &
@@ -784,7 +784,7 @@ for _, row in base_df.iterrows():
 
                         # Calculate country's share and subtract its historical emissions
                         country_cumulative = row[f'Latest_cumulative_CO2_emissions_Mt_{emissions_scope}']
-                        capacity_share = row[f'share_of_capacity_{emissions_scope}']
+                        capability_share = row[f'share_of_capacity_{emissions_scope}']
                         
                         # FIX: Include aggregates (G20, EU, IPCC regions) even if they have GDP_PPP = 0.0
                         # as long as they have valid capacity values
@@ -792,11 +792,11 @@ for _, row in base_df.iterrows():
                         
 
                         
-                        if capacity_share == 0 or pd.isna(capacity_share):
+                        if capability_share == 0 or pd.isna(capability_share):
                             # Skip this scenario for countries with missing capacity data
                             continue
                         
-                        country_budget = (total_available * capacity_share) - country_cumulative
+                        country_budget = (total_available * capability_share) - country_cumulative
                         
                         # DEBUG: Add debug output for G20 Territory Capacity budget calculation
                         if (row['ISO2'] == 'G20' and 
@@ -1010,8 +1010,8 @@ for _, row in base_df.iterrows():
 print("\n=== APPLYING SIMPLE CALCULATIONS FOR RESPONSIBILITY AND CAPACITY SCENARIOS ===")
 print("Using simple formulas: theoretical budget = total_available * share - cumulative_emissions")
 
-# Process Responsibility and Capacity scenarios separately
-for scenario_type in ['Responsibility', 'Capacity']:
+# Process Responsibility and Capability scenarios separately
+for scenario_type in ['Responsibility', 'Capability']:
     print(f"\n--- Processing {scenario_type} scenarios ---")
     
     scenarios_to_process = [s for s in scenarios if s['Budget_distribution_scenario'] == scenario_type]
@@ -1039,7 +1039,7 @@ for scenario_type in ['Responsibility', 'Capacity']:
                     # Get the population share based on scenario type
                     if scenario_type == 'Responsibility':
                         population_share = scenario['Share_of_cumulative_population_1970_to_latest']
-                    else:  # Capacity
+                    else:  # Capability
                         population_share = scenario['share_of_capacity']
                     
                     # Calculate theoretical budget using the simple formula
@@ -1058,7 +1058,7 @@ for scenario_type in ['Responsibility', 'Capacity']:
             
             # Use the same denominator for all types (individual countries and regional aggregates)
             # This ensures regional aggregates don't affect the global budget distribution
-            positive_theoretical_budgets = [s['Country_theoretical_budget'] for s in group_scenarios if s['Country_theoretical_budget'] > 0 and s['ISO_Type'] == 'Country']
+            positive_theoretical_budgets = [s['Country_theoretical_budget'] for s in group_scenarios if s['Country_theoretical_budget'] is not None and s['Country_theoretical_budget'] > 0 and s['ISO_Type'] == 'Country']
             total_positive_theoretical = sum(positive_theoretical_budgets)
             print(f"    Individual countries denominator: {total_positive_theoretical:,.0f} MtCO2")
             
@@ -1152,7 +1152,7 @@ print("\n=== COMPREHENSIVE SANITY CHECK ===")
 print("Verifying that sum of positive budgets equals global budgets for each scenario type independently...")
 
 # Check each scenario type separately
-for scenario_type in ['Responsibility', 'Capacity']:
+for scenario_type in ['Responsibility', 'Capability']:
     print(f"\n🔍 SANITY CHECK: {scenario_type} scenarios")
     
     # Get scenarios of this type
