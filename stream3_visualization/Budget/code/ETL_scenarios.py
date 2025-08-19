@@ -1007,8 +1007,8 @@ if responsibility_scenarios:
                 positive_scenarios.append(scenario)
         
         if positive_scenarios:
-            # Calculate total theoretical positive budget
-            total_theoretical_positive = sum([s['Country_carbon_budget'] for s in positive_scenarios])
+            # Calculate total theoretical positive budget (exclude aggregates to avoid double counting)
+            total_theoretical_positive = sum([s['Country_carbon_budget'] for s in positive_scenarios if s['Country'] != 'All'])
             
             print(f"  Global budget: {global_budget:,.0f} MtCO2")
             print(f"  Total theoretical positive budgets: {total_theoretical_positive:,.0f} MtCO2")
