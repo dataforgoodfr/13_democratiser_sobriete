@@ -221,13 +221,13 @@ app.layout = html.Div([
         }),
         
         html.Div([
-            html.H4("Historical CO2 Emissions", style={
+            html.H4("Past CO2 Emissions", style={
                 'color': '#34495e',
                 'fontSize': '1.2rem',
                 'fontWeight': 'bold',
                 'marginBottom': '10px'
             }),
-            html.P("Historical CO2 emissions from 1970 to 2022 for Consumption-based and from 1970 to 2023 for Territorial:", style={
+            html.P("Past CO2 emissions from 1970 to 2022 for Consumption-based and from 1970 to 2023 for Territorial:", style={
                 'marginBottom': '10px',
                 'lineHeight': '1.6'
             }),
@@ -268,7 +268,7 @@ app.layout = html.Div([
             ], style={'marginBottom': '10px', 'lineHeight': '1.6'}),
             html.P([
                 html.Strong("Population Data: "),
-                "Historical and forecasted population from United Nations data"
+                "Past and forecasted population from United Nations data"
             ], style={'marginBottom': '10px', 'lineHeight': '1.6'}),
             html.P([
                 html.Strong("GDP Data: "),
@@ -699,15 +699,15 @@ def update_line_chart(budget_dist, probability, emissions_scope, selected_countr
         # When a specific country is selected, show that country's data (ignore G20 filter)
         target_iso = selected_country
         country_name = scenario_parameters[scenario_parameters['ISO2'] == selected_country]['Country'].iloc[0] if len(scenario_parameters[scenario_parameters['ISO2'] == selected_country]) > 0 else selected_country
-        chart_title = f'Historical Emissions and Trajectory Under the ICJ Ruling ({get_scope_display_label(emissions_scope)}) - Million Tons'
+        chart_title = f'Past Emissions and Trajectory Under the ICJ Ruling ({get_scope_display_label(emissions_scope)}) - Million Tons'
     elif g20_filter == 'Yes':
         # When G20 filter is active (and no specific country), show G20 aggregate data
         target_iso = 'G20'
-        chart_title = f'Historical Emissions and Trajectory Under the ICJ Ruling - G20 ({get_scope_display_label(emissions_scope)}) - Million Tons'
+        chart_title = f'Past Emissions and Trajectory Under the ICJ Ruling - G20 ({get_scope_display_label(emissions_scope)}) - Million Tons'
     else:
         # For "All Countries" without G20 filter, show world aggregate data
         target_iso = 'WLD'
-        chart_title = f'Historical Emissions and Trajectory Under the ICJ Ruling - Global ({get_scope_display_label(emissions_scope)}) - Million Tons'
+        chart_title = f'Past Emissions and Trajectory Under the ICJ Ruling - Global ({get_scope_display_label(emissions_scope)}) - Million Tons'
     
     # Filter historical data (exclude 2050 as it's only for population data)
     hist_data = historical_data[
@@ -736,13 +736,13 @@ def update_line_chart(budget_dist, probability, emissions_scope, selected_countr
 
     fig = go.Figure()
 
-    # Historical emissions
+    # Past emissions
     if not hist_data.empty:
         fig.add_trace(go.Scatter(
             x=hist_data['Year'],
             y=hist_data['Annual_CO2_emissions_Mt'],
             mode='lines',
-            name='Historical Emissions',
+            name='Past Emissions',
             line=dict(color='#8DD3C7', width=3),  # Cyan from palette as requested
             hovertemplate="<b>Year: %{x}</b><br>Emissions: %{y:.2f} Mt<extra></extra>"
         ))
