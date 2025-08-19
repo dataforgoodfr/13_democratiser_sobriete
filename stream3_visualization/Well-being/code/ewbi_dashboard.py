@@ -1993,7 +1993,8 @@ def create_level1_radar_chart(analysis_df):
             fill='toself',
             name=country,
             line_color=country_colors.get(country, '#1f77b4'),  # Use consistent colors
-            fillcolor=country_colors.get(country, '#1f77b4')     # Use consistent colors
+            fillcolor=country_colors.get(country, '#1f77b4'),    # Use consistent colors
+            opacity=0.6  # Make polygons semi-transparent to see radar grid below
         ))
     
     radar_chart.update_layout(
