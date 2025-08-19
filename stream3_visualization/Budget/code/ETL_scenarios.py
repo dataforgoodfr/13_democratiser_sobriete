@@ -1025,6 +1025,10 @@ if responsibility_scenarios:
                     theoretical_budget = scenario['Country_carbon_budget']
                     share_of_positive = theoretical_budget / total_theoretical_positive
                     final_budget = global_budget * share_of_positive
+                    
+                    # Store theoretical budget and share for sanity checks
+                    scenario['Country_theoretical_budget'] = theoretical_budget
+                    scenario['Country_share_of_positive_budgets'] = share_of_positive
                     scenario['Country_carbon_budget'] = final_budget
                     
                     print(f"    {scenario['Country']}: {theoretical_budget:,.0f} → {final_budget:,.0f} MtCO2 (share: {share_of_positive:.3f})")
@@ -1152,7 +1156,8 @@ scenario_params = scenarios_df[[
     'Share_of_cumulative_population_1970_to_latest',
     'share_of_capacity', 'Global_Carbon_budget',
     'Country_carbon_budget', 'Country_budget_per_capita', 'Share_of_cumulative_emissions',
-    'Global_Total_Budget', 'Latest_cumulative_emissions_per_capita', 'Share_of_global_cumulative_emissions'
+    'Global_Total_Budget', 'Latest_cumulative_emissions_per_capita', 'Share_of_global_cumulative_emissions',
+    'Country_theoretical_budget', 'Country_share_of_positive_budgets'
 ]].drop_duplicates()
 
 # Filter out rows where neutrality could not be calculated
