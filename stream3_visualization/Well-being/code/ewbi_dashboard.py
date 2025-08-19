@@ -65,14 +65,29 @@ try:
     
     # Create secondary indicator options
     SECONDARY_INDICATORS = []
+    
+    # Define secondary indicators that should be filtered out (same as in generate_outputs.py)
+    secondary_indicators_to_remove = [
+        'Housing expense',           # No underlying primary indicators
+        'Digital Skills',            # No underlying primary indicators
+        'Health cost and medical care',  # No underlying primary indicators
+        'Accidents and addictive behaviour',  # No underlying primary indicators
+        'Education expense',         # No underlying primary indicators
+        'Leisure and culture',       # No underlying primary indicators
+        'Transport',                 # No underlying primary indicators
+        'Tourism'                    # No underlying primary indicators
+    ]
+    
     for prio in ewbi_structure:
         for component in prio['components']:
-            SECONDARY_INDICATORS.append({
-                'label': f"{prio['name']} - {component['name']}",
-                'value': f"{prio['name']}|{component['name']}",
-                'eu_priority': prio['name'],
-                'secondary': component['name']
-            })
+            # Filter out secondary indicators that have no underlying primary indicators
+            if component['name'] not in secondary_indicators_to_remove:
+                SECONDARY_INDICATORS.append({
+                    'label': f"{prio['name']} - {component['name']}",
+                    'value': f"{prio['name']}|{component['name']}",
+                    'eu_priority': prio['name'],
+                    'secondary': component['name']
+                })
     
     print(f"Dashboard initialized with {len(EU_PRIORITIES)} EU priorities and {len(SECONDARY_INDICATORS)} secondary indicators")
     
