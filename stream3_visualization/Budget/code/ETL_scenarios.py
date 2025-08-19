@@ -925,7 +925,13 @@ for _, row in base_df.iterrows():
 
                     # Calculate sanity check columns
                     global_total_budget = global_budget + row[f'Latest_cumulative_CO2_emissions_Mt_{emissions_scope}']
-                    latest_cumulative_emissions_per_capita = row[f'Latest_cumulative_CO2_emissions_Mt_{emissions_scope}'] / row[f'Latest_cumulative_population_{emissions_scope}'] if row[f'Latest_cumulative_population_{emissions_scope}'] > 0 else None
+                    
+                    # For Total_available_budget, we need to get the world cumulative emissions
+                    # This is already calculated in the Responsibility and Capacity sections above
+                    # We'll set it to None here and populate it in the scenario dictionary below
+                    total_available_budget = None
+                    
+                    latest_cumulative_emissions_per_capita = row[f'Latest_cumulative_CO2_emissions_Mt_{emissions_scope}'] / row[f'Latest_population_{emissions_scope}'] if row[f'Latest_population_{emissions_scope}'] > 0 else None
                     
                     # Calculate global cumulative emissions for this scope
                     world_data = combined_df[
@@ -941,6 +947,19 @@ for _, row in base_df.iterrows():
                     else:
                         global_cumulative_emissions = None
                         share_of_global_cumulative_emissions = None
+                    
+                    # Calculate Total_available_budget for this scenario
+                    # Get world's latest cumulative emissions for this scope
+                    world_cumulative = base_df[
+                        (base_df['ISO2'] == 'WLD') &
+                        (base_df[f'Latest_cumulative_CO2_emissions_Mt_{emissions_scope}'].notna())
+                    ][f'Latest_cumulative_CO2_emissions_Mt_{emissions_scope}'].iloc[0] if len(base_df[
+                        (base_df['ISO2'] == 'WLD') &
+                        (base_df[f'Latest_cumulative_CO2_emissions_Mt_{emissions_scope}'].notna())
+                    ]) > 0 else 0
+                    
+                    # Total_available_budget = Global budget + sum of all countries' cumulative emissions
+                    total_available_budget = global_budget + world_cumulative
                     
                     scenario = {
                         'ISO2': row['ISO2'],
@@ -968,6 +987,7 @@ for _, row in base_df.iterrows():
                         'Neutrality_year': neutrality_year,
                         'Years_to_neutrality_from_today': years_to_neutrality_from_today,
                         'Global_Total_Budget': global_total_budget,
+                        'Total_available_budget': total_available_budget,
                         'Latest_cumulative_emissions_per_capita': latest_cumulative_emissions_per_capita,
                         'Share_of_global_cumulative_emissions': share_of_global_cumulative_emissions,
                         'Country_theoretical_budget': theoretical_budget if distribution in ['Responsibility', 'Capacity'] else None,
@@ -1012,7 +1032,8 @@ for scenario_type in ['Responsibility', 'Capacity']:
                         population_share = scenario['share_of_capacity']
                     
                     # Calculate theoretical budget using the simple formula
-                    total_available = scenario['Global_Total_Budget']
+                    # Use Total_available_budget which is Global budget + sum of all countries' cumulative emissions
+                    total_available = scenario['Total_available_budget']
                     cumulative_emissions = scenario['Latest_cumulative_CO2_emissions_Mt']
                     theoretical_budget = (total_available * population_share) - cumulative_emissions
                     
@@ -1194,7 +1215,7 @@ scenario_params = scenarios_df[[
     'Share_of_cumulative_population_1970_to_latest',
     'share_of_capacity', 'Global_Carbon_budget',
     'Country_carbon_budget', 'Country_budget_per_capita', 'Share_of_cumulative_emissions',
-    'Global_Total_Budget', 'Latest_cumulative_emissions_per_capita', 'Share_of_global_cumulative_emissions',
+    'Global_Total_Budget', 'Total_available_budget', 'Latest_cumulative_emissions_per_capita', 'Share_of_global_cumulative_emissions',
     'Country_theoretical_budget', 'Country_share_of_positive_budgets'
 ]].drop_duplicates()
 
