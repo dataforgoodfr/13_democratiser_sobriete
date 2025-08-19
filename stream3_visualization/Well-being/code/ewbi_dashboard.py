@@ -335,16 +335,33 @@ def update_primary_indicator_dropdown(secondary_indicator, eu_priority):
             with open(os.path.join(DATA_DIR, '..', 'data', 'ewbi_indicators.json'), 'r') as f:
                 config = json.load(f)['EWBI']
             
+            # Define the indicators that should be filtered out (same as in generate_outputs.py)
+            economic_indicators_to_remove = [
+                'AN-SILC-1',
+                'AE-HBS-1', 'AE-HBS-2',
+                'HQ-SILC-2',
+                'HH-SILC-1', 'HH-HBS-1', 'HH-HBS-2', 'HH-HBS-3', 'HH-HBS-4',
+                'EC-HBS-1', 'EC-HBS-2',
+                'ED-ICT-1', 'ED-EHIS-1',
+                'AC-SILC-1', 'AC-SILC-2', 'AC-HBS-1', 'AC-HBS-2', 'AC-EHIS-1',
+                'IE-HBS-1', 'IE-HBS-2',
+                'IC-SILC-1', 'IC-SILC-2', 'IC-HBS-1', 'IC-HBS-2',
+                'TT-SILC-1', 'TT-SILC-2', 'TT-HBS-1', 'TT-HBS-2',
+                'TS-SILC-1', 'TS-HBS-1', 'TS-HBS-2'
+            ]
+            
             primary_indicators = []
             for priority in config:
                 if priority['name'] == eu_priority:
                     for component in priority['components']:
                         if component['name'] == secondary_indicator:
                             for indicator in component['indicators']:
-                                primary_indicators.append({
-                                    'label': indicator['code'],
-                                    'value': indicator['code']
-                                })
+                                # Filter out economic indicators that should be removed
+                                if indicator['code'] not in economic_indicators_to_remove:
+                                    primary_indicators.append({
+                                        'label': indicator['code'],
+                                        'value': indicator['code']
+                                    })
                             break
                     break
             
@@ -384,119 +401,34 @@ def update_charts(eu_priority, secondary_indicator, primary_indicator, selected_
         filtered_df = master_df[(master_df['country'].isin(selected_countries)) & (master_df['decile'] == 'All')].copy()
         time_filtered_df = time_series_df[(time_series_df['country'].isin(selected_countries)) & (time_series_df['decile'] == 'All Deciles')].copy()
     
-    # Determine what to show based on filter selections
+    # Create level filters for adaptive charts
+    level_filters = create_level_filters(eu_priority, secondary_indicator, primary_indicator)
+    
+    # Create adaptive map chart (works for all 4 levels)
+    map_chart = create_adaptive_map_chart(map_df, level_filters)
+    
+    # Determine what to show for other charts based on filter selections
     if eu_priority == 'ALL':
         # Level 1: Overview - Show EWBI and EU priorities
-        return create_overview_charts(map_df, filtered_df, time_filtered_df)
+        time_series_chart, decile_chart, radar_chart = create_overview_charts(map_df, filtered_df, time_filtered_df)
+        return map_chart, time_series_chart, decile_chart, radar_chart
     else:
         # Drill down based on secondary and primary indicator selections
         if secondary_indicator and secondary_indicator != 'ALL' and primary_indicator and primary_indicator != 'ALL':
             # Level 4: Specific Primary Indicator selected
-            return create_primary_indicator_charts(map_df, filtered_df, time_filtered_df, eu_priority, secondary_indicator, primary_indicator)
+            time_series_chart, decile_chart, country_comparison_chart = create_primary_indicator_charts(map_df, filtered_df, time_filtered_df, eu_priority, secondary_indicator, primary_indicator)
+            return map_chart, time_series_chart, decile_chart, country_comparison_chart
         elif secondary_indicator and secondary_indicator != 'ALL':
             # Level 3: Specific Secondary Indicator selected (Primary = ALL)
-            return create_secondary_indicator_charts(map_df, filtered_df, time_filtered_df, eu_priority, secondary_indicator)
+            time_series_chart, decile_chart, country_comparison_chart = create_secondary_indicator_charts(map_df, filtered_df, time_filtered_df, eu_priority, secondary_indicator)
+            return map_chart, time_series_chart, decile_chart, country_comparison_chart
         else:
             # Level 2: Only EU Priority selected (Secondary = ALL, Primary = ALL)
-            return create_eu_priority_charts(map_df, filtered_df, time_filtered_df, eu_priority)
+            time_series_chart, decile_chart, country_comparison_chart = create_eu_priority_charts(map_df, filtered_df, time_filtered_df, eu_priority)
+            return map_chart, time_series_chart, decile_chart, country_comparison_chart
 
 def create_overview_charts(map_df, analysis_df, time_df):
-    """Create charts for overview level (EWBI + EU priorities)"""
-    
-    # 1. European map chart (EWBI scores) - always shows all countries
-    european_map = go.Figure()
-    
-    # Get EWBI scores by country for the map (Level 1: EWBI)
-    # Filter for EWBI level: EU_Priority='All', Secondary_indicator='All', primary_index='All'
-    ewbi_by_country = map_df[
-        (map_df['EU_Priority'] == 'All') & 
-        (map_df['Secondary_indicator'] == 'All') & 
-        (map_df['primary_index'] == 'All')
-    ].copy()
-    
-    # Convert ISO-2 codes to ISO-3 codes for the map
-    ewbi_by_country['iso3'] = ewbi_by_country['country'].map(ISO2_TO_ISO3)
-    
-    # Filter out countries without ISO-3 codes (like aggregates)
-    ewbi_by_country = ewbi_by_country[ewbi_by_country['iso3'].notna()].copy()
-    
-    # Create the choropleth map
-    european_map = go.Figure(data=go.Choropleth(
-        locations=ewbi_by_country['iso3'],
-        z=ewbi_by_country['Score'],
-        locationmode='ISO-3',
-        colorscale='RdYlGn',  # Red to Green scale
-        colorbar_title="EWBI Score",
-        text=ewbi_by_country['country'] + ': ' + ewbi_by_country['Score'].round(2).astype(str),
-        hovertemplate='<b>%{text}</b><br>' +
-                      'EWBI Score: %{z:.2f}<br>' +
-                      '<extra></extra>'
-    ))
-    
-    # Update traces for better styling like Budget dashboard
-    european_map.update_traces(
-        marker_line_color="white",
-        marker_line_width=0.5,
-        colorbar=dict(
-            x=1.05,  # Position to the right of the map
-            xanchor="left",
-            thickness=15,
-            len=0.7,
-            title=dict(
-                text="EWBI Score",
-                font=dict(size=14, color="#2c3e50"),
-                side="top"
-            )
-        )
-    )
-    
-    european_map.update_layout(
-        height=550,  # Match Budget dashboard map height
-        margin={"r": 150, "t": 80, "l": 150, "b": 50},  # Match Budget dashboard margins
-        geo=dict(
-            scope='europe',
-            projection=dict(type='equirectangular'),
-            showland=True,
-            landcolor='lightgray',  # Same as Budget dashboard
-            coastlinecolor='white',  # White coastlines like Budget dashboard
-            showcountries=True,
-            countrycolor='lightgray',  # Same as Budget dashboard
-            showocean=True,
-            oceancolor='white',  # White ocean like Budget dashboard
-            showframe=False,
-            showcoastlines=True,
-            coastlinewidth=1,
-            projection_scale=1.0,  # Less zoom to show more of Europe
-            center=dict(lat=50, lon=10),  # Center on Europe
-            lataxis_range=[35, 75],  # Focus on Europe (southern to northern bounds)
-            lonaxis_range=[-15, 45]  # Focus on Europe (western to eastern bounds)
-        ),
-        # Style to match World Sufficiency Lab theme like Budget dashboard
-        paper_bgcolor='white',  # Clean white background
-        plot_bgcolor='white',
-        font=dict(
-            family="Arial, sans-serif",
-            size=12,
-            color="#2c3e50"
-        ),
-        title=dict(
-            text='European Well-Being Index (EWBI) Map',
-            font=dict(size=18, color="#f4d03f", weight="bold"),  # Same size as other titles
-            x=0.5
-        ),
-        # Lighter hover box styling like Budget dashboard
-        hoverlabel=dict(
-            bgcolor="rgba(245, 245, 245, 0.9)",  # Light grey background for hover
-            bordercolor="white",
-            font=dict(color="black", size=12)
-        )
-    )
-    
-    # Set color scale from 0 to 1
-    european_map.update_traces(
-        zmin=0,
-        zmax=1
-    )
+    """Create charts for overview level (EWBI + EU priorities) - Map is now handled separately"""
     
     # 2. Decile analysis chart (EWBI scores by decile for selected countries)
     decile_analysis = go.Figure()
@@ -651,7 +583,7 @@ def create_overview_charts(map_df, analysis_df, time_df):
     
 
     
-    return european_map, time_series, decile_analysis, radar_chart
+    return time_series, decile_analysis, radar_chart
 
 def create_eu_priority_charts(map_df, analysis_df, time_df, eu_priority):
     """Create charts for EU priority level"""
@@ -666,100 +598,7 @@ def create_eu_priority_charts(map_df, analysis_df, time_df, eu_priority):
     print(f"Clean priority name: '{priority_name_clean}'")
     print(f"Found secondary columns: {secondary_cols}")
     
-    # 1. European map chart (EU priority scores)
-    european_map = go.Figure()
-    
-    # Filter for EU Priority level: EU_Priority=selected, Secondary_indicator='All', primary_index='All'
-    priority_by_country = map_df[
-        (map_df['EU_Priority'] == eu_priority) & 
-        (map_df['Secondary_indicator'] == 'All') & 
-        (map_df['primary_index'] == 'All')
-    ].copy()
-    
-    if not priority_by_country.empty:
-        # Convert ISO-2 codes to ISO-3 codes for the map
-        priority_by_country['iso3'] = priority_by_country['country'].map(ISO2_TO_ISO3)
-        
-        # Filter out countries without ISO-3 codes (like aggregates)
-        priority_by_country = priority_by_country[priority_by_country['iso3'].notna()].copy()
-        
-        # Create the choropleth map
-        european_map = go.Figure(data=go.Choropleth(
-            locations=priority_by_country['iso3'],
-            z=priority_by_country['Score'],
-            locationmode='ISO-3',
-            colorscale='RdYlGn',  # Red to Green scale
-            colorbar_title=f"{eu_priority} Score",
-            text=priority_by_country['country'] + ': ' + priority_by_country['Score'].round(2).astype(str),
-            hovertemplate='<b>%{text}</b><br>' +
-                          f'{eu_priority} Score: %{{z:.2f}}<br>' +
-                          '<extra></extra>'
-        ))
-        
-        # Update traces for better styling like Budget dashboard
-        european_map.update_traces(
-            marker_line_color="white",
-            marker_line_width=0.5,
-            colorbar=dict(
-                x=0.95,  # Position to the right
-                xanchor="right",
-                thickness=15,
-                len=0.7,
-                title=dict(
-                    text=f"{eu_priority} Score",
-                    font=dict(size=14, color="#2c3e50"),
-                    side="top"
-                )
-            )
-        )
-        
-        european_map.update_layout(
-            height=550,  # Match Budget dashboard map height
-            margin={"r": 150, "t": 80, "l": 150, "b": 50},  # Match Budget dashboard margins
-            geo=dict(
-                scope='europe',
-                projection=dict(type='equirectangular'),
-                showland=True,
-                landcolor='lightgray',  # Same as Budget dashboard
-                coastlinecolor='white',  # White coastlines like Budget dashboard
-                showcountries=True,
-                countrycolor='lightgray',  # Same as Budget dashboard
-                showocean=True,
-                oceancolor='white',  # White ocean like Budget dashboard
-                showframe=False,
-                showcoastlines=True,
-                coastlinewidth=1,
-                projection_scale=1.0,  # Less zoom to show more of Europe
-                center=dict(lat=50, lon=10),  # Center on Europe
-                lataxis_range=[35, 75],  # Focus on Europe (southern to northern bounds)
-                lonaxis_range=[-15, 45]  # Focus on Europe (western to eastern bounds)
-            ),
-            # Style to match World Sufficiency Lab theme like Budget dashboard
-            paper_bgcolor='white',  # Clean white background
-            plot_bgcolor='white',
-            font=dict(
-                family="Arial, sans-serif",
-                size=12,
-                color="#2c3e50"
-            ),
-            title=dict(
-                text=f'{eu_priority} Scores Map',
-                font=dict(size=16, color="#f4d03f", weight="bold"),  # Bold, smaller, yellow like top ribbon
-                x=0.5
-            ),
-                    # Lighter hover box styling like Budget dashboard
-        hoverlabel=dict(
-            bgcolor="rgba(245, 245, 245, 0.9)",  # Light grey background for hover
-            bordercolor="white",
-            font=dict(color="black", size=12)
-        )
-    )
-    
-    # Set color scale from 0 to 1
-    european_map.update_traces(
-        zmin=0,
-        zmax=1
-    )
+    # Map is now handled separately by create_adaptive_map_chart
     
     # 2. Decile analysis chart
     decile_analysis = go.Figure()
@@ -1108,75 +947,15 @@ def create_eu_priority_charts(map_df, analysis_df, time_df, eu_priority):
         font=dict(family='Arial, sans-serif', size=14)  # Match Budget dashboard font size
     )
     
-    return european_map, time_series, decile_analysis, radar_chart
+    return time_series, decile_analysis, radar_chart
 
 def create_primary_indicator_charts(map_df, analysis_df, time_df, eu_priority, secondary_indicator, primary_indicator):
     """Create charts for primary indicator level"""
     
-    # 1. European map chart (primary indicator scores)
-    european_map = go.Figure()
+    # Map is now handled separately by create_adaptive_map_chart
     
     # Get the primary indicator column name
     primary_col = f"primary_{primary_indicator}"
-    
-    if primary_col in map_df.columns:
-        # Create choropleth map for the primary indicator
-        european_map.add_trace(
-            go.Choropleth(
-                locations=[ISO2_TO_ISO3.get(country, country) for country in map_df['country']],
-                z=map_df[primary_col],
-                text=map_df['country'],
-                locationmode='ISO-3',
-                colorscale='RdYlGn',  # Same as other levels
-                zmin=0,
-                zmax=1,
-                colorbar=dict(title='Score', tickformat='.2f'),
-                hovertemplate='<b>%{text}</b><br>Score: %{z:.2f}<extra></extra>'
-            )
-        )
-        
-        european_map.update_layout(
-            height=550,
-            margin={"r": 150, "t": 80, "l": 150, "b": 50},
-            geo=dict(
-                scope='europe',
-                projection=dict(type='equirectangular'),
-                showland=True,
-                landcolor='lightgray',
-                coastlinecolor='white',
-                showcountries=True,
-                countrycolor='lightgray',
-                showocean=True,
-                oceancolor='white',
-                showframe=False,
-                showcoastlines=True,
-                coastlinewidth=1,
-                projection_scale=1.0,
-                center=dict(lat=50, lon=10),
-                lataxis_range=[35, 75],
-                lonaxis_range=[-15, 45]
-            ),
-            paper_bgcolor='#ffffff',
-            plot_bgcolor='#ffffff',
-            font=dict(family="Arial, sans-serif", size=12, color="#2c3e50"),
-            title=dict(
-                text=f'{primary_indicator} Scores Map',
-                font=dict(size=16, color="#f4d03f", weight="bold"),
-                x=0.5
-            ),
-            hoverlabel=dict(
-                bgcolor="rgba(245, 245, 245, 0.9)",
-                bordercolor="white",
-                font=dict(color="black", size=12)
-            )
-        )
-    else:
-        european_map.add_annotation(
-            text=f"Primary indicator {primary_indicator} not found in data",
-            xref="paper", yref="paper",
-            x=0.5, y=0.5, showarrow=False,
-            font=dict(size=16)
-        )
     
     # 2. Decile analysis chart
     decile_analysis = go.Figure()
@@ -1421,77 +1200,17 @@ def create_primary_indicator_charts(map_df, analysis_df, time_df, eu_priority, s
         font=dict(family='Arial, sans-serif', size=14)  # Match Budget dashboard font size
     )
     
-    return european_map, time_series, decile_analysis, radar_chart
+    return time_series, decile_analysis, radar_chart
 
 def create_secondary_indicator_charts(map_df, analysis_df, time_df, eu_priority, secondary_indicator):
     """Create charts for secondary indicator level (EU Priority + Specific Secondary)"""
     
-    # 1. European map chart (secondary indicator scores)
-    european_map = go.Figure()
+    # Map is now handled separately by create_adaptive_map_chart
     
     # Get the secondary indicator column name
     # The actual columns don't have 'secondary_' prefix
     # Fix the replacement logic to only replace ' and ' with '_and_', not every space
     secondary_col = f"{eu_priority.replace(' and ', '_and_').replace(' ', '_')}_{secondary_indicator.replace(' and ', '_and_').replace(' ', '_')}"
-    
-    if secondary_col in map_df.columns:
-        # Create choropleth map for the secondary indicator
-        european_map.add_trace(
-            go.Choropleth(
-                locations=[ISO2_TO_ISO3.get(country, country) for country in map_df['country']],
-                z=map_df[secondary_col],
-                text=map_df['country'],
-                locationmode='ISO-3',
-                colorscale='RdYlGn',  # Same as EU priority level
-                zmin=0,
-                zmax=1,
-                colorbar=dict(title='Score', tickformat='.2f'),
-                hovertemplate='<b>%{text}</b><br>Score: %{z:.2f}<extra></extra>'
-            )
-        )
-        
-        european_map.update_layout(
-            height=550,
-            margin={"r": 150, "t": 80, "l": 150, "b": 50},
-            geo=dict(
-                scope='europe',
-                projection=dict(type='equirectangular'),
-                showland=True,
-                landcolor='lightgray',
-                coastlinecolor='white',
-                showcountries=True,
-                countrycolor='lightgray',
-                showocean=True,
-                oceancolor='white',
-                showframe=False,
-                showcoastlines=True,
-                coastlinewidth=1,
-                projection_scale=1.0,
-                center=dict(lat=50, lon=10),
-                lataxis_range=[35, 75],
-                lonaxis_range=[-15, 45]
-            ),
-            paper_bgcolor='#ffffff',
-            plot_bgcolor='#ffffff',
-            font=dict(family="Arial, sans-serif", size=12, color="#2c3e50"),
-            title=dict(
-                text=f'{secondary_indicator} Scores Map',
-                font=dict(size=16, color="#f4d03f", weight="bold"),
-                x=0.5
-            ),
-            hoverlabel=dict(
-                bgcolor="rgba(245, 245, 245, 0.9)",
-                bordercolor="white",
-                font=dict(color="black", size=12)
-            )
-        )
-    else:
-        european_map.add_annotation(
-            text=f"Secondary indicator {secondary_indicator} not found in data",
-            xref="paper", yref="paper",
-            x=0.5, y=0.5, showarrow=False,
-            font=dict(size=16)
-        )
     
     # 2. Decile analysis chart
     decile_analysis = go.Figure()
@@ -1810,7 +1529,171 @@ def create_secondary_indicator_charts(map_df, analysis_df, time_df, eu_priority,
         font=dict(family='Arial, sans-serif', size=14)  # Match Budget dashboard font size
     )
     
-    return european_map, time_series, decile_analysis, radar_chart
+    return time_series, decile_analysis, radar_chart
+
+def create_level_filters(eu_priority, secondary_indicator, primary_indicator):
+    """Create level-based filters for the dashboard"""
+    level_filters = {
+        'eu_priority': eu_priority,
+        'secondary_indicator': secondary_indicator, 
+        'primary_indicator': primary_indicator
+    }
+    
+    # Determine the current level based on filter combinations
+    if eu_priority == 'ALL':
+        # Level 1: EWBI (overall) - All filters are ALL
+        level_filters['current_level'] = 1
+        level_filters['level_name'] = 'EWBI (Overall)'
+    elif eu_priority != 'ALL' and (secondary_indicator == 'ALL' or not secondary_indicator):
+        # Level 2: EU Priority selected, Secondary and Primary are ALL
+        level_filters['current_level'] = 2
+        level_filters['level_name'] = f'EU Priority: {eu_priority}'
+    elif eu_priority != 'ALL' and secondary_indicator != 'ALL' and (primary_indicator == 'ALL' or not primary_indicator):
+        # Level 3: EU Priority and Secondary selected, Primary is ALL
+        level_filters['current_level'] = 3
+        level_filters['level_name'] = f'Secondary: {secondary_indicator}'
+    elif eu_priority != 'ALL' and secondary_indicator != 'ALL' and primary_indicator != 'ALL':
+        # Level 4: All three filters have specific values
+        level_filters['current_level'] = 4
+        level_filters['level_name'] = f'Primary: {primary_indicator}'
+    else:
+        # Fallback case
+        level_filters['current_level'] = 1
+        level_filters['level_name'] = 'EWBI (Overall)'
+    
+    return level_filters
+
+def create_adaptive_map_chart(map_df, level_filters):
+    """Create an adaptive map chart that works for all 4 levels"""
+    
+    print(f"DEBUG: Creating map for Level {level_filters['current_level']}: {level_filters['level_name']}")
+    print(f"DEBUG: Filters - EU Priority: {level_filters['eu_priority']}, Secondary: {level_filters['secondary_indicator']}, Primary: {level_filters['primary_indicator']}")
+    
+    # Filter data based on current level
+    if level_filters['current_level'] == 1:
+        # Level 1: EWBI (overall)
+        filtered_data = map_df[
+            (map_df['EU_Priority'] == 'All') & 
+            (map_df['Secondary_indicator'] == 'All') & 
+            (map_df['primary_index'] == 'All')
+        ].copy()
+        title = 'European Well-Being Index (EWBI) Map'
+        colorbar_title = "EWBI Score"
+        
+    elif level_filters['current_level'] == 2:
+        # Level 2: EU Priority
+        filtered_data = map_df[
+            (map_df['EU_Priority'] == level_filters['eu_priority']) & 
+            (map_df['Secondary_indicator'] == 'All') & 
+            (map_df['primary_index'] == 'All')
+        ].copy()
+        title = f'EWBI Map - {level_filters["eu_priority"]}'
+        colorbar_title = "Score"
+        
+    elif level_filters['current_level'] == 3:
+        # Level 3: Secondary Indicator
+        filtered_data = map_df[
+            (map_df['EU_Priority'] == level_filters['eu_priority']) & 
+            (map_df['Secondary_indicator'] == level_filters['secondary_indicator']) & 
+            (map_df['primary_index'] == 'All')
+        ].copy()
+        title = f'EWBI Map - {level_filters["secondary_indicator"]}'
+        colorbar_title = "Score"
+        
+    else:  # Level 4: Primary Indicator
+        filtered_data = map_df[
+            (map_df['EU_Priority'] == level_filters['eu_priority']) & 
+            (map_df['Secondary_indicator'] == level_filters['secondary_indicator']) & 
+            (map_df['primary_index'] == level_filters['primary_indicator'])
+        ].copy()
+        title = f'EWBI Map - {level_filters["primary_indicator"]}'
+        colorbar_title = "Score"
+    
+    # Convert ISO-2 codes to ISO-3 codes for the map
+    filtered_data['iso3'] = filtered_data['country'].map(ISO2_TO_ISO3)
+    
+    # Filter out countries without ISO-3 codes (like aggregates)
+    filtered_data = filtered_data[filtered_data['iso3'].notna()].copy()
+    
+    # Create the choropleth map
+    european_map = go.Figure(data=go.Choropleth(
+        locations=filtered_data['iso3'],
+        z=filtered_data['Score'],
+        locationmode='ISO-3',
+        colorscale='RdYlGn',  # Red to Green scale
+        colorbar_title=colorbar_title,
+        text=filtered_data['country'] + ': ' + filtered_data['Score'].round(2).astype(str),
+        hovertemplate='<b>%{text}</b><br>' +
+                      f'{colorbar_title}: %{{z:.2f}}<br>' +
+                      '<extra></extra>'
+    ))
+    
+    # Update traces for better styling like Budget dashboard
+    european_map.update_traces(
+        marker_line_color="white",
+        marker_line_width=0.5,
+        colorbar=dict(
+            x=1.05,  # Position to the right of the map
+            xanchor="left",
+            thickness=15,
+            len=0.7,
+            title=dict(
+                text=colorbar_title,
+                font=dict(size=14, color="#2c3e50"),
+                side="top"
+            )
+        )
+    )
+    
+    european_map.update_layout(
+        height=550,  # Match Budget dashboard map height
+        margin={"r": 150, "t": 80, "l": 150, "b": 50},  # Match Budget dashboard margins
+        geo=dict(
+            scope='europe',
+            projection=dict(type='equirectangular'),
+            showland=True,
+            landcolor='lightgray',  # Same as Budget dashboard
+            coastlinecolor='white',  # White coastlines like Budget dashboard
+            showcountries=True,
+            countrycolor='lightgray',  # Same as Budget dashboard
+            showocean=True,
+            oceancolor='white',  # White ocean like Budget dashboard
+            showframe=False,
+            showcoastlines=True,
+            coastlinewidth=1,
+            projection_scale=1.0,  # Less zoom to show more of Europe
+            center=dict(lat=50, lon=10),  # Center on Europe
+            lataxis_range=[35, 75],  # Focus on Europe (southern to northern bounds)
+            lonaxis_range=[-15, 45]  # Focus on Europe (western to eastern bounds)
+        ),
+        # Style to match World Sufficiency Lab theme like Budget dashboard
+        paper_bgcolor='white',  # Clean white background
+        plot_bgcolor='white',
+        font=dict(
+            family="Arial, sans-serif",
+            size=12,
+            color="#2c3e50"
+        ),
+        title=dict(
+            text=title,
+            font=dict(size=18, color="#f4d03f", weight="bold"),  # Same size as other titles
+            x=0.5
+        ),
+        # Lighter hover box styling like Budget dashboard
+        hoverlabel=dict(
+            bgcolor="rgba(245, 245, 245, 0.9)",  # Light grey background for hover
+            bordercolor="white",
+            font=dict(color="black", size=12)
+        )
+    )
+    
+    # Set color scale from 0 to 1
+    european_map.update_traces(
+        zmin=0,
+        zmax=1
+    )
+    
+    return european_map
 
 if __name__ == '__main__':
     app.run_server(debug=True, host='0.0.0.0', port=8050)
