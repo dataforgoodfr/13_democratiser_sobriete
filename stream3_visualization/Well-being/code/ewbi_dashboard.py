@@ -1803,8 +1803,8 @@ def create_adaptive_decile_chart(analysis_df, level_filters):
             x=0.5
         ),
         height=500,
-        width=400,  # 20% less wide (500 * 0.8 = 400)
-        margin=dict(t=80, b=50, l=60, r=60),
+        width=700,  # 20% less wide (500 * 0.8 = 400)
+        margin=dict(t=80, b=80, l=60, r=60),  # Increased bottom margin for legend
         barmode='group',
         font=dict(family='Arial, sans-serif', size=14),
         paper_bgcolor='white',
@@ -1817,6 +1817,16 @@ def create_adaptive_decile_chart(analysis_df, level_filters):
         yaxis=dict(
             range=[0, 1],
             showgrid=False  # Remove horizontal grid lines
+        ),
+        legend=dict(
+            orientation="h",  # Horizontal legend
+            yanchor="bottom",
+            y=-0.2,  # Position below the chart
+            xanchor="center",
+            x=0.5,  # Center horizontally
+            bgcolor='rgba(255,255,255,0.8)',  # Semi-transparent white background
+            bordercolor='lightgray',
+            borderwidth=1
         )
     )
     
