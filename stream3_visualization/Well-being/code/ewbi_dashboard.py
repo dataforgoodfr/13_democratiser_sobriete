@@ -1869,6 +1869,36 @@ def create_level1_radar_chart(analysis_df):
     # Get unique EU priorities
     eu_priorities = eu_priority_data['EU_Priority'].unique()
     
+    # Function to wrap long labels into multiple lines
+    def wrap_label(label, max_length=25):
+        """Break long labels into multiple lines for better readability"""
+        if len(label) <= max_length:
+            return label
+        
+        # Try to break at natural points (commas, "and", spaces)
+        if ', ' in label:
+            parts = label.split(', ')
+            if len(parts) == 2:
+                return f"{parts[0]},<br>{parts[1]}"
+            elif len(parts) == 3:
+                return f"{parts[0]},<br>{parts[1]},<br>{parts[2]}"
+        elif ' and ' in label:
+            parts = label.split(' and ')
+            if len(parts) == 2:
+                return f"{parts[0]}<br>and {parts[1]}"
+        
+        # If no natural break points, break at spaces
+        words = label.split()
+        if len(words) <= 3:
+            return label
+        
+        # Break into roughly equal parts
+        mid = len(words) // 2
+        return f"{' '.join(words[:mid])}<br>{' '.join(words[mid:])}"
+    
+    # Wrap long labels
+    wrapped_labels = [wrap_label(priority) for priority in eu_priorities]
+    
     # Show countries in the determined order
     for country in eu_priority_data['country'].unique():
         country_data = eu_priority_data[eu_priority_data['country'] == country]
@@ -1884,7 +1914,7 @@ def create_level1_radar_chart(analysis_df):
         
         radar_chart.add_trace(go.Scatterpolar(
             r=values,
-            theta=labels,
+            theta=wrapped_labels,
             fill='toself',
             name=country
         ))
