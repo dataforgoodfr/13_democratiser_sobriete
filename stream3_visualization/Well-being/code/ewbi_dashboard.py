@@ -1738,6 +1738,41 @@ def create_adaptive_decile_chart(analysis_df, level_filters):
     
     print(f"DEBUG: Creating decile chart for Level {level_filters['current_level']}: {level_filters['level_name']}")
     
+    # Define consistent color scheme for countries
+    country_colors = {
+        'EU Average': '#1f77b4',  # Blue
+        'FR': '#ff7f0e',          # Orange/Red
+        'DE': '#2ca02c',          # Green
+        'IT': '#d62728',          # Red
+        'ES': '#9467bd',          # Purple
+        'PL': '#8c564b',          # Brown
+        'RO': '#e377c2',          # Pink
+        'NL': '#7f7f7f',          # Gray
+        'BE': '#bcbd22',          # Olive
+        'SE': '#17becf',          # Cyan
+        'AT': '#ff9896',          # Light Red
+        'BG': '#98df8a',          # Light Green
+        'HR': '#fdd0a2',          # Light Orange
+        'CY': '#c5b0d5',          # Light Purple
+        'CZ': '#c49c94',          # Light Brown
+        'DK': '#f7b6d2',          # Light Pink
+        'EE': '#c7c7c7',          # Light Gray
+        'FI': '#dbdb8d',          # Light Olive
+        'EL': '#9edae5',          # Light Cyan
+        'HU': '#ffed4f',          # Yellow
+        'IS': '#ff9896',          # Light Red
+        'IE': '#98df8a',          # Light Green
+        'LV': '#fdd0a2',          # Light Orange
+        'LT': '#c5b0d5',          # Light Purple
+        'LU': '#c49c94',          # Light Brown
+        'MT': '#f7b6d2',          # Light Pink
+        'NO': '#c7c7c7',          # Light Gray
+        'PT': '#dbdb8d',          # Light Olive
+        'SK': '#9edae5',          # Light Cyan
+        'SI': '#ffed4f',          # Yellow
+        'UK': '#ff9896'           # Light Red
+    }
+    
     # Filter data based on current level
     if level_filters['current_level'] == 1:
         # Level 1: EWBI (overall)
@@ -1803,7 +1838,8 @@ def create_adaptive_decile_chart(analysis_df, level_filters):
                 y=country_data['Score'],
                 name=country,
                 text=country_data['Score'].round(2),
-                textposition='auto'
+                textposition='auto',
+                marker_color=country_colors.get(country, '#1f77b4')  # Use consistent colors
             ))
     
     decile_analysis.update_layout(
@@ -1837,7 +1873,8 @@ def create_adaptive_decile_chart(analysis_df, level_filters):
             bgcolor='rgba(255,255,255,0.8)',  # Semi-transparent white background
             bordercolor='lightgray',
             borderwidth=1
-        )
+        ),
+        showlegend=True  # Force legend to show even with one trace
     )
     
     return decile_analysis
@@ -1858,6 +1895,41 @@ def create_level1_radar_chart(analysis_df):
     """Create Level 1 radar chart (EU Priorities comparison)"""
     
     radar_chart = go.Figure()
+    
+    # Define consistent color scheme for countries (same as decile chart)
+    country_colors = {
+        'EU Average': '#1f77b4',  # Blue
+        'FR': '#ff7f0e',          # Orange/Red
+        'DE': '#2ca02c',          # Green
+        'IT': '#d62728',          # Red
+        'ES': '#9467bd',          # Purple
+        'PL': '#8c564b',          # Brown
+        'RO': '#e377c2',          # Pink
+        'NL': '#7f7f7f',          # Gray
+        'BE': '#bcbd22',          # Olive
+        'SE': '#17becf',          # Cyan
+        'AT': '#ff9896',          # Light Red
+        'BG': '#98df8a',          # Light Green
+        'HR': '#fdd0a2',          # Light Orange
+        'CY': '#c5b0d5',          # Light Purple
+        'CZ': '#c49c94',          # Light Brown
+        'DK': '#f7b6d2',          # Light Pink
+        'EE': '#c7c7c7',          # Light Gray
+        'FI': '#dbdb8d',          # Light Olive
+        'EL': '#9edae5',          # Light Cyan
+        'HU': '#ffed4f',          # Yellow
+        'IS': '#ff9896',          # Light Red
+        'IE': '#98df8a',          # Light Green
+        'LV': '#fdd0a2',          # Light Orange
+        'LT': '#c5b0d5',          # Light Purple
+        'LU': '#c49c94',          # Light Brown
+        'MT': '#f7b6d2',          # Light Pink
+        'NO': '#c7c7c7',          # Light Gray
+        'PT': '#dbdb8d',          # Light Olive
+        'SK': '#9edae5',          # Light Cyan
+        'SI': '#ffed4f',          # Yellow
+        'UK': '#ff9896'           # Light Red
+    }
     
     # Get EU priority data for selected countries (Level 2: EU Priority)
     eu_priority_data = analysis_df[
@@ -1919,7 +1991,9 @@ def create_level1_radar_chart(analysis_df):
             r=values,
             theta=wrapped_labels,
             fill='toself',
-            name=country
+            name=country,
+            line_color=country_colors.get(country, '#1f77b4'),  # Use consistent colors
+            fillcolor=country_colors.get(country, '#1f77b4')     # Use consistent colors
         ))
     
     radar_chart.update_layout(
@@ -1930,15 +2004,15 @@ def create_level1_radar_chart(analysis_df):
             )),
         showlegend=True,
         legend=dict(
-            x=1.02,  # Position legend to the right of the chart
-            y=0.5,   # Center vertically
-            xanchor='left',
-            yanchor='middle',
-            orientation='v',  # Vertical layout allows natural wrapping
+            x=0.5,  # Center legend horizontally at the bottom
+            y=-0.15,  # Position below the chart
+            xanchor='center',  # Center horizontally
+            yanchor='top',  # Anchor to top of legend
+            orientation='h',  # Horizontal layout like decile chart
             itemsizing='constant',
             itemwidth=30,
             font=dict(size=11),
-            bgcolor='rgba(255,255,255,0.9)',
+            bgcolor='rgba(255,255,255,0.8)',
             bordercolor='lightgray',
             borderwidth=1
         ),
@@ -1948,7 +2022,7 @@ def create_level1_radar_chart(analysis_df):
             x=0.5
         ),
         height=500,
-        margin=dict(t=80, b=50, l=60, r=120),  # Increased right margin for legend
+        margin=dict(t=80, b=80, l=60, r=60),  # Increased bottom margin for legend below
         font=dict(family='Arial, sans-serif', size=14)
     )
     
