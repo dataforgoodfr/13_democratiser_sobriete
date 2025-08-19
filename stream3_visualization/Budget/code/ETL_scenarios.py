@@ -741,7 +741,7 @@ for _, row in base_df.iterrows():
 
                         # Calculate total available budget (global + world's historical emissions)
                         total_available = global_budget + world_cumulative
-
+                        
                         # Calculate country's share and subtract its historical emissions
                         country_cumulative = row[f'Latest_cumulative_CO2_emissions_Mt_{emissions_scope}']
                         
@@ -753,7 +753,8 @@ for _, row in base_df.iterrows():
                             # Use 1970 to 2050 (current approach)
                             population_share = row[f'Share_of_cumulative_population_1970_to_2050_{emissions_scope}']
                         
-                        # Calculate theoretical budget (this maintains the fairness concept)
+                        # Calculate theoretical budget using total available budget
+                        # This ensures: sum of all theoretical budgets = total_available - world_cumulative = global_budget
                         theoretical_budget = (total_available * population_share) - country_cumulative
                         
                         # For Responsibility scenarios, we need to normalize positive budgets
@@ -968,107 +969,128 @@ for _, row in base_df.iterrows():
                         'Years_to_neutrality_from_today': years_to_neutrality_from_today,
                         'Global_Total_Budget': global_total_budget,
                         'Latest_cumulative_emissions_per_capita': latest_cumulative_emissions_per_capita,
-                        'Share_of_global_cumulative_emissions': share_of_global_cumulative_emissions
+                        'Share_of_global_cumulative_emissions': share_of_global_cumulative_emissions,
+                        'Country_theoretical_budget': theoretical_budget if distribution in ['Responsibility', 'Capacity'] else None,
+                        'Country_share_of_positive_budgets': None  # Will be calculated during normalization for positive budgets
                     }
                     scenarios.append(scenario)
 
-# NORMALIZATION STEP: Fix Responsibility scenario budgets to ensure mathematical consistency
-print("\n=== NORMALIZING RESPONSIBILITY SCENARIO BUDGETS ===")
-print("This ensures that sum of positive country budgets = global budget")
+# NORMALIZATION STEP: Fix Responsibility and Capacity scenario budgets to ensure mathematical consistency
+print("\n=== NORMALIZING RESPONSIBILITY AND CAPACITY SCENARIO BUDGETS ===")
+print("This ensures that sum of positive country budgets = global budget for each scenario type independently")
 
-# Group scenarios by scope, warming scenario, and probability
-responsibility_scenarios = [s for s in scenarios if s['Budget_distribution_scenario'] == 'Responsibility']
-
-if responsibility_scenarios:
-    # Group by unique combinations of scope, warming, and probability
-    scenario_groups = {}
-    for scenario in responsibility_scenarios:
-        key = (scenario['Emissions_scope'], scenario['Warming_scenario'], scenario['Probability_of_reach'])
-        if key not in scenario_groups:
-            scenario_groups[key] = []
-        scenario_groups[key].append(scenario)
+# Process Responsibility and Capacity scenarios separately to avoid interference
+for scenario_type in ['Responsibility', 'Capacity']:
+    print(f"\n--- Processing {scenario_type} scenarios ---")
     
-    # Process each group
-    for (scope, warming, prob), group_scenarios in scenario_groups.items():
-        print(f"\nProcessing {scope} scope, {warming}, {prob}...")
+    scenarios_to_normalize = [s for s in scenarios if s['Budget_distribution_scenario'] == scenario_type]
+    
+    if scenarios_to_normalize:
+        # Group by unique combinations of scope, warming, and probability
+        scenario_groups = {}
+        for scenario in scenarios_to_normalize:
+            key = (scenario['Emissions_scope'], scenario['Warming_scenario'], scenario['Probability_of_reach'])
+            if key not in scenario_groups:
+                scenario_groups[key] = []
+            scenario_groups[key].append(scenario)
         
-        # Get the global budget for this scenario
-        global_budget = group_scenarios[0]['Global_Carbon_budget']
-        
-        # Calculate theoretical budgets and identify positive ones
-        theoretical_budgets = []
-        positive_scenarios = []
-        
-        for scenario in group_scenarios:
-            theoretical_budget = scenario['Country_carbon_budget']
-            theoretical_budgets.append(theoretical_budget)
+        # Process each group
+        for (scope, warming, prob), group_scenarios in scenario_groups.items():
+            print(f"\nProcessing {scope} scope, {warming}, {prob}...")
             
-            if theoretical_budget > 0:
-                positive_scenarios.append(scenario)
-        
-        if positive_scenarios:
-            # Separate real countries from aggregates
-            real_country_scenarios = [s for s in positive_scenarios if s['Country'] != 'All']
-            aggregate_scenarios = [s for s in positive_scenarios if s['Country'] == 'All']
+            # Get the global budget for this scenario
+            global_budget = group_scenarios[0]['Global_Carbon_budget']
             
-            if real_country_scenarios:
-                # Calculate total theoretical positive budget for real countries only
-                total_theoretical_positive = sum([s['Country_carbon_budget'] for s in real_country_scenarios])
+            # Calculate theoretical budgets and identify positive ones
+            theoretical_budgets = []
+            positive_scenarios = []
+            
+            for scenario in group_scenarios:
+                theoretical_budget = scenario['Country_carbon_budget']
+                theoretical_budgets.append(theoretical_budget)
                 
-                print(f"  Global budget: {global_budget:,.0f} MtCO2")
-                print(f"  Total theoretical positive budgets (real countries only): {total_theoretical_positive:,.0f} MtCO2")
-                print(f"  Real countries with positive budgets: {len(real_country_scenarios)}")
+                if theoretical_budget > 0:
+                    positive_scenarios.append(scenario)
+            
+            if positive_scenarios:
+                # Separate real countries from aggregates
+                real_country_scenarios = [s for s in positive_scenarios if s['Country'] != 'All']
+                aggregate_scenarios = [s for s in positive_scenarios if s['Country'] == 'All']
                 
-                # Normalize real country budgets to sum to global budget
-                print(f"  Applying normalization to real countries only...")
-                for scenario in real_country_scenarios:
-                    theoretical_budget = scenario['Country_carbon_budget']
-                    share_of_positive = theoretical_budget / total_theoretical_positive
-                    final_budget = global_budget * share_of_positive
+                if real_country_scenarios:
+                    # Calculate total theoretical positive budget for real countries only
+                    total_theoretical_positive = sum([s['Country_carbon_budget'] for s in real_country_scenarios])
                     
-                    # Store theoretical budget and share for sanity checks
-                    scenario['Country_theoretical_budget'] = theoretical_budget
-                    scenario['Country_share_of_positive_budgets'] = share_of_positive
-                    scenario['Country_carbon_budget'] = final_budget
+                    print(f"  Global budget: {global_budget:,.0f} MtCO2")
+                    print(f"  Total theoretical positive budgets (real countries only): {total_theoretical_positive:,.0f} MtCO2")
+                    print(f"  Real countries with positive budgets: {len(real_country_scenarios)}")
                     
-                    print(f"    {scenario['Country']}: {theoretical_budget:,.0f} → {final_budget:,.0f} MtCO2 (share: {share_of_positive:.3f})")
-                
-                print(f"  After normalization: sum of real country budgets = {global_budget:,.0f} MtCO2 ✓")
-            else:
-                print(f"  No real countries with positive budgets")
-            
-            # Handle aggregates separately
-            for scenario in aggregate_scenarios:
-                if scenario['ISO2'] == 'WLD':
-                    # WLD gets the sum of real country budgets (which equals global budget)
-                    wld_budget = sum([s['Country_carbon_budget'] for s in real_country_scenarios])
-                    scenario['Country_carbon_budget'] = wld_budget
-                    print(f"    WLD (World): gets sum of real country budgets = {wld_budget:,.0f} MtCO2")
+                    # Normalize real country budgets to sum to global budget
+                    print(f"  Applying normalization to real countries only...")
+                    for scenario in real_country_scenarios:
+                        theoretical_budget = scenario['Country_carbon_budget']
+                        share_of_positive = theoretical_budget / total_theoretical_positive
+                        final_budget = global_budget * share_of_positive
+                        
+                        # Store theoretical budget and share for sanity checks
+                        scenario['Country_theoretical_budget'] = theoretical_budget
+                        scenario['Country_share_of_positive_budgets'] = share_of_positive
+                        scenario['Country_carbon_budget'] = final_budget
+                        
+                        print(f"    {scenario['Country']}: {theoretical_budget:,.0f} → {final_budget:,.0f} MtCO2 (share: {share_of_positive:.3f})")
+                    
+                    print(f"  After normalization: sum of real country budgets = {global_budget:,.0f} MtCO2 ✓")
                 else:
-                    # Other aggregates (EU, G20, etc.) get 0 - they don't represent real countries
-                    scenario['Country_carbon_budget'] = 0
-                    print(f"    {scenario['Country']} ({scenario['ISO2']}): set to 0 (aggregate)")
-            
-            # Update the main scenarios list with normalized budgets
-            print(f"  Updating main scenarios list...")
-            for scenario in positive_scenarios:
-                # Find the corresponding scenario in the main scenarios list
-                for main_scenario in scenarios:
-                    if (main_scenario['ISO2'] == scenario['ISO2'] and
-                        main_scenario['Emissions_scope'] == scenario['Emissions_scope'] and
-                        main_scenario['Warming_scenario'] == scenario['Warming_scenario'] and
-                        main_scenario['Probability_of_reach'] == scenario['Probability_of_reach'] and
-                        main_scenario['Budget_distribution_scenario'] == 'Responsibility'):
-                        
-                        # Update with normalized budget
-                        main_scenario['Country_carbon_budget'] = scenario['Country_carbon_budget']
-                        
-                        # Recalculate neutrality year based on normalized budget (for real countries only)
-                        if (scenario['Country_carbon_budget'] > 0 and 
-                            scenario['Country'] != 'All' and 
-                            scenario['ISO2'] != 'WLD'):
+                    print(f"  No real countries with positive budgets")
+                
+                # Handle aggregates separately
+                for scenario in aggregate_scenarios:
+                    if scenario['ISO2'] == 'WLD':
+                        # WLD gets the sum of real country budgets (which equals global budget)
+                        wld_budget = sum([s['Country_carbon_budget'] for s in real_country_scenarios])
+                        scenario['Country_carbon_budget'] = wld_budget
+                        print(f"    WLD (World): gets sum of real country budgets = {wld_budget:,.0f} MtCO2")
+                    else:
+                        # Other aggregates (EU, G20, etc.) get 0 - they don't represent real countries
+                        scenario['Country_carbon_budget'] = 0
+                        print(f"    {scenario['Country']} ({scenario['ISO2']}): set to 0 (aggregate)")
+                
+                # Update the main scenarios list with normalized budgets
+                print(f"  Updating main scenarios list...")
+                for scenario in positive_scenarios:
+                    # Find the corresponding scenario in the main scenarios list
+                    for main_scenario in scenarios:
+                        if (main_scenario['ISO2'] == scenario['ISO2'] and
+                            main_scenario['Emissions_scope'] == scenario['Emissions_scope'] and
+                            main_scenario['Warming_scenario'] == scenario['Warming_scenario'] and
+                            main_scenario['Probability_of_reach'] == scenario['Probability_of_reach'] and
+                            main_scenario['Budget_distribution_scenario'] in ['Responsibility', 'Capacity']):
                             
-                            latest_annual = main_scenario['Latest_annual_CO2_emissions_Mt']
+                            # Update with normalized budget and preserve theoretical budget info
+                            main_scenario['Country_carbon_budget'] = scenario['Country_carbon_budget']
+                            main_scenario['Country_theoretical_budget'] = scenario['Country_theoretical_budget']
+                            main_scenario['Country_share_of_positive_budgets'] = scenario['Country_share_of_positive_budgets']
+                
+                # Also ensure ALL scenarios in this group have their theoretical budgets preserved
+                for scenario in group_scenarios:
+                    # Find the corresponding scenario in the main scenarios list
+                    for main_scenario in scenarios:
+                        if (main_scenario['ISO2'] == scenario['ISO2'] and
+                            main_scenario['Emissions_scope'] == scenario['Emissions_scope'] and
+                            main_scenario['Warming_scenario'] == scenario['Warming_scenario'] and
+                            main_scenario['Probability_of_reach'] == scenario['Probability_of_reach'] and
+                            main_scenario['Budget_distribution_scenario'] in ['Responsibility', 'Capacity']):
+                            
+                            # Ensure theoretical budget is preserved (this was set during initial creation)
+                            if main_scenario['Country_theoretical_budget'] is None:
+                                main_scenario['Country_theoretical_budget'] = scenario['Country_carbon_budget']
+                            
+                            # Recalculate neutrality year based on normalized budget (for real countries only)
+                            if (scenario['Country_carbon_budget'] > 0 and 
+                                scenario['Country'] != 'All' and 
+                                scenario['ISO2'] != 'WLD'):
+                                
+                                latest_annual = main_scenario['Latest_annual_CO2_emissions_Mt']
                             latest_year = main_scenario['Latest_year']
                             
                             # Recalculate years to neutrality
@@ -1095,49 +1117,65 @@ if responsibility_scenarios:
 
 # COMPREHENSIVE SANITY CHECK: Verify normalization worked correctly
 print("\n=== COMPREHENSIVE SANITY CHECK ===")
-print("Verifying that sum of positive responsibility budgets equals global budgets...")
+print("Verifying that sum of positive budgets equals global budgets for each scenario type independently...")
 
-# Check each scenario group
-for (scope, warming, prob), group_scenarios in scenario_groups.items():
-    if warming == '1.5°C' and prob == '50%' and scope == 'Territory':
-        print(f"\n🔍 SANITY CHECK: {scope} scope, {warming}, {prob}")
+# Check each scenario type separately
+for scenario_type in ['Responsibility', 'Capacity']:
+    print(f"\n🔍 SANITY CHECK: {scenario_type} scenarios")
+    
+    # Get scenarios of this type
+    type_scenarios = [s for s in scenarios if s['Budget_distribution_scenario'] == scenario_type]
+    
+    if type_scenarios:
+        # Group by unique combinations of scope, warming, and probability
+        type_scenario_groups = {}
+        for scenario in type_scenarios:
+            key = (scenario['Emissions_scope'], scenario['Warming_scenario'], scenario['Probability_of_reach'])
+            if key not in type_scenario_groups:
+                type_scenario_groups[key] = []
+            type_scenario_groups[key].append(scenario)
         
-        # Get the original global budget
-        original_global_budget = group_scenarios[0]['Global_Carbon_budget']
-        print(f"  Original global budget: {original_global_budget:,.0f} MtCO2")
-        
-        # Calculate sum of all positive responsibility budgets after normalization (exclude WLD)
-        positive_budgets = []
-        for scenario in group_scenarios:
-            if scenario['Country_carbon_budget'] > 0 and scenario['ISO2'] != 'WLD':
-                positive_budgets.append(scenario['Country_carbon_budget'])
-        
-        total_positive_budgets = sum(positive_budgets)
-        print(f"  Sum of positive responsibility budgets: {total_positive_budgets:,.0f} MtCO2")
-        
-        # Check if they match
-        if abs(total_positive_budgets - original_global_budget) < 0.01:  # Allow small floating point differences
-            print(f"  ✅ MATCH: Sum of positive budgets = Global budget")
-        else:
-            print(f"  ❌ MISMATCH: Difference = {total_positive_budgets - original_global_budget:,.0f} MtCO2")
-            print(f"  This indicates a problem with normalization!")
-        
-        # Show top 5 countries by budget size
-        top_countries = sorted(group_scenarios, key=lambda x: x['Country_carbon_budget'], reverse=True)[:5]
-        print(f"  Top 5 countries by budget:")
-        for i, country in enumerate(top_countries, 1):
-            print(f"    {i}. {country['Country']}: {country['Country_carbon_budget']:,.0f} MtCO2")
-        
-        # Show budget distribution
-        budget_ranges = {
-            '0-1000': len([b for b in positive_budgets if 0 < b <= 1000]),
-            '1000-10000': len([b for b in positive_budgets if 1000 < b <= 10000]),
-            '10000-100000': len([b for b in positive_budgets if 10000 < b <= 100000]),
-            '>100000': len([b for b in positive_budgets if b > 100000])
-        }
-        print(f"  Budget distribution:")
-        for range_name, count in budget_ranges.items():
-            print(f"    {range_name} MtCO2: {count} countries")
+        # Check each group
+        for (scope, warming, prob), group_scenarios in type_scenario_groups.items():
+            if warming == '1.5°C' and prob == '50%' and scope == 'Territory':
+                print(f"\n  {scope} scope, {warming}, {prob}")
+                
+                # Get the original global budget
+                original_global_budget = group_scenarios[0]['Global_Carbon_budget']
+                print(f"    Original global budget: {original_global_budget:,.0f} MtCO2")
+                
+                # Calculate sum of all positive budgets after normalization (exclude WLD)
+                positive_budgets = []
+                for scenario in group_scenarios:
+                    if scenario['Country_carbon_budget'] > 0 and scenario['ISO2'] != 'WLD':
+                        positive_budgets.append(scenario['Country_carbon_budget'])
+                
+                total_positive_budgets = sum(positive_budgets)
+                print(f"    Sum of positive {scenario_type} budgets: {total_positive_budgets:,.0f} MtCO2")
+                
+                # Check if they match
+                if abs(total_positive_budgets - original_global_budget) < 0.01:  # Allow small floating point differences
+                    print(f"    ✅ MATCH: Sum of positive budgets = Global budget")
+                else:
+                    print(f"    ❌ MISMATCH: Difference = {total_positive_budgets - original_global_budget:,.0f} MtCO2")
+                    print(f"    This indicates a problem with normalization!")
+                
+                # Show top 5 countries by budget size
+                top_countries = sorted(group_scenarios, key=lambda x: x['Country_carbon_budget'], reverse=True)[:5]
+                print(f"    Top 5 countries by budget:")
+                for i, country in enumerate(top_countries, 1):
+                    print(f"      {i}. {country['Country']}: {country['Country_carbon_budget']:,.0f} MtCO2")
+                
+                # Show budget distribution
+                budget_ranges = {
+                    '0-1000': len([b for b in positive_budgets if 0 < b <= 1000]),
+                    '1000-10000': len([b for b in positive_budgets if 1000 < b <= 10000]),
+                    '10000-100000': len([b for b in positive_budgets if 10000 < b <= 100000]),
+                    '>100000': len([b for b in positive_budgets if b > 100000])
+                }
+                print(f"    Budget distribution:")
+                for range_name, count in budget_ranges.items():
+                    print(f"      {range_name} MtCO2: {count} countries")
 
 print("=== END SANITY CHECK ===\n")
 
