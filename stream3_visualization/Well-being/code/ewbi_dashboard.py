@@ -1646,7 +1646,7 @@ def create_adaptive_map_chart(map_df, level_filters):
         colorscale='RdYlGn',  # Red to Green scale
         colorbar_title=colorbar_title,
         text=filtered_data['country'],
-        hovertemplate='<b>%{text}</b><br>Score: %{z:.3f}<extra></extra>'
+        hovertemplate='<b>%{text}</b><br>Score: %{z:.2f}<extra></extra>'
     ))
     
     # Update traces for better styling like Budget dashboard
@@ -1817,7 +1817,8 @@ def create_adaptive_decile_chart(analysis_df, level_filters):
                 name=country,
                 text=country_data['Score'].round(2),
                 textposition='auto',
-                marker_color=country_colors.get(country, '#1f77b4')  # Use consistent colors
+                marker_color=country_colors.get(country, '#1f77b4'),  # Use consistent colors
+                hovertemplate='<b>Score:</b> %{y:.2f}<br><b>Decile:</b> %{x}<br><b>Country:</b> %{fullData.name}<extra></extra>'
             ))
     
     decile_analysis.update_layout(
@@ -1840,7 +1841,8 @@ def create_adaptive_decile_chart(analysis_df, level_filters):
         ),
         yaxis=dict(
             range=[0, 1],
-            showgrid=False  # Remove horizontal grid lines
+            showgrid=False,  # Remove horizontal grid lines
+            tickformat='.2f'  # Show 2 decimal places
         ),
         legend=dict(
             orientation="h",  # Horizontal legend
@@ -1972,7 +1974,8 @@ def create_level1_radar_chart(analysis_df):
             name=country,
             line_color=country_colors.get(country, '#1f77b4'),  # Use consistent colors
             fillcolor=country_colors.get(country, '#1f77b4'),    # Use consistent colors
-            opacity=0.6  # Make polygons semi-transparent to see radar grid below
+            opacity=0.6,  # Make polygons semi-transparent to see radar grid below
+            hovertemplate='<b>Score:</b> %{r:.2f}<br><b>EU Priority:</b> %{theta}<br><b>Country:</b> %{fullData.name}<extra></extra>'
         ))
     
     radar_chart.update_layout(
@@ -2113,7 +2116,7 @@ def create_levels2to4_country_chart(analysis_df, level_filters):
                 color='white',
                 line=dict(color='#1f77b4', width=2)
             ),
-            hovertemplate='<b>Score:</b> %{y:.3f}<br><b>Country:</b> %{x}<br><b>Indicator:</b> %{fullData.name}<extra></extra>'
+                            hovertemplate='<b>Score:</b> %{y:.2f}<br><b>Country:</b> %{x}<br><b>Indicator:</b> %{fullData.name}<extra></extra>'
         )
     )
     
@@ -2159,7 +2162,7 @@ def create_levels2to4_country_chart(analysis_df, level_filters):
                         color='white',
                         line=dict(color=colors[i], width=2)
                     ),
-                    hovertemplate='<b>Score:</b> %{y:.3f}<br><b>Country:</b> %{x}<br><b>Indicator:</b> %{fullData.name}<extra></extra>'
+                    hovertemplate='<b>Score:</b> %{y:.2f}<br><b>Country:</b> %{x}<br><b>Indicator:</b> %{fullData.name}<extra></extra>'
                 )
             )
     
@@ -2304,7 +2307,7 @@ def create_adaptive_time_series_chart(analysis_df, level_filters):
                 mode='lines+markers',
                 line=dict(width=3),
                 marker=dict(size=8),
-                hovertemplate='<b>Score:</b> %{y:.3f}<br><b>Year:</b> %{x}<br><b>Country:</b> %{fullData.name}<extra></extra>',
+                hovertemplate='<b>Score:</b> %{y:.2f}<br><b>Year:</b> %{x}<br><b>Country:</b> %{fullData.name}<extra></extra>',
                 line_color=country_colors.get(country, '#1f77b4'),  # Use consistent colors
                 marker_color=country_colors.get(country, '#1f77b4')  # Use consistent colors
             ))
@@ -2317,7 +2320,7 @@ def create_adaptive_time_series_chart(analysis_df, level_filters):
         ),
         height=500,
         width=700,  # Match decile chart width
-        margin=dict(t=40, b=100, l=20, r=60),  # Reduced top and left margins to move chart more to the right and align with map
+        margin=dict(t=40, b=100, l=40, r=10),  # Reduced top and left margins to move chart more to the right and align with map
         font=dict(family='Arial, sans-serif', size=14),
         paper_bgcolor='white',
         plot_bgcolor='white',
@@ -2330,7 +2333,8 @@ def create_adaptive_time_series_chart(analysis_df, level_filters):
         yaxis=dict(
             range=[0, 1],
             title='',  # Remove "Score" label
-            showgrid=False  # Remove horizontal grid lines
+            showgrid=False,  # Remove horizontal grid lines
+            tickformat='.2f'  # Show 2 decimal places
         ),
         legend=dict(
             orientation="h",  # Horizontal legend
