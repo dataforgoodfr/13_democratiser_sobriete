@@ -294,7 +294,7 @@ app.layout = html.Div([
                 "means taking into account each country's cumulative emissions when available and allocating the total carbon budget based on share of population from 1970 to 2050"
             ], style={'marginBottom': '10px', 'lineHeight': '1.6'}),
             html.P([
-                html.Strong('"Capacity" '),
+                html.Strong('"Capability" '),
                 "means taking into account each country's cumulative population and GDP per capita PPP from 1970 to the latest year available"
             ], style={'marginBottom': '10px', 'lineHeight': '1.6'}),
         ])
@@ -505,8 +505,8 @@ def update_bar_chart(probability, selected_country, g20_filter):
     # Define the desired order (NDC Pledges only has Territory)
     scenario_order = [
         'NDC Pledges - Territory',
-        'Capacity - Territory',
-        'Capacity - Consumption', 
+                    'Capability - Territory',
+            'Capability - Consumption', 
         'Responsibility - Territory',
         'Responsibility - Consumption'
     ]
@@ -517,8 +517,8 @@ def update_bar_chart(probability, selected_country, g20_filter):
         'Consumption': '#FB8072'   # Light red
     }
     
-    # Filter out Population - only show NDC Pledges, Responsibility, Capacity
-    filtered_data = filtered_data[filtered_data['Budget_distribution_scenario'].isin(['NDC Pledges', 'Responsibility', 'Capacity'])]
+    # Filter out Population - only show NDC Pledges, Responsibility, Capability
+    filtered_data = filtered_data[filtered_data['Budget_distribution_scenario'].isin(['NDC Pledges', 'Responsibility', 'Capability'])]
     
     # Create bar heights from 2025 baseline
     filtered_data['bar_height'] = filtered_data['Neutrality_year_numeric'] - 2025
@@ -595,7 +595,7 @@ def update_bar_chart(probability, selected_country, g20_filter):
         xaxis=dict(
             tickangle=0,  # Horizontal labels
             tickmode='array',
-            tickvals=['NDC Pledges - Territory', 'Capacity - Territory', 'Capacity - Consumption', 'Responsibility - Territory', 'Responsibility - Consumption'],
+            tickvals=['NDC Pledges - Territory', 'Capability - Territory', 'Capability - Consumption', 'Responsibility - Territory', 'Responsibility - Consumption'],
             ticktext=['', '', '', '', ''],  # Remove default tick labels
             tickfont=dict(size=12),
             side='bottom'  # Put emissions scope labels below bars
@@ -605,8 +605,8 @@ def update_bar_chart(probability, selected_country, g20_filter):
     # Add emissions scope labels at y=1965
     emissions_scope_labels = [
         (0, 'Territorial'),      # NDC Pledges - Territory
-        (1, 'Territorial'),      # Capacity - Territory
-        (2, 'Consumption-based'),    # Capacity - Consumption
+        (1, 'Territorial'),      # Capability - Territory
+        (2, 'Consumption-based'),    # Capability - Consumption
         (3, 'Territorial'),      # Responsibility - Territory
         (4, 'Consumption-based')     # Responsibility - Consumption
     ]
@@ -627,7 +627,7 @@ def update_bar_chart(probability, selected_country, g20_filter):
     # Add scenario group labels at the bottom
     scenario_groups = [
         ('NDC Pledges', 0, 0),      # Single bar for NDC Pledges
-        ('Capacity', 1, 2),          # Two bars for Capacity
+        ('Capability', 1, 2),          # Two bars for Capability
         ('Responsibility', 3, 4)     # Two bars for Responsibility
     ]
     
