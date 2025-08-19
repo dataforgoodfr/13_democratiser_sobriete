@@ -423,7 +423,17 @@ def update_charts(eu_priority, secondary_indicator, primary_indicator, selected_
     map_chart = create_adaptive_map_chart(map_df, level_filters)
     
     # Create adaptive decile chart (works for all 4 levels)
-    decile_chart = create_adaptive_decile_chart(filtered_df, level_filters)
+    # For decile chart, we want ALL deciles for both EU Average and individual countries
+    if not selected_countries or selected_countries == ['EU Average']:
+        # Default to EU Average with all deciles
+        decile_df = master_df[master_df['country'] == 'EU Average'].copy()
+    else:
+        # Include EU Average and selected countries with ALL deciles
+        decile_df = master_df[
+            (master_df['country'].isin(['EU Average'] + selected_countries))
+        ].copy()
+    
+    decile_chart = create_adaptive_decile_chart(decile_df, level_filters)
     
     # Determine what to show for other charts based on filter selections
     if eu_priority == 'ALL':
