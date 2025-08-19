@@ -2004,7 +2004,7 @@ def create_level1_radar_chart(analysis_df):
             x=0.5
         ),
         height=500,
-        margin=dict(t=80, b=80, l=60, r=60),  # Increased bottom margin for legend below
+        margin=dict(t=40, b=80, l=60, r=60),  # Reduced top margin to align with country comparison chart
         font=dict(family='Arial, sans-serif', size=14)
     )
     
