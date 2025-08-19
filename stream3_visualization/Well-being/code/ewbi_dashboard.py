@@ -1897,14 +1897,17 @@ def create_level1_radar_chart(analysis_df):
             )),
         showlegend=True,
         legend=dict(
-            x=0.5,
-            y=-0.1,
-            xanchor='center',
-            yanchor='top',
-            orientation='h',
+            x=1.02,  # Position legend to the right of the chart
+            y=0.5,   # Center vertically
+            xanchor='left',
+            yanchor='middle',
+            orientation='v',  # Vertical layout allows natural wrapping
             itemsizing='constant',
             itemwidth=30,
-            font=dict(size=11)  # Slightly smaller font to fit better
+            font=dict(size=11),
+            bgcolor='rgba(255,255,255,0.9)',
+            bordercolor='lightgray',
+            borderwidth=1
         ),
         title=dict(
             text='EU Priorities Comparison - Selected Countries',
@@ -1912,7 +1915,7 @@ def create_level1_radar_chart(analysis_df):
             x=0.5
         ),
         height=500,
-        margin=dict(t=80, b=80, l=60, r=60),  # Increased bottom margin for legend
+        margin=dict(t=80, b=50, l=60, r=120),  # Increased right margin for legend
         font=dict(family='Arial, sans-serif', size=14)
     )
     
