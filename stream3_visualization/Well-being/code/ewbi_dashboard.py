@@ -1645,10 +1645,8 @@ def create_adaptive_map_chart(map_df, level_filters):
         locationmode='ISO-3',
         colorscale='RdYlGn',  # Red to Green scale
         colorbar_title=colorbar_title,
-        text=filtered_data['country'] + ': ' + filtered_data['Score'].round(2).astype(str),
-        hovertemplate='<b>%{text}</b><br>' +
-                      f'{colorbar_title}: %{{z:.2f}}<br>' +
-                      '<extra></extra>'
+        text=filtered_data['country'],
+        hovertemplate='<b>%{text}</b><br>Score: %{z:.3f}<extra></extra>'
     ))
     
     # Update traces for better styling like Budget dashboard
@@ -1670,7 +1668,7 @@ def create_adaptive_map_chart(map_df, level_filters):
     
     european_map.update_layout(
         height=550,  # Match Budget dashboard map height
-        margin={"r": 150, "t": 80, "l": 150, "b": 50},  # Match Budget dashboard margins
+        margin={"r": 120, "t": 40, "l": 80, "b": 20},  # Reduced bottom margin to reduce padding with charts below
         geo=dict(
             scope='europe',
             projection=dict(type='equirectangular'),
@@ -1699,15 +1697,10 @@ def create_adaptive_map_chart(map_df, level_filters):
         ),
         title=dict(
             text=title,
-            font=dict(size=18, color="#f4d03f", weight="bold"),  # Same size as other titles
+            font=dict(size=16, color="#f4d03f", weight="bold"),  # Match other chart title sizes
             x=0.5
         ),
-        # Lighter hover box styling like Budget dashboard
-        hoverlabel=dict(
-            bgcolor="rgba(245, 245, 245, 0.9)",  # Light grey background for hover
-            bordercolor="white",
-            font=dict(color="black", size=12)
-        )
+
     )
     
     # Set color scale from 0 to 1
@@ -1835,7 +1828,7 @@ def create_adaptive_decile_chart(analysis_df, level_filters):
         ),
         height=500,
         width=700,  # 20% less wide (500 * 0.8 = 400)
-        margin=dict(t=80, b=80, l=60, r=60),  # Increased bottom margin for legend
+        margin=dict(t=40, b=80, l=60, r=60),  # Reduced top margin to reduce padding with charts above
         barmode='group',
         font=dict(family='Arial, sans-serif', size=14),
         paper_bgcolor='white',
@@ -2198,7 +2191,7 @@ def create_levels2to4_country_chart(analysis_df, level_filters):
         ),
         height=500,
         width=950,  # Make chart wider
-        margin=dict(t=80, b=80, l=30, r=120),  # Increased bottom margin to accommodate legend
+        margin=dict(t=40, b=80, l=30, r=120),  # Reduced top margin to reduce padding with charts above
         font=dict(family='Arial, sans-serif', size=14),
         paper_bgcolor='white',  # Remove grey background
         plot_bgcolor='white'    # Remove grey background
@@ -2324,25 +2317,25 @@ def create_adaptive_time_series_chart(analysis_df, level_filters):
         ),
         height=500,
         width=700,  # Match decile chart width
-        margin=dict(t=80, b=80, l=60, r=60),  # Increased bottom margin for legend
+        margin=dict(t=40, b=100, l=20, r=60),  # Reduced top and left margins to move chart more to the right and align with map
         font=dict(family='Arial, sans-serif', size=14),
         paper_bgcolor='white',
         plot_bgcolor='white',
         xaxis=dict(
-            title='Year',
+            title='',  # Remove "Year" label
             showgrid=False,  # Remove vertical grid lines
             tickmode='linear',
             dtick=1  # Show every year
         ),
         yaxis=dict(
             range=[0, 1],
-            title='Score',
+            title='',  # Remove "Score" label
             showgrid=False  # Remove horizontal grid lines
         ),
         legend=dict(
             orientation="h",  # Horizontal legend
             yanchor="bottom",
-            y=-0.2,  # Position below the chart
+            y=-0.3,  # Move legend further down to avoid overlap with X-axis labels
             xanchor="center",
             x=0.5,  # Center horizontally
             bgcolor='rgba(255,255,255,0.8)',  # Semi-transparent white background
