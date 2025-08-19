@@ -953,6 +953,77 @@ for _, row in base_df.iterrows():
                     }
                     scenarios.append(scenario)
 
+# NORMALIZATION STEP: Fix Responsibility scenario budgets to ensure mathematical consistency
+print("\n=== NORMALIZING RESPONSIBILITY SCENARIO BUDGETS ===")
+print("This ensures that sum of positive country budgets = global budget")
+
+# Group scenarios by scope, warming scenario, and probability
+responsibility_scenarios = [s for s in scenarios if s['Budget_distribution_scenario'] == 'Responsibility']
+
+if responsibility_scenarios:
+    # Group by unique combinations of scope, warming, and probability
+    scenario_groups = {}
+    for scenario in responsibility_scenarios:
+        key = (scenario['Emissions_scope'], scenario['Warming_scenario'], scenario['Probability_of_reach'])
+        if key not in scenario_groups:
+            scenario_groups[key] = []
+        scenario_groups[key].append(scenario)
+    
+    # Process each group
+    for (scope, warming, prob), group_scenarios in scenario_groups.items():
+        print(f"\nProcessing {scope} scope, {warming}, {prob}...")
+        
+        # Get the global budget for this scenario
+        global_budget = group_scenarios[0]['Global_Carbon_budget']
+        
+        # Calculate theoretical budgets and identify positive ones
+        theoretical_budgets = []
+        positive_scenarios = []
+        
+        for scenario in group_scenarios:
+            theoretical_budget = scenario['Country_carbon_budget']
+            theoretical_budgets.append(theoretical_budget)
+            
+            if theoretical_budget > 0:
+                positive_scenarios.append(scenario)
+        
+        if positive_scenarios:
+            # Calculate total theoretical positive budget
+            total_theoretical_positive = sum([s['Country_carbon_budget'] for s in positive_scenarios])
+            
+            print(f"  Global budget: {global_budget:,.0f} MtCO2")
+            print(f"  Total theoretical positive budgets: {total_theoretical_positive:,.0f} MtCO2")
+            print(f"  Countries with positive budgets: {len(positive_scenarios)}")
+            
+            # Normalize positive budgets to sum to global budget
+            normalization_factor = global_budget / total_theoretical_positive
+            
+            print(f"  Normalization factor: {normalization_factor:.6f}")
+            
+            # Update the scenarios list with normalized budgets
+            for scenario in positive_scenarios:
+                # Find the corresponding scenario in the main scenarios list
+                for main_scenario in scenarios:
+                    if (main_scenario['ISO2'] == scenario['ISO2'] and
+                        main_scenario['Emissions_scope'] == scenario['Emissions_scope'] and
+                        main_scenario['Warming_scenario'] == scenario['Warming_scenario'] and
+                        main_scenario['Probability_of_reach'] == scenario['Probability_of_reach'] and
+                        main_scenario['Budget_distribution_scenario'] == 'Responsibility'):
+                        
+                        # Normalize the budget
+                        original_budget = main_scenario['Country_carbon_budget']
+                        normalized_budget = original_budget * normalization_factor
+                        main_scenario['Country_carbon_budget'] = normalized_budget
+                        
+                        print(f"    {scenario['Country']}: {original_budget:,.0f} → {normalized_budget:,.0f} MtCO2")
+                        break
+            
+            print(f"  After normalization: sum of positive budgets = {global_budget:,.0f} MtCO2 ✓")
+        else:
+            print(f"  No countries with positive budgets in this scenario")
+
+print("=== END NORMALIZATION ===\n")
+
 # After creating the scenarios list, create two separate dataframes
 scenarios_df = pd.DataFrame(scenarios)
 
