@@ -961,8 +961,19 @@ for _, row in base_df.iterrows():
                     # Total_available_budget = Global budget + sum of all countries' cumulative emissions
                     total_available_budget = global_budget + world_cumulative
                     
+                    # Determine ISO_Type based on ISO2 and Country
+                    if row['ISO2'] == 'WLD':
+                        iso_type = 'Global'
+                    elif row['ISO2'] in ['G20', 'EU']:
+                        iso_type = row['ISO2']
+                    elif row['Country'] == 'All':
+                        iso_type = 'IPCC Region'
+                    else:
+                        iso_type = 'Country'
+                    
                     scenario = {
                         'ISO2': row['ISO2'],
+                        'ISO_Type': iso_type,
                         'Country': row['Country'],
                         'Region': row['Region'],
                         'Share_of_cumulative_population_1970_to_2050': row[f'Share_of_cumulative_population_1970_to_2050_{emissions_scope}'],
@@ -1022,9 +1033,9 @@ for scenario_type in ['Responsibility', 'Capacity']:
             global_budget = group_scenarios[0]['Global_Carbon_budget']
             
             # Step 1: Calculate theoretical budgets for ALL scenarios in this group
-            print(f"  Step 1: Calculating theoretical budgets for all countries...")
+            print(f"  Step 1: Calculating theoretical budgets for all types...")
             for scenario in group_scenarios:
-                if scenario['Country'] != 'All':  # Skip aggregates for now
+                if scenario['ISO_Type'] != 'Global':  # Skip WLD for now
                     # Get the population share based on scenario type
                     if scenario_type == 'Responsibility':
                         population_share = scenario['Share_of_cumulative_population_1970_to_latest']
@@ -1040,54 +1051,54 @@ for scenario_type in ['Responsibility', 'Capacity']:
                     # Store the theoretical budget
                     scenario['Country_theoretical_budget'] = theoretical_budget
                     
-                    print(f"    {scenario['Country']}: {theoretical_budget:,.0f} MtCO2 (share: {population_share:.3f}, total_available: {total_available:,.0f}, cumulative: {cumulative_emissions:,.0f})")
+                    print(f"    {scenario['Country']} ({scenario['ISO_Type']}): {theoretical_budget:,.0f} MtCO2 (share: {population_share:.3f}, total_available: {total_available:,.0f}, cumulative: {cumulative_emissions:,.0f})")
             
-            # Step 2: Calculate sum of positive theoretical budgets
-            positive_theoretical_budgets = [s['Country_theoretical_budget'] for s in group_scenarios if s['Country_theoretical_budget'] > 0 and s['Country'] != 'All']
+            # Step 2: Calculate denominator for normalization
+            print(f"  Step 2: Calculating denominator for normalization...")
+            
+            # Use the same denominator for all types (individual countries and regional aggregates)
+            # This ensures regional aggregates don't affect the global budget distribution
+            positive_theoretical_budgets = [s['Country_theoretical_budget'] for s in group_scenarios if s['Country_theoretical_budget'] > 0 and s['ISO_Type'] == 'Country']
             total_positive_theoretical = sum(positive_theoretical_budgets)
+            print(f"    Individual countries denominator: {total_positive_theoretical:,.0f} MtCO2")
             
-            print(f"  Step 2: Total positive theoretical budgets = {total_positive_theoretical:,.0f} MtCO2")
-            
-            # Step 3: Calculate shares and final budgets
-            print(f"  Step 3: Calculating final budgets...")
+            # Step 3: Calculate shares and final budgets for all types
+            print(f"  Step 3: Calculating final budgets for all types...")
             for scenario in group_scenarios:
-                if scenario['Country'] != 'All':  # Skip aggregates for now
+                if scenario['ISO_Type'] != 'Global':  # Skip WLD for now
                     theoretical_budget = scenario['Country_theoretical_budget']
                     
                     if theoretical_budget > 0:
+                        # Use the same denominator for all types to ensure regional aggregates don't affect global budget distribution
+                        denominator = total_positive_theoretical
+                        
                         # Calculate share of positive budgets
-                        share_of_positive = theoretical_budget / total_positive_theoretical
+                        share_of_positive = theoretical_budget / denominator
                         scenario['Country_share_of_positive_budgets'] = share_of_positive
                         
                         # Calculate final budget
                         final_budget = global_budget * share_of_positive
                         scenario['Country_carbon_budget'] = final_budget
                         
-                        print(f"    {scenario['Country']}: {theoretical_budget:,.0f} → {final_budget:,.0f} MtCO2 (share: {share_of_positive:.3f})")
+                        print(f"    {scenario['Country']} ({scenario['ISO_Type']}): {theoretical_budget:,.0f} → {final_budget:,.0f} MtCO2 (share: {share_of_positive:.3f}, denominator: {denominator:,.0f})")
                     else:
                         # Negative budgets remain unchanged
                         scenario['Country_share_of_positive_budgets'] = None
                         scenario['Country_carbon_budget'] = theoretical_budget
-                        print(f"    {scenario['Country']}: {theoretical_budget:,.0f} MtCO2 (negative, unchanged)")
+                        print(f"    {scenario['Country']} ({scenario['ISO2']}): {theoretical_budget:,.0f} MtCO2 (negative, unchanged)")
             
-            # Step 4: Handle aggregates
-            print(f"  Step 4: Handling aggregates...")
+            # Step 4: Handle WLD aggregate only
+            print(f"  Step 4: Handling WLD aggregate...")
             for scenario in group_scenarios:
-                if scenario['Country'] == 'All':
-                    if scenario['ISO2'] == 'WLD':
-                        # WLD gets the sum of real country budgets (which equals global budget)
-                        real_country_budgets = [s['Country_carbon_budget'] for s in group_scenarios if s['Country'] != 'All' and s['Country_carbon_budget'] > 0]
-                        wld_budget = sum(real_country_budgets)
-                        scenario['Country_carbon_budget'] = wld_budget
-                        scenario['Country_theoretical_budget'] = wld_budget
-                        scenario['Country_share_of_positive_budgets'] = None
-                        print(f"    WLD (World): gets sum of real country budgets = {wld_budget:,.0f} MtCO2")
-                    else:
-                        # Other aggregates get 0
-                        scenario['Country_carbon_budget'] = 0
-                        scenario['Country_theoretical_budget'] = 0
-                        scenario['Country_share_of_positive_budgets'] = None
-                        print(f"    {scenario['Country']} ({scenario['ISO2']}): set to 0 (aggregate)")
+                if scenario['ISO2'] == 'WLD':
+                    # WLD gets the sum of individual country budgets (which equals global budget)
+                    real_country_budgets = [s['Country_carbon_budget'] for s in group_scenarios if s['ISO_Type'] == 'Country' and s['Country_carbon_budget'] > 0]
+                    wld_budget = sum(real_country_budgets)
+                    scenario['Country_carbon_budget'] = wld_budget
+                    scenario['Country_theoretical_budget'] = wld_budget
+                    scenario['Country_share_of_positive_budgets'] = None
+                    print(f"    WLD (World): gets sum of individual country budgets = {wld_budget:,.0f} MtCO2")
+                    break
             
             # Step 5: Update the main scenarios list
             print(f"  Step 5: Updating main scenarios list...")
@@ -1165,10 +1176,10 @@ for scenario_type in ['Responsibility', 'Capacity']:
                 original_global_budget = group_scenarios[0]['Global_Carbon_budget']
                 print(f"    Original global budget: {original_global_budget:,.0f} MtCO2")
                 
-                # Calculate sum of all positive budgets after normalization (exclude WLD)
+                # Calculate sum of all positive budgets after normalization (exclude WLD and regional aggregates - only count individual countries)
                 positive_budgets = []
                 for scenario in group_scenarios:
-                    if scenario['Country_carbon_budget'] > 0 and scenario['ISO2'] != 'WLD':
+                    if scenario['Country_carbon_budget'] > 0 and scenario['ISO_Type'] == 'Country':
                         positive_budgets.append(scenario['Country_carbon_budget'])
                 
                 total_positive_budgets = sum(positive_budgets)
@@ -1205,7 +1216,7 @@ scenarios_df = pd.DataFrame(scenarios)
 
 # 1. Create scenario parameters dataframe (one row per unique scenario)
 scenario_params = scenarios_df[[
-    'ISO2', 'Country', 'Region', 'Emissions_scope',
+    'ISO2', 'ISO_Type', 'Country', 'Region', 'Emissions_scope',
     'Warming_scenario', 'Probability_of_reach',
     'Budget_distribution_scenario', 'Years_to_neutrality_from_latest_available', 'Years_to_neutrality_from_today', 'Neutrality_year',
     'Latest_year', 'Latest_population', 'Latest_annual_CO2_emissions_Mt',
