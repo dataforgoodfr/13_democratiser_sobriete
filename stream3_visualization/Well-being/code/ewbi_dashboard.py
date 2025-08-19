@@ -1896,13 +1896,23 @@ def create_level1_radar_chart(analysis_df):
                 range=[0, 1]
             )),
         showlegend=True,
+        legend=dict(
+            x=0.5,
+            y=-0.1,
+            xanchor='center',
+            yanchor='top',
+            orientation='h',
+            itemsizing='constant',
+            itemwidth=30,
+            font=dict(size=11)  # Slightly smaller font to fit better
+        ),
         title=dict(
             text='EU Priorities Comparison - Selected Countries',
             font=dict(size=16, color="#f4d03f", weight="bold"),
             x=0.5
         ),
         height=500,
-        margin=dict(t=80, b=50, l=60, r=60),
+        margin=dict(t=80, b=80, l=60, r=60),  # Increased bottom margin for legend
         font=dict(family='Arial, sans-serif', size=14)
     )
     
@@ -2014,7 +2024,7 @@ def create_levels2to4_country_chart(analysis_df, level_filters):
                 color='white',
                 line=dict(color='#1f77b4', width=2)
             ),
-            hovertemplate='%{y:.3f}'
+            hovertemplate='<b>Score:</b> %{y:.3f}<br><b>Country:</b> %{x}<br><b>Indicator:</b> %{fullData.name}<extra></extra>'
         )
     )
     
@@ -2060,7 +2070,7 @@ def create_levels2to4_country_chart(analysis_df, level_filters):
                         color='white',
                         line=dict(color=colors[i], width=2)
                     ),
-                    hovertemplate='%{y:.3f}'
+                    hovertemplate='<b>Score:</b> %{y:.3f}<br><b>Country:</b> %{x}<br><b>Indicator:</b> %{fullData.name}<extra></extra>'
                 )
             )
     
