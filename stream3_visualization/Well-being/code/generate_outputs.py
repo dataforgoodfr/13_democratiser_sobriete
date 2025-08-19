@@ -247,23 +247,6 @@ def create_hierarchical_master_dataframe(df, secondary_scores, eu_priority_score
     print("Creating country aggregates (All Deciles)...")
     
     for country in df.index.get_level_values('country').unique():
-        # Level 1: EWBI (Overall) - Calculate from Level 2 using arithmetic mean
-        # First collect all EU Priority scores for this country (decile='All')
-        eu_priority_values = []
-        for priority in filtered_config:
-            priority_name = priority['name']
-            # Find Level 2 score for this priority (will be calculated below)
-            # We'll calculate this after Level 2 is done
-            pass
-        
-        # Note: EWBI calculation will be done after Level 2 calculations
-        
-        # Level 2: EU Priorities (filtered) - Calculate from Level 3 using arithmetic mean
-        # Note: Level 2 calculation will be done after Level 3 calculations
-        
-        # Level 3: Secondary Indicators (filtered) - Calculate from Level 4 using arithmetic mean
-        # Note: Level 3 calculation will be done after Level 4 calculations
-        
         # Level 4: Primary Indicators - Geometric mean across deciles
         # Must maintain proper hierarchical relationships
         for priority in filtered_config:
@@ -300,17 +283,16 @@ def create_hierarchical_master_dataframe(df, secondary_scores, eu_priority_score
                                 'Level': '4 (Primary_indicator)'
                             })
     
-    # Now calculate Level 3, 2, and 1 using proper roll-up from Level 4
-    print("Calculating Level 3 (Secondary) from Level 4 (Primary) using arithmetic mean...")
+    # Now calculate Level 3 "All Deciles" correctly as geometric mean of Level 3 individual decile scores
+    print("Calculating Level 3 (Secondary) 'All Deciles' as geometric mean of individual decile scores...")
     
-    # Convert current master_data to DataFrame for easier processing
+    # Get the Level 3 individual decile scores that were calculated earlier
     temp_df = pd.DataFrame(master_data)
-    level4_data = temp_df[temp_df['Level'] == '4 (Primary_indicator)']
+    level3_individual = temp_df[temp_df['Level'] == '3 (Secondary_indicator)']
     
     for country in df.index.get_level_values('country').unique():
-        country_level4 = level4_data[level4_data['country'] == country]
+        country_level3_individual = level3_individual[level3_individual['country'] == country]
         
-        # Level 3: Secondary Indicators - Arithmetic mean of Level 4 (Primary) scores
         for priority in filtered_config:
             priority_name = priority['name']
             for component in priority['components']:
@@ -320,20 +302,20 @@ def create_hierarchical_master_dataframe(df, secondary_scores, eu_priority_score
                 if component_name in secondary_indicators_to_remove:
                     continue
                 
-                # Find all Level 4 indicators for this secondary indicator
-                secondary_primaries = country_level4[
-                    (country_level4['EU_Priority'] == priority_name) & 
-                    (country_level4['Secondary_indicator'] == component_name)
+                # Find all Level 3 individual decile scores for this secondary indicator
+                component_scores = country_level3_individual[
+                    (country_level3_individual['EU_Priority'] == priority_name) & 
+                    (country_level3_individual['Secondary_indicator'] == component_name)
                 ]
                 
-                if not secondary_primaries.empty:
-                    # Get primary scores and filter out NaN values
-                    primary_scores = secondary_primaries['Score'].values
-                    valid_scores = primary_scores[~pd.isna(primary_scores)]
+                if not component_scores.empty:
+                    # Get Level 3 individual decile scores and filter out NaN values
+                    individual_scores = component_scores['Score'].values
+                    valid_scores = individual_scores[~pd.isna(individual_scores)]
                     
                     if len(valid_scores) > 0:
-                        # Arithmetic mean of valid primary indicator scores only
-                        secondary_score = np.mean(valid_scores)
+                        # Calculate Level 3 "All Deciles" as geometric mean of individual decile scores
+                        level3_all_deciles_score = np.exp(np.mean(np.log(valid_scores)))
                         master_data.append({
                             'country': country,
                             'decile': 'All',
@@ -341,15 +323,20 @@ def create_hierarchical_master_dataframe(df, secondary_scores, eu_priority_score
                             'EU_Priority': priority_name,
                             'Secondary_indicator': component_name,
                             'primary_index': 'All',
-                            'Score': secondary_score,
+                            'Score': level3_all_deciles_score,
                             'Level': '3 (Secondary_indicator)'
                         })
                     else:
-                        print(f"Warning: No valid Primary scores for {country} - {priority_name} - {component_name}, skipping Secondary calculation")
+                        print(f"Warning: No valid Level 3 individual scores for {country} - {priority_name} - {component_name}, skipping Level 3 'All Deciles' calculation")
     
-    # Update temp_df to include Level 3 data
+    # Now calculate Level 2 (EU Priority) from Level 3 (Secondary) using arithmetic mean
+    print("Calculating Level 2 (EU Priority) from Level 3 (Secondary) using arithmetic mean...")
+    
+    # Convert current master_data to DataFrame for easier processing
     temp_df = pd.DataFrame(master_data)
     level3_data = temp_df[temp_df['Level'] == '3 (Secondary_indicator)']
+    
+
     
     print("Calculating Level 2 (EU Priority) from Level 3 (Secondary) using arithmetic mean...")
     
