@@ -1870,7 +1870,7 @@ def create_level1_radar_chart(analysis_df):
     eu_priorities = eu_priority_data['EU_Priority'].unique()
     
     # Function to wrap long labels into multiple lines
-    def wrap_label(label, max_length=25):
+    def wrap_label(label, max_length=40):
         """Break long labels into multiple lines for better readability"""
         if len(label) <= max_length:
             return label
@@ -1880,8 +1880,11 @@ def create_level1_radar_chart(analysis_df):
             parts = label.split(', ')
             if len(parts) == 2:
                 return f"{parts[0]},<br>{parts[1]}"
-            elif len(parts) == 3:
-                return f"{parts[0]},<br>{parts[1]},<br>{parts[2]}"
+            elif len(parts) >= 3:
+                # Always limit to 2 parts maximum
+                first_part = parts[0]
+                remaining_parts = ', '.join(parts[1:])
+                return f"{first_part},<br>{remaining_parts}"
         elif ' and ' in label:
             parts = label.split(' and ')
             if len(parts) == 2:
