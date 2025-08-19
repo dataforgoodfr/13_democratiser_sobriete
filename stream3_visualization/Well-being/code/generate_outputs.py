@@ -750,7 +750,7 @@ def generate_outputs():
     
     # Load the preprocessed data
     print("Loading preprocessed data...")
-    df = pd.read_csv('output/primary_data_preprocessed.csv')
+    df = pd.read_csv('../output/primary_data_preprocessed.csv')
     print(f"Loaded data: {df.shape}")
     
     # Convert to MultiIndex exactly as in the original notebook
@@ -808,12 +808,12 @@ def generate_outputs():
     print("\n=== Saving Outputs ===")
     
     # Save master dataframe
-    master_output_path = 'output/ewbi_master.csv'
+    master_output_path = '../output/ewbi_master.csv'
     master_df.to_csv(master_output_path, index=False)
     print(f"Saved master dataframe to: {master_output_path}")
     
     # Save time series dataframe
-    time_series_output_path = 'output/ewbi_time_series.csv'
+    time_series_output_path = '../output/ewbi_time_series.csv'
     time_series_df.to_csv(time_series_output_path, index=False)
     print(f"Saved time series dataframe to: {time_series_output_path}")
     
