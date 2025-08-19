@@ -330,14 +330,21 @@ def create_base_dataframe(df):
         cum_pop_latest_df[f'Cumulative_population_latest_{scope}'] = cum_pop_latest_df.groupby(['ISO2', 'Region', 'Emissions_scope'])['Population'].cumsum()
         
         # Get world cumulative population for this scope (sum of countries with data)
-        world_cum_pop_latest = cum_pop_latest_df[f'Cumulative_population_latest_{scope}'].max()
+        world_cum_pop_latest = cum_pop_latest_df[f'Cumulative_population_latest_{scope}'].sum()
         
         # Merge with base dataframe
         cum_pop_latest_merge = cum_pop_latest_df[['ISO2', f'Cumulative_population_latest_{scope}']]
         base_df = base_df.merge(cum_pop_latest_merge, on='ISO2', how='left')
         
-        # Calculate population share for each country
-        base_df[f'Share_of_cumulative_population_1970_to_latest_{scope}'] = base_df[f'Cumulative_population_latest_{scope}'] / world_cum_pop_latest
+        # Calculate population share for each country using WLD total (not sum of countries with data)
+        # Get the WLD cumulative population from the merged data
+        wld_cum_pop_latest = cum_pop_latest_df[
+            cum_pop_latest_df['ISO2'] == 'WLD'
+        ][f'Cumulative_population_latest_{scope}'].iloc[0] if len(cum_pop_latest_df[
+            cum_pop_latest_df['ISO2'] == 'WLD'
+        ]) > 0 else world_cum_pop_latest
+        
+        base_df[f'Share_of_cumulative_population_1970_to_latest_{scope}'] = base_df[f'Cumulative_population_latest_{scope}'] / wld_cum_pop_latest
         
         # FIX: Ensure WLD (World) always has population share = 1.0
         base_df.loc[base_df['ISO2'] == 'WLD', f'Share_of_cumulative_population_1970_to_latest_{scope}'] = 1.0
@@ -995,10 +1002,9 @@ if responsibility_scenarios:
             print(f"  Total theoretical positive budgets: {total_theoretical_positive:,.0f} MtCO2")
             print(f"  Countries with positive budgets: {len(positive_scenarios)}")
             
-            # Normalize positive budgets to sum to global budget
-            normalization_factor = global_budget / total_theoretical_positive
-            
-            print(f"  Normalization factor: {normalization_factor:.6f}")
+            # Normalize positive budgets using the correct formula:
+            # final_budget = global_budget × (theoretical_budget / sum_of_positive_theoretical)
+            print(f"  Applying correct normalization formula...")
             
             # Update the scenarios list with normalized budgets
             for scenario in positive_scenarios:
@@ -1010,19 +1016,66 @@ if responsibility_scenarios:
                         main_scenario['Probability_of_reach'] == scenario['Probability_of_reach'] and
                         main_scenario['Budget_distribution_scenario'] == 'Responsibility'):
                         
-                        # Normalize the budget
-                        original_budget = main_scenario['Country_carbon_budget']
-                        normalized_budget = original_budget * normalization_factor
-                        main_scenario['Country_carbon_budget'] = normalized_budget
+                        # Apply correct normalization formula
+                        theoretical_budget = main_scenario['Country_carbon_budget']
+                        share_of_positive = theoretical_budget / total_theoretical_positive
+                        final_budget = global_budget * share_of_positive
+                        main_scenario['Country_carbon_budget'] = final_budget
                         
-                        print(f"    {scenario['Country']}: {original_budget:,.0f} → {normalized_budget:,.0f} MtCO2")
+                        print(f"    {scenario['Country']}: {theoretical_budget:,.0f} → {final_budget:,.0f} MtCO2 (share: {share_of_positive:.3f})")
                         break
             
             print(f"  After normalization: sum of positive budgets = {global_budget:,.0f} MtCO2 ✓")
         else:
             print(f"  No countries with positive budgets in this scenario")
 
-print("=== END NORMALIZATION ===\n")
+# COMPREHENSIVE SANITY CHECK: Verify normalization worked correctly
+print("\n=== COMPREHENSIVE SANITY CHECK ===")
+print("Verifying that sum of positive responsibility budgets equals global budgets...")
+
+# Check each scenario group
+for (scope, warming, prob), group_scenarios in scenario_groups.items():
+    if warming == '1.5°C' and prob == '50%' and scope == 'Territory':
+        print(f"\n🔍 SANITY CHECK: {scope} scope, {warming}, {prob}")
+        
+        # Get the original global budget
+        original_global_budget = group_scenarios[0]['Global_Carbon_budget']
+        print(f"  Original global budget: {original_global_budget:,.0f} MtCO2")
+        
+        # Calculate sum of all positive responsibility budgets after normalization
+        positive_budgets = []
+        for scenario in group_scenarios:
+            if scenario['Country_carbon_budget'] > 0:
+                positive_budgets.append(scenario['Country_carbon_budget'])
+        
+        total_positive_budgets = sum(positive_budgets)
+        print(f"  Sum of positive responsibility budgets: {total_positive_budgets:,.0f} MtCO2")
+        
+        # Check if they match
+        if abs(total_positive_budgets - original_global_budget) < 0.01:  # Allow small floating point differences
+            print(f"  ✅ MATCH: Sum of positive budgets = Global budget")
+        else:
+            print(f"  ❌ MISMATCH: Difference = {total_positive_budgets - original_global_budget:,.0f} MtCO2")
+            print(f"  This indicates a problem with normalization!")
+        
+        # Show top 5 countries by budget size
+        top_countries = sorted(group_scenarios, key=lambda x: x['Country_carbon_budget'], reverse=True)[:5]
+        print(f"  Top 5 countries by budget:")
+        for i, country in enumerate(top_countries, 1):
+            print(f"    {i}. {country['Country']}: {country['Country_carbon_budget']:,.0f} MtCO2")
+        
+        # Show budget distribution
+        budget_ranges = {
+            '0-1000': len([b for b in positive_budgets if 0 < b <= 1000]),
+            '1000-10000': len([b for b in positive_budgets if 1000 < b <= 10000]),
+            '10000-100000': len([b for b in positive_budgets if 10000 < b <= 100000]),
+            '>100000': len([b for b in positive_budgets if b > 100000])
+        }
+        print(f"  Budget distribution:")
+        for range_name, count in budget_ranges.items():
+            print(f"    {range_name} MtCO2: {count} countries")
+
+print("=== END SANITY CHECK ===\n")
 
 # After creating the scenarios list, create two separate dataframes
 scenarios_df = pd.DataFrame(scenarios)
