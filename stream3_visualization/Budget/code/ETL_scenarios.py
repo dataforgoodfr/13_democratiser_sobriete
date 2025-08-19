@@ -756,8 +756,20 @@ for _, row in base_df.iterrows():
                         # Calculate theoretical budget (this maintains the fairness concept)
                         theoretical_budget = (total_available * population_share) - country_cumulative
                         
-                        # Store theoretical budget for later normalization
-                        # We'll need to normalize positive budgets to sum to global_budget
+                        # For Responsibility scenarios, we need to normalize positive budgets
+                        # Store the theoretical budget for normalization
+                        if 'responsibility_theoretical_budgets' not in locals():
+                            responsibility_theoretical_budgets = {}
+                        key = (emissions_scope, warming_scenario, probability)
+                        if key not in responsibility_theoretical_budgets:
+                            responsibility_theoretical_budgets[key] = []
+                        responsibility_theoretical_budgets[key].append({
+                            'ISO2': row['ISO2'],
+                            'Country': row['Country'],
+                            'theoretical_budget': theoretical_budget
+                        })
+                        
+                        # For now, use theoretical budget - we'll normalize before neutrality year calculation
                         country_budget = theoretical_budget
                     elif distribution == 'Capacity':
                         # Get world's latest cumulative emissions
@@ -1021,6 +1033,29 @@ if responsibility_scenarios:
                         share_of_positive = theoretical_budget / total_theoretical_positive
                         final_budget = global_budget * share_of_positive
                         main_scenario['Country_carbon_budget'] = final_budget
+                        
+                        # Recalculate neutrality year based on normalized budget
+                        if final_budget > 0:
+                            latest_annual = main_scenario['Latest_annual_CO2_emissions_Mt']
+                            latest_year = main_scenario['Latest_year']
+                            
+                            # Recalculate years to neutrality
+                            new_years_to_neutrality = int(round(2 * final_budget / latest_annual))
+                            new_neutrality_year = int(round(latest_year + new_years_to_neutrality))
+                            
+                            # Cap neutrality year at 1970 (earliest) and 2100 (latest)
+                            if new_neutrality_year < 1970:
+                                new_neutrality_year = 1970
+                            elif new_neutrality_year > 2100:
+                                new_neutrality_year = 2100
+                            
+                            # Update the scenario with new neutrality values
+                            main_scenario['Years_to_neutrality_from_latest_available'] = new_years_to_neutrality
+                            main_scenario['Neutrality_year'] = new_neutrality_year
+                            
+                            # Recalculate years from today
+                            current_year = 2024
+                            main_scenario['Years_to_neutrality_from_today'] = new_neutrality_year - current_year
                         
                         print(f"    {scenario['Country']}: {theoretical_budget:,.0f} → {final_budget:,.0f} MtCO2 (share: {share_of_positive:.3f})")
                         break
