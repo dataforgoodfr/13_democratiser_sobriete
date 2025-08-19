@@ -2018,7 +2018,7 @@ def create_level1_radar_chart(analysis_df):
             borderwidth=1
         ),
         title=dict(
-            text='EU Priorities Comparison - Selected Countries',
+            text='Well-Being Score by EU Priority',
             font=dict(size=16, color="#f4d03f", weight="bold"),
             x=0.5
         ),
