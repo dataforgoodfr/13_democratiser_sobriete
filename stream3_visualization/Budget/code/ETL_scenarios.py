@@ -798,7 +798,7 @@ for _, row in base_df.iterrows():
                         
                         country_budget = (total_available * capability_share) - country_cumulative
                         
-                        # DEBUG: Add debug output for G20 Territory Capacity budget calculation
+                        # DEBUG: Add debug output for G20 Territory Capability budget calculation
                         if (row['ISO2'] == 'G20' and 
                             emissions_scope == 'Territory' and 
                             warming_scenario == '1.5°C'):
@@ -814,7 +814,7 @@ for _, row in base_df.iterrows():
                         else:  # Consumption scope
                             # Skip NDC Pledges for Consumption emissions
                             continue
-                    else:  # Capacity
+                    else:  # Capability
                         country_budget = None
 
                     # Calculate years to neutrality and neutrality year
@@ -927,7 +927,7 @@ for _, row in base_df.iterrows():
                     global_total_budget = global_budget + row[f'Latest_cumulative_CO2_emissions_Mt_{emissions_scope}']
                     
                     # For Total_available_budget, we need to get the world cumulative emissions
-                    # This is already calculated in the Responsibility and Capacity sections above
+                    # This is already calculated in the Responsibility and Capability sections above
                     # We'll set it to None here and populate it in the scenario dictionary below
                     total_available_budget = None
                     
@@ -1001,12 +1001,12 @@ for _, row in base_df.iterrows():
                         'Total_available_budget': total_available_budget,
                         'Latest_cumulative_emissions_per_capita': latest_cumulative_emissions_per_capita,
                         'Share_of_global_cumulative_emissions': share_of_global_cumulative_emissions,
-                        'Country_theoretical_budget': theoretical_budget if distribution in ['Responsibility', 'Capacity'] else None,
+                        'Country_theoretical_budget': theoretical_budget if distribution in ['Responsibility', 'Capability'] else None,
                         'Country_share_of_positive_budgets': None  # Will be calculated during normalization for positive budgets
                     }
                     scenarios.append(scenario)
 
-# SIMPLE CALCULATION STEP: Apply the straightforward logic for Responsibility and Capacity scenarios
+# SIMPLE CALCULATION STEP: Apply the straightforward logic for Responsibility and Capability scenarios
 print("\n=== APPLYING SIMPLE CALCULATIONS FOR RESPONSIBILITY AND CAPACITY SCENARIOS ===")
 print("Using simple formulas: theoretical budget = total_available * share - cumulative_emissions")
 
