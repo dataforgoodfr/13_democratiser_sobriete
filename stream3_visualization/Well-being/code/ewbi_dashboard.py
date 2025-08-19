@@ -1911,6 +1911,18 @@ def create_level1_radar_chart(analysis_df):
 def create_levels2to4_country_chart(analysis_df, level_filters):
     """Create Levels 2-4 country comparison chart"""
     
+    # Country name mapping from ISO2 to full names
+    country_names = {
+        'AT': 'Austria', 'BE': 'Belgium', 'BG': 'Bulgaria', 'HR': 'Croatia', 
+        'CY': 'Cyprus', 'CZ': 'Czech Republic', 'DK': 'Denmark', 'EE': 'Estonia',
+        'FI': 'Finland', 'FR': 'France', 'DE': 'Germany', 'EL': 'Greece', 
+        'HU': 'Hungary', 'IS': 'Iceland', 'IE': 'Ireland', 'IT': 'Italy',
+        'LV': 'Latvia', 'LT': 'Lithuania', 'LU': 'Luxembourg', 'MT': 'Malta',
+        'NL': 'Netherlands', 'NO': 'Norway', 'PL': 'Poland', 'PT': 'Portugal',
+        'RO': 'Romania', 'SK': 'Slovakia', 'SI': 'Slovenia', 'ES': 'Spain',
+        'SE': 'Sweden', 'UK': 'United Kingdom'
+    }
+    
     country_chart = go.Figure()
     
     # Filter data based on current level
@@ -1985,11 +1997,14 @@ def create_levels2to4_country_chart(analysis_df, level_filters):
     country_scores.sort(key=lambda x: x[1], reverse=True)
     sorted_countries = [country for country, score in country_scores]
     
+    # Convert ISO2 codes to full country names for display
+    sorted_countries_display = [country_names.get(country, country) for country in sorted_countries]
+    
     # Add the main indicator line
     main_scores = [score for country, score in country_scores]
     country_chart.add_trace(
         go.Scatter(
-            x=sorted_countries,
+            x=sorted_countries_display,
             y=main_scores,
             name=main_indicator,
             mode='lines+markers',
@@ -2035,7 +2050,7 @@ def create_levels2to4_country_chart(analysis_df, level_filters):
             
             country_chart.add_trace(
                 go.Scatter(
-                    x=sorted_countries,
+                    x=sorted_countries_display,
                     y=indicator_scores,
                     name=indicator,
                     mode='lines+markers',
@@ -2064,20 +2079,22 @@ def create_levels2to4_country_chart(analysis_df, level_filters):
             range=[0, 1],
             tickformat='.1f',
             gridwidth=0.2,
-            title='Score'
+            title=''  # Remove "Score" label
         ),
         hovermode='closest',
         showlegend=True,
         legend=dict(
             x=0.5,
-            y=-0.1,
+            y=-0.15,  # Move legend closer to chart to reduce padding
             xanchor='center',
             yanchor='top',
             orientation='h'
         ),
         height=500,
-        margin=dict(t=80, b=80, l=60, r=60),  # Increased bottom margin for legend
-        font=dict(family='Arial, sans-serif', size=14)
+        margin=dict(t=80, b=60, l=60, r=60),  # Reduced bottom margin
+        font=dict(family='Arial, sans-serif', size=14),
+        paper_bgcolor='white',  # Remove grey background
+        plot_bgcolor='white'    # Remove grey background
     )
     
     return country_chart
