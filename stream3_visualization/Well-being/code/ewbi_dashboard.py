@@ -1601,7 +1601,7 @@ def create_adaptive_map_chart(map_df, level_filters):
             (map_df['primary_index'] == 'All')
         ].copy()
         title = 'Well-Being Score by Country - All EU Priorities'
-        colorbar_title = "EWBI Score"
+        colorbar_title = "Score"
         
     elif level_filters['current_level'] == 2:
         # Level 2: EU Priority
