@@ -445,25 +445,10 @@ def update_charts(eu_priority, secondary_indicator, primary_indicator, selected_
     
     radar_country_chart = create_adaptive_radar_country_chart(radar_country_df, level_filters)
     
-    # Determine what to show for time series chart based on filter selections
-    if eu_priority == 'ALL':
-        # Level 1: Overview - Show EWBI and EU priorities
-        time_series_chart, _ = create_overview_charts(map_df, filtered_df, time_filtered_df)
-        return map_chart, time_series_chart, decile_chart, radar_country_chart
-    else:
-        # Drill down based on secondary and primary indicator selections
-        if secondary_indicator and secondary_indicator != 'ALL' and primary_indicator and primary_indicator != 'ALL':
-            # Level 4: Specific Primary Indicator selected
-            time_series_chart, _ = create_primary_indicator_charts(map_df, filtered_df, time_filtered_df, eu_priority, secondary_indicator, primary_indicator)
-            return map_chart, time_series_chart, decile_chart, radar_country_chart
-        elif secondary_indicator and secondary_indicator != 'ALL':
-            # Level 3: Specific Secondary Indicator selected (Primary = ALL)
-            time_series_chart, _ = create_secondary_indicator_charts(map_df, filtered_df, time_filtered_df, eu_priority, secondary_indicator)
-            return map_chart, time_series_chart, decile_chart, radar_country_chart
-        else:
-            # Level 2: Only EU Priority selected (Secondary = ALL, Primary = ALL)
-            time_series_chart, _ = create_eu_priority_charts(map_df, filtered_df, time_filtered_df, eu_priority)
-            return map_chart, time_series_chart, decile_chart, radar_country_chart
+    # Create adaptive time series chart (works for all 4 levels)
+    time_series_chart = create_adaptive_time_series_chart(time_filtered_df, level_filters)
+    
+    return map_chart, time_series_chart, decile_chart, radar_country_chart
 
 def create_overview_charts(map_df, analysis_df, time_df):
     """Create charts for overview level (EWBI + EU priorities) - Map is now handled separately"""
@@ -2220,6 +2205,154 @@ def create_levels2to4_country_chart(analysis_df, level_filters):
     )
     
     return country_chart
+
+def create_adaptive_time_series_chart(analysis_df, level_filters):
+    """Create an adaptive time series chart that works for all 4 levels"""
+    
+    print(f"DEBUG: Creating time series chart for Level {level_filters['current_level']}: {level_filters['level_name']}")
+    
+    # Define consistent color scheme for countries (same as other charts)
+    country_colors = {
+        'EU Average': '#1f77b4',  # Blue
+        'FR': '#ff7f0e',          # Orange/Red
+        'DE': '#2ca02c',          # Green
+        'IT': '#d62728',          # Red
+        'ES': '#9467bd',          # Purple
+        'PL': '#8c564b',          # Brown
+        'RO': '#e377c2',          # Pink
+        'NL': '#7f7f7f',          # Gray
+        'BE': '#bcbd22',          # Olive
+        'SE': '#17becf',          # Cyan
+        'AT': '#ff9896',          # Light Red
+        'BG': '#98df8a',          # Light Green
+        'HR': '#fdd0a2',          # Light Orange
+        'CY': '#c5b0d5',          # Light Purple
+        'CZ': '#c49c94',          # Light Brown
+        'DK': '#f7b6d2',          # Light Pink
+        'EE': '#c7c7c7',          # Light Gray
+        'FI': '#dbdb8d',          # Light Olive
+        'EL': '#9edae5',          # Light Cyan
+        'HU': '#ffed4f',          # Yellow
+        'IS': '#ff9896',          # Light Red
+        'IE': '#98df8a',          # Light Green
+        'LV': '#fdd0a2',          # Light Orange
+        'LT': '#c5b0d5',          # Light Purple
+        'LU': '#c49c94',          # Light Brown
+        'MT': '#f7b6d2',          # Light Pink
+        'NO': '#c7c7c7',          # Light Gray
+        'PT': '#dbdb8d',          # Light Olive
+        'SK': '#9edae5',          # Light Cyan
+        'SI': '#ffed4f',          # Yellow
+        'UK': '#ff9896'           # Light Red
+    }
+    
+    # Filter data based on current level
+    if level_filters['current_level'] == 1:
+        # Level 1: EWBI (overall)
+        filtered_data = analysis_df[
+            (analysis_df['EU_Priority'] == 'All') & 
+            (analysis_df['Secondary_indicator'] == 'All') & 
+            (analysis_df['primary_index'] == 'All')
+        ].copy()
+        title = 'Well-Being Score Evolution Over Time - All EU Priorities'
+        
+    elif level_filters['current_level'] == 2:
+        # Level 2: EU Priority
+        filtered_data = analysis_df[
+            (analysis_df['EU_Priority'] == level_filters['eu_priority']) & 
+            (analysis_df['Secondary_indicator'] == 'All') & 
+            (analysis_df['primary_index'] == 'All')
+        ].copy()
+        title = f'{level_filters["eu_priority"]} Evolution Over Time - All Secondary Indicators'
+        
+    elif level_filters['current_level'] == 3:
+        # Level 3: Secondary Indicator
+        filtered_data = analysis_df[
+            (analysis_df['EU_Priority'] == level_filters['eu_priority']) & 
+            (analysis_df['Secondary_indicator'] == level_filters['secondary_indicator']) & 
+            (analysis_df['primary_index'] == 'All')
+        ].copy()
+        title = f'{level_filters["secondary_indicator"]} Evolution Over Time - All Primary Indicators'
+        
+    else:  # Level 4: Primary Indicator
+        filtered_data = analysis_df[
+            (analysis_df['EU_Priority'] == level_filters['eu_priority']) & 
+            (analysis_df['Secondary_indicator'] == level_filters['secondary_indicator']) & 
+            (analysis_df['primary_index'] == level_filters['primary_indicator'])
+        ].copy()
+        title = f'{level_filters["primary_indicator"]} Evolution Over Time'
+    
+    # Create the time series chart
+    time_series = go.Figure()
+    
+    # For time series, prioritize EU Average, then add individual countries
+    countries_to_show = []
+    
+    # Always show EU Average first if available
+    if 'EU Average' in filtered_data['country'].values:
+        countries_to_show.append('EU Average')
+    
+    # Then add any other selected countries (excluding EU Average to avoid duplication)
+    other_countries = [c for c in filtered_data['country'].unique() if c != 'EU Average' and 'Average' not in c]
+    countries_to_show.extend(other_countries)
+    
+    # Show countries in the determined order
+    for country in countries_to_show:
+        if country in filtered_data['country'].values:
+            country_data = filtered_data[filtered_data['country'] == country].copy()
+            
+            # Sort by year
+            country_data = country_data.sort_values('year')
+            
+            time_series.add_trace(go.Scatter(
+                x=country_data['year'],
+                y=country_data['Score'],
+                name=country,
+                mode='lines+markers',
+                line=dict(width=3),
+                marker=dict(size=8),
+                hovertemplate='<b>Score:</b> %{y:.3f}<br><b>Year:</b> %{x}<br><b>Country:</b> %{fullData.name}<extra></extra>',
+                line_color=country_colors.get(country, '#1f77b4'),  # Use consistent colors
+                marker_color=country_colors.get(country, '#1f77b4')  # Use consistent colors
+            ))
+    
+    time_series.update_layout(
+        title=dict(
+            text=title,
+            font=dict(size=16, color="#f4d03f", weight="bold"),
+            x=0.5
+        ),
+        height=500,
+        width=700,  # Match decile chart width
+        margin=dict(t=80, b=80, l=60, r=60),  # Increased bottom margin for legend
+        font=dict(family='Arial, sans-serif', size=14),
+        paper_bgcolor='white',
+        plot_bgcolor='white',
+        xaxis=dict(
+            title='Year',
+            showgrid=False,  # Remove vertical grid lines
+            tickmode='linear',
+            dtick=1  # Show every year
+        ),
+        yaxis=dict(
+            range=[0, 1],
+            title='Score',
+            showgrid=False  # Remove horizontal grid lines
+        ),
+        legend=dict(
+            orientation="h",  # Horizontal legend
+            yanchor="bottom",
+            y=-0.2,  # Position below the chart
+            xanchor="center",
+            x=0.5,  # Center horizontally
+            bgcolor='rgba(255,255,255,0.8)',  # Semi-transparent white background
+            bordercolor='lightgray',
+            borderwidth=1
+        ),
+        showlegend=True  # Force legend to show even with one trace
+    )
+    
+    return time_series
 
 if __name__ == '__main__':
     app.run_server(debug=True, host='0.0.0.0', port=8050)
