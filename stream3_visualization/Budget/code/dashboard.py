@@ -103,7 +103,7 @@ app.layout = html.Div([
             'marginBottom': '30px',
             'fontFamily': 'Arial, sans-serif',
             'lineHeight': '1.4',
-            'maxWidth': '1000px',
+            'maxWidth': '1200px',
             'margin': '0 auto 30px auto'
         }),
         
@@ -124,7 +124,7 @@ app.layout = html.Div([
                     style={'marginTop': '8px'},
                     clearable=False
                 )
-            ], style={'width': '16%', 'display': 'inline-block', 'margin-right': '1.5%'}),
+            ], style={'width': '16%', 'display': 'inline-block', 'margin-right': '2.5%'}),
             
             html.Div([
                 html.Label("G20 Only", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
@@ -138,10 +138,10 @@ app.layout = html.Div([
                     style={'marginTop': '8px'},
                     clearable=False
                 )
-            ], style={'width': '16%', 'display': 'inline-block', 'margin-right': '1.5%'}),
+            ], style={'width': '16%', 'display': 'inline-block', 'margin-right': '2.5%'}),
 
             html.Div([
-                html.Label("Zero Carbon Emissions Trajectory", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
+                html.Label("Carbon Budget Allocation", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
                 dcc.Dropdown(
                     id='budget-distribution-dropdown',
                     options=[{'label': i, 'value': i} for i in scenario_parameters['Budget_distribution_scenario'].unique()],
@@ -149,7 +149,7 @@ app.layout = html.Div([
                     style={'marginTop': '8px'},
                     clearable=False
                 )
-            ], style={'width': '16%', 'display': 'inline-block', 'margin-right': '1.5%'}),
+            ], style={'width': '16%', 'display': 'inline-block', 'margin-right': '2.5%'}),
             
             html.Div([
                 html.Label("Scope of Emissions", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
@@ -163,7 +163,7 @@ app.layout = html.Div([
                     style={'marginTop': '8px'},
                     clearable=False
                 )
-            ], style={'width': '16%', 'display': 'inline-block', 'margin-right': '1.5%'}),
+            ], style={'width': '16%', 'display': 'inline-block', 'margin-right': '2.5%'}),
             
             html.Div([
                 html.Label("Probability of not exceeding +1.5°C", style={'fontWeight': 'bold', 'color': '#2c3e50', 'whiteSpace': 'nowrap', 'overflow': 'visible'}),
