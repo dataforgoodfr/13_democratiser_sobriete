@@ -249,6 +249,11 @@ class CO2DecompositionPreprocessor:
                 contrib_abs_total = contrib_abs_1 + contrib_abs_2
                 contrib_pct_total = (contrib_abs_total / abs(total_change_2015_2050)) * 100 if total_change_2015_2050 != 0 else 0
                 
+                # Flip the sign convention: emissions reductions = positive, emissions increases = negative
+                contrib_pct_1 = -contrib_pct_1
+                contrib_pct_2 = -contrib_pct_2
+                contrib_pct_total = -contrib_pct_total
+                
                 unified_data.append({
                     "Zone": zone,
                     "Sector": display_sector,

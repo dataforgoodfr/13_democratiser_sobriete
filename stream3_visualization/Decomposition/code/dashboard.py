@@ -135,7 +135,40 @@ app.layout = html.Div([
     html.Div([
         # Charts stacked vertically - one below the other
         html.Div([
-            dcc.Graph(id='bar-chart', style={'height': '500px'})
+            dcc.Graph(id='bar-chart', style={'height': '500px'}),
+            # Explanatory note about the sign convention
+            html.Div([
+                html.P([
+                    html.Strong("📊 Understanding the Chart:"),
+                    html.Br(),
+                    "• ",
+                    html.Strong("Positive values (above 0%): "),
+                    "Indicate emissions reductions - these levers are helping decrease CO2 emissions.",
+                    html.Br(),
+                    "• ",
+                    html.Strong("Negative values (below 0%): "),
+                    "Indicate emissions increases - these levers are contributing to higher CO2 emissions.",
+                    html.Br(),
+                    html.Br(),
+                    html.Strong("💡 Key Insight: "),
+                    "Most scenarios show that the vast majority of planned emissions decreases come from ",
+                    html.Strong("Energy Efficiency"),
+                    " and ",
+                    html.Strong("Supply Side Decarbonation"),
+                    ". ",
+                    html.Strong("Sufficiency"),
+                    " showing negative values means these scenarios don't envision sufficiency measures - instead, they assume increases in demand or production intensity per capita."
+                ], style={
+                    'backgroundColor': '#f8f9fa',
+                    'padding': '15px',
+                    'borderRadius': '8px',
+                    'borderLeft': '4px solid #f4d03f',
+                    'marginTop': '15px',
+                    'fontSize': '14px',
+                    'lineHeight': '1.6',
+                    'color': '#2c3e50'
+                })
+            ])
         ], style={'marginBottom': '30px'}),
         
         html.Div([
@@ -195,7 +228,7 @@ def update_bar_chart(zone, sector):
             y=0.95
         ),
         xaxis_title="Levers",
-        yaxis_title="Percentage of Total Reduction (%)",
+        yaxis_title="Contribution to CO2 Change (%)",
         height=500,
         showlegend=True,
         plot_bgcolor='white',
