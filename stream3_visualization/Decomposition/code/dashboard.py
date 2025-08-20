@@ -272,7 +272,7 @@ def update_waterfall_chart(zone, sector, scenario):
     for _, lever in lever_data.iterrows():
         lever_name = lever['Lever']
         contrib_2015_2040 = lever['Contrib_2015_2040_abs']
-        x_labels.append(lever_name)
+        x_labels.append(f"{lever_name} (1)")
         y_values.append(contrib_2015_2040)
         measures.append('relative')
         colors.append(lever_colors.get(lever_name, "#636363"))
@@ -289,7 +289,7 @@ def update_waterfall_chart(zone, sector, scenario):
     for _, lever in lever_data.iterrows():
         lever_name = lever['Lever']
         contrib_2040_2050 = lever['Contrib_2040_2050_abs']
-        x_labels.append(lever_name)
+        x_labels.append(f"{lever_name} (2)")
         y_values.append(contrib_2040_2050)
         measures.append('relative')
         colors.append(lever_colors.get(lever_name, "#636363"))
