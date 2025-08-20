@@ -27,9 +27,9 @@ class CO2DecompositionPreprocessor:
                 "PassLandTransport": ["scenario 1", "scenario 2", "scenario 3", "life scenario"]
             },
             "Switzerland": {
-                "Buildings-Residential": ["scenario 1", "scenario 2", "scenario 3", "life scenario"],
-                "Buildings -Services": ["scenario 1", "scenario 2", "scenario 3", "life scenario"],
-                "PassLandTransport": ["scenario 1", "scenario 2", "scenario 3", "life scenario"]
+                "Buildings-Residential": ["Base Scenario", "Scenario Zer0 A", "Scenario Zer0 B", "Scenario Zer0 C"],
+                "Buildings -Services": ["Base Scenario", "Scenario Zer0 A", "Scenario Zer0 B", "Scenario Zer0 C"],
+                "PassLandTransport": ["Base Scenario", "Scenario Zer0 A", "Scenario Zer0 B", "Scenario Zer0 C"]
             }
         }
         
