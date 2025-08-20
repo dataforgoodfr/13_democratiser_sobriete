@@ -18,7 +18,7 @@ DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'Output
 # Load the data
 try:
     # Load unified data (EU + Switzerland)
-    data = pd.read_csv(os.path.join('..', 'Output', 'unified_decomposition_data.csv'))
+    data = pd.read_csv(os.path.join(DATA_DIR, 'unified_decomposition_data.csv'))
     
     print("Data loaded successfully!")
     print(f"Data shape: {data.shape}")
@@ -47,7 +47,7 @@ try:
     
 except FileNotFoundError as e:
     print(f"Error loading data files: {e}")
-    print(f"Please ensure that the CSV files are in the '{os.path.join('..', 'Output')}' directory.")
+    print(f"Please ensure that the CSV files are in the '{DATA_DIR}' directory.")
     exit()
 
 # Initialize the Dash app
@@ -184,7 +184,7 @@ def update_bar_chart(zone, sector):
         'Supply Side Decarbonation': '#d62728'
     }
     
-    # Get unique scenarios
+    # Get unique scenarios for this zone
     scenarios = sorted(chart_data['Scenario'].unique())
     
     # Create a bar for each scenario
@@ -372,6 +372,60 @@ def update_waterfall_chart(zone, sector, scenario):
     )
     
     return fig
+
+# Callbacks
+@app.callback(
+    Output('scenario-dropdown', 'options'),
+    Output('scenario-dropdown', 'value'),
+    Input('zone-dropdown', 'value')
+)
+def update_scenario_options(selected_zone):
+    if selected_zone == 'Switzerland':
+        # Switzerland scenarios
+        options = [
+            {'label': 'Base Scenario', 'value': 'Base Scenario'},
+            {'label': 'Scenario Zer0 A', 'value': 'Scenario Zer0 A'},
+            {'label': 'Scenario Zer0 B', 'value': 'Scenario Zer0 B'},
+            {'label': 'Scenario Zer0 C', 'value': 'Scenario Zer0 C'}
+        ]
+        value = 'Base Scenario'
+    else:
+        # EU scenarios
+        options = [
+            {'label': 'EU Commission Fit-for-55', 'value': 'EU Commission Fit-for-55'},
+            {'label': 'EU Commission >85% Decrease by 2040', 'value': 'EU Commission >85% Decrease by 2040'},
+            {'label': 'EU Commission >90% Decrease by 2040', 'value': 'EU Commission >90% Decrease by 2040'},
+            {'label': 'EU Commission LIFE Scenario', 'value': 'EU Commission LIFE Scenario'}
+        ]
+        value = 'EU Commission Fit-for-55'
+    
+    return options, value
+
+@app.callback(
+    Output('sector-dropdown', 'options'),
+    Output('sector-dropdown', 'value'),
+    Input('zone-dropdown', 'value')
+)
+def update_sector_options(selected_zone):
+    if selected_zone == 'Switzerland':
+        # Switzerland doesn't have Industry sector
+        options = [
+            {'label': 'Buildings - Services', 'value': 'Buildings - Services'},
+            {'label': 'Buildings - Residential', 'value': 'Buildings - Residential'},
+            {'label': 'Passenger Land Transportation', 'value': 'Passenger Land Transportation'}
+        ]
+        value = 'Buildings - Services'
+    else:
+        # EU has all sectors including Industry
+        options = [
+            {'label': 'Buildings - Services', 'value': 'Buildings - Services'},
+            {'label': 'Buildings - Residential', 'value': 'Buildings - Residential'},
+            {'label': 'Passenger Land Transportation', 'value': 'Passenger Land Transportation'},
+            {'label': 'Industry', 'value': 'Industry'}
+        ]
+        value = 'Buildings - Services'
+    
+    return options, value
 
 if __name__ == '__main__':
     print("Starting CO2 Decomposition Dashboard...")
