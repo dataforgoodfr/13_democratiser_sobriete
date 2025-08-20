@@ -378,7 +378,7 @@ def update_waterfall_chart(zone, sector, scenario):
     
     # Create the waterfall chart
     fig.add_trace(go.Waterfall(
-        name="CO2 Emissions",
+        name=scenario,  # Use the selected scenario name for the legend
         orientation="v",  # Vertical orientation like your screenshot
         measure=measures,
         x=x_labels,
@@ -389,7 +389,7 @@ def update_waterfall_chart(zone, sector, scenario):
         decreasing={"marker": {"color": "#d62728"}},  # Red for decreases
         increasing={"marker": {"color": "#27ae60"}},  # Green for increases
         totals={"marker": {"color": "#1f77b4"}},      # Blue for totals
-        showlegend=False
+        showlegend=True  # Show this trace in the legend
     ))
     
     fig.update_layout(
@@ -399,10 +399,10 @@ def update_waterfall_chart(zone, sector, scenario):
             x=0.5,
             y=0.95  # Consistent title position for alignment
         ),
-        xaxis_title="Time Periods and Levers",
+        xaxis_title="",  # Removed X-axis label
         yaxis_title="CO2 Emissions (Million tonnes)",
         height=600,  # Made taller
-        showlegend=False,
+        showlegend=True,  # Show legend for scenario name
         plot_bgcolor='white',
         font=dict(family='Arial, sans-serif', size=14),  # EXACTLY like EWBI dashboard
         margin=dict(t=80, b=50, l=60, r=60),  # EXACTLY like EWBI dashboard
@@ -413,6 +413,15 @@ def update_waterfall_chart(zone, sector, scenario):
         yaxis=dict(
             showgrid=False,  # Remove horizontal lines
             range=[-100, 700]
+        ),
+        legend=dict(
+            x=1.02,  # Position legend to the right
+            y=0.5,
+            xanchor='left',
+            yanchor='middle',
+            bgcolor='rgba(255, 255, 255, 0.8)',
+            bordercolor='#ccc',
+            borderwidth=1
         )
     )
     
