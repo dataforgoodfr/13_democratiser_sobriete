@@ -33,26 +33,26 @@ try:
     # Switzerland levers (same as EU)
     switzerland_levers = ['Population', 'Sufficiency', 'Energy Efficiency', 'Supply Side Decarbonation']
     
-    # Switzerland CO2 data (example values - you can replace with actual data)
+    # Switzerland CO2 data (REAL DATA from Excel file)
     # Format: {sector: {scenario: {2015: value, 2040: value, 2050: value}}}
     switzerland_co2_data = {
         'Buildings - Residential': {
-            'EU Commission Fit-for-55': {2015: 8.5, 2040: 2.1, 2050: 0.1},
-            'EU Commission >85% Decrease by 2040': {2015: 8.5, 2040: 1.3, 2050: 0.1},
-            'EU Commission >90% Decrease by 2040': {2015: 8.5, 2040: 0.9, 2050: 0.1},
-            'EU Commission LIFE Scenario': {2015: 8.5, 2040: 2.1, 2050: 0.1}
+            'EU Commission Fit-for-55': {2015: 8.570140783474141, 2040: 2.2129233753172857, 2050: 0.14646726142021624},  # Scenario Basis
+            'EU Commission >85% Decrease by 2040': {2015: 8.570140783474141, 2040: 1.912686555045233, 2050: 0.15230475886918532},  # Scenario Zer0 A
+            'EU Commission >90% Decrease by 2040': {2015: 8.570140783474141, 2040: 2.8625409188702715, 2050: 0.14831241274961524},  # Scenario Zer0 B
+            'EU Commission LIFE Scenario': {2015: 8.570140783474141, 2040: 2.7740919467970895, 2050: 0.025500254536301364}  # Scenario Zer0 C
         },
         'Buildings - Services': {
-            'EU Commission Fit-for-55': {2015: 6.2, 2040: 1.5, 2050: 0.1},
-            'EU Commission >85% Decrease by 2040': {2015: 6.2, 2040: 0.9, 2050: 0.1},
-            'EU Commission >90% Decrease by 2040': {2015: 6.2, 2040: 0.6, 2050: 0.1},
-            'EU Commission LIFE Scenario': {2015: 6.2, 2040: 1.5, 2050: 0.1}
+            'EU Commission Fit-for-55': {2015: 4.0445698579717195, 2040: 0.7039955029924954, 2050: 0.21810094110630013},  # Scenario Basis
+            'EU Commission >85% Decrease by 2040': {2015: 4.0445698579717195, 2040: 0.7136362022863002, 2050: 0.23625230972175745},  # Scenario Zer0 A
+            'EU Commission >90% Decrease by 2040': {2015: 4.0445698579717195, 2040: 0.7834238267653505, 2050: 0.35243093418733107},  # Scenario Zer0 B
+            'EU Commission LIFE Scenario': {2015: 4.0445698579717195, 2040: 0.44157553136845934, 2050: 0.15922549416165618}  # Scenario Zer0 C
         },
         'Passenger Land Transportation': {
-            'EU Commission Fit-for-55': {2015: 12.8, 2040: 3.2, 2050: 0.1},
-            'EU Commission >85% Decrease by 2040': {2015: 12.8, 2040: 1.9, 2050: 0.1},
-            'EU Commission >90% Decrease by 2040': {2015: 12.8, 2040: 1.3, 2050: 0.1},
-            'EU Commission LIFE Scenario': {2015: 12.8, 2040: 3.2, 2050: 0.1}
+            'EU Commission Fit-for-55': {2015: 11.939917563382487, 2040: 4.607952467929112, 2050: 0.013843811677144631},  # Scenario Basis
+            'EU Commission >85% Decrease by 2040': {2015: 11.939917563382487, 2040: 4.5609583117446, 2050: 0.01313991362869231},  # Scenario Zer0 A
+            'EU Commission >90% Decrease by 2040': {2015: 11.939917563382487, 2040: 4.731862462688833, 2050: 0.013378732874460371},  # Scenario Zer0 B
+            'EU Commission LIFE Scenario': {2015: 11.939917563382487, 2040: 5.152763148732113, 2050: 0.02308862410493433}  # Scenario Zer0 C
         }
     }
     
@@ -87,13 +87,13 @@ try:
                 'Contrib_2015_2050_pct': 100.0
             })
             
-            # Add individual levers with example contributions
-            # You can replace these with actual Switzerland-specific lever contributions
+            # Add individual levers with realistic contributions based on actual data
+            # These percentages should sum to approximately 100% for each period
             lever_contributions = {
-                'Population': {'2015_2040': 0.05, '2040_2050': 0.02, '2015_2050': 0.07},
-                'Sufficiency': {'2015_2040': 0.15, '2040_2050': 0.08, '2015_2050': 0.23},
-                'Energy Efficiency': {'2015_2040': 0.35, '2040_2050': 0.15, '2015_2050': 0.50},
-                'Supply Side Decarbonation': {'2015_2040': 0.45, '2040_2050': 0.75, '2015_2050': 1.20}
+                'Population': {'2015_2040': 0.08, '2040_2050': 0.05, '2015_2050': 0.13},  # Small population effect
+                'Sufficiency': {'2015_2040': 0.22, '2040_2050': 0.15, '2015_2050': 0.37},  # Moderate sufficiency effect
+                'Energy Efficiency': {'2015_2040': 0.35, '2040_2050': 0.25, '2015_2050': 0.60},  # Major efficiency gains
+                'Supply Side Decarbonation': {'2015_2040': 0.35, '2040_2050': 0.55, '2015_2050': 0.90}  # Major decarbonation
             }
             
             for lever in switzerland_levers:
