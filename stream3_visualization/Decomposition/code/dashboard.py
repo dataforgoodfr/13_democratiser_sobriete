@@ -113,23 +113,11 @@ app.layout = html.Div([
     html.Div([
         # Bar Chart
         html.Div([
-            html.H4("Share of Planned CO2 Reduction by Lever (%)", style={
-                'textAlign': 'center',
-                'color': '#34495e',
-                'marginBottom': '15px',
-                'fontSize': '18px'
-            }),
             dcc.Graph(id='bar-chart', style={'height': '500px'})
         ], style={'marginBottom': '30px'}),
         
         # Waterfall Chart
         html.Div([
-            html.H4("Planned CO2 Emissions Decrease Over Time by Lever", style={
-                'textAlign': 'center',
-                'color': '#34495e',
-                'marginBottom': '15px',
-                'fontSize': '18px'
-            }),
             dcc.Graph(id='waterfall-chart', style={'height': '500px'})
         ])
     ], style={
@@ -284,7 +272,7 @@ def update_waterfall_chart(zone, sector, scenario):
     for _, lever in lever_data.iterrows():
         lever_name = lever['Lever']
         contrib_2015_2040 = lever['Contrib_2015_2040_abs']
-        x_labels.append(f"{lever_name}\n(2015-2040)")
+        x_labels.append(lever_name)
         y_values.append(contrib_2015_2040)
         measures.append('relative')
         colors.append(lever_colors.get(lever_name, "#636363"))
@@ -301,7 +289,7 @@ def update_waterfall_chart(zone, sector, scenario):
     for _, lever in lever_data.iterrows():
         lever_name = lever['Lever']
         contrib_2040_2050 = lever['Contrib_2040_2050_abs']
-        x_labels.append(f"{lever_name}\n(2040-2050)")
+        x_labels.append(lever_name)
         y_values.append(contrib_2040_2050)
         measures.append('relative')
         colors.append(lever_colors.get(lever_name, "#636363"))
