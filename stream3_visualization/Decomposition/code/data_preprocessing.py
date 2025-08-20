@@ -49,6 +49,30 @@ class CO2DecompositionPreprocessor:
         
         # Universal lever names
         self.universal_levers = ["Population", "Sufficiency", "Energy Efficiency", "Supply Side Decarbonation"]
+        
+        # Scenario name mappings for display (internal name -> display name)
+        self.scenario_display_names = {
+            "EU": {
+                "Scenario 1": "EU Commission Fit-for-55",
+                "Scenario 2": "EU Commission >85% Decrease by 2040", 
+                "Scenario 3": "EU Commission >90% Decrease by 2040",
+                "Life Scenario": "EU Commission LIFE Scenario"
+            },
+            "Switzerland": {
+                "Scenario Basis": "Base Scenario",
+                "Scenario Zer0 A": "Scenario Zer0 A",
+                "Scenario Zer0 B": "Scenario Zer0 B", 
+                "Scenario Zer0 C": "Scenario Zer0 C"
+            }
+        }
+        
+        # Sector name mappings for display (internal name -> display name)
+        self.sector_display_names = {
+            "Buildings-Residential": "Buildings - Residential",
+            "Buildings -Services": "Buildings - Services", 
+            "PassLandTransport": "Passenger Land Transportation",
+            "Industry": "Industry"
+        }
     
     def calculate_intensity_factors(self, data_rows, sector):
         """Calculate intensity factors for LMDI decomposition"""
@@ -178,6 +202,10 @@ class CO2DecompositionPreprocessor:
             sector = scenario_data["Sector"]
             scenario = scenario_data["Scenario"]
             
+            # Apply display name mappings
+            display_sector = self.sector_display_names.get(sector, sector)
+            display_scenario = self.scenario_display_names[zone].get(scenario, scenario)
+            
             co2_2015 = scenario_data["CO2_2015"]
             co2_2040 = scenario_data["CO2_2040"]
             co2_2050 = scenario_data["CO2_2050"]
@@ -193,8 +221,8 @@ class CO2DecompositionPreprocessor:
             # Add "Total" lever first (shows actual CO2 emissions)
             unified_data.append({
                 "Zone": zone,
-                "Sector": sector,
-                "Scenario": scenario,
+                "Sector": display_sector,
+                "Scenario": display_scenario,
                 "Lever": "Total",
                 "CO2_2015": co2_2015,
                 "CO2_2040": co2_2040,
@@ -223,8 +251,8 @@ class CO2DecompositionPreprocessor:
                 
                 unified_data.append({
                     "Zone": zone,
-                    "Sector": sector,
-                    "Scenario": scenario,
+                    "Sector": display_sector,
+                    "Scenario": display_scenario,
                     "Lever": lever,
                     "CO2_2015": None,  # N/A for individual levers
                     "CO2_2040": None,   # N/A for individual levers
@@ -248,6 +276,10 @@ class CO2DecompositionPreprocessor:
             sector = scenario_data["Sector"]
             scenario = scenario_data["Scenario"]
             
+            # Apply display name mappings
+            display_sector = self.sector_display_names.get(sector, sector)
+            display_scenario = self.scenario_display_names[zone].get(scenario, scenario)
+            
             co2_2015 = scenario_data["CO2_2015"]
             co2_2040 = scenario_data["CO2_2040"]
             co2_2050 = scenario_data["CO2_2050"]
@@ -258,8 +290,8 @@ class CO2DecompositionPreprocessor:
             for year in [2015, 2040, 2050]:
                 row_data = {
                     "Zone": zone,
-                    "Sector": sector,
-                    "Scenario": scenario,
+                    "Sector": display_sector,
+                    "Scenario": display_scenario,
                     "Year": year,
                     "CO2_2015": co2_2015,
                     "CO2_2040": co2_2040,
