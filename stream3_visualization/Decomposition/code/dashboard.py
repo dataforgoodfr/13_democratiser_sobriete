@@ -109,64 +109,29 @@ app.layout = html.Div([
         'boxShadow': '0 4px 6px rgba(0, 0, 0, 0.1)'
     }),
     
-    # Summary Statistics Section
-    html.Div([
-        html.H3("📊 Summary Statistics", style={
-            'textAlign': 'center',
-            'color': '#2c3e50',
-            'marginBottom': '20px',
-            'fontSize': '24px'
-        }),
-        html.Div(id='summary-stats', style={
-            'display': 'grid',
-            'gridTemplateColumns': 'repeat(auto-fit, minmax(250px, 1fr))',
-            'gap': '20px',
-            'marginBottom': '30px'
-        })
-    ], style={
-        'backgroundColor': 'white',
-        'padding': '20px',
-        'borderRadius': '10px',
-        'boxShadow': '0 2px 4px rgba(0, 0, 0, 0.1)',
-        'marginBottom': '30px'
-    }),
-    
     # Charts Section
     html.Div([
-        html.H3("📈 CO2 Emissions Analysis", style={
-            'textAlign': 'center',
-            'color': '#2c3e50',
-            'marginBottom': '30px',
-            'fontSize': '24px'
-        }),
-        
-        # Charts in a row
+        # Bar Chart
         html.Div([
-            # Bar Chart
-            html.Div([
-                html.H4("Share of Planned CO2 Reduction by Lever (%)", style={
-                    'textAlign': 'center',
-                    'color': '#34495e',
-                    'marginBottom': '15px',
-                    'fontSize': '18px'
-                }),
-                dcc.Graph(id='bar-chart', style={'height': '500px'})
-            ], style={'flex': '1', 'marginRight': '15px'}),
-            
-            # Waterfall Chart
-            html.Div([
-                html.H4("Planned CO2 Emissions Decrease Over Time by Lever", style={
-                    'textAlign': 'center',
-                    'color': '#34495e',
-                    'marginBottom': '15px',
-                    'fontSize': '18px'
-                }),
-                dcc.Graph(id='waterfall-chart', style={'height': '500px'})
-            ], style={'flex': '1', 'marginLeft': '15px'})
-        ], style={
-            'display': 'flex',
-            'gap': '20px'
-        })
+            html.H4("Share of Planned CO2 Reduction by Lever (%)", style={
+                'textAlign': 'center',
+                'color': '#34495e',
+                'marginBottom': '15px',
+                'fontSize': '18px'
+            }),
+            dcc.Graph(id='bar-chart', style={'height': '500px'})
+        ], style={'marginBottom': '30px'}),
+        
+        # Waterfall Chart
+        html.Div([
+            html.H4("Planned CO2 Emissions Decrease Over Time by Lever", style={
+                'textAlign': 'center',
+                'color': '#34495e',
+                'marginBottom': '15px',
+                'fontSize': '18px'
+            }),
+            dcc.Graph(id='waterfall-chart', style={'height': '500px'})
+        ])
     ], style={
         'backgroundColor': 'white',
         'padding': '20px',
@@ -180,104 +145,7 @@ app.layout = html.Div([
     'fontFamily': 'Arial, sans-serif'
 })
 
-# Callback to update summary statistics
-@app.callback(
-    Output('summary-stats', 'children'),
-    [Input('zone-dropdown', 'value'),
-     Input('sector-dropdown', 'value'),
-     Input('scenario-dropdown', 'value')]
-)
-def update_summary_stats(zone, sector, scenario):
-    if not all([zone, sector, scenario]):
-        return []
-    
-    # Get data for the selected filters
-    filtered_data = data[
-        (data['Zone'] == zone) &
-        (data['Sector'] == sector) &
-        (data['Scenario'] == scenario) &
-        (data['Lever'] != 'Total')
-    ].copy()
-    
-    if filtered_data.empty:
-        return [html.Div("No data available for the selected filters", style={'textAlign': 'center', 'color': '#7f8c8d'})]
-    
-    # Calculate summary statistics
-    total_reduction_2015_2050 = filtered_data['Contrib_2015_2050_abs'].sum()
-    total_reduction_2015_2040 = filtered_data['Contrib_2015_2040_abs'].sum()
-    total_reduction_2040_2050 = filtered_data['Contrib_2040_2050_abs'].sum()
-    
-    # Get Total lever data for starting points
-    total_data = data[
-        (data['Zone'] == zone) &
-        (data['Sector'] == sector) &
-        (data['Scenario'] == scenario) &
-        (data['Lever'] == 'Total')
-    ]
-    
-    if not total_data.empty:
-        co2_2015 = total_data.iloc[0]['CO2_2015']
-        co2_2050 = total_data.iloc[0]['CO2_2050']
-        reduction_percentage = ((co2_2015 - co2_2050) / co2_2015) * 100
-    else:
-        co2_2015 = 0
-        co2_2050 = 0
-        reduction_percentage = 0
-    
-    stats = [
-        {
-            'title': 'CO2 Emissions 2015',
-            'value': f"{co2_2015:.1f}",
-            'unit': 'MtCO2',
-            'color': '#e74c3c'
-        },
-        {
-            'title': 'CO2 Emissions 2050',
-            'value': f"{co2_2050:.1f}",
-            'unit': 'MtCO2',
-            'color': '#27ae60'
-        },
-        {
-            'title': 'Total Reduction 2015-2050',
-            'value': f"{total_reduction_2015_2050:.1f}",
-            'unit': 'MtCO2',
-            'color': '#3498db'
-        },
-        {
-            'title': 'Reduction Percentage',
-            'value': f"{reduction_percentage:.1f}",
-            'unit': '%',
-            'color': '#f39c12'
-        }
-    ]
-    
-    return [
-        html.Div([
-            html.H4(stat['title'], style={
-                'textAlign': 'center',
-                'color': '#2c3e50',
-                'marginBottom': '10px',
-                'fontSize': '16px'
-            }),
-            html.Div([
-                html.Span(stat['value'], style={
-                    'fontSize': '24px',
-                    'fontWeight': 'bold',
-                    'color': stat['color']
-                }),
-                html.Span(f" {stat['unit']}", style={
-                    'fontSize': '16px',
-                    'color': '#7f8c8d'
-                })
-            ], style={'textAlign': 'center'})
-        ], style={
-            'backgroundColor': 'white',
-            'padding': '20px',
-            'borderRadius': '8px',
-            'boxShadow': '0 2px 4px rgba(0, 0, 0, 0.1)',
-            'textAlign': 'center'
-        }) for stat in stats
-    ]
+
 
 # Callback to update bar chart
 @app.callback(
