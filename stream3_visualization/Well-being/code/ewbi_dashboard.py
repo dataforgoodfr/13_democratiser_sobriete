@@ -1637,8 +1637,9 @@ def create_adaptive_map_chart(map_df, level_filters):
         title = f'Well-Being Score by Country - {level_filters["eu_priority"]} - {level_filters["secondary_indicator"]} - {level_filters["primary_indicator"]}'
         colorbar_title = "Score"
     
-    # Convert ISO-2 codes to ISO-3 codes for the map
+    # Convert ISO-2 codes to ISO-3 codes for the map and prepare full names for hover
     filtered_data['iso3'] = filtered_data['country'].map(ISO2_TO_ISO3)
+    filtered_data['full_name'] = filtered_data['country'].map(ISO2_TO_FULL_NAME).fillna(filtered_data['country'])
     
     # Filter out countries without ISO-3 codes (like aggregates)
     filtered_data = filtered_data[filtered_data['iso3'].notna()].copy()
@@ -1650,8 +1651,8 @@ def create_adaptive_map_chart(map_df, level_filters):
         locationmode='ISO-3',
         colorscale='RdYlGn',  # Red to Green scale
         colorbar_title=colorbar_title,
-        text=filtered_data['country'],
-        hovertemplate='<b>%{location}</b><br>Score: %{z:.2f}<extra></extra>'
+        text=filtered_data['full_name'],
+        hovertemplate='<b>%{text}</b><br>Score: %{z:.2f}<extra></extra>'
     ))
     
     # Update traces for better styling like Budget dashboard
