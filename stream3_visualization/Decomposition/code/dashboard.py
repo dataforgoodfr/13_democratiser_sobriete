@@ -17,10 +17,113 @@ DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'Output
 
 # Load the data
 try:
-    data = pd.read_csv(os.path.join(DATA_DIR, 'unified_decomposition_data.csv'))
+    # Load EU data
+    data = pd.read_csv(os.path.join('..', 'Output', 'unified_decomposition_data.csv'))
+    
+    # Create Switzerland data with the same structure but different sectors
+    switzerland_data = []
+    
+    # Switzerland sectors (no Industry)
+    switzerland_sectors = ['Buildings - Residential', 'Buildings - Services', 'Passenger Land Transportation']
+    
+    # Switzerland scenarios (same as EU)
+    switzerland_scenarios = ['EU Commission Fit-for-55', 'EU Commission >85% Decrease by 2040', 
+                           'EU Commission >90% Decrease by 2040', 'EU Commission LIFE Scenario']
+    
+    # Switzerland levers (same as EU)
+    switzerland_levers = ['Population', 'Sufficiency', 'Energy Efficiency', 'Supply Side Decarbonation']
+    
+    # Switzerland CO2 data (example values - you can replace with actual data)
+    # Format: {sector: {scenario: {2015: value, 2040: value, 2050: value}}}
+    switzerland_co2_data = {
+        'Buildings - Residential': {
+            'EU Commission Fit-for-55': {2015: 8.5, 2040: 2.1, 2050: 0.1},
+            'EU Commission >85% Decrease by 2040': {2015: 8.5, 2040: 1.3, 2050: 0.1},
+            'EU Commission >90% Decrease by 2040': {2015: 8.5, 2040: 0.9, 2050: 0.1},
+            'EU Commission LIFE Scenario': {2015: 8.5, 2040: 2.1, 2050: 0.1}
+        },
+        'Buildings - Services': {
+            'EU Commission Fit-for-55': {2015: 6.2, 2040: 1.5, 2050: 0.1},
+            'EU Commission >85% Decrease by 2040': {2015: 6.2, 2040: 0.9, 2050: 0.1},
+            'EU Commission >90% Decrease by 2040': {2015: 6.2, 2040: 0.6, 2050: 0.1},
+            'EU Commission LIFE Scenario': {2015: 6.2, 2040: 1.5, 2050: 0.1}
+        },
+        'Passenger Land Transportation': {
+            'EU Commission Fit-for-55': {2015: 12.8, 2040: 3.2, 2050: 0.1},
+            'EU Commission >85% Decrease by 2040': {2015: 12.8, 2040: 1.9, 2050: 0.1},
+            'EU Commission >90% Decrease by 2040': {2015: 12.8, 2040: 1.3, 2050: 0.1},
+            'EU Commission LIFE Scenario': {2015: 12.8, 2040: 3.2, 2050: 0.1}
+        }
+    }
+    
+    # Generate Switzerland data rows
+    for sector in switzerland_sectors:
+        for scenario in switzerland_scenarios:
+            co2_2015 = switzerland_co2_data[sector][scenario][2015]
+            co2_2040 = switzerland_co2_data[sector][scenario][2040]
+            co2_2050 = switzerland_co2_data[sector][scenario][2050]
+            
+            # Calculate absolute contributions
+            contrib_2015_2040_abs = co2_2040 - co2_2015
+            contrib_2040_2050_abs = co2_2050 - co2_2040
+            contrib_2015_2050_abs = co2_2050 - co2_2015
+            
+            # Calculate percentage contributions (will be calculated per lever)
+            
+            # Add Total lever first
+            switzerland_data.append({
+                'Zone': 'Switzerland',
+                'Sector': sector,
+                'Scenario': scenario,
+                'Lever': 'Total',
+                'CO2_2015': co2_2015,
+                'CO2_2040': co2_2040,
+                'CO2_2050': co2_2050,
+                'Contrib_2015_2040_abs': contrib_2015_2040_abs,
+                'Contrib_2040_2050_abs': contrib_2040_2050_abs,
+                'Contrib_2015_2050_abs': contrib_2015_2050_abs,
+                'Contrib_2015_2040_pct': 100.0,
+                'Contrib_2040_2050_pct': 100.0,
+                'Contrib_2015_2050_pct': 100.0
+            })
+            
+            # Add individual levers with example contributions
+            # You can replace these with actual Switzerland-specific lever contributions
+            lever_contributions = {
+                'Population': {'2015_2040': 0.05, '2040_2050': 0.02, '2015_2050': 0.07},
+                'Sufficiency': {'2015_2040': 0.15, '2040_2050': 0.08, '2015_2050': 0.23},
+                'Energy Efficiency': {'2015_2040': 0.35, '2040_2050': 0.15, '2015_2050': 0.50},
+                'Supply Side Decarbonation': {'2015_2040': 0.45, '2040_2050': 0.75, '2015_2050': 1.20}
+            }
+            
+            for lever in switzerland_levers:
+                contrib_2015_2040_pct = lever_contributions[lever]['2015_2040']
+                contrib_2040_2050_pct = lever_contributions[lever]['2040_2050']
+                contrib_2015_2050_pct = lever_contributions[lever]['2015_2050']
+                
+                switzerland_data.append({
+                    'Zone': 'Switzerland',
+                    'Sector': sector,
+                    'Scenario': scenario,
+                    'Lever': lever,
+                    'CO2_2015': 0,  # Levers don't have direct CO2 values
+                    'CO2_2040': 0,   # Levers don't have direct CO2 values
+                    'CO2_2050': 0,   # Levers don't have direct CO2 values
+                    'Contrib_2015_2040_abs': contrib_2015_2040_pct * contrib_2015_2040_abs,
+                    'Contrib_2040_2050_abs': contrib_2040_2050_pct * contrib_2040_2050_abs,
+                    'Contrib_2015_2050_abs': contrib_2015_2050_pct * contrib_2015_2050_abs,
+                    'Contrib_2015_2040_pct': contrib_2015_2040_pct * 100,
+                    'Contrib_2040_2050_pct': contrib_2040_2050_pct * 100,
+                    'Contrib_2015_2050_pct': contrib_2015_2050_pct * 100
+                })
+    
+    # Convert Switzerland data to DataFrame and combine with EU data
+    switzerland_df = pd.DataFrame(switzerland_data)
+    data = pd.concat([data, switzerland_df], ignore_index=True)
+    
     print("Data loaded successfully!")
     print(f"Data shape: {data.shape}")
-    print(f"Columns: {data.columns.tolist()}")
+    print(f"Columns: {list(data.columns)}")
     
     # Get unique values for filters
     ZONES = sorted(data['Zone'].unique())
@@ -45,7 +148,7 @@ try:
     
 except FileNotFoundError as e:
     print(f"Error loading data files: {e}")
-    print(f"Please ensure that the CSV files are in the '{DATA_DIR}' directory.")
+    print(f"Please ensure that the CSV files are in the '{os.path.join('..', 'Output')}' directory.")
     exit()
 
 # Initialize the Dash app
