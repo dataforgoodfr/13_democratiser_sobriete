@@ -25,7 +25,16 @@ try:
     # Get unique values for filters
     ZONES = sorted(data['Zone'].unique())
     SECTORS = sorted(data['Sector'].unique())
-    SCENARIOS = sorted(data['Scenario'].unique())
+    
+    # Clean up scenario names to remove duplicates (like "Scenario 1" vs "Scenario 1 ")
+    raw_scenarios = data['Scenario'].unique()
+    cleaned_scenarios = []
+    for scenario in raw_scenarios:
+        cleaned_scenario = scenario.strip()  # Remove leading/trailing whitespace
+        if cleaned_scenario not in cleaned_scenarios:
+            cleaned_scenarios.append(cleaned_scenario)
+    SCENARIOS = sorted(cleaned_scenarios)
+    
     LEVERS = sorted([lever for lever in data['Lever'].unique() if lever != 'Total'])
     
     print(f"Found {len(ZONES)} zones: {ZONES}")
@@ -175,7 +184,7 @@ def update_bar_chart(zone, sector):
     
     # Create a bar for each scenario
     for scenario in scenarios:
-        scenario_data = chart_data[chart_data['Scenario'] == scenario]
+        scenario_data = chart_data[chart_data['Scenario'] == scenario].copy()
         
         # Calculate percentage contributions for this scenario
         total_reduction = scenario_data['Contrib_2015_2050_abs'].sum()
