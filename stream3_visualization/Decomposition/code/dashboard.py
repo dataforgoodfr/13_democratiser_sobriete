@@ -130,11 +130,14 @@ app.layout = html.Div([
     
     # Visualizations - EXACTLY like EWBI layout (no intermediate section)
     html.Div([
-        # Charts in a row - EXACTLY like EWBI
+        # Charts stacked vertically - one below the other
         html.Div([
-            dcc.Graph(id='bar-chart', style={'display': 'inline-block', 'width': '49%', 'verticalAlign': 'top'}),
-            dcc.Graph(id='waterfall-chart', style={'display': 'inline-block', 'width': '49%', 'verticalAlign': 'top'})
-        ], style={'textAlign': 'center', 'margin': '0 auto'})
+            dcc.Graph(id='bar-chart', style={'height': '500px'})
+        ], style={'marginBottom': '30px'}),
+        
+        html.Div([
+            dcc.Graph(id='waterfall-chart', style={'height': '500px'})
+        ])
     ], style={
         'margin': '0 20px',
         'paddingTop': '20px'  # Extra space to account for sticky headers
