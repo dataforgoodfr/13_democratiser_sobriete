@@ -139,18 +139,16 @@ app.layout = html.Div([
 @app.callback(
     Output('bar-chart', 'figure'),
     [Input('zone-dropdown', 'value'),
-     Input('sector-dropdown', 'value'),
-     Input('scenario-dropdown', 'value')]
+     Input('sector-dropdown', 'value')]
 )
-def update_bar_chart(zone, sector, scenario):
-    if not all([zone, sector, scenario]):
+def update_bar_chart(zone, sector):
+    if not all([zone, sector]):
         return go.Figure()
     
-    # Get data for the selected filters
+    # Get data for the selected zone and sector, all scenarios
     chart_data = data[
         (data['Zone'] == zone) &
         (data['Sector'] == sector) &
-        (data['Scenario'] == scenario) &
         (data['Lever'] != 'Total')
     ].copy()
     
@@ -161,14 +159,7 @@ def update_bar_chart(zone, sector, scenario):
             x=0.5, y=0.5, showarrow=False
         )
     
-    # Calculate percentage contributions
-    total_reduction = chart_data['Contrib_2015_2050_abs'].sum()
-    chart_data['Percentage'] = (chart_data['Contrib_2015_2050_abs'] / total_reduction) * 100
-    
-    # Sort by percentage (descending)
-    chart_data = chart_data.sort_values('Percentage', ascending=False)
-    
-    # Create bar chart
+    # Create grouped bar chart
     fig = go.Figure()
     
     # Define colors for levers
@@ -179,21 +170,37 @@ def update_bar_chart(zone, sector, scenario):
         'Supply Side Decarbonation': '#d62728'
     }
     
-    fig.add_trace(go.Bar(
-        x=chart_data['Lever'],
-        y=chart_data['Percentage'],
-        marker_color=[lever_colors.get(lever, "#636363") for lever in chart_data['Lever']],
-        text=[f"{pct:.1f}%" for pct in chart_data['Percentage']],
-        textposition='outside',
-        showlegend=False
-    ))
+    # Get unique scenarios
+    scenarios = sorted(chart_data['Scenario'].unique())
+    
+    # Create a bar for each scenario
+    for scenario in scenarios:
+        scenario_data = chart_data[chart_data['Scenario'] == scenario]
+        
+        # Calculate percentage contributions for this scenario
+        total_reduction = scenario_data['Contrib_2015_2050_abs'].sum()
+        scenario_data['Percentage'] = (scenario_data['Contrib_2015_2050_abs'] / total_reduction) * 100
+        
+        # Sort by percentage (descending)
+        scenario_data = scenario_data.sort_values('Percentage', ascending=False)
+        
+        fig.add_trace(go.Bar(
+            name=scenario,
+            x=scenario_data['Lever'],
+            y=scenario_data['Percentage'],
+            marker_color=[lever_colors.get(lever, "#636363") for lever in scenario_data['Lever']],
+            text=[f"{pct:.1f}%" for pct in scenario_data['Percentage']],
+            textposition='outside',
+            showlegend=True
+        ))
     
     fig.update_layout(
-        title=f"Share of Planned CO2 Reduction by Lever - {scenario} ({sector}, {zone})",
+        title=f"Share of Planned CO2 Reduction by Lever - {sector} ({zone})",
         xaxis_title="Levers",
         yaxis_title="Percentage of Total Reduction (%)",
         height=500,
-        showlegend=False,
+        barmode='group',  # Group bars by lever
+        showlegend=True,
         plot_bgcolor='white',
         font=dict(size=12),
         xaxis=dict(
