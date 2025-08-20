@@ -248,8 +248,10 @@ def generate_all_sufficiency_scenarios(base_data):
             # Get individual levers (excluding Total) for calculations
             reference_scenario = first_scenario_data[first_scenario_data['Lever'] != 'Total'].copy()
             
-            # Get Total row for CO2 values
+            # Get Total row for CO2 values - this should have the CO2_2015, CO2_2040, CO2_2050 values
             total_row = first_scenario_data[first_scenario_data['Lever'] == 'Total'].iloc[0]
+            
+
             
             # Generate Scenario 1: No increase in Consumption/Production Intensity
             scenario_1 = generate_single_scenario_1(reference_scenario, sector, zone, total_row)
@@ -328,7 +330,7 @@ def generate_single_scenario_1(base_scenario, sector, zone, total_row):
                 new_scenario.loc[idx, 'Contrib_2015_2050_pct'] = -contrib_pct_total
         
         # Add Total row
-        new_total_row = new_scenario.iloc[0].copy()
+        new_total_row = total_row.copy()
         new_total_row['Lever'] = 'Total'
         new_total_row['CO2_2015'] = total_row['CO2_2015']
         new_total_row['CO2_2040'] = total_row['CO2_2040']
@@ -418,7 +420,7 @@ def generate_single_scenario_2(base_scenario, sector, zone, total_row):
                 new_scenario.loc[idx, 'Contrib_2015_2050_pct'] = -contrib_pct_total
         
         # Add Total row
-        new_total_row = new_scenario.iloc[0].copy()
+        new_total_row = total_row.copy()
         new_total_row['Lever'] = 'Total'
         new_total_row['CO2_2015'] = total_row['CO2_2015']
         new_total_row['CO2_2040'] = total_row['CO2_2040']
