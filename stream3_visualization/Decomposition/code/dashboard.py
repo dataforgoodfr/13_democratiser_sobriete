@@ -191,19 +191,14 @@ def update_bar_chart(zone, sector):
     for scenario in scenarios:
         scenario_data = chart_data[chart_data['Scenario'] == scenario].copy()
         
-        # Calculate percentage contributions for this scenario
-        total_reduction = scenario_data['Contrib_2015_2050_abs'].sum()
-        scenario_data['Percentage'] = (scenario_data['Contrib_2015_2050_abs'] / total_reduction) * 100
-        
-        # Sort by percentage (descending)
-        scenario_data = scenario_data.sort_values('Percentage', ascending=False)
-        
+        # Use the actual percentage values from the data instead of recalculating
+        # This ensures different scenarios show their actual different values
         fig.add_trace(go.Bar(
             name=scenario,
             x=scenario_data['Lever'],
-            y=scenario_data['Percentage'],
+            y=scenario_data['Contrib_2015_2050_pct'],  # Use actual percentage from data
             marker_color=[lever_colors.get(lever, "#636363") for lever in scenario_data['Lever']],
-            text=[f"{pct:.1f}%" for pct in scenario_data['Percentage']],
+            text=[f"{pct:.1f}%" for pct in scenario_data['Contrib_2015_2050_pct']],  # Use actual percentage
             textposition='outside',
             showlegend=True
         ))
