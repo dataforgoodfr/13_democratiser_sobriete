@@ -174,60 +174,38 @@ def update_bar_chart(zone, sector):
         )
     
     # Create grouped bar chart
-    fig = go.Figure()
-    
-    # Define colors for levers
-    lever_colors = {
-        'Population': '#1f77b4',
-        'Sufficiency': '#ff7f0e', 
-        'Energy Efficiency': '#2ca02c',
-        'Supply Side Decarbonation': '#d62728'
-    }
-    
-    # Get unique scenarios for this zone
-    scenarios = sorted(chart_data['Scenario'].unique())
-    
-    # Create a bar for each scenario
-    for scenario in scenarios:
-        scenario_data = chart_data[chart_data['Scenario'] == scenario].copy()
-        
-        # Use the actual percentage values from the data instead of recalculating
-        # This ensures different scenarios show their actual different values
-        fig.add_trace(go.Bar(
-            name=scenario,
-            x=scenario_data['Lever'],
-            y=scenario_data['Contrib_2015_2050_pct'],  # Use actual percentage from data
-            marker_color=[lever_colors.get(lever, "#636363") for lever in scenario_data['Lever']],
-            text=[f"{pct:.1f}%" for pct in scenario_data['Contrib_2015_2050_pct']],  # Use actual percentage
-            textposition='outside',
-            showlegend=True
-        ))
+    fig = px.bar(
+        chart_data,
+        x='Lever',
+        y='Contrib_2015_2050_pct',
+        color='Scenario',
+        barmode='group',
+        title=f"Share of Planned CO2 Reduction by Lever - {sector} ({zone})",
+        labels={
+            'Contrib_2015_2050_pct': 'Contribution (%)',
+            'Lever': 'Lever',
+            'Scenario': 'Scenario'
+        }
+    )
     
     fig.update_layout(
         title=dict(
-            text=f"Share of Planned CO2 Reduction by Lever - {sector} ({zone})",
-            font=dict(size=16, color="#f4d03f", weight="bold"),  # EXACTLY like EWBI dashboard
+            font=dict(size=16, color="#f4d03f", weight="bold"),
             x=0.5,
-            y=0.95  # Consistent title position for alignment
+            y=0.95
         ),
         xaxis_title="Levers",
         yaxis_title="Percentage of Total Reduction (%)",
         height=500,
-        barmode='group',  # Group bars by lever
         showlegend=True,
         plot_bgcolor='white',
-        font=dict(family='Arial, sans-serif', size=14),  # EXACTLY like EWBI dashboard
-        margin=dict(t=80, b=50, l=60, r=60),  # EXACTLY like EWBI dashboard
-        xaxis=dict(
-            tickangle=-45,
-            tickfont=dict(size=10)
-        ),
-        yaxis=dict(
-            gridcolor='lightgray',
-            gridwidth=1,
-            range=[-20, 100]
-        )
+        font=dict(family='Arial, sans-serif', size=14),
+        margin=dict(t=80, b=50, l=60, r=60),
+        yaxis=dict(range=[-20, 100])
     )
+    
+    fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='lightgray')
+    fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='lightgray')
     
     return fig
 
