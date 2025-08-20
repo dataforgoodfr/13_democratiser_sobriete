@@ -98,10 +98,93 @@ Well-being/
 - **LFS**: Labour Force Survey
 
 ### Aggregation Logic
-1. **Primary Indicators**: Raw survey data normalized to 0-1 scale
-2. **Secondary Indicators**: Arithmetic mean of constituent primary indicators
-3. **EU Priorities**: Arithmetic mean of constituent secondary indicators
-4. **EWBI**: Arithmetic mean of all EU priority scores
+1. **Primary Indicators (L4)**: Raw survey data normalized to 0–1 scale
+2. **Decile Aggregation (to "All")**: Geometric mean across deciles (for L4 and L3 "All Deciles")
+3. **Level Roll-up (L4 → L3 → L2 → L1)**: Arithmetic mean of child indicators within each level
+4. **EU Average**: Arithmetic mean across countries for the given year/level/decile selection
+
+### Complete Indicator Hierarchy
+
+#### Level 1: EWBI (Overall Well-being)
+- **EWBI**: Composite score across all EU Priorities
+
+#### Level 2: EU Priorities (6 major policy areas)
+1. **Agriculture and Food**
+2. **Energy and Housing**
+3. **Equality**
+4. **Health and Animal Welfare**
+5. **Intergenerational Fairness, Youth, Culture and Sport**
+6. **Social Rights and Skills, Quality Jobs and Preparedness**
+7. **Sustainable Transport and Tourism**
+
+#### Level 3: Secondary Indicators (18 dimensions)
+- **Agriculture and Food**: Nutrition need, Nutrition expense
+- **Energy and Housing**: Housing quality, Energy, Housing expense
+- **Equality**: Life satisfaction, Security, Community, Digital Skills
+- **Health and Animal Welfare**: Health condition and impact, Health cost and medical care, Accidents and addictive behaviour
+- **Intergenerational Fairness, Youth, Culture and Sport**: Education, Education expense, Leisure and culture
+- **Social Rights and Skills, Quality Jobs and Preparedness**: Type of job and market participation, Unemployment
+- **Sustainable Transport and Tourism**: Transport, Tourism
+
+#### Level 4: Primary Indicators (58 individual measures)
+- **AN-SILC-1**: Share of nth decile households in capacity to afford a meal with meat, chicken, fish or vegetarian equivalent every second day
+- **AN-EHIS-1**: Share of nth quintile population facing a lot of difficulty in preparing meals
+- **AE-HBS-1**: Percentage of households of the nth decile whose share of equivalised food and nonalcoholic beverages expenditure in equivalised disposable income is above twice the national median share
+- **AE-HBS-2**: Percentage of households of the nth decile whose share of equivalised food and nonalcoholic beverages expenditure in equivalised disposable income is below half the national median share
+- **AE-EHIS-1**: Share of nth quintile population not eating fruit, excluding juice less than once a week
+- **HQ-SILC-1**: Share of nth decile households living in an over-populated dwelling
+- **HQ-SILC-2**: Share of nth decile households incapable to replace worn-out furniture
+- **HE-SILC-1**: Share of nth decile households unable to keep their homes warm in winter
+- **HE-SILC-2**: Share of nth decile households having arrears on utility bills
+- **HE-HBS-1**: Percentage of households of the nth decile whose share of equivalised housing, water, electricity, gas and other fuels expenditure in equivalised disposable income is above twice the national median share
+- **HE-HBS-2**: Percentage of households of the nth decile whose share of equivalised housing, water, electricity, gas and other fuels expenditure in equivalised disposable income is below half the national median share
+- **HH-SILC-1**: Share of nth decile households having arrears on mortgage or rental payments
+- **HH-HBS-1**: Percentage of households of the nth decile whose share of equivalised rent related to the occupied dwelling expenditure in equivalised disposable income is above twice the national median share
+- **HH-HBS-2**: Percentage of households of the nth decile whose share of equivalised rent related to the occupied dwelling expenditure in equivalised disposable income is below half the national median share
+- **EL-SILC-1**: Share of nth decile households not satisfied with its life
+- **EL-EHIS-1**: Share of nth quintile population that experience every day little interest or pleasure in doing things over the last 2 weeks
+- **ES-SILC-1**: Share of nth decile households in capacity to face unexpected financial expenses
+- **ES-SILC-2**: Share of nth decile households making ends meet with difficulty
+- **EC-SILC-1**: Share of nth decile households incapable of getting-together with friends/family for a drink/meal at least once a month
+- **EC-SILC-2**: Share of nth decile households not trusting others
+- **EC-HBS-1**: Percentage of households of the nth decile whose share of equivalised communication expenditure in equivalised disposable income is above twice the national median share
+- **EC-HBS-2**: Percentage of households of the nth decile whose share of equivalised communication expenditure in equivalised disposable income is below half the national median share
+- **EC-EHIS-1**: Share of nth quintile population having no close people to count on in case of serious personal problems
+- **ED-EHIS-1**: Share of nth quintile population having difficulty in using the telephone
+- **AH-SILC-1**: Share of nth decile households having bad self-perceived general health
+- **AH-SILC-2**: Share of nth decile households suffering from any chronic illness or condition
+- **AH-SILC-3**: Share of nth decile households encountering limitation in activities because of health problems
+- **AH-SILC-4**: Share of nth decile households unable to work for 6 months due to long-standing health problems
+- **AH-EHIS-1**: Share of nth quintile population that are every day feeling down, depressed or hopeless over the last 2 weeks
+- **AH-EHIS-2**: Share of nth quintile population that are never carrying out sports, fitness or recreational (leisure) physical activities
+- **AC-SILC-1**: Share of nth decile households that could not afford medical examination or treatment
+- **AC-SILC-2**: Share of nth decile households having unmet need for medical examination or treatment
+- **AC-HBS-1**: Percentage of households of the nth decile whose share of equivalised health expenditure in equivalised disposable income is above twice the national median share
+- **AC-HBS-2**: Percentage of households of the nth decile whose share of equivalised health expenditure in equivalised disposable income is below half the national median share
+- **AC-EHIS-1**: Share of nth quintile population that could not afford prescribed medicines in the past 12 months
+- **AB-EHIS-1**: Share of nth quintile population daily smoking
+- **AB-EHIS-2**: Share of nth quintile population consuming alcoholic drink of any kind nearly every day in the past 12 months
+- **AB-EHIS-3**: Share of nth quintile population that suffered a road traffic accident in the past 12 months
+- **IS-SILC-3**: Share of nth decile households having no formal education
+- **IE-HBS-1**: Percentage of households with parents of the nth decile whose share of equivalised education expenditure in equivalised disposable income is above twice the national median share
+- **IE-HBS-2**: Percentage of households with parents of the nth decile whose share of equivalised education expenditure in equivalised disposable income is below half the national median share
+- **IC-SILC-1**: Share of nth decile households incapable of regularly participating in a leisure activity
+- **IC-SILC-2**: Share of nth decile households incapable of spending a small amount of money each week on yourself
+- **IC-HBS-1**: Percentage of households of the nth decile whose share of equivalised recreation, and culture expenditure in equivalised disposable income is above twice the national median share
+- **IC-HBS-2**: Percentage of households of the nth decile whose share of equivalised recreation, and culture expenditure in equivalised disposable income is below half the national median share
+- **RT-SILC-1**: Share of nth decile households over 18 having a fixed-term contract
+- **RT-SILC-2**: Share of nth decile households over 18 having a part-time contract
+- **RT-LFS-1**: Share of nth decile households engage in two or more jobs
+- **RT-LFS-2**: Share of nth decile households wishing to work more than the current number of usual hours
+- **RT-LFS-3**: Share of nth decile households doing some overtime or extra hours worked in main job
+- **RU-SILC-1**: Share of nth decile households over 18 years old unemployed for the last 6 months
+- **TT-HBS-1**: Percentage of households of the nth decile whose share of equivalised transport expenditure in equivalised disposable income is above twice the national median share
+- **TT-HBS-2**: Percentage of households of the nth decile whose share of equivalised transport expenditure in equivalised disposable income is below half the national median share
+- **TT-SILC-1**: Share of nth quintile households incapable to afford public transport
+- **TT-SILC-2**: Share of nth quintile households facing very low access to public transport
+- **TS-SILC-1**: Share of nth decile households incapable to afford a one-week annual holiday away from home
+- **TS-HBS-1**: Percentage of households of the nth decile whose share of equivalised travelling and holidays abroad expenditure in equivalised disposable income is above twice the national median share
+- **TS-HBS-2**: Percentage of households of the nth decile whose share of equivalised travelling and holidays abroad expenditure in equivalised disposable income is below half the national median share
 
 ### Performance Optimizations
 - Pre-calculated aggregates eliminate real-time computation
