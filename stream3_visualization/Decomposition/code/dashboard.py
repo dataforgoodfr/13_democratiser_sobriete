@@ -202,7 +202,8 @@ def update_bar_chart(zone, sector, scenario):
         ),
         yaxis=dict(
             gridcolor='lightgray',
-            gridwidth=1
+            gridwidth=1,
+            range=[-20, 100]
         )
     )
     
@@ -332,7 +333,8 @@ def update_waterfall_chart(zone, sector, scenario):
         ),
         yaxis=dict(
             gridcolor='lightgray',
-            gridwidth=1
+            gridwidth=1,
+            range=[-10, 700]
         )
     )
     
