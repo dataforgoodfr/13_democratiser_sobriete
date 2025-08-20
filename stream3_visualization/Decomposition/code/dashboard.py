@@ -227,8 +227,24 @@ def update_bar_chart(zone, sector):
         yaxis=dict(range=[-20, 100])
     )
     
-    fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='lightgray')
-    fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='lightgray')
+    # Remove grid lines
+    fig.update_xaxes(showgrid=False)
+    fig.update_yaxes(showgrid=False)
+    
+    # Add data labels with 0 decimals
+    fig.update_traces(
+        texttemplate='%{y:.0f}%',
+        textposition='outside',
+        textfont=dict(size=12, color='#2c3e50')
+    )
+    
+    # Improve hover formatting with 0 decimals and better spacing
+    fig.update_traces(
+        hovertemplate="<b>%{x}</b><br>" +
+                     "<b>Scenario:</b> %{fullData.name}<br>" +
+                     "<b>Contribution:</b> %{y:.0f}%<br>" +
+                     "<extra></extra>"
+    )
     
     return fig
 
