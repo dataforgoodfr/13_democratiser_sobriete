@@ -14,17 +14,17 @@ class CO2DecompositionPreprocessor:
         
         # File mappings for each zone
         self.zone_files = {
-            "EU": "2025-04-28_EC scenarios data_Decomposition.xlsx",
-            "Switzerland": "2025-08-13_CH scenarios data_Decomposition.xlsx"
+            "EU": "2025-04-28_EC scenarios data_Decomposition_compiled.xlsx",
+            "Switzerland": "2025-08-13_CH scenarios data_Decomposition_Compiled.xlsx"
         }
         
         # Sector configurations for each zone
         self.sector_configs = {
             "EU": {
-                "Buildings-Residential": ["scenario 1", "scenario 2", "scenario 3", "life scenario"],
-                "Buildings -Services": ["scenario 1", "scenario 2", "scenario 3", "life scenario"],
-                "Industry": ["scenario 1 -standard", "scenario 2-standard", "scenario 3-standard", "life scenario-circular economy"],
-                "PassLandTransport": ["scenario 1", "scenario 2", "scenario 3", "life scenario"]
+                "Buildings-Residential": ["Scenario 1", "Scenario 2", "Scenario 3", "Life Scenario"],
+                "Buildings -Services": ["Scenario 1", "Scenario 2", "Scenario 3", "Life Scenario"],
+                "Industry": ["Scenario 1", "Scenario 2", "Scenario 3", "Life Scenario"],
+                "PassLandTransport": ["Scenario 1", "Scenario 2", "Scenario 3", "Life Scenario"]
             },
             "Switzerland": {
                 "Buildings-Residential": ["Base Scenario", "Scenario Zer0 A", "Scenario Zer0 B", "Scenario Zer0 C"],
@@ -41,9 +41,12 @@ class CO2DecompositionPreprocessor:
             "PassLandTransport": ["Year", "Population (Millions)", "Passenger Transport (Tpkm)", "Energy (Mtoe)", "CO2 (Mtonnes)"]
         }
         
+        # Switzerland specific column mapping for the new compiled structure
+        self.switzerland_columns = ["Geography", "Sector", "Scenario", "Year", "Population (Million)", "Floor area (Million m²)", "Final Energy (Million toe)", "CO2 (Million tonnes)"]
+        
         # Universal lever names
         self.universal_levers = ["Population", "Sufficiency", "Energy Efficiency", "Supply Side Decarbonation"]
-        
+    
     def calculate_intensity_factors(self, data_rows, sector):
         """Calculate intensity factors for LMDI decomposition"""
         intensity_factors = {}
@@ -91,47 +94,43 @@ class CO2DecompositionPreprocessor:
             
         all_scenario_data = []
         
-        for sector, scenarios in self.sector_configs[zone].items():
-            try:
-                # Read the sheet
-                df_sheet = pd.read_excel(file_path, sheet_name=sector, header=None)
-                
+        try:
+            # Both zones now use the same "All Sectors" sheet structure
+            df_sheet = pd.read_excel(file_path, sheet_name="All Sectors")
+            print(f"{zone} data loaded from 'All Sectors' sheet, shape: {df_sheet.shape}")
+            
+            # Process each sector and scenario combination
+            for sector, scenarios in self.sector_configs[zone].items():
                 for scenario in scenarios:
                     try:
-                        # Find scenario start row
-                        scenario_rows = df_sheet[df_sheet[0].astype(str).str.strip().str.lower() == scenario.lower()]
-                        if len(scenario_rows) == 0:
-                            print(f"Warning: Scenario '{scenario}' not found in {zone} - {sector}")
+                        # Filter data for this sector and scenario
+                        sector_data = df_sheet[
+                            (df_sheet["Sector"] == sector) & 
+                            (df_sheet["Scenario"] == scenario)
+                        ].copy()
+                        
+                        if sector_data.empty:
+                            print(f"Warning: No data found for {sector} - {scenario}")
                             continue
-                            
-                        idx = scenario_rows.index[0]
                         
-                        # Extract data (assuming 3 rows: 2015, 2040, 2050)
-                        data_rows = df_sheet.iloc[idx + 2 : idx + 5, [0, 1, 2, 3, 4]].copy()
+                        # Filter to only years 2015, 2040, 2050
+                        year_data = sector_data[sector_data["Year"].isin([2015, 2040, 2050])].copy()
                         
-                        # Use correct column names for this sector
-                        sector_cols = self.sector_columns[sector]
-                        data_rows.columns = sector_cols
-                        data_rows.set_index("Year", inplace=True)
-                        data_rows.index = data_rows.index.astype(int)
-                        data_rows = data_rows.astype(float)
+                        if len(year_data) != 3:
+                            print(f"Warning: Missing years for {sector} - {scenario}. Found: {year_data['Year'].tolist()}")
+                            continue
                         
-                        # Get actual CO2 emissions from raw data (for starting points)
-                        if sector in ["Buildings-Residential", "Buildings -Services"]:
-                            co2_2015 = data_rows.loc[2015, "CO2 (Million tonnes)"]
-                            co2_2040 = data_rows.loc[2040, "CO2 (Million tonnes)"]
-                            co2_2050 = data_rows.loc[2050, "CO2 (Million tonnes)"]
-                        elif sector == "Industry":
-                            co2_2015 = data_rows.loc[2015, "CO2 (Mt)"]
-                            co2_2040 = data_rows.loc[2040, "CO2 (Mt)"]
-                            co2_2050 = data_rows.loc[2050, "CO2 (Mt)"]
-                        elif sector == "PassLandTransport":
-                            co2_2015 = data_rows.loc[2015, "CO2 (Mtonnes)"]
-                            co2_2040 = data_rows.loc[2040, "CO2 (Mtonnes)"]
-                            co2_2050 = data_rows.loc[2050, "CO2 (Mtonnes)"]
+                        # Set year as index for easier access
+                        year_data.set_index("Year", inplace=True)
+                        year_data = year_data.astype(float)
+                        
+                        # Extract CO2 values (both zones use the same column names now)
+                        co2_2015 = year_data.loc[2015, "CO2 (Million tonnes)"]
+                        co2_2040 = year_data.loc[2040, "CO2 (Million tonnes)"]
+                        co2_2050 = year_data.loc[2050, "CO2 (Million tonnes)"]
                         
                         # Calculate intensity factors
-                        intensity_factors = self.calculate_intensity_factors(data_rows, sector)
+                        intensity_factors = self.calculate_intensity_factors(year_data, sector)
                         
                         # Calculate LMDI contributions for each period
                         contrib_2015_2040 = {}
@@ -146,14 +145,11 @@ class CO2DecompositionPreprocessor:
                             x0b, xtb = intensity_factors[lever].loc[2040], intensity_factors[lever].loc[2050]
                             contrib_2040_2050[lever] = self.safe_lmdi_contribution(co2_2040, co2_2050, x0b, xtb)
                         
-                        # Clean scenario name
-                        scenario_clean = scenario.replace("-standard", "").replace("-circular economy", "").title()
-                        
-                        # Store data directly in the list
+                        # Store data
                         all_scenario_data.append({
                             "Zone": zone,
                             "Sector": sector,
-                            "Scenario": scenario_clean,
+                            "Scenario": scenario,
                             "CO2_2015": co2_2015,
                             "CO2_2040": co2_2040,
                             "CO2_2050": co2_2050,
@@ -163,12 +159,12 @@ class CO2DecompositionPreprocessor:
                         })
                         
                     except Exception as e:
-                        print(f"Error processing scenario '{scenario}' in {zone} - {sector}: {e}")
+                        print(f"Error processing {zone} scenario '{scenario}' in {sector}: {e}")
                         continue
                         
-            except Exception as e:
-                print(f"Error processing sector '{sector}' in {zone}: {e}")
-                continue
+        except Exception as e:
+            print(f"Error processing {zone} data: {e}")
+            return []
         
         return all_scenario_data
     
