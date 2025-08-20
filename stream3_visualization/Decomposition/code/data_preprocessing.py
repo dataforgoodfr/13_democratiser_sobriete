@@ -239,6 +239,44 @@ class CO2DecompositionPreprocessor:
         
         return pd.DataFrame(unified_data)
     
+    def create_intermediary_dataset(self, all_data):
+        """Create an intermediary dataset with raw data and calculated intensity factors"""
+        intermediary_data = []
+        
+        for scenario_data in all_data:
+            zone = scenario_data["Zone"]
+            sector = scenario_data["Sector"]
+            scenario = scenario_data["Scenario"]
+            
+            co2_2015 = scenario_data["CO2_2015"]
+            co2_2040 = scenario_data["CO2_2040"]
+            co2_2050 = scenario_data["CO2_2050"]
+            
+            intensity_factors = scenario_data["Intensity_Factors"]
+            
+            # Get raw data for each year
+            for year in [2015, 2040, 2050]:
+                row_data = {
+                    "Zone": zone,
+                    "Sector": sector,
+                    "Scenario": scenario,
+                    "Year": year,
+                    "CO2_2015": co2_2015,
+                    "CO2_2040": co2_2040,
+                    "CO2_2050": co2_2050,
+                    "Population": intensity_factors["Population"].loc[year],
+                    "Volume": intensity_factors["Sufficiency"].loc[year] * intensity_factors["Population"].loc[year],  # Volume = Sufficiency * Population
+                    "Energy": intensity_factors["Energy Efficiency"].loc[year] * intensity_factors["Sufficiency"].loc[year] * intensity_factors["Population"].loc[year],  # Energy = Energy Efficiency * Volume
+                    "CO2": intensity_factors["Supply Side Decarbonation"].loc[year] * intensity_factors["Energy Efficiency"].loc[year] * intensity_factors["Sufficiency"].loc[year] * intensity_factors["Population"].loc[year],  # CO2 = Carbon Intensity * Energy
+                    "Population_Intensity": intensity_factors["Population"].loc[year],
+                    "Sufficiency_Intensity": intensity_factors["Sufficiency"].loc[year],
+                    "Energy_Efficiency_Intensity": intensity_factors["Energy Efficiency"].loc[year],
+                    "Carbon_Intensity": intensity_factors["Supply Side Decarbonation"].loc[year]
+                }
+                intermediary_data.append(row_data)
+        
+        return pd.DataFrame(intermediary_data)
+    
     def save_processed_data(self, output_dir="../Output"):
         """Process and save the unified dataset"""
         print("Starting data processing...")
@@ -250,10 +288,24 @@ class CO2DecompositionPreprocessor:
             print("Warning: No data was processed!")
             return None
         
-        # Save to CSV
-        output_path = os.path.join(output_dir, "unified_decomposition_data.csv")
-        df_unified.to_csv(output_path, index=False)
-        print(f"Unified dataset saved to: {output_path}")
+        # Create intermediary dataset for auditing
+        print("Creating intermediary dataset for auditing...")
+        all_data = []
+        for zone in self.zones:
+            zone_data = self.process_zone_data(zone)
+            all_data.extend(zone_data)
+        
+        df_intermediary = self.create_intermediary_dataset(all_data)
+        
+        # Save both datasets
+        unified_path = os.path.join(output_dir, "unified_decomposition_data.csv")
+        intermediary_path = os.path.join(output_dir, "intermediary_decomposition_data.csv")
+        
+        df_unified.to_csv(unified_path, index=False)
+        df_intermediary.to_csv(intermediary_path, index=False)
+        
+        print(f"Unified dataset saved to: {unified_path}")
+        print(f"Intermediary dataset saved to: {intermediary_path}")
         
         # Create summary statistics
         summary = df_unified.groupby(["Zone", "Sector", "Scenario"]).agg({
@@ -278,6 +330,8 @@ class CO2DecompositionPreprocessor:
         print(f"Sectors: {sorted(df_unified['Sector'].unique())}")
         print(f"Scenarios: {sorted(df_unified['Scenario'].unique())}")
         print(f"Levers: {sorted(df_unified['Lever'].unique())}")
+        print(f"\nIntermediary dataset shape: {df_intermediary.shape}")
+        print(f"Intermediary dataset columns: {df_intermediary.columns.tolist()}")
         
         return df_unified
 
