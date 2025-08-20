@@ -402,6 +402,7 @@ def update_waterfall_chart(zone, sector, scenario):
         xaxis_title="",  # Removed X-axis label
         yaxis_title="CO2 Emissions (Million tonnes)",
         height=600,  # Made taller
+        width=800,  # Make chart less wide
         showlegend=False,  # Hide legend
         plot_bgcolor='white',
         font=dict(family='Arial, sans-serif', size=14),  # EXACTLY like EWBI dashboard
