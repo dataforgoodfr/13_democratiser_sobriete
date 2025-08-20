@@ -303,22 +303,22 @@ def update_waterfall_chart(zone, sector, scenario):
         ].copy()
         
         if scenario_data.empty:
-        return go.Figure().add_annotation(
-            text="No data available for the selected scenario",
-            xref="paper", yref="paper",
-            x=0.5, y=0.5, showarrow=False
-        )
+            return go.Figure().add_annotation(
+                text="No data available for the selected scenario",
+                xref="paper", yref="paper",
+                x=0.5, y=0.5, showarrow=False
+            )
         
         # Get Total lever data for starting points
-    total_data = scenario_data[scenario_data['Lever'] == 'Total']
-    if total_data.empty:
-        return go.Figure().add_annotation(
-            text="No Total data available for the selected scenario",
-            xref="paper", yref="paper",
-            x=0.5, y=0.5, showarrow=False
-        )
-    
-    total_data = total_data.iloc[0]
+        total_data = scenario_data[scenario_data['Lever'] == 'Total']
+        if total_data.empty:
+            return go.Figure().add_annotation(
+                text="No Total data available for the selected scenario",
+                xref="paper", yref="paper",
+                x=0.5, y=0.5, showarrow=False
+            )
+        
+        total_data = total_data.iloc[0]
         co2_2015 = total_data['CO2_2015']
         co2_2040 = total_data['CO2_2040']
         co2_2050 = total_data['CO2_2050']
@@ -326,7 +326,7 @@ def update_waterfall_chart(zone, sector, scenario):
         # Get lever contributions (excluding Total)
         lever_data = scenario_data[scenario_data['Lever'] != 'Total'].copy()
         
-    # Create proper waterfall chart
+        # Create proper waterfall chart
         fig = go.Figure()
         
         # Define colors for levers
