@@ -367,6 +367,9 @@ def update_waterfall_chart(zone, sector, scenario):
     co2_2040 = total_data['CO2_2040']
     co2_2050 = total_data['CO2_2050']
     
+    # Calculate baseline for percentages (2015 = 100%)
+    baseline_2015 = co2_2015
+    
     # Get lever contributions (excluding Total)
     lever_data = scenario_data[scenario_data['Lever'] != 'Total'].copy()
     
@@ -381,46 +384,52 @@ def update_waterfall_chart(zone, sector, scenario):
         'Supply Side Decarbonation': '#d62728'
     }
     
-    # Prepare data for waterfall chart
+    # Prepare data for waterfall chart (using percentages, 2015 = 100%)
     x_labels = ['2015']
-    y_values = [co2_2015]
+    y_values = [100.0]  # 2015 = 100%
     measures = ['absolute']
     colors = ['#1f77b4']  # Blue for starting year
-    text_values = [f"{co2_2015:.1f}"]
+    text_values = ["100%"]
     
     # Add 2015-2040 period contributions
     for _, lever in lever_data.iterrows():
         lever_name = lever['Lever']
         contrib_2015_2040 = lever['Contrib_2015_2040_abs']
-        x_labels.append(f"{lever_name} 2015-40")  # More descriptive than "(1)"
-        y_values.append(contrib_2015_2040)
+        # Convert to percentage relative to 2015 baseline
+        contrib_2015_2040_pct = (contrib_2015_2040 / baseline_2015) * 100
+        x_labels.append(f"{lever_name} 2015-40")
+        y_values.append(contrib_2015_2040_pct)
         measures.append('relative')
         colors.append(lever_colors.get(lever_name, "#636363"))
-        text_values.append(f"{contrib_2015_2040:.1f}")
+        text_values.append(f"{contrib_2015_2040_pct:.1f}%")
     
     # Add 2040 total
     x_labels.append('2040')
-    y_values.append(co2_2040)
+    co2_2040_pct = (co2_2040 / baseline_2015) * 100
+    y_values.append(co2_2040_pct)
     measures.append('total')
     colors.append('#1f77b4')  # Blue for intermediate year
-    text_values.append(f"{co2_2040:.1f}")
+    text_values.append(f"{co2_2040_pct:.1f}%")
     
     # Add 2040-2050 period contributions
     for _, lever in lever_data.iterrows():
         lever_name = lever['Lever']
         contrib_2040_2050 = lever['Contrib_2040_2050_abs']
-        x_labels.append(f"{lever_name} 2040-50")  # More descriptive than "(2)"
-        y_values.append(contrib_2040_2050)
+        # Convert to percentage relative to 2015 baseline
+        contrib_2040_2050_pct = (contrib_2040_2050 / baseline_2015) * 100
+        x_labels.append(f"{lever_name} 2040-50")
+        y_values.append(contrib_2040_2050_pct)
         measures.append('relative')
         colors.append(lever_colors.get(lever_name, "#636363"))
-        text_values.append(f"{contrib_2040_2050:.1f}")
+        text_values.append(f"{contrib_2040_2050_pct:.1f}%")
     
     # Add 2050 final total
     x_labels.append('2050')
-    y_values.append(co2_2050)
+    co2_2050_pct = (co2_2050 / baseline_2015) * 100
+    y_values.append(co2_2050_pct)
     measures.append('total')
     colors.append('#1f77b4')  # Blue for final year
-    text_values.append(f"{co2_2050:.1f}")
+    text_values.append(f"{co2_2050_pct:.1f}%")
     
     # Create the waterfall chart
     fig.add_trace(go.Waterfall(
@@ -440,13 +449,13 @@ def update_waterfall_chart(zone, sector, scenario):
     
     fig.update_layout(
         title=dict(
-            text=f"Planned CO2 Emissions Decrease Over Time by Lever - {sector} ({zone})",
+            text=f"Planned CO2 Emissions Decrease Over Time by Lever - {sector} ({zone}) - % of 2015 Baseline",
             font=dict(size=16, color="#f4d03f", weight="bold"),  # EXACTLY like EWBI dashboard
             x=0.5,
             y=0.95  # Consistent title position for alignment
         ),
         xaxis_title="",  # Removed X-axis label
-        yaxis_title="CO2 Emissions (Million tonnes)",
+        yaxis_title="CO2 Emissions (% of 2015 baseline)",
         height=600,  # Made taller
         width=1300,  # Make chart less wide
         showlegend=False,  # Hide legend
@@ -459,7 +468,7 @@ def update_waterfall_chart(zone, sector, scenario):
         ),
         yaxis=dict(
             showgrid=False,  # Remove horizontal lines
-            range=[-100, 700]
+            range=[-10, 110]  # Adjusted for percentage scale (2015 = 100%)
         )
     )
     
