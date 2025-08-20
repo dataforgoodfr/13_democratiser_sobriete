@@ -740,6 +740,67 @@ def create_time_series_dataframe(df, secondary_scores, eu_priority_scores, ewbi_
                     'Score': eu_priority_average,
                     'Level': '2 (EU_Priority)'
                 })
+        
+        # Level 3: Secondary Indicators - Arithmetic mean across countries for this year
+        for priority in filtered_config:
+            priority_name = priority['name']
+            for component in priority['components']:
+                component_name = component['name']
+                
+                # Skip secondary indicators that have no underlying data
+                if component_name in secondary_indicators_to_remove:
+                    continue
+                
+                year_secondary_values = []
+                for country in df.index.get_level_values('country').unique():
+                    country_secondary_data = [row for row in time_series_data if row['country'] == country and row['year'] == year_int and row['Level'] == '3 (Secondary_indicator)' and row['EU_Priority'] == priority_name and row['Secondary_indicator'] == component_name]
+                    if country_secondary_data:
+                        year_secondary_values.append(country_secondary_data[0]['Score'])
+                
+                if year_secondary_values:
+                    eu_secondary_average = np.mean(year_secondary_values)
+                    time_series_data.append({
+                        'country': 'EU Average',
+                        'decile': 'All Deciles',
+                        'year': year_int,
+                        'EU_Priority': priority_name,
+                        'Secondary_indicator': component_name,
+                        'primary_index': 'All',
+                        'Score': eu_secondary_average,
+                        'Level': '3 (Secondary_indicator)'
+                    })
+        
+        # Level 4: Primary Indicators - Arithmetic mean across countries for this year
+        for priority in filtered_config:
+            priority_name = priority['name']
+            for component in priority['components']:
+                component_name = component['name']
+                
+                # Skip secondary indicators that have no underlying data
+                if component_name in secondary_indicators_to_remove:
+                    continue
+                
+                for indicator in component['indicators']:
+                    indicator_code = indicator['code']
+                    if indicator_code in df.index.get_level_values('primary_index').unique():
+                        year_primary_values = []
+                        for country in df.index.get_level_values('country').unique():
+                            country_primary_data = [row for row in time_series_data if row['country'] == country and row['year'] == year_int and row['Level'] == '4 (Primary_indicator)' and row['EU_Priority'] == priority_name and row['Secondary_indicator'] == component_name and row['primary_index'] == indicator_code]
+                            if country_primary_data:
+                                year_primary_values.append(country_primary_data[0]['Score'])
+                        
+                        if year_primary_values:
+                            eu_primary_average = np.mean(year_primary_values)
+                            time_series_data.append({
+                                'country': 'EU Average',
+                                'decile': 'All Deciles',
+                                'year': year_int,
+                                'EU_Priority': priority_name,
+                                'Secondary_indicator': component_name,
+                                'primary_index': indicator_code,
+                                'Score': eu_primary_average,
+                                'Level': '4 (Primary_indicator)'
+                            })
     
     return pd.DataFrame(time_series_data)
 
