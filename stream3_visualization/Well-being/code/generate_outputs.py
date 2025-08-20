@@ -437,6 +437,405 @@ def create_hierarchical_master_dataframe(df, secondary_scores, eu_priority_score
     
     return pd.DataFrame(master_data)
 
+def create_complete_hierarchical_dataframe(df, config):
+    """Create the complete hierarchical dataframe for ALL years and ALL deciles using the same logic as master dataframe"""
+    
+    print("Creating complete hierarchical dataframe for all years and all deciles...")
+    
+    # Get all years
+    year_cols = [col for col in df.columns if str(col).isdigit()]
+    year_cols.sort()
+    
+    # Filter out EU priorities and secondary indicators that have no underlying data
+    # Same filtering as in master dataframe
+    eu_priorities_to_remove = [
+        'Sustainable Transport and Tourism'  # No underlying primary indicators
+    ]
+    
+    secondary_indicators_to_remove = [
+        'Housing expense',           # No underlying primary indicators
+        'Digital Skills',            # No underlying primary indicators
+        'Health cost and medical care',  # No underlying primary indicators
+        'Accidents and addictive behaviour',  # No underlying primary indicators
+        'Education expense',         # No underlying primary indicators
+        'Leisure and culture',       # No underlying primary indicators
+        'Transport',                 # No underlying primary indicators
+        'Tourism'                    # No underlying primary indicators
+    ]
+    
+    # Filter the config to remove unwanted EU priorities
+    filtered_config = [priority for priority in config if priority['name'] not in eu_priorities_to_remove]
+    
+    print(f"Filtered out {len(eu_priorities_to_remove)} EU priorities with no underlying data")
+    print(f"Filtered out {len(secondary_indicators_to_remove)} secondary indicators with no underlying data")
+    
+    complete_data = []
+    
+    # For each year, country, and decile combination, create rows for all 4 levels
+    for year in year_cols:
+        year_int = int(year)
+        print(f"Processing year {year_int}...")
+        
+        for country in df.index.get_level_values('country').unique():
+            for decile in df.index.get_level_values('decile').unique():
+                
+                # Level 4: Primary Indicators - Direct from data
+                for priority in filtered_config:
+                    priority_name = priority['name']
+                    for component in priority['components']:
+                        component_name = component['name']
+                        
+                        # Skip secondary indicators that have no underlying data
+                        if component_name in secondary_indicators_to_remove:
+                            continue
+                        
+                        for indicator in component['indicators']:
+                            indicator_code = indicator['code']
+                            if indicator_code in df.index.get_level_values('primary_index').unique():
+                                try:
+                                    primary_score = df.loc[(indicator_code, country, decile), year]
+                                    if pd.notna(primary_score):
+                                        complete_data.append({
+                                            'country': country,
+                                            'decile': decile,
+                                            'year': year_int,
+                                            'EU_Priority': priority_name,
+                                            'Secondary_indicator': component_name,
+                                            'primary_index': indicator_code,
+                                            'Score': primary_score,
+                                            'Level': '4 (Primary_indicator)'
+                                        })
+                                except:
+                                    continue
+                
+                # Level 3: Secondary Indicators - Aggregate Level 4 using arithmetic mean
+                for priority in filtered_config:
+                    priority_name = priority['name']
+                    for component in priority['components']:
+                        component_name = component['name']
+                        
+                        # Skip secondary indicators that have no underlying data
+                        if component_name in secondary_indicators_to_remove:
+                            continue
+                        
+                        # Find all Level 4 scores for this secondary indicator
+                        primary_scores = []
+                        for indicator in component['indicators']:
+                            indicator_code = indicator['code']
+                            if indicator_code in df.index.get_level_values('primary_index').unique():
+                                try:
+                                    value = df.loc[(indicator_code, country, decile), year]
+                                    if pd.notna(value):
+                                        primary_scores.append(value)
+                                except:
+                                    continue
+                        
+                        if primary_scores:
+                            # Level 4 to Level 3: Arithmetic mean (same as master dataframe)
+                            secondary_score = np.mean(primary_scores)
+                            complete_data.append({
+                                'country': country,
+                                'decile': decile,
+                                'year': year_int,
+                                'EU_Priority': priority_name,
+                                'Secondary_indicator': component_name,
+                                'primary_index': 'All',
+                                'Score': secondary_score,
+                                'Level': '3 (Secondary_indicator)'
+                            })
+                
+                # Level 2: EU Priorities - Aggregate Level 3 using arithmetic mean
+                for priority in filtered_config:
+                    priority_name = priority['name']
+                    
+                    # Find all Level 3 scores for this EU priority
+                    secondary_scores = []
+                    for component in priority['components']:
+                        component_name = component['name']
+                        if component_name not in secondary_indicators_to_remove:
+                            # Find the Level 3 score for this component
+                            for row in complete_data:
+                                if (row['country'] == country and row['decile'] == decile and 
+                                    row['year'] == year_int and row['Level'] == '3 (Secondary_indicator)' and
+                                    row['EU_Priority'] == priority_name and row['Secondary_indicator'] == component_name):
+                                    secondary_scores.append(row['Score'])
+                                    break
+                    
+                    if secondary_scores:
+                        # Level 3 to Level 2: Arithmetic mean (same as master dataframe)
+                        priority_score = np.mean(secondary_scores)
+                        complete_data.append({
+                            'country': country,
+                            'decile': decile,
+                            'year': year_int,
+                            'EU_Priority': priority_name,
+                            'Secondary_indicator': 'All',
+                            'primary_index': 'All',
+                            'Score': priority_score,
+                            'Level': '2 (EU_Priority)'
+                        })
+                
+                # Level 1: EWBI - Aggregate Level 2 using arithmetic mean
+                # Find all Level 2 scores for this country-decile-year
+                priority_scores = []
+                for row in complete_data:
+                    if (row['country'] == country and row['decile'] == decile and 
+                        row['year'] == year_int and row['Level'] == '2 (EU_Priority)'):
+                        priority_scores.append(row['Score'])
+                
+                if priority_scores:
+                    # Level 2 to Level 1: Arithmetic mean (same as master dataframe)
+                    ewbi_score = np.mean(priority_scores)
+                    complete_data.append({
+                        'country': country,
+                        'decile': decile,
+                        'year': year_int,
+                        'EU_Priority': 'All',
+                        'Secondary_indicator': 'All',
+                        'primary_index': 'All',
+                        'Score': ewbi_score,
+                        'Level': '1 (EWBI)'
+                    })
+    
+    # Now create country aggregates (All Deciles) using geometric mean for each year
+    print("Creating country aggregates (All Deciles) for all years...")
+    
+    for year in year_cols:
+        year_int = int(year)
+        print(f"Creating 'All Deciles' aggregates for year {year_int}...")
+        
+        for country in df.index.get_level_values('country').unique():
+            # Level 4: Primary Indicators - Geometric mean across deciles (same as master dataframe)
+            for priority in filtered_config:
+                priority_name = priority['name']
+                for component in priority['components']:
+                    component_name = component['name']
+                    
+                    # Skip secondary indicators that have no underlying data
+                    if component_name in secondary_indicators_to_remove:
+                        continue
+                    
+                    for indicator in component['indicators']:
+                        indicator_code = indicator['code']
+                        if indicator_code in df.index.get_level_values('primary_index').unique():
+                            primary_values = []
+                            for decile in df.index.get_level_values('decile').unique():
+                                try:
+                                    value = df.loc[(indicator_code, country, decile), year]
+                                    if pd.notna(value):
+                                        primary_values.append(value)
+                                except:
+                                    continue
+                            
+                            if primary_values:
+                                # Geometric mean across deciles (same as master dataframe)
+                                primary_aggregate = np.exp(np.mean(np.log(primary_values)))
+                                complete_data.append({
+                                    'country': country,
+                                    'decile': 'All',
+                                    'year': year_int,
+                                    'EU_Priority': priority_name,
+                                    'Secondary_indicator': component_name,
+                                    'primary_index': indicator_code,
+                                    'Score': primary_aggregate,
+                                    'Level': '4 (Primary_indicator)'
+                                })
+            
+            # Level 3: Secondary Indicators - Geometric mean of individual decile scores (same as master dataframe)
+            for priority in filtered_config:
+                priority_name = priority['name']
+                for component in priority['components']:
+                    component_name = component['name']
+                    
+                    # Skip secondary indicators that have no underlying data
+                    if component_name in secondary_indicators_to_remove:
+                        continue
+                    
+                    # Find all Level 3 individual decile scores for this secondary indicator
+                    component_scores = []
+                    for row in complete_data:
+                        if (row['country'] == country and row['year'] == year_int and 
+                            row['Level'] == '3 (Secondary_indicator)' and
+                            row['EU_Priority'] == priority_name and row['Secondary_indicator'] == component_name and
+                            row['decile'] != 'All'):  # Only individual deciles, not 'All'
+                            component_scores.append(row['Score'])
+                    
+                    if component_scores:
+                        # Calculate Level 3 "All Deciles" as geometric mean of individual decile scores (same as master dataframe)
+                        level3_all_deciles_score = np.exp(np.mean(np.log(component_scores)))
+                        complete_data.append({
+                            'country': country,
+                            'decile': 'All',
+                            'year': year_int,
+                            'EU_Priority': priority_name,
+                            'Secondary_indicator': component_name,
+                            'primary_index': 'All',
+                            'Score': level3_all_deciles_score,
+                            'Level': '3 (Secondary_indicator)'
+                        })
+            
+            # Level 2: EU Priorities - Arithmetic mean of Level 3 "All Deciles" scores (same as master dataframe)
+            for priority in filtered_config:
+                priority_name = priority['name']
+                
+                # Find all Level 3 "All Deciles" indicators for this EU priority
+                secondary_scores = []
+                for row in complete_data:
+                    if (row['country'] == country and row['year'] == year_int and 
+                        row['Level'] == '3 (Secondary_indicator)' and
+                        row['EU_Priority'] == priority_name and row['decile'] == 'All'):
+                        secondary_scores.append(row['Score'])
+                
+                if secondary_scores:
+                    # Arithmetic mean of valid secondary indicator scores (same as master dataframe)
+                    priority_score = np.mean(secondary_scores)
+                    complete_data.append({
+                        'country': country,
+                        'decile': 'All',
+                        'year': year_int,
+                        'EU_Priority': priority_name,
+                        'Secondary_indicator': 'All',
+                        'primary_index': 'All',
+                        'Score': priority_score,
+                        'Level': '2 (EU_Priority)'
+                    })
+            
+            # Level 1: EWBI - Arithmetic mean of Level 2 "All Deciles" scores (same as master dataframe)
+            priority_scores = []
+            for row in complete_data:
+                if (row['country'] == country and row['year'] == year_int and 
+                    row['Level'] == '2 (EU_Priority)' and row['decile'] == 'All'):
+                    priority_scores.append(row['Score'])
+            
+            if priority_scores:
+                # Arithmetic mean of valid EU priority scores (same as master dataframe)
+                ewbi_score = np.mean(priority_scores)
+                complete_data.append({
+                    'country': country,
+                    'decile': 'All',
+                    'year': year_int,
+                    'EU_Priority': 'All',
+                    'Secondary_indicator': 'All',
+                    'primary_index': 'All',
+                    'Score': ewbi_score,
+                    'Level': '1 (EWBI)'
+                })
+    
+    # Add EU Average for all years and all levels
+    print("Adding EU Average for all years and all levels...")
+    
+    # Define EU countries (same as in original)
+    eu_countries = ['AT', 'BE', 'BG', 'CY', 'CZ', 'DE', 'DK', 'EE', 'EL', 'ES', 'FI', 'FR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'MT', 'NL', 'PL', 'PT', 'RO', 'SE', 'SI', 'SK']
+    
+    for year in year_cols:
+        year_int = int(year)
+        print(f"Adding EU Average for year {year_int}...")
+        
+        # Level 1: EWBI - Arithmetic mean across EU countries for this year
+        year_ewbi_values = []
+        for country in eu_countries:
+            country_ewbi_data = [row for row in complete_data if row['country'] == country and row['year'] == year_int and row['Level'] == '1 (EWBI)' and row['decile'] == 'All']
+            if country_ewbi_data:
+                year_ewbi_values.append(country_ewbi_data[0]['Score'])
+        
+        if year_ewbi_values:
+            eu_ewbi_average = np.mean(year_ewbi_values)
+            complete_data.append({
+                'country': 'EU Average',
+                'decile': 'All',
+                'year': year_int,
+                'EU_Priority': 'All',
+                'Secondary_indicator': 'All',
+                'primary_index': 'All',
+                'Score': eu_ewbi_average,
+                'Level': '1 (EWBI)'
+            })
+        
+        # Level 2: EU Priorities - Arithmetic mean across EU countries for this year
+        for priority in filtered_config:
+            priority_name = priority['name']
+            year_priority_values = []
+            for country in eu_countries:
+                country_priority_data = [row for row in complete_data if row['country'] == country and row['year'] == year_int and row['Level'] == '2 (EU_Priority)' and row['EU_Priority'] == priority_name and row['decile'] == 'All']
+                if country_priority_data:
+                    year_priority_values.append(country_priority_data[0]['Score'])
+            
+            if year_priority_values:
+                eu_priority_average = np.mean(year_priority_values)
+                complete_data.append({
+                    'country': 'EU Average',
+                    'decile': 'All',
+                    'year': year_int,
+                    'EU_Priority': priority_name,
+                    'Secondary_indicator': 'All',
+                    'primary_index': 'All',
+                    'Score': eu_priority_average,
+                    'Level': '2 (EU_Priority)'
+                })
+        
+        # Level 3: Secondary Indicators - Arithmetic mean across EU countries for this year
+        for priority in filtered_config:
+            priority_name = priority['name']
+            for component in priority['components']:
+                component_name = component['name']
+                
+                # Skip secondary indicators that have no underlying data
+                if component_name in secondary_indicators_to_remove:
+                    continue
+                
+                year_secondary_values = []
+                for country in eu_countries:
+                    country_secondary_data = [row for row in complete_data if row['country'] == country and row['year'] == year_int and row['Level'] == '3 (Secondary_indicator)' and row['EU_Priority'] == priority_name and row['Secondary_indicator'] == component_name and row['decile'] == 'All']
+                    if country_secondary_data:
+                        year_secondary_values.append(country_secondary_data[0]['Score'])
+                
+                if year_secondary_values:
+                    eu_secondary_average = np.mean(year_secondary_values)
+                    complete_data.append({
+                        'country': 'EU Average',
+                        'decile': 'All',
+                        'year': year_int,
+                        'EU_Priority': priority_name,
+                        'Secondary_indicator': component_name,
+                        'primary_index': 'All',
+                        'Score': eu_secondary_average,
+                        'Level': '3 (Secondary_indicator)'
+                    })
+        
+        # Level 4: Primary Indicators - Arithmetic mean across EU countries for this year
+        for priority in filtered_config:
+            priority_name = priority['name']
+            for component in priority['components']:
+                component_name = component['name']
+                
+                # Skip secondary indicators that have no underlying data
+                if component_name in secondary_indicators_to_remove:
+                    continue
+                
+                for indicator in component['indicators']:
+                    indicator_code = indicator['code']
+                    if indicator_code in df.index.get_level_values('primary_index').unique():
+                        year_primary_values = []
+                        for country in eu_countries:
+                            country_primary_data = [row for row in complete_data if row['country'] == country and row['year'] == year_int and row['Level'] == '4 (Primary_indicator)' and row['EU_Priority'] == priority_name and row['Secondary_indicator'] == component_name and row['primary_index'] == indicator_code and row['decile'] == 'All']
+                            if country_primary_data:
+                                year_primary_values.append(country_primary_data[0]['Score'])
+                        
+                        if year_primary_values:
+                            eu_primary_average = np.mean(year_primary_values)
+                            complete_data.append({
+                                'country': 'EU Average',
+                                'decile': 'All',
+                                'year': year_int,
+                                'EU_Priority': priority_name,
+                                'Secondary_indicator': component_name,
+                                'primary_index': indicator_code,
+                                'Score': eu_primary_average,
+                                'Level': '4 (Primary_indicator)'
+                            })
+    
+    return pd.DataFrame(complete_data)
+
 def create_time_series_dataframe(df, secondary_scores, eu_priority_scores, ewbi_scores, config):
     """Create the hierarchical time series dataframe with the same structure as master dataframe"""
     
@@ -851,19 +1250,23 @@ def generate_outputs():
     # Use filtered data for the rest of the computation
     df = df_filtered
     
-    # Calculate aggregated scores
-    print("Calculating aggregated scores...")
-    secondary_scores, eu_priority_scores, ewbi_scores = calculate_aggregated_scores(df, config)
+    # Generate complete hierarchical dataframe for ALL years and ALL deciles
+    print("\n=== Generating Complete Hierarchical Dataframe ===")
+    complete_df = create_complete_hierarchical_dataframe(df, config)
+    print(f"Generated complete hierarchical dataframe: {complete_df.shape}")
     
-    # 1. Generate Master Dataframe with hierarchical structure
-    print("\n=== Generating Hierarchical Master Dataframe ===")
-    master_df = create_hierarchical_master_dataframe(df, secondary_scores, eu_priority_scores, ewbi_scores, config)
-    print(f"Generated hierarchical master dataframe: {master_df.shape}")
+    # Split the complete dataframe into master and time series
+    print("\n=== Splitting into Master and Time Series ===")
     
-    # 2. Generate Time Series Dataframe (all years, All Deciles only)
-    print("\n=== Generating Time Series Dataframe ===")
-    time_series_df = create_time_series_dataframe(df, secondary_scores, eu_priority_scores, ewbi_scores, config)
-    print(f"Generated time series dataframe: {time_series_df.shape}")
+    # 1. Master Dataframe: Latest year only, for all deciles
+    latest_year = max([col for col in df.columns if str(col).isdigit()])
+    latest_year_int = int(latest_year)  # Convert to integer to match the year column type
+    master_df = complete_df[complete_df['year'] == latest_year_int].copy()
+    print(f"Master dataframe (latest year {latest_year_int}, all deciles): {master_df.shape}")
+    
+    # 2. Time Series Dataframe: All years, but only "All Deciles" aggregates
+    time_series_df = complete_df[complete_df['decile'] == 'All'].copy()
+    print(f"Time series dataframe (all years, All Deciles only): {time_series_df.shape}")
     
     # Save the outputs
     print("\n=== Saving Outputs ===")
