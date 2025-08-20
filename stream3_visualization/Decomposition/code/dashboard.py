@@ -53,94 +53,93 @@ server = app.server
 
 # App layout
 app.layout = html.Div([
-    # Header section with hierarchical titles
+    # Header section with hierarchical titles - EXACTLY like EWBI
     html.Div([
-        html.H1("🌍 CO2 Emissions Decomposition Dashboard", 
+        html.H1("CO2 Decomposition Dashboard", 
                 style={
                     'textAlign': 'center',
                     'color': '#2c3e50',
+                    'fontSize': '2.5rem',
+                    'fontWeight': 'bold',
                     'marginBottom': '10px',
-                    'fontSize': '32px',
-                    'fontWeight': 'bold'
+                    'fontFamily': 'Arial, sans-serif'
                 }),
-        html.H2("Analyzing CO2 Emission Reductions by Levers", 
-                style={
-                    'textAlign': 'center',
-                    'color': '#34495e',
-                    'marginBottom': '20px',
-                    'fontSize': '20px',
-                    'fontWeight': 'normal'
-                }),
+        html.H2([
+            "Multi-level Analysis of CO2 Emissions Reduction Across Europe"
+        ], style={
+            'textAlign': 'center',
+            'color': '#34495e',
+            'fontSize': '1.2rem',
+            'fontWeight': 'normal',
+            'marginBottom': '30px',
+            'fontFamily': 'Arial, sans-serif',
+            'lineHeight': '1.4',
+            'maxWidth': '900px',
+            'margin': '0 auto 30px auto'
+        }),
         
-        # Filters embedded in header
+        # Controls section embedded within the header - EXACTLY like EWBI
         html.Div([
             html.Div([
-                html.Label("Zone:", style={'fontWeight': 'bold', 'marginRight': '10px'}),
+                html.Label("Zone", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
                 dcc.Dropdown(
                     id='zone-dropdown',
                     options=[{'label': zone, 'value': zone} for zone in ZONES],
                     value=ZONES[0] if ZONES else None,
-                    style={'width': '150px', 'display': 'inline-block'}
+                    style={'marginTop': '8px'},
+                    clearable=False
                 )
-            ], style={'display': 'inline-block', 'marginRight': '20px'}),
+            ], style={'width': '25%', 'display': 'inline-block', 'margin-right': '2%'}),
             
             html.Div([
-                html.Label("Sector:", style={'fontWeight': 'bold', 'marginRight': '10px'}),
+                html.Label("Sector", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
                 dcc.Dropdown(
                     id='sector-dropdown',
                     options=[{'label': sector, 'value': sector} for sector in SECTORS],
                     value=SECTORS[0] if SECTORS else None,
-                    style={'width': '150px', 'display': 'inline-block'}
+                    style={'marginTop': '8px'},
+                    clearable=False
                 )
-            ], style={'display': 'inline-block', 'marginRight': '20px'}),
+            ], style={'width': '25%', 'display': 'inline-block', 'margin-right': '2%'}),
             
             html.Div([
-                html.Label("Scenario:", style={'fontWeight': 'bold', 'marginRight': '10px'}),
+                html.Label("Scenario", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
                 dcc.Dropdown(
                     id='scenario-dropdown',
                     options=[{'label': scenario, 'value': scenario} for scenario in SCENARIOS],
                     value=SCENARIOS[0] if SCENARIOS else None,
-                    style={'width': '200px', 'display': 'inline-block'}
+                    style={'marginTop': '8px'},
+                    clearable=False
                 )
-            ], style={'display': 'inline-block'})
+            ], style={'width': '25%', 'display': 'inline-block'}),
         ], style={
+            'padding': '15px 20px',
             'backgroundColor': '#fdf6e3',
-            'padding': '15px',
             'borderRadius': '8px',
-            'marginBottom': '20px',
-            'textAlign': 'center'
+            'boxShadow': '0 1px 2px rgba(0,0,0,0.05)',
+            'margin': '0 20px 10px 20px'
         })
     ], style={
-        'backgroundColor': '#f4d03f',
-        'padding': '20px',
-        'borderRadius': '10px',
-        'marginBottom': '30px',
-        'boxShadow': '0 4px 6px rgba(0, 0, 0, 0.1)'
+        'backgroundColor': '#f4d03f',  # World Sufficiency Lab yellow - EXACTLY like EWBI
+        'padding': '25px 0px 15px 0px',
+        'position': 'sticky',  # Make header sticky like EWBI
+        'top': 0,
+        'zIndex': 1000,
+        'boxShadow': '0 2px 4px rgba(0,0,0,0.1)'
     }),
     
-    # Charts Section
+    # Visualizations - EXACTLY like EWBI layout (no intermediate section)
     html.Div([
-        # Bar Chart
+        # Charts in a row - EXACTLY like EWBI
         html.Div([
-            dcc.Graph(id='bar-chart', style={'height': '500px'})
-        ], style={'marginBottom': '30px'}),
-        
-        # Waterfall Chart
-        html.Div([
-            dcc.Graph(id='waterfall-chart', style={'height': '500px'})
-        ])
+            dcc.Graph(id='bar-chart', style={'display': 'inline-block', 'width': '49%', 'verticalAlign': 'top'}),
+            dcc.Graph(id='waterfall-chart', style={'display': 'inline-block', 'width': '49%', 'verticalAlign': 'top'})
+        ], style={'textAlign': 'center', 'margin': '0 auto'})
     ], style={
-        'backgroundColor': 'white',
-        'padding': '20px',
-        'borderRadius': '10px',
-        'boxShadow': '0 2px 4px rgba(0, 0, 0, 0.1)'
+        'margin': '0 20px',
+        'paddingTop': '20px'  # Extra space to account for sticky headers
     })
-], style={
-    'backgroundColor': '#f8f9fa',
-    'minHeight': '100vh',
-    'padding': '20px',
-    'fontFamily': 'Arial, sans-serif'
-})
+])
 
 
 
@@ -204,14 +203,20 @@ def update_bar_chart(zone, sector):
         ))
     
     fig.update_layout(
-        title=f"Share of Planned CO2 Reduction by Lever - {sector} ({zone})",
+        title=dict(
+            text=f"Share of Planned CO2 Reduction by Lever - {sector} ({zone})",
+            font=dict(size=16, color="#f4d03f", weight="bold"),  # EXACTLY like EWBI dashboard
+            x=0.5,
+            y=0.95  # Consistent title position for alignment
+        ),
         xaxis_title="Levers",
         yaxis_title="Percentage of Total Reduction (%)",
         height=500,
         barmode='group',  # Group bars by lever
         showlegend=True,
         plot_bgcolor='white',
-        font=dict(size=12),
+        font=dict(family='Arial, sans-serif', size=14),  # EXACTLY like EWBI dashboard
+        margin=dict(t=80, b=50, l=60, r=60),  # EXACTLY like EWBI dashboard
         xaxis=dict(
             tickangle=-45,
             tickfont=dict(size=10)
@@ -336,13 +341,19 @@ def update_waterfall_chart(zone, sector, scenario):
     ))
     
     fig.update_layout(
-        title=f"CO2 Emissions Waterfall - {scenario} ({sector}, {zone})",
+        title=dict(
+            text=f"Planned CO2 Emissions Decrease Over Time by Lever - {sector} ({zone})",
+            font=dict(size=16, color="#f4d03f", weight="bold"),  # EXACTLY like EWBI dashboard
+            x=0.5,
+            y=0.95  # Consistent title position for alignment
+        ),
         xaxis_title="Time Periods and Levers",
         yaxis_title="CO2 Emissions (Million tonnes)",
         height=500,
         showlegend=False,
         plot_bgcolor='white',
-        font=dict(size=12),
+        font=dict(family='Arial, sans-serif', size=14),  # EXACTLY like EWBI dashboard
+        margin=dict(t=80, b=50, l=60, r=60),  # EXACTLY like EWBI dashboard
         xaxis=dict(
             tickangle=-45,
             tickfont=dict(size=10)
