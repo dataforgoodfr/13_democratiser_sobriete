@@ -265,15 +265,15 @@ app.layout = html.Div([
             ], style={'marginBottom': '10px', 'lineHeight': '1.6'}),
             html.P([
                 html.Strong("Level 2: "),
-                "6 EU Priorities - Major policy areas (Agriculture & Food, Energy & Housing, Equality, Health & Animal Welfare, Intergenerational Fairness, Social Rights & Skills)"
+                "6 EU Priorities - Major policy areas (Agriculture & Food, Energy & Housing, Equality, Health & Animal Welfare, Intergenerational Fairness, Youth, Culture & Sport, Social Rights & Skills, Quality Jobs & Preparedness)"
             ], style={'marginBottom': '10px', 'lineHeight': '1.6'}),
             html.P([
                 html.Strong("Level 3: "),
-                "18 Secondary Indicators - Specific well-being dimensions within each priority"
+                "19 Secondary Indicators - Specific well-being dimensions within each priority"
             ], style={'marginBottom': '10px', 'lineHeight': '1.6'}),
             html.P([
                 html.Strong("Level 4: "),
-                "58 Primary Indicators - Individual survey questions and expenditure measures"
+                "27 Primary Indicators - Individual survey questions and expenditure measures (satisfier indicators only, economic good indicators excluded)"
             ], style={'marginBottom': '20px', 'lineHeight': '1.6'}),
             
             html.H4("Methodology", style={
@@ -282,7 +282,7 @@ app.layout = html.Div([
                 'fontWeight': 'bold',
                 'marginBottom': '10px'
             }),
-            html.P("All indicators are normalized on a 0-1 scale where higher values indicate better well-being. The normalization is performed intra-decile and intra-indicator to ensure fair comparison across countries and income groups.", style={
+            html.P("All indicators are normalized on a 0-1 scale where higher values indicate better well-being. The normalization is performed intra-decile and intra-indicator to ensure fair comparison across countries and income groups. Only satisfier indicators (measuring well-being outcomes) are included; economic good indicators (measuring consumption/expenditure) are excluded to focus on actual well-being rather than material consumption.", style={
                 'marginBottom': '10px',
                 'lineHeight': '1.6'
             }),
@@ -1605,7 +1605,7 @@ def create_adaptive_map_chart(map_df, level_filters):
             (map_df['Secondary_indicator'] == 'All') & 
             (map_df['primary_index'] == 'All')
         ].copy()
-        title = 'Well-Being Score by Country - All EU Priorities'
+        title = 'Well-Being Score by Country - All EU Priorities (2023)'
         colorbar_title = "Score"
         
     elif level_filters['current_level'] == 2:
@@ -1615,7 +1615,7 @@ def create_adaptive_map_chart(map_df, level_filters):
             (map_df['Secondary_indicator'] == 'All') & 
             (map_df['primary_index'] == 'All')
         ].copy()
-        title = f'Well-Being Score by Country - {level_filters["eu_priority"]} - All Secondary Indicators'
+        title = f'Well-Being Score by Country - {level_filters["eu_priority"]} - All Secondary Indicators (2023)'
         colorbar_title = "Score"
         
     elif level_filters['current_level'] == 3:
@@ -1625,7 +1625,7 @@ def create_adaptive_map_chart(map_df, level_filters):
             (map_df['Secondary_indicator'] == level_filters['secondary_indicator']) & 
             (map_df['primary_index'] == 'All')
         ].copy()
-        title = f'Well-Being Score by Country - {level_filters["eu_priority"]} - {level_filters["secondary_indicator"]} - All Primary Indicators'
+        title = f'Well-Being Score by Country - {level_filters["eu_priority"]} - {level_filters["secondary_indicator"]} - All Primary Indicators (2023)'
         colorbar_title = "Score"
         
     else:  # Level 4: Primary Indicator
@@ -1634,7 +1634,7 @@ def create_adaptive_map_chart(map_df, level_filters):
             (map_df['Secondary_indicator'] == level_filters['secondary_indicator']) & 
             (map_df['primary_index'] == level_filters['primary_indicator'])
         ].copy()
-        title = f'Well-Being Score by Country - {level_filters["eu_priority"]} - {level_filters["secondary_indicator"]} - {level_filters["primary_indicator"]}'
+        title = f'Well-Being Score by Country - {level_filters["eu_priority"]} - {level_filters["secondary_indicator"]} - {level_filters["primary_indicator"]} (2023)'
         colorbar_title = "Score"
     
     # Convert ISO-2 codes to ISO-3 codes for the map and prepare full names for hover
@@ -1674,7 +1674,7 @@ def create_adaptive_map_chart(map_df, level_filters):
     
     european_map.update_layout(
         height=550,  # Match Budget dashboard map height
-        margin={"r": 120, "t": 40, "l": 80, "b": 20},  # Reduced bottom margin to reduce padding with charts below
+        margin={"r": 120, "t": 80, "l": 80, "b": 20},  # Consistent top margin for title alignment
         geo=dict(
             scope='europe',
             projection=dict(type='equirectangular'),
@@ -1704,7 +1704,8 @@ def create_adaptive_map_chart(map_df, level_filters):
         title=dict(
             text=title,
             font=dict(size=16, color="#f4d03f", weight="bold"),  # Match other chart title sizes
-            x=0.5
+            x=0.5,
+            y=0.95  # Consistent title position for alignment
         ),
 
     )
@@ -1765,7 +1766,7 @@ def create_adaptive_decile_chart(analysis_df, level_filters):
             (analysis_df['Secondary_indicator'] == 'All') & 
             (analysis_df['primary_index'] == 'All')
         ].copy()
-        title = 'Well-Being Score by Decile - All EU Priorities'
+        title = 'Well-Being Score by Decile - All EU Priorities (2023)'
         
     elif level_filters['current_level'] == 2:
         # Level 2: EU Priority
@@ -1774,7 +1775,7 @@ def create_adaptive_decile_chart(analysis_df, level_filters):
             (analysis_df['Secondary_indicator'] == 'All') & 
             (analysis_df['primary_index'] == 'All')
         ].copy()
-        title = f'Well-Being Score by Decile - {level_filters["eu_priority"]} - All Secondary Indicators'
+        title = f'Well-Being Score by Decile - {level_filters["eu_priority"]} - All Secondary Indicators (2023)'
         
     elif level_filters['current_level'] == 3:
         # Level 3: Secondary Indicator
@@ -1783,7 +1784,7 @@ def create_adaptive_decile_chart(analysis_df, level_filters):
             (analysis_df['Secondary_indicator'] == level_filters['secondary_indicator']) & 
             (analysis_df['primary_index'] == 'All')
         ].copy()
-        title = f'Well-Being Score by Decile - {level_filters["eu_priority"]} - {level_filters["secondary_indicator"]} - All Primary Indicators'
+        title = f'Well-Being Score by Decile - {level_filters["eu_priority"]} - {level_filters["secondary_indicator"]} - All Primary Indicators (2023)'
         
     else:  # Level 4: Primary Indicator
         filtered_data = analysis_df[
@@ -1791,7 +1792,7 @@ def create_adaptive_decile_chart(analysis_df, level_filters):
             (analysis_df['Secondary_indicator'] == level_filters['secondary_indicator']) & 
             (analysis_df['primary_index'] == level_filters['primary_indicator'])
         ].copy()
-        title = f'Well-Being Score by Decile - {level_filters["eu_priority"]} - {level_filters["secondary_indicator"]} - {level_filters["primary_indicator"]}'
+        title = f'Well-Being Score by Decile - {level_filters["eu_priority"]} - {level_filters["secondary_indicator"]} - {level_filters["primary_indicator"]} (2023)'
     
     # Create the decile analysis chart
     decile_analysis = go.Figure()
@@ -2005,7 +2006,7 @@ def create_level1_radar_chart(analysis_df):
             borderwidth=1
         ),
         title=dict(
-            text='Well-Being Score by EU Priority',
+            text='Well-Being Score by EU Priority (2023)',
             font=dict(size=16, color="#f4d03f", weight="bold"),
             x=0.5
         ),
@@ -2044,7 +2045,7 @@ def create_levels2to4_country_chart(analysis_df, level_filters):
         
         # Get unique secondary indicators for this EU priority
         indicators = filtered_data['Secondary_indicator'].unique()
-        title = f'{level_filters["eu_priority"]} and Secondary Indicators by Country'
+        title = f'{level_filters["eu_priority"]} and Secondary Indicators by Country (2023)'
         
     elif level_filters['current_level'] == 3:
         # Level 3: Secondary Indicator - show Secondary Indicator + Primary Indicators
@@ -2056,7 +2057,7 @@ def create_levels2to4_country_chart(analysis_df, level_filters):
         
         # Get unique primary indicators for this secondary indicator
         indicators = filtered_data['primary_index'].unique()
-        title = f'{level_filters["secondary_indicator"]} and Primary Indicators by Country'
+        title = f'{level_filters["secondary_indicator"]} and Primary Indicators by Country (2023)'
         
     else:  # Level 4: Primary Indicator - show Primary Indicator only
         filtered_data = analysis_df[
@@ -2067,7 +2068,7 @@ def create_levels2to4_country_chart(analysis_df, level_filters):
         
         # For Level 4, we only have one indicator
         indicators = [level_filters['primary_indicator']]
-        title = f'{level_filters["primary_indicator"]} by Country'
+        title = f'{level_filters["primary_indicator"]} by Country (2023)'
     
     # Get all individual countries (excluding aggregates)
     countries = [c for c in filtered_data['country'].unique() if 'Average' not in c]
@@ -2328,11 +2329,12 @@ def create_adaptive_time_series_chart(analysis_df, level_filters, selected_count
         title=dict(
             text=title,
             font=dict(size=16, color="#f4d03f", weight="bold"),
-            x=0.5
+            x=0.5,
+            y=0.95  # Consistent title position for alignment
         ),
         height=500,
         width=700,  # Match decile chart width
-        margin=dict(t=40, b=100, l=40, r=10),  # Reduced top and left margins to move chart more to the right and align with map
+        margin=dict(t=80, b=60, l=40, r=10),  # Consistent top margin for title alignment with map
         font=dict(family='Arial, sans-serif', size=14),
         paper_bgcolor='white',
         plot_bgcolor='white',

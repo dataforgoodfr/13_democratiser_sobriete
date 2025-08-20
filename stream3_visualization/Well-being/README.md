@@ -16,8 +16,8 @@ The dashboard uses a **pre-calculated aggregated data structure** to ensure fast
 ### Hierarchical Levels
 1. **Level 1**: EWBI - Overall well-being score
 2. **Level 2**: EU Priorities - 6 major policy areas
-3. **Level 3**: Secondary Indicators - 18 specific well-being dimensions
-4. **Level 4**: Primary Indicators - 58 individual survey questions and measures
+3. **Level 3**: Secondary Indicators - 19 specific well-being dimensions
+4. **Level 4**: Primary Indicators - 27 individual survey questions and measures (satisfier indicators only)
 
 ## 🚀 Quick Start
 
@@ -102,8 +102,8 @@ Well-being/
 2. **Decile Aggregation (to "All")**: 
    - **L4 "All Deciles"**: Geometric mean across deciles (1-10) for each primary indicator
    - **L3 "All Deciles"**: Geometric mean of L3 individual decile scores for each secondary indicator
-   - **L2 "All Deciles"**: Geometric mean of L2 individual decile scores for each EU priority
-   - **L1 "All Deciles"**: Geometric mean of L1 individual decile scores for EWBI
+   - **L2 "All Deciles"**: Arithmetic mean of L2 individual decile scores for each EU priority
+   - **L1 "All Deciles"**: Arithmetic mean of L1 individual decile scores for EWBI
 3. **Level Roll-up (L4 → L3 → L2 → L1)**: 
    - **L4 → L3**: Arithmetic mean of primary indicators within each secondary indicator
    - **L3 → L2**: Arithmetic mean of secondary indicators within each EU priority
