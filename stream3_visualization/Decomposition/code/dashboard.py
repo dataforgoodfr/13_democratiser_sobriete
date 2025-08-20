@@ -337,13 +337,13 @@ def update_waterfall_chart(zone, sector, scenario):
             'Supply Side Decarbonation': '#d62728'
         }
         
-    # Prepare data for waterfall chart
-    x_labels = ['2015']
-    y_values = [co2_2015]
-    measures = ['absolute']
-    colors = ['#1f77b4']  # Blue for starting year
-    text_values = [f"{co2_2015:.1f}"]
-    
+        # Prepare data for waterfall chart
+        x_labels = ['2015']
+        y_values = [co2_2015]
+        measures = ['absolute']
+        colors = ['#1f77b4']  # Blue for starting year
+        text_values = [f"{co2_2015:.1f}"]
+        
         # Add 2015-2040 period contributions
         for _, lever in lever_data.iterrows():
             lever_name = lever['Lever']
