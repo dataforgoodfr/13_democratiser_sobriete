@@ -246,6 +246,40 @@ def update_bar_chart(zone, sector):
                      "<extra></extra>"
     )
     
+    # Update colors to group scenarios by type with different shades
+    # Get unique scenarios and categorize them
+    scenarios = chart_data['Scenario'].unique()
+    
+    # Define color schemes for different scenario types
+    eu_colors = ['#1f77b4', '#3182bd', '#4292c6', '#6baed6']  # Different shades of blue
+    switzerland_colors = ['#2ca02c', '#31a354', '#74c476', '#a1d99b']  # Different shades of green
+    world_suff_colors = ['#ff7f0e', '#fd8d3c', '#fdbe85', '#fdd0a2']  # Different shades of orange
+    
+    # Create color mapping
+    color_map = {}
+    eu_count = 0
+    switzerland_count = 0
+    world_suff_count = 0
+    
+    for scenario in scenarios:
+        if 'EU Commission' in scenario:
+            color_map[scenario] = eu_colors[eu_count % len(eu_colors)]
+            eu_count += 1
+        elif 'Scenario Zer0' in scenario or 'Base Scenario' in scenario:
+            color_map[scenario] = switzerland_colors[switzerland_count % len(switzerland_colors)]
+            switzerland_count += 1
+        elif 'World Sufficiency Lab' in scenario:
+            color_map[scenario] = world_suff_colors[world_suff_count % len(world_suff_colors)]
+            world_suff_count += 1
+        else:
+            color_map[scenario] = '#636363'  # Default gray
+    
+    # Apply the color mapping
+    for i, trace in enumerate(fig.data):
+        scenario_name = trace.name
+        if scenario_name in color_map:
+            trace.marker.color = color_map[scenario_name]
+    
     return fig
 
 # Callback to update waterfall chart
@@ -367,18 +401,17 @@ def update_waterfall_chart(zone, sector, scenario):
         ),
         xaxis_title="Time Periods and Levers",
         yaxis_title="CO2 Emissions (Million tonnes)",
-        height=500,
+        height=600,  # Made taller
         showlegend=False,
         plot_bgcolor='white',
         font=dict(family='Arial, sans-serif', size=14),  # EXACTLY like EWBI dashboard
         margin=dict(t=80, b=50, l=60, r=60),  # EXACTLY like EWBI dashboard
         xaxis=dict(
-            tickangle=-45,
-            tickfont=dict(size=10)
+            tickangle=-30,  # Less tilted
+            tickfont=dict(size=14)  # Same font size as first graph
         ),
         yaxis=dict(
-            gridcolor='lightgray',
-            gridwidth=1,
+            showgrid=False,  # Remove horizontal lines
             range=[-100, 700]
         )
     )
@@ -398,7 +431,9 @@ def update_scenario_options(selected_zone):
             {'label': 'Base Scenario', 'value': 'Base Scenario'},
             {'label': 'Scenario Zer0 A', 'value': 'Scenario Zer0 A'},
             {'label': 'Scenario Zer0 B', 'value': 'Scenario Zer0 B'},
-            {'label': 'Scenario Zer0 C', 'value': 'Scenario Zer0 C'}
+            {'label': 'Scenario Zer0 C', 'value': 'Scenario Zer0 C'},
+            {'label': 'World Sufficiency Lab - No Increase in Consumption or Production Intensity', 'value': 'World Sufficiency Lab - No Increase in Consumption or Production Intensity'},
+            {'label': 'World Sufficiency Lab - With Sufficiency Measures', 'value': 'World Sufficiency Lab - With Sufficiency Measures'}
         ]
         value = 'Base Scenario'
     else:
@@ -407,7 +442,9 @@ def update_scenario_options(selected_zone):
             {'label': 'EU Commission Fit-for-55', 'value': 'EU Commission Fit-for-55'},
             {'label': 'EU Commission >85% Decrease by 2040', 'value': 'EU Commission >85% Decrease by 2040'},
             {'label': 'EU Commission >90% Decrease by 2040', 'value': 'EU Commission >90% Decrease by 2040'},
-            {'label': 'EU Commission LIFE Scenario', 'value': 'EU Commission LIFE Scenario'}
+            {'label': 'EU Commission LIFE Scenario', 'value': 'EU Commission LIFE Scenario'},
+            {'label': 'World Sufficiency Lab - No Increase in Consumption or Production Intensity', 'value': 'World Sufficiency Lab - No Increase in Consumption or Production Intensity'},
+            {'label': 'World Sufficiency Lab - With Sufficiency Measures', 'value': 'World Sufficiency Lab - With Sufficiency Measures'}
         ]
         value = 'EU Commission Fit-for-55'
     
