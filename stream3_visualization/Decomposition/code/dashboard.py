@@ -334,7 +334,7 @@ def update_waterfall_chart(zone, sector, scenario):
         yaxis=dict(
             gridcolor='lightgray',
             gridwidth=1,
-            range=[-10, 700]
+            range=[-100, 700]
         )
     )
     
