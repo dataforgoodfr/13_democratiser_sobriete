@@ -30,9 +30,10 @@ try:
     raw_scenarios = data['Scenario'].unique()
     cleaned_scenarios = []
     for scenario in raw_scenarios:
-        cleaned_scenario = scenario.strip()  # Remove leading/trailing whitespace
-        if cleaned_scenario not in cleaned_scenarios:
-            cleaned_scenarios.append(cleaned_scenario)
+        if pd.notna(scenario):  # Check if scenario is not NaN
+            cleaned_scenario = scenario.strip()  # Remove leading/trailing whitespace
+            if cleaned_scenario not in cleaned_scenarios:
+                cleaned_scenarios.append(cleaned_scenario)
     SCENARIOS = sorted(cleaned_scenarios)
     
     LEVERS = sorted([lever for lever in data['Lever'].unique() if lever != 'Total'])
