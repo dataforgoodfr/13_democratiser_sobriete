@@ -489,7 +489,6 @@ Switzerland,Passenger Land Transportation,World Sufficiency Lab - With Sufficien
 Switzerland,Passenger Land Transportation,World Sufficiency Lab - With Sufficiency Measures,Energy Efficiency,,,,-5.048174474610366,-0.19046596682591532,-5.238640441436281,68.8515890199858,4.1458742288717225,43.92594369699578
 Switzerland,Passenger Land Transportation,World Sufficiency Lab - With Sufficiency Measures,Supply Side Decarbonation,,,,-3.740565745972975,-4.422094625361515,-8.162660371334491,51.017233405714634,96.25576920875903,68.44381932626645
 Switzerland,Passenger Land Transportation,Base Scenario,Total,11.939917563382489,4.607952467929112,0.0138438116771446,-7.3319650954533735,-4.594108656251968,-11.926073751705342,100.0,100.0,100.0
-Zone,Sector,Scenario,Lever,CO2_2015,CO2_2040,CO2_2050,Contrib_2015_2040_abs,Contrib_2040_2050_abs,Contrib_2015_2050_abs,Contrib_2015_2040_pct,Contrib_2040_2050_pct,Contrib_2015_2050_pct
 EU,Buildings - Residential,World Sufficiency Lab - No Increase in Consumption or Production Intensity,Population,,,,-1.2182541275930163,-0.2878149342322896,-1.506069061825306,0.2407990072121724,0.2859142477085199,0.24828601304707454
 EU,Buildings - Residential,World Sufficiency Lab - No Increase in Consumption or Production Intensity,Sufficiency,,,,0.0,0.0,0.0,-0.0,-0.0,-0.0
 EU,Buildings - Residential,World Sufficiency Lab - No Increase in Consumption or Production Intensity,Energy Efficiency,,,,-155.0550243227146,-4.346940600844345,-159.40196492355895,30.648035639278515,4.31823405911575,26.278528220195767
