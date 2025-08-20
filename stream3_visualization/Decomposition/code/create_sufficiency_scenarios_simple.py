@@ -217,7 +217,7 @@ def generate_scenario_1(base_scenario, sector, zone, co2_values):
         return None
 
 def generate_scenario_2(base_scenario, sector, zone, co2_values):
-    """Generate Scenario 2: With Sufficiency Measures (20% decrease)"""
+    """Generate Scenario 2: With Sufficiency Measures (40% decrease)"""
     try:
         # Get current Sufficiency values
         sufficiency_row = base_scenario[base_scenario['Lever'] == 'Sufficiency']
@@ -229,10 +229,10 @@ def generate_scenario_2(base_scenario, sector, zone, co2_values):
         sufficiency_2040_2050 = sufficiency_row['Contrib_2040_2050_abs'].iloc[0]
         sufficiency_2015_2050 = sufficiency_row['Contrib_2015_2050_abs'].iloc[0]
         
-        # Calculate target Sufficiency values (20% decrease in intensity)
-        target_sufficiency_2015_2040 = -abs(sufficiency_2015_2040) * 0.2
-        target_sufficiency_2040_2050 = -abs(sufficiency_2040_2050) * 0.2
-        target_sufficiency_2015_2050 = -abs(sufficiency_2015_2050) * 0.2
+        # Calculate target Sufficiency values (40% decrease in intensity)
+        target_sufficiency_2015_2040 = -abs(sufficiency_2015_2040) * 0.4
+        target_sufficiency_2040_2050 = -abs(sufficiency_2040_2050) * 0.4
+        target_sufficiency_2015_2050 = -abs(sufficiency_2015_2050) * 0.4
         
         # Calculate redistribution amounts
         diff_2015_2040 = sufficiency_2015_2040 - target_sufficiency_2015_2040

@@ -38,7 +38,8 @@ try:
                 cleaned_scenarios.append(cleaned_scenario)
     SCENARIOS = sorted(cleaned_scenarios)
     
-    LEVERS = sorted([lever for lever in data['Lever'].unique() if lever != 'Total'])
+    # Define specific lever order
+    LEVERS = ['Population', 'Sufficiency', 'Energy Efficiency', 'Supply Side Decarbonation']
     
     print(f"Found {len(ZONES)} zones: {ZONES}")
     print(f"Found {len(SECTORS)} sectors: {SECTORS}")
@@ -147,7 +148,9 @@ app.layout = html.Div([
                     html.Br(),
                     "• ",
                     html.Strong("Sufficiency showing negative values "),
-                    "means these scenarios don't envision sufficiency measures - instead, they assume increases in demand or production intensity per capita."
+                    "means these scenarios don't envision sufficiency measures - instead, they assume increases in demand or production intensity per capita.",
+                    html.Br(),
+
                 ], style={
                     'backgroundColor': '#f8f9fa',
                     'padding': '15px',
@@ -162,7 +165,50 @@ app.layout = html.Div([
         ], style={'marginBottom': '30px'}),
         
         html.Div([
-            dcc.Graph(id='waterfall-chart', style={'height': '500px'})
+            html.Div([
+                # Waterfall chart and legend side by side
+                html.Div([
+                    # Waterfall chart on the left
+                    html.Div([
+                        dcc.Graph(id='waterfall-chart', style={'height': '500px'})
+                    ], style={
+                        'flex': '1',
+                        'marginRight': '20px'
+                    }),
+                                        # Color legend on the right
+                    html.Div([
+                        html.Div([
+                            html.Span("🔵 ", style={'color': '#1f77b4', 'fontWeight': 'bold'}),
+                            "Target Years (2015, 2040, 2050)",
+                            html.Br(),
+                            html.Span("🔴 ", style={'color': '#d62728', 'fontWeight': 'bold'}),
+                            "The lever is expected to increase emissions",
+                            html.Br(),
+                            html.Span("🟢 ", style={'color': '#27ae60', 'fontWeight': 'bold'}),
+                            "The lever is expected to decrease emissions"
+                        ], style={
+                            'backgroundColor': '#f8f9fa',
+                            'padding': '15px',
+                            'borderRadius': '8px',
+                            'borderLeft': '4px solid #1f77b4',
+                            'fontSize': '14px',
+                            'lineHeight': '1.6',
+                            'color': '#2c3e50',
+                            'textAlign': 'left',
+                            'minWidth': '250px'
+                        })
+                    ], style={
+                        'flex': '0 0 auto',
+                        'marginRight': '30px'
+                    })
+                ], style={
+                    'display': 'flex',
+                    'alignItems': 'flex-start',
+                    'justifyContent': 'flex-start',
+                    'width': '100%',
+                    'marginTop': '20px'
+                })
+            ])
         ])
     ], style={
         'margin': '0 20px',
@@ -346,7 +392,7 @@ def update_waterfall_chart(zone, sector, scenario):
     for _, lever in lever_data.iterrows():
         lever_name = lever['Lever']
         contrib_2015_2040 = lever['Contrib_2015_2040_abs']
-        x_labels.append(f"{lever_name} (1)")
+        x_labels.append(f"{lever_name} 2015-40")  # More descriptive than "(1)"
         y_values.append(contrib_2015_2040)
         measures.append('relative')
         colors.append(lever_colors.get(lever_name, "#636363"))
@@ -363,7 +409,7 @@ def update_waterfall_chart(zone, sector, scenario):
     for _, lever in lever_data.iterrows():
         lever_name = lever['Lever']
         contrib_2040_2050 = lever['Contrib_2040_2050_abs']
-        x_labels.append(f"{lever_name} (2)")
+        x_labels.append(f"{lever_name} 2040-50")  # More descriptive than "(2)"
         y_values.append(contrib_2040_2050)
         measures.append('relative')
         colors.append(lever_colors.get(lever_name, "#636363"))
@@ -386,8 +432,8 @@ def update_waterfall_chart(zone, sector, scenario):
         textposition="outside",
         text=text_values,
         connector={"line": {"color": "rgb(63, 63, 63)", "width": 2}},
-        decreasing={"marker": {"color": "#d62728"}},  # Red for decreases
-        increasing={"marker": {"color": "#27ae60"}},  # Green for increases
+        decreasing={"marker": {"color": "#27ae60"}},  # Green for decreases
+        increasing={"marker": {"color": "#d62728"}},  # Red for increases
         totals={"marker": {"color": "#1f77b4"}},      # Blue for totals
         showlegend=False  # Hide legend
     ))
@@ -402,7 +448,7 @@ def update_waterfall_chart(zone, sector, scenario):
         xaxis_title="",  # Removed X-axis label
         yaxis_title="CO2 Emissions (Million tonnes)",
         height=600,  # Made taller
-        width=800,  # Make chart less wide
+        width=1300,  # Make chart less wide
         showlegend=False,  # Hide legend
         plot_bgcolor='white',
         font=dict(family='Arial, sans-serif', size=14),  # EXACTLY like EWBI dashboard
