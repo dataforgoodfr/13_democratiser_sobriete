@@ -58,7 +58,7 @@ server = app.server
 app.layout = html.Div([
     # Header section with hierarchical titles - EXACTLY like EWBI
     html.Div([
-        html.H1("CO2 Decomposition Dashboard", 
+        html.H1("Decomposing Official CO2 Reduction Targets", 
                 style={
                     'textAlign': 'center',
                     'color': '#2c3e50',
@@ -68,7 +68,7 @@ app.layout = html.Div([
                     'fontFamily': 'Arial, sans-serif'
                 }),
         html.H2([
-            "Multi-level Analysis of CO2 Emissions Reduction Across Europe"
+            "Analyzing the underlying levers of decarbonation scenarios and how to derisk them"
         ], style={
             'textAlign': 'center',
             'color': '#34495e',
@@ -378,7 +378,7 @@ def update_waterfall_chart(zone, sector, scenario):
     
     # Create the waterfall chart
     fig.add_trace(go.Waterfall(
-        name=scenario,  # Use the selected scenario name for the legend
+        name="CO2 Emissions",
         orientation="v",  # Vertical orientation like your screenshot
         measure=measures,
         x=x_labels,
@@ -389,7 +389,7 @@ def update_waterfall_chart(zone, sector, scenario):
         decreasing={"marker": {"color": "#d62728"}},  # Red for decreases
         increasing={"marker": {"color": "#27ae60"}},  # Green for increases
         totals={"marker": {"color": "#1f77b4"}},      # Blue for totals
-        showlegend=True  # Show this trace in the legend
+        showlegend=False  # Hide legend
     ))
     
     fig.update_layout(
@@ -402,10 +402,10 @@ def update_waterfall_chart(zone, sector, scenario):
         xaxis_title="",  # Removed X-axis label
         yaxis_title="CO2 Emissions (Million tonnes)",
         height=600,  # Made taller
-        showlegend=True,  # Show legend for scenario name
+        showlegend=False,  # Hide legend
         plot_bgcolor='white',
         font=dict(family='Arial, sans-serif', size=14),  # EXACTLY like EWBI dashboard
-        margin=dict(t=80, b=50, l=60, r=60),  # EXACTLY like EWBI dashboard
+        margin=dict(t=80, b=50, l=80, r=80),  # Increased left/right margins to center and make less wide
         xaxis=dict(
             tickangle=-30,  # Less tilted
             tickfont=dict(size=14)  # Same font size as first graph
@@ -413,15 +413,6 @@ def update_waterfall_chart(zone, sector, scenario):
         yaxis=dict(
             showgrid=False,  # Remove horizontal lines
             range=[-100, 700]
-        ),
-        legend=dict(
-            x=1.02,  # Position legend to the right
-            y=0.5,
-            xanchor='left',
-            yanchor='middle',
-            bgcolor='rgba(255, 255, 255, 0.8)',
-            bordercolor='#ccc',
-            borderwidth=1
         )
     )
     
