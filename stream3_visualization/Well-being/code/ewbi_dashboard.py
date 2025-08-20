@@ -414,7 +414,11 @@ def update_charts(eu_priority, secondary_indicator, primary_indicator, selected_
     else:
         # Filter by selected countries, only "All" deciles for country-level analysis
         filtered_df = master_df[(master_df['country'].isin(selected_countries)) & (master_df['decile'] == 'All')].copy()
-        time_filtered_df = time_series_df[(time_series_df['country'].isin(selected_countries)) & (time_series_df['decile'] == 'All Deciles')].copy()
+        # For time series, always include EU Average when other countries are selected (like decile chart)
+        time_filtered_df = time_series_df[
+            (time_series_df['country'].isin(['EU Average'] + selected_countries)) & 
+            (time_series_df['decile'] == 'All Deciles')
+        ].copy()
     
     # Create level filters for adaptive charts
     level_filters = create_level_filters(eu_priority, secondary_indicator, primary_indicator)
@@ -446,7 +450,8 @@ def update_charts(eu_priority, secondary_indicator, primary_indicator, selected_
     radar_country_chart = create_adaptive_radar_country_chart(radar_country_df, level_filters)
     
     # Create adaptive time series chart (works for all 4 levels)
-    time_series_chart = create_adaptive_time_series_chart(time_filtered_df, level_filters)
+    # Pass the full time_series_df and let the chart function handle all filtering
+    time_series_chart = create_adaptive_time_series_chart(time_series_df, level_filters, selected_countries)
     
     return map_chart, time_series_chart, decile_chart, radar_country_chart
 
@@ -2202,7 +2207,7 @@ def create_levels2to4_country_chart(analysis_df, level_filters):
     
     return country_chart
 
-def create_adaptive_time_series_chart(analysis_df, level_filters):
+def create_adaptive_time_series_chart(analysis_df, level_filters, selected_countries=None):
     """Create an adaptive time series chart that works for all 4 levels"""
     
     print(f"DEBUG: Creating time series chart for Level {level_filters['current_level']}: {level_filters['level_name']}")
@@ -2281,22 +2286,22 @@ def create_adaptive_time_series_chart(analysis_df, level_filters):
     # Create the time series chart
     time_series = go.Figure()
     
-    # For time series, handle different levels appropriately
-    countries_to_show = []
-    
-    if level_filters['current_level'] == 1:
-        # Level 1: Show EU Average first if available, then other countries
-        if 'EU Average' in filtered_data['country'].values:
-            countries_to_show.append('EU Average')
-        other_countries = [c for c in filtered_data['country'].unique() if c != 'EU Average' and 'Average' not in c]
-        countries_to_show.extend(other_countries)
+    # Apply country filtering based on selected_countries parameter
+    if selected_countries and selected_countries != ['EU Average']:
+        # Show EU Average + selected countries
+        countries_to_show = ['EU Average'] + selected_countries
     else:
-        # Levels 2-4: Show EU Average first if available, then individual countries
-        if 'EU Average' in filtered_data['country'].values:
-            countries_to_show.append('EU Average')
-        available_countries = [c for c in filtered_data['country'].unique() if 'Average' not in c]
-        # Show first 3 countries by default for readability, but always include EU Average
-        countries_to_show.extend(available_countries[:3])
+        # Default: show EU Average only
+        countries_to_show = ['EU Average']
+    
+    # Filter data to only include selected countries and decile = 'All'
+    filtered_data = filtered_data[
+        (filtered_data['country'].isin(countries_to_show)) & 
+        (filtered_data['decile'] == 'All')
+    ].copy()
+    
+    # Get the actual available countries from the filtered data
+    countries_to_show = filtered_data['country'].unique().tolist()
     
     # Show countries in the determined order
     for country in countries_to_show:
@@ -2334,7 +2339,8 @@ def create_adaptive_time_series_chart(analysis_df, level_filters):
             title='',  # Remove "Year" label
             showgrid=False,  # Remove vertical grid lines
             tickmode='linear',
-            dtick=1  # Show every year
+            dtick=1,  # Show every year
+            range=[2004, 2024]  # Force full year range regardless of data
         ),
         yaxis=dict(
             range=[0, 1],
