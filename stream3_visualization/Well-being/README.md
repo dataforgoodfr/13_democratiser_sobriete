@@ -98,10 +98,15 @@ Well-being/
 - **LFS**: Labour Force Survey
 
 ### Aggregation Logic
-1. **Primary Indicators (L4)**: Raw survey data normalized to 0–1 scale
-2. **Decile Aggregation (to "All")**: Geometric mean across deciles (for L4 and L3 "All Deciles")
-3. **Level Roll-up (L4 → L3 → L2 → L1)**: Arithmetic mean of child indicators within each level
-4. **EU Average**: Arithmetic mean across countries for the given year/level/decile selection
+1. **Primary Indicators (L4)**: Raw survey data normalized to 0–1 scale for each decile (1, 2, 3, ..., 10)
+2. **Decile Aggregation (to "All")**: 
+   - **L4 "All Deciles"**: Geometric mean across deciles (1-10) for each primary indicator
+   - **L3 "All Deciles"**: Geometric mean of L3 individual decile scores for each secondary indicator
+3. **Level Roll-up (L4 → L3 → L2 → L1)**: 
+   - **L4 → L3**: Arithmetic mean of primary indicators within each secondary indicator
+   - **L3 → L2**: Arithmetic mean of secondary indicators within each EU priority
+   - **L2 → L1**: Arithmetic mean of EU priorities to form EWBI
+4. **EU Average**: Arithmetic mean across EU countries for each year/level/decile combination
 
 ### Complete Indicator Hierarchy
 
