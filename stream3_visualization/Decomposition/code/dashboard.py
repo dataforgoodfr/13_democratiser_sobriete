@@ -304,21 +304,21 @@ def update_waterfall_chart(zone, sector, scenario):
         
         if scenario_data.empty:
             return go.Figure().add_annotation(
-                text="No data available for the selected scenario",
-                xref="paper", yref="paper",
-                x=0.5, y=0.5, showarrow=False
-            )
+            text="No data available for the selected scenario",
+            xref="paper", yref="paper",
+            x=0.5, y=0.5, showarrow=False
+        )
         
         # Get Total lever data for starting points
-        total_data = scenario_data[scenario_data['Lever'] == 'Total']
-        if total_data.empty:
-            return go.Figure().add_annotation(
-                text="No Total data available for the selected scenario",
-                xref="paper", yref="paper",
-                x=0.5, y=0.5, showarrow=False
-            )
-        
-        total_data = total_data.iloc[0]
+    total_data = scenario_data[scenario_data['Lever'] == 'Total']
+    if total_data.empty:
+        return go.Figure().add_annotation(
+            text="No Total data available for the selected scenario",
+            xref="paper", yref="paper",
+            x=0.5, y=0.5, showarrow=False
+        )
+    
+    total_data = total_data.iloc[0]
         co2_2015 = total_data['CO2_2015']
         co2_2040 = total_data['CO2_2040']
         co2_2050 = total_data['CO2_2050']
@@ -326,7 +326,7 @@ def update_waterfall_chart(zone, sector, scenario):
         # Get lever contributions (excluding Total)
         lever_data = scenario_data[scenario_data['Lever'] != 'Total'].copy()
         
-        # Create proper waterfall chart
+    # Create proper waterfall chart
         fig = go.Figure()
         
         # Define colors for levers
@@ -337,82 +337,82 @@ def update_waterfall_chart(zone, sector, scenario):
             'Supply Side Decarbonation': '#d62728'
         }
         
-        # Prepare data for waterfall chart
-        x_labels = ['2015']
-        y_values = [co2_2015]
-        measures = ['absolute']
-        colors = ['#1f77b4']  # Blue for starting year
-        text_values = [f"{co2_2015:.1f}"]
-        
-        # Add 2015-2040 period contributions
+    # Prepare data for waterfall chart
+    x_labels = ['2015']
+    y_values = [co2_2015]
+    measures = ['absolute']
+    colors = ['#1f77b4']  # Blue for starting year
+    text_values = [f"{co2_2015:.1f}"]
+    
+    # Add 2015-2040 period contributions
         for _, lever in lever_data.iterrows():
             lever_name = lever['Lever']
             contrib_2015_2040 = lever['Contrib_2015_2040_abs']
             
-            x_labels.append(f"{lever_name}\n(2015-2040)")
-            y_values.append(contrib_2015_2040)
-            measures.append('relative')
-            colors.append(lever_colors.get(lever_name, "#636363"))
-            text_values.append(f"{contrib_2015_2040:.1f}")
+        x_labels.append(f"{lever_name}\n(2015-2040)")
+        y_values.append(contrib_2015_2040)
+        measures.append('relative')
+        colors.append(lever_colors.get(lever_name, "#636363"))
+        text_values.append(f"{contrib_2015_2040:.1f}")
         
         # Add 2040 total
-        x_labels.append('2040')
-        y_values.append(co2_2040)
-        measures.append('total')
-        colors.append('#1f77b4')  # Blue for intermediate year
-        text_values.append(f"{co2_2040:.1f}")
-        
-        # Add 2040-2050 period contributions
+    x_labels.append('2040')
+    y_values.append(co2_2040)
+    measures.append('total')
+    colors.append('#1f77b4')  # Blue for intermediate year
+    text_values.append(f"{co2_2040:.1f}")
+    
+    # Add 2040-2050 period contributions
         for _, lever in lever_data.iterrows():
             lever_name = lever['Lever']
             contrib_2040_2050 = lever['Contrib_2040_2050_abs']
             
-            x_labels.append(f"{lever_name}\n(2040-2050)")
-            y_values.append(contrib_2040_2050)
-            measures.append('relative')
-            colors.append(lever_colors.get(lever_name, "#636363"))
-            text_values.append(f"{contrib_2040_2050:.1f}")
-        
-        # Add 2050 final total
-        x_labels.append('2050')
-        y_values.append(co2_2050)
-        measures.append('total')
-        colors.append('#1f77b4')  # Blue for final year
-        text_values.append(f"{co2_2050:.1f}")
+        x_labels.append(f"{lever_name}\n(2040-2050)")
+        y_values.append(contrib_2040_2050)
+        measures.append('relative')
+        colors.append(lever_colors.get(lever_name, "#636363"))
+        text_values.append(f"{contrib_2040_2050:.1f}")
     
-        # Create the waterfall chart
+    # Add 2050 final total
+    x_labels.append('2050')
+    y_values.append(co2_2050)
+    measures.append('total')
+    colors.append('#1f77b4')  # Blue for final year
+    text_values.append(f"{co2_2050:.1f}")
+    
+    # Create the waterfall chart
         fig.add_trace(go.Waterfall(
-            name="CO2 Emissions",
-            orientation="v",  # Vertical orientation like your screenshot
-            measure=measures,
-            x=x_labels,
-            y=y_values,
+        name="CO2 Emissions",
+        orientation="v",  # Vertical orientation like your screenshot
+        measure=measures,
+        x=x_labels,
+        y=y_values,
             textposition="outside",
-            text=text_values,
-            connector={"line": {"color": "rgb(63, 63, 63)", "width": 2}},
-            decreasing={"marker": {"color": "#d62728"}},  # Red for decreases
-            increasing={"marker": {"color": "#27ae60"}},  # Green for increases
-            totals={"marker": {"color": "#1f77b4"}},      # Blue for totals
-            showlegend=False
+        text=text_values,
+        connector={"line": {"color": "rgb(63, 63, 63)", "width": 2}},
+        decreasing={"marker": {"color": "#d62728"}},  # Red for decreases
+        increasing={"marker": {"color": "#27ae60"}},  # Green for increases
+        totals={"marker": {"color": "#1f77b4"}},      # Blue for totals
+        showlegend=False
         ))
         
         fig.update_layout(
             title=f"CO2 Emissions Waterfall - {scenario} ({sector}, {zone})",
-            xaxis_title="Time Periods and Levers",
-            yaxis_title="CO2 Emissions (Million tonnes)",
-            height=500,
-            showlegend=False,
-            plot_bgcolor='white',
-            font=dict(size=12),
-            xaxis=dict(
-                tickangle=-45,  # Rotate labels for better readability
-                tickfont=dict(size=10)
-            ),
-            yaxis=dict(
-                gridcolor='lightgray',
-                gridwidth=1
-            )
+        xaxis_title="Time Periods and Levers",
+        yaxis_title="CO2 Emissions (Million tonnes)",
+        height=500,
+        showlegend=False,
+        plot_bgcolor='white',
+        font=dict(size=12),
+        xaxis=dict(
+            tickangle=-45,  # Rotate labels for better readability
+            tickfont=dict(size=10)
+        ),
+        yaxis=dict(
+            gridcolor='lightgray',
+            gridwidth=1
         )
+    )
     
     return fig
 
