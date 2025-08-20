@@ -35,14 +35,17 @@ class CO2DecompositionPreprocessor:
         
         # Column mapping for each sector (actual column names in Excel)
         self.sector_columns = {
-            "Buildings-Residential": ["Year", "Population (Million)", "Floor area (Million m²)", "Final Energy (Million toe)", "CO2 (Million tonnes)"],
-            "Buildings -Services": ["Year", "Population (Million)", "Floor area (Million m²)", "Final Energy (Million toe)", "CO2 (Million tonnes)"],
-            "Industry": ["Year", "Population (Millions)", "Production (Million of Tonnes)", "Energy (Mtoe)", "CO2 (Mt)"],
-            "PassLandTransport": ["Year", "Population (Millions)", "Passenger Transport (Tpkm)", "Energy (Mtoe)", "CO2 (Mtonnes)"]
+            "Buildings-Residential": ["Year", "Population (Million)", "Volume", "Energy (Million toe)", "CO2 (Million tonnes)"],
+            "Buildings -Services": ["Year", "Population (Million)", "Volume", "Energy (Million toe)", "CO2 (Million tonnes)"],
+            "Industry": ["Year", "Population (Million)", "Volume", "Energy (Million toe)", "CO2 (Million tonnes)"],
+            "PassLandTransport": ["Year", "Population (Million)", "Volume", "Energy (Million toe)", "CO2 (Million tonnes)"]
         }
         
         # Switzerland specific column mapping for the new compiled structure
-        self.switzerland_columns = ["Geography", "Sector", "Scenario", "Year", "Population (Million)", "Floor area (Million m²)", "Final Energy (Million toe)", "CO2 (Million tonnes)"]
+        self.switzerland_columns = ["Geography", "Sector", "Scenario", "Year", "Population (Million)", "Volume", "Volume Unit", "Energy (Million toe)", "CO2 (Million tonnes)"]
+        
+        # EU specific column mapping for the new compiled structure  
+        self.eu_columns = ["Geography", "Sector", "Scenario", "Year", "Population (Million)", "Volume", "Volume Unit", "Energy (Million toe)", "CO2 (Million tonnes)"]
         
         # Universal lever names
         self.universal_levers = ["Population", "Sufficiency", "Energy Efficiency", "Supply Side Decarbonation"]
@@ -51,26 +54,11 @@ class CO2DecompositionPreprocessor:
         """Calculate intensity factors for LMDI decomposition"""
         intensity_factors = {}
         
-        if sector in ["Buildings-Residential", "Buildings -Services"]:
-            # Buildings: CO2 = Population × (m²/population) × (energy/m²) × (CO2/energy)
-            intensity_factors["Population"] = data_rows["Population (Million)"]
-            intensity_factors["Sufficiency"] = data_rows["Floor area (Million m²)"] / data_rows["Population (Million)"]
-            intensity_factors["Energy Efficiency"] = data_rows["Final Energy (Million toe)"] / data_rows["Floor area (Million m²)"]
-            intensity_factors["Supply Side Decarbonation"] = data_rows["CO2 (Million tonnes)"] / data_rows["Final Energy (Million toe)"]
-            
-        elif sector == "Industry":
-            # Industry: CO2 = Population × (Production/population) × (Energy/Production) × (CO2/Energy)
-            intensity_factors["Population"] = data_rows["Population (Millions)"]
-            intensity_factors["Sufficiency"] = data_rows["Production (Million of Tonnes)"] / data_rows["Population (Millions)"]
-            intensity_factors["Energy Efficiency"] = data_rows["Energy (Mtoe)"] / data_rows["Production (Million of Tonnes)"]
-            intensity_factors["Supply Side Decarbonation"] = data_rows["CO2 (Mt)"] / data_rows["Energy (Mtoe)"]
-            
-        elif sector == "PassLandTransport":
-            # Transport: CO2 = Population × (Passenger Transport/population) × (Energy/Passenger Transport) × (CO2/Energy)
-            intensity_factors["Population"] = data_rows["Population (Millions)"]
-            intensity_factors["Sufficiency"] = data_rows["Passenger Transport (Tpkm)"] / data_rows["Population (Millions)"]
-            intensity_factors["Energy Efficiency"] = data_rows["Energy (Mtoe)"] / data_rows["Passenger Transport (Tpkm)"]
-            intensity_factors["Supply Side Decarbonation"] = data_rows["CO2 (Mtonnes)"] / data_rows["Energy (Mtoe)"]
+        # All sectors now use the same unified column structure
+        intensity_factors["Population"] = data_rows["Population (Million)"]
+        intensity_factors["Sufficiency"] = data_rows["Volume"] / data_rows["Population (Million)"]
+        intensity_factors["Energy Efficiency"] = data_rows["Energy (Million toe)"] / data_rows["Volume"]
+        intensity_factors["Supply Side Decarbonation"] = data_rows["CO2 (Million tonnes)"] / data_rows["Energy (Million toe)"]
         
         return intensity_factors
     
@@ -122,7 +110,12 @@ class CO2DecompositionPreprocessor:
                         
                         # Set year as index for easier access
                         year_data.set_index("Year", inplace=True)
-                        year_data = year_data.astype(float)
+                        
+                        # Convert only the numerical columns to float, excluding Geography, Sector, and Scenario
+                        numerical_columns = ["Population (Million)", "Volume", "Energy (Million toe)", "CO2 (Million tonnes)"]
+                        for col in numerical_columns:
+                            if col in year_data.columns:
+                                year_data[col] = pd.to_numeric(year_data[col], errors='coerce')
                         
                         # Extract CO2 values (both zones use the same column names now)
                         co2_2015 = year_data.loc[2015, "CO2 (Million tonnes)"]
