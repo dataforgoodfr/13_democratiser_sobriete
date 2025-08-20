@@ -9,9 +9,9 @@ This folder contains a comprehensive dashboard for analyzing the European Well-B
 ### Data Structure
 The dashboard uses a **pre-calculated aggregated data structure** to ensure fast performance and avoid real-time calculations:
 
-- **`ewbi_master.csv`**: Main aggregated data with all 4 levels for the latest year
-- **`ewbi_time_series.csv`**: Historical time series data for trend analysis
-- **`ewbi_indicators.json`**: Configuration file defining the hierarchical structure
+- `output/ewbi_master.csv`: Latest year for all levels and all deciles (including EU Average and countries)
+- `output/ewbi_time_series.csv`: Historical time series (decile = All) for all years, levels, EU Average and countries
+- `data/ewbi_indicators.json`: Configuration file defining the hierarchical structure
 
 ### Hierarchical Levels
 1. **Level 1**: EWBI - Overall well-being score
@@ -29,17 +29,27 @@ pip install dash pandas plotly
 ### Running the Dashboard
 ```bash
 cd Well-being/code
-python ewbi_dashboard_aggregates.py
+python ewbi_dashboard.py
 ```
 
-The dashboard will be available at `http://localhost:8052`
+The dashboard will be available at `http://localhost:8050`
 
 ### Data Generation
-To regenerate the aggregated data files:
+To regenerate the aggregated data files from raw inputs:
+
+1) Preprocess primary indicator data (Level 4) from raw CSV
+   - Open `Well-being/code/preprocessing_executed.ipynb`
+   - Run all cells
+   - Output: `Well-being/output/primary_data_preprocessed.csv`
+
+2) Generate master and time series outputs using unified aggregation logic
 ```bash
 cd Well-being/code
-python ewbi_computation.py
+python generate_outputs.py
 ```
+Outputs:
+- `Well-being/output/ewbi_master.csv`
+- `Well-being/output/ewbi_time_series.csv`
 
 ## 📊 Dashboard Features
 
@@ -66,15 +76,16 @@ Each level provides 4 complementary charts:
 ```
 Well-being/
 ├── code/
-│   ├── ewbi_dashboard_aggregates.py    # Main dashboard application
-│   ├── ewbi_computation.py             # Data computation and aggregation script
-│   └── ewbi_dashboard.py               # Original dashboard (backup)
+│   ├── ewbi_dashboard.py               # Main dashboard application
+│   ├── generate_outputs.py             # Unified data aggregation for master + time series
+│   └── preprocessing_executed.ipynb    # Preprocessing notebook for primary indicators
 ├── data/
 │   └── ewbi_indicators.json            # EWBI structure configuration
 ├── output/
-│   ├── ewbi_master.csv                 # Main aggregated data
-│   ├── ewbi_time_series.csv            # Historical time series data
-│   └── MASTER_DATAFRAME_STRUCTURE.md   # Data structure documentation
+│   ├── ewbi_master.csv                 # Latest year, all deciles
+│   ├── ewbi_time_series.csv            # All years, decile = All
+│   ├── MASTER_DATAFRAME_STRUCTURE.md   # Data structure documentation
+│   └── Archive/                        # Archived intermediate/backup files
 └── README.md                           # This file
 ```
 
