@@ -102,6 +102,8 @@ Well-being/
 2. **Decile Aggregation (to "All")**: 
    - **L4 "All Deciles"**: Geometric mean across deciles (1-10) for each primary indicator
    - **L3 "All Deciles"**: Geometric mean of L3 individual decile scores for each secondary indicator
+   - **L2 "All Deciles"**: Geometric mean of L2 individual decile scores for each EU priority
+   - **L1 "All Deciles"**: Geometric mean of L1 individual decile scores for EWBI
 3. **Level Roll-up (L4 → L3 → L2 → L1)**: 
    - **L4 → L3**: Arithmetic mean of primary indicators within each secondary indicator
    - **L3 → L2**: Arithmetic mean of secondary indicators within each EU priority
