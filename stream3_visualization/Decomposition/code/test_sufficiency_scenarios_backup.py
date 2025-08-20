@@ -330,8 +330,9 @@ def generate_single_scenario_1(base_scenario, sector, zone, total_row):
                 new_scenario.loc[idx, 'Contrib_2015_2050_pct'] = -contrib_pct_total
         
         # Add Total row
-        new_total_row = total_row.copy()
+        new_total_row = new_scenario.iloc[0].copy()
         new_total_row['Lever'] = 'Total'
+        new_total_row['CO2_2015'] = total_row['CO2_2015']
         new_total_row['CO2_2040'] = total_row['CO2_2040']
         new_total_row['CO2_2050'] = total_row['CO2_2050']
         new_total_row['Contrib_2015_2040_abs'] = total_change_2015_2040
@@ -382,7 +383,7 @@ def generate_single_scenario_2(base_scenario, sector, zone, total_row):
         
         # Create new scenario data
         new_scenario = base_scenario.copy()
-        new_scenario['Scenario'] = 'World Sufficiency Lab - With Sufficiency Measures'
+        new_scenario['Scenario'] = 'World Sufficiency Lab - Sufficiency'
         
         # Update Sufficiency to target values
         sufficiency_mask = new_scenario['Lever'] == 'Sufficiency'
@@ -419,8 +420,9 @@ def generate_single_scenario_2(base_scenario, sector, zone, total_row):
                 new_scenario.loc[idx, 'Contrib_2015_2050_pct'] = -contrib_pct_total
         
         # Add Total row
-        new_total_row = total_row.copy()
+        new_total_row = new_scenario.iloc[0].copy()
         new_total_row['Lever'] = 'Total'
+        new_total_row['CO2_2015'] = total_row['CO2_2015']
         new_total_row['CO2_2040'] = total_row['CO2_2040']
         new_total_row['CO2_2050'] = total_row['CO2_2050']
         new_total_row['Contrib_2015_2040_abs'] = total_change_2015_2040
