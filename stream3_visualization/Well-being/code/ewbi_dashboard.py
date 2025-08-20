@@ -2291,11 +2291,12 @@ def create_adaptive_time_series_chart(analysis_df, level_filters):
         other_countries = [c for c in filtered_data['country'].unique() if c != 'EU Average' and 'Average' not in c]
         countries_to_show.extend(other_countries)
     else:
-        # Levels 2-4: Show individual countries (no EU Average data exists for these levels)
-        # Start with a few representative countries, then allow adding more via filter
+        # Levels 2-4: Show EU Average first if available, then individual countries
+        if 'EU Average' in filtered_data['country'].values:
+            countries_to_show.append('EU Average')
         available_countries = [c for c in filtered_data['country'].unique() if 'Average' not in c]
-        # Show first 3 countries by default for readability
-        countries_to_show = available_countries[:3]
+        # Show first 3 countries by default for readability, but always include EU Average
+        countries_to_show.extend(available_countries[:3])
     
     # Show countries in the determined order
     for country in countries_to_show:
