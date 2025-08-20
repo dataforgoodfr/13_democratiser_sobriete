@@ -234,24 +234,30 @@ def generate_all_sufficiency_scenarios(base_data):
             # Get base scenario data for this zone/sector combination
             base_scenario_data = base_data[
                 (base_data['Zone'] == zone) & 
-                (base_data['Sector'] == sector) & 
-                (base_data['Lever'] != 'Total')
+                (base_data['Sector'] == sector)
             ]
             
             if base_scenario_data.empty:
                 print(f"No data found for {sector} in {zone}, skipping...")
                 continue
             
-            # Use the first scenario as reference (first 4 levers)
-            reference_scenario = base_scenario_data.iloc[0:4].copy()
+            # Get the first scenario (all levers including Total)
+            first_scenario_name = base_scenario_data.iloc[0]['Scenario']
+            first_scenario_data = base_scenario_data[base_scenario_data['Scenario'] == first_scenario_name]
+            
+            # Get individual levers (excluding Total) for calculations
+            reference_scenario = first_scenario_data[first_scenario_data['Lever'] != 'Total'].copy()
+            
+            # Get Total row for CO2 values
+            total_row = first_scenario_data[first_scenario_data['Lever'] == 'Total'].iloc[0]
             
             # Generate Scenario 1: No increase in Consumption/Production Intensity
-            scenario_1 = generate_single_scenario_1(reference_scenario, sector, zone)
+            scenario_1 = generate_single_scenario_1(reference_scenario, sector, zone, total_row)
             if scenario_1 is not None:
                 all_new_scenarios.extend(scenario_1)
             
             # Generate Scenario 2: 20% decrease in Consumption/Production Intensity  
-            scenario_2 = generate_single_scenario_2(reference_scenario, sector, zone)
+            scenario_2 = generate_single_scenario_2(reference_scenario, sector, zone, total_row)
             if scenario_2 is not None:
                 all_new_scenarios.extend(scenario_2)
     
@@ -261,7 +267,7 @@ def generate_all_sufficiency_scenarios(base_data):
     
     return all_new_scenarios
 
-def generate_single_scenario_1(base_scenario, sector, zone):
+def generate_single_scenario_1(base_scenario, sector, zone, total_row):
     """Generate Scenario 1 data for a single sector/zone combination"""
     try:
         # Get current Sufficiency values
@@ -322,23 +328,23 @@ def generate_single_scenario_1(base_scenario, sector, zone):
                 new_scenario.loc[idx, 'Contrib_2015_2050_pct'] = -contrib_pct_total
         
         # Add Total row
-        total_row = new_scenario.iloc[0].copy()
-        total_row['Lever'] = 'Total'
-        total_row['CO2_2015'] = base_scenario.iloc[0]['CO2_2015'] if 'CO2_2015' in base_scenario.columns else None
-        total_row['CO2_2040'] = base_scenario.iloc[0]['CO2_2040'] if 'CO2_2040' in base_scenario.columns else None
-        total_row['CO2_2050'] = base_scenario.iloc[0]['CO2_2050'] if 'CO2_2050' in base_scenario.columns else None
-        total_row['Contrib_2015_2040_abs'] = total_change_2015_2040
-        total_row['Contrib_2040_2050_abs'] = total_change_2040_2050
-        total_row['Contrib_2015_2050_abs'] = total_change_2015_2050
-        total_row['Contrib_2015_2040_pct'] = 100.0
-        total_row['Contrib_2040_2050_pct'] = 100.0
-        total_row['Contrib_2015_2050_pct'] = 100.0
+        new_total_row = new_scenario.iloc[0].copy()
+        new_total_row['Lever'] = 'Total'
+        new_total_row['CO2_2015'] = total_row['CO2_2015']
+        new_total_row['CO2_2040'] = total_row['CO2_2040']
+        new_total_row['CO2_2050'] = total_row['CO2_2050']
+        new_total_row['Contrib_2015_2040_abs'] = total_change_2015_2040
+        new_total_row['Contrib_2040_2050_abs'] = total_change_2040_2050
+        new_total_row['Contrib_2015_2050_abs'] = total_change_2015_2050
+        new_total_row['Contrib_2015_2040_pct'] = 100.0
+        new_total_row['Contrib_2040_2050_pct'] = 100.0
+        new_total_row['Contrib_2015_2050_pct'] = 100.0
         
         # Convert to list of dictionaries
         result = []
         for _, row in new_scenario.iterrows():
             result.append(row.to_dict())
-        result.append(total_row.to_dict())
+        result.append(new_total_row.to_dict())
         
         return result
         
@@ -346,7 +352,7 @@ def generate_single_scenario_1(base_scenario, sector, zone):
         print(f"Error generating Scenario 1 for {sector} in {zone}: {e}")
         return None
 
-def generate_single_scenario_2(base_scenario, sector, zone):
+def generate_single_scenario_2(base_scenario, sector, zone, total_row):
     """Generate Scenario 2 data for a single sector/zone combination"""
     try:
         # Get current Sufficiency values
@@ -412,23 +418,23 @@ def generate_single_scenario_2(base_scenario, sector, zone):
                 new_scenario.loc[idx, 'Contrib_2015_2050_pct'] = -contrib_pct_total
         
         # Add Total row
-        total_row = new_scenario.iloc[0].copy()
-        total_row['Lever'] = 'Total'
-        total_row['CO2_2015'] = base_scenario.iloc[0]['CO2_2015'] if 'CO2_2015' in base_scenario.columns else None
-        total_row['CO2_2040'] = base_scenario.iloc[0]['CO2_2040'] if 'CO2_2040' in base_scenario.columns else None
-        total_row['CO2_2050'] = base_scenario.iloc[0]['CO2_2050'] if 'CO2_2050' in base_scenario.columns else None
-        total_row['Contrib_2015_2040_abs'] = total_change_2015_2040
-        total_row['Contrib_2040_2050_abs'] = total_change_2040_2050
-        total_row['Contrib_2015_2050_abs'] = total_change_2015_2050
-        total_row['Contrib_2015_2040_pct'] = 100.0
-        total_row['Contrib_2040_2050_pct'] = 100.0
-        total_row['Contrib_2015_2050_pct'] = 100.0
+        new_total_row = new_scenario.iloc[0].copy()
+        new_total_row['Lever'] = 'Total'
+        new_total_row['CO2_2015'] = total_row['CO2_2015']
+        new_total_row['CO2_2040'] = total_row['CO2_2040']
+        new_total_row['CO2_2050'] = total_row['CO2_2050']
+        new_total_row['Contrib_2015_2040_abs'] = total_change_2015_2040
+        new_total_row['Contrib_2040_2050_abs'] = total_change_2040_2050
+        new_total_row['Contrib_2015_2050_abs'] = total_change_2015_2050
+        new_total_row['Contrib_2015_2040_pct'] = 100.0
+        new_total_row['Contrib_2040_2050_pct'] = 100.0
+        new_total_row['Contrib_2015_2050_pct'] = 100.0
         
         # Convert to list of dictionaries
         result = []
         for _, row in new_scenario.iterrows():
             result.append(row.to_dict())
-        result.append(total_row.to_dict())
+        result.append(new_total_row.to_dict())
         
         return result
         
