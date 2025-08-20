@@ -380,39 +380,39 @@ def update_waterfall_chart(zone, sector, scenario):
         colors.append('#1f77b4')  # Blue for final year
         text_values.append(f"{co2_2050:.1f}")
     
-    # Create the waterfall chart
+        # Create the waterfall chart
         fig.add_trace(go.Waterfall(
-        name="CO2 Emissions",
-        orientation="v",  # Vertical orientation like your screenshot
-        measure=measures,
-        x=x_labels,
-        y=y_values,
+            name="CO2 Emissions",
+            orientation="v",  # Vertical orientation like your screenshot
+            measure=measures,
+            x=x_labels,
+            y=y_values,
             textposition="outside",
-        text=text_values,
-        connector={"line": {"color": "rgb(63, 63, 63)", "width": 2}},
-        decreasing={"marker": {"color": "#d62728"}},  # Red for decreases
-        increasing={"marker": {"color": "#27ae60"}},  # Green for increases
-        totals={"marker": {"color": "#1f77b4"}},      # Blue for totals
-        showlegend=False
+            text=text_values,
+            connector={"line": {"color": "rgb(63, 63, 63)", "width": 2}},
+            decreasing={"marker": {"color": "#d62728"}},  # Red for decreases
+            increasing={"marker": {"color": "#27ae60"}},  # Green for increases
+            totals={"marker": {"color": "#1f77b4"}},      # Blue for totals
+            showlegend=False
         ))
         
         fig.update_layout(
             title=f"CO2 Emissions Waterfall - {scenario} ({sector}, {zone})",
-        xaxis_title="Time Periods and Levers",
-        yaxis_title="CO2 Emissions (Million tonnes)",
-        height=500,
-        showlegend=False,
-        plot_bgcolor='white',
-        font=dict(size=12),
-        xaxis=dict(
-            tickangle=-45,  # Rotate labels for better readability
-            tickfont=dict(size=10)
-        ),
-        yaxis=dict(
-            gridcolor='lightgray',
-            gridwidth=1
+            xaxis_title="Time Periods and Levers",
+            yaxis_title="CO2 Emissions (Million tonnes)",
+            height=500,
+            showlegend=False,
+            plot_bgcolor='white',
+            font=dict(size=12),
+            xaxis=dict(
+                tickangle=-45,  # Rotate labels for better readability
+                tickfont=dict(size=10)
+            ),
+            yaxis=dict(
+                gridcolor='lightgray',
+                gridwidth=1
+            )
         )
-    )
     
     return fig
 
