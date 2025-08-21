@@ -1,6 +1,25 @@
 import pandas as pd
 import numpy as np
 
+"""
+ETL Preprocessing for Carbon Budget Analysis
+============================================
+
+This script processes and prepares data for carbon budget allocation scenarios.
+It includes a precision fix for very small capacity shares to prevent rounding to 0.
+
+Key Features:
+- Loads and merges ISO codes, IPCC regions, EU/G20 mappings
+- Processes GDP PPP, population, and emissions data
+- Calculates capacity shares with precision preservation
+- Handles both territorial and consumption-based emissions scopes
+
+Precision Fix:
+- Uses float64 data types for capacity calculations
+- Sets minimum threshold (1e-12) to prevent very small values from rounding to 0
+- Ensures small countries like Tuvalu and Vanuatu maintain non-zero capacity shares
+"""
+
 # Constants
 DATA_DIR = '/Users/louistronel/Desktop/D4G_WSL/13_democratiser_sobriete-1/stream3_visualization/Budget/Data'
 OUTPUT_DIR = '/Users/louistronel/Desktop/D4G_WSL/13_democratiser_sobriete-1/stream3_visualization/Budget/Output'
@@ -553,6 +572,29 @@ def main():
         0
     )
     
+    # PRECISION FIX: Ensure very small capacity shares are preserved and not rounded to 0
+    print("\nStep 3.1: Applying precision fix for very small capacity shares...")
+    
+    # Convert to higher precision data types
+    capacity_calc['capacity_absolute'] = capacity_calc['capacity_absolute'].astype('float64')
+    capacity_calc['share_of_capacity'] = capacity_calc['share_of_capacity'].astype('float64')
+    
+    # Set minimum threshold to prevent very small values from being rounded to 0
+    min_threshold = 1e-12  # Very small but non-zero threshold
+    capacity_calc['share_of_capacity'] = np.maximum(
+        capacity_calc['share_of_capacity'], 
+        min_threshold
+    )
+    
+    # Count countries that were affected by the precision fix
+    countries_with_minimal_shares = len(capacity_calc[capacity_calc['share_of_capacity'] == min_threshold])
+    print(f"  Countries with minimal capacity shares (precision fix applied): {countries_with_minimal_shares}")
+    
+    # Verify that shares still sum to approximately 1.0
+    for scope in ['Territory', 'Consumption']:
+        scope_total = capacity_calc[capacity_calc['Emissions_scope'] == scope]['share_of_capacity'].sum()
+        print(f"  {scope} scope: Total capacity shares = {scope_total:.10f}")
+    
     # Step 3.5: Calculate G20 aggregate capacity
     print("\nStep 3.5: Calculating G20 aggregate capacity...")
     # Get G20 member countries from the main dataset
@@ -579,6 +621,10 @@ def main():
     # G20 capacity share is the sum of its member countries' shares (no normalization needed)
     g20_capacity_df = pd.DataFrame(g20_capacity)
     g20_capacity_df['share_of_capacity'] = g20_capacity_df['capacity_absolute'] / g20_capacity_df['world_total_capacity']
+    
+    # Apply precision fix to G20 capacity shares
+    g20_capacity_df['share_of_capacity'] = g20_capacity_df['share_of_capacity'].astype('float64')
+    g20_capacity_df['share_of_capacity'] = np.maximum(g20_capacity_df['share_of_capacity'], 1e-12)
     
     print(f"  G20 Territory: capacity share = {g20_capacity_df[g20_capacity_df['Emissions_scope'] == 'Territory']['share_of_capacity'].iloc[0]:.6f}")
     print(f"  G20 Consumption: capacity share = {g20_capacity_df[g20_capacity_df['Emissions_scope'] == 'Consumption']['share_of_capacity'].iloc[0]:.6f}")
@@ -615,6 +661,10 @@ def main():
     # EU capacity share is the sum of its member countries' shares (no normalization needed)
     eu_capacity_df = pd.DataFrame(eu_capacity)
     eu_capacity_df['share_of_capacity'] = eu_capacity_df['capacity_absolute'] / eu_capacity_df['world_total_capacity']
+    
+    # Apply precision fix to EU capacity shares
+    eu_capacity_df['share_of_capacity'] = eu_capacity_df['share_of_capacity'].astype('float64')
+    eu_capacity_df['share_of_capacity'] = np.maximum(eu_capacity_df['share_of_capacity'], 1e-12)
     
     print(f"  EU Territory: capacity share = {eu_capacity_df[eu_capacity_df['Emissions_scope'] == 'Territory']['share_of_capacity'].iloc[0]:.6f}")
     print(f"  EU Consumption: capacity share = {eu_capacity_df[eu_capacity_df['Emissions_scope'] == 'Consumption']['share_of_capacity'].iloc[0]:.6f}")
