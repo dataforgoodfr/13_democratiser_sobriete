@@ -36,7 +36,44 @@ def get_global_budget(warming_scenario, probability, emissions_scope=None, combi
         adjusted_budget = base_budget - territory_2023
         return adjusted_budget
     
-    # For consumption emissions, use the original budget (data ends in 2022, budget starts from 2023)
+    # For consumption emissions, scale the budget based on country coverage ratio
+    if emissions_scope == 'Consumption' and combined_df is not None:
+        # Calculate 2022 population for countries with data in each scope
+        # Territory scope: get 2022 population of countries with territory emissions data
+        territory_countries_2022 = combined_df[
+            (combined_df['Emissions_scope'] == 'Territory') & 
+            (combined_df['Year'] == 2022) &
+            (combined_df['Annual_CO2_emissions_Mt'].notna()) &
+            (combined_df['Annual_CO2_emissions_Mt'] > 0) &
+            (combined_df['ISO2'] != 'WLD')  # Exclude world aggregate
+        ]['Population'].sum()
+        
+        # Consumption scope: get 2022 population of countries with consumption emissions data
+        consumption_countries_2022 = combined_df[
+            (combined_df['Emissions_scope'] == 'Consumption') & 
+            (combined_df['Year'] == 2022) &
+            (combined_df['Annual_CO2_emissions_Mt'].notna()) &
+            (combined_df['Annual_CO2_emissions_Mt'] > 0) &
+            (combined_df['ISO2'] != 'WLD')  # Exclude world aggregate
+        ]['Population'].sum()
+        
+        # Calculate scaling factor and apply to budget
+        if territory_countries_2022 > 0 and consumption_countries_2022 > 0:
+            population_ratio = consumption_countries_2022 / territory_countries_2022
+            scaled_budget = base_budget * population_ratio
+            
+            print(f"  Consumption budget scaling: {base_budget:,.0f} × {population_ratio:.4f} = {scaled_budget:,.0f} MtCO2")
+            print(f"  Territory countries 2022 population: {territory_countries_2022:,.0f}")
+            print(f"  Consumption countries 2022 population: {consumption_countries_2022:,.0f}")
+            
+            return scaled_budget
+        else:
+            print(f"  Warning: Could not calculate population ratio for consumption budget scaling")
+            print(f"  Territory countries 2022 population: {territory_countries_2022:,.0f}")
+            print(f"  Consumption countries 2022 population: {consumption_countries_2022:,.0f}")
+            return base_budget
+    
+    # For consumption emissions without combined_df, use the original budget
     return base_budget
 
 def penalty_func_2(x):
@@ -293,16 +330,23 @@ def create_base_dataframe(df):
         cum_pop_latest_df[f'Cumulative_population_latest_{scope}'] = cum_pop_latest_df.groupby(['ISO2', 'Region', 'Emissions_scope'])['Population'].cumsum()
         
         # Get world cumulative population for this scope (sum of countries with data)
-        world_cum_pop_latest = cum_pop_latest_df[f'Cumulative_population_latest_{scope}'].max()
+        world_cum_pop_latest = cum_pop_latest_df[f'Cumulative_population_latest_{scope}'].sum()
         
         # Merge with base dataframe
         cum_pop_latest_merge = cum_pop_latest_df[['ISO2', f'Cumulative_population_latest_{scope}']]
         base_df = base_df.merge(cum_pop_latest_merge, on='ISO2', how='left')
         
-        # Calculate population share for each country
-        base_df[f'Share_of_cumulative_population_1970_to_latest_{scope}'] = base_df[f'Cumulative_population_latest_{scope}'] / world_cum_pop_latest
+        # Calculate population share for each country using world total (sum of countries with data for this scope)
+        # This ensures consistency with the 1970_to_2050 calculation
+        # Exclude all aggregates to ensure we only sum countries with emissions data for this scope
+        aggregate_iso2s = ['WLD', 'EU', 'G20'] + [iso for iso in cum_pop_latest_df['ISO2'].unique() 
+                                                  if iso in df[df['Country'] == 'All']['ISO2'].unique()]
+        countries_only_latest = cum_pop_latest_df[~cum_pop_latest_df['ISO2'].isin(aggregate_iso2s)]
+        world_cum_pop_latest_for_share = countries_only_latest[f'Cumulative_population_latest_{scope}'].sum()
         
-        # FIX: Ensure WLD (World) always has population share = 1.0
+        base_df[f'Share_of_cumulative_population_1970_to_latest_{scope}'] = base_df[f'Cumulative_population_latest_{scope}'] / world_cum_pop_latest_for_share
+        
+        # Set WLD to 1.0 since it represents the world total
         base_df.loc[base_df['ISO2'] == 'WLD', f'Share_of_cumulative_population_1970_to_latest_{scope}'] = 1.0
         
         base_df.drop(columns=[f'Cumulative_population_latest_{scope}'], inplace=True)
@@ -683,7 +727,7 @@ for _, row in base_df.iterrows():
     for emissions_scope in emission_scopes:
         for warming_scenario in ['1.5°C', '2°C']:
             for probability in ['50%', '67%']:
-                for distribution in ['Population', 'Responsibility', 'NDC Pledges', 'Capacity']:
+                for distribution in ['Population', 'Responsibility', 'NDC Pledges', 'Capability']:
                     # Calculate country carbon budget based on distribution scenario
                     global_budget = get_global_budget(warming_scenario, probability, emissions_scope, combined_df)
                     if distribution == 'Population':
@@ -697,7 +741,7 @@ for _, row in base_df.iterrows():
 
                         # Calculate total available budget (global + world's historical emissions)
                         total_available = global_budget + world_cumulative
-
+                        
                         # Calculate country's share and subtract its historical emissions
                         country_cumulative = row[f'Latest_cumulative_CO2_emissions_Mt_{emissions_scope}']
                         
@@ -709,8 +753,26 @@ for _, row in base_df.iterrows():
                             # Use 1970 to 2050 (current approach)
                             population_share = row[f'Share_of_cumulative_population_1970_to_2050_{emissions_scope}']
                         
-                        country_budget = (total_available * population_share) - country_cumulative
-                    elif distribution == 'Capacity':
+                        # Calculate theoretical budget using total available budget
+                        # This ensures: sum of all theoretical budgets = total_available - world_cumulative = global_budget
+                        theoretical_budget = (total_available * population_share) - country_cumulative
+                        
+                        # For Responsibility scenarios, we need to normalize positive budgets
+                        # Store the theoretical budget for normalization
+                        if 'responsibility_theoretical_budgets' not in locals():
+                            responsibility_theoretical_budgets = {}
+                        key = (emissions_scope, warming_scenario, probability)
+                        if key not in responsibility_theoretical_budgets:
+                            responsibility_theoretical_budgets[key] = []
+                        responsibility_theoretical_budgets[key].append({
+                            'ISO2': row['ISO2'],
+                            'Country': row['Country'],
+                            'theoretical_budget': theoretical_budget
+                        })
+                        
+                        # For now, use theoretical budget - we'll normalize before neutrality year calculation
+                        country_budget = theoretical_budget
+                    elif distribution == 'Capability':
                         # Get world's latest cumulative emissions
                         world_cumulative = base_df[
                             (base_df['ISO2'] == 'WLD') &
@@ -722,7 +784,7 @@ for _, row in base_df.iterrows():
 
                         # Calculate country's share and subtract its historical emissions
                         country_cumulative = row[f'Latest_cumulative_CO2_emissions_Mt_{emissions_scope}']
-                        capacity_share = row[f'share_of_capacity_{emissions_scope}']
+                        capability_share = row[f'share_of_capacity_{emissions_scope}']
                         
                         # FIX: Include aggregates (G20, EU, IPCC regions) even if they have GDP_PPP = 0.0
                         # as long as they have valid capacity values
@@ -730,13 +792,13 @@ for _, row in base_df.iterrows():
                         
 
                         
-                        if capacity_share == 0 or pd.isna(capacity_share):
+                        if capability_share == 0 or pd.isna(capability_share):
                             # Skip this scenario for countries with missing capacity data
                             continue
                         
-                        country_budget = (total_available * capacity_share) - country_cumulative
+                        country_budget = (total_available * capability_share) - country_cumulative
                         
-                        # DEBUG: Add debug output for G20 Territory Capacity budget calculation
+                        # DEBUG: Add debug output for G20 Territory Capability budget calculation
                         if (row['ISO2'] == 'G20' and 
                             emissions_scope == 'Territory' and 
                             warming_scenario == '1.5°C'):
@@ -752,7 +814,7 @@ for _, row in base_df.iterrows():
                         else:  # Consumption scope
                             # Skip NDC Pledges for Consumption emissions
                             continue
-                    else:  # Capacity
+                    else:  # Capability
                         country_budget = None
 
                     # Calculate years to neutrality and neutrality year
@@ -861,8 +923,57 @@ for _, row in base_df.iterrows():
                     else:
                         years_to_neutrality_from_today = "N/A"
 
+                    # Calculate sanity check columns
+                    global_total_budget = global_budget + row[f'Latest_cumulative_CO2_emissions_Mt_{emissions_scope}']
+                    
+                    # For Total_available_budget, we need to get the world cumulative emissions
+                    # This is already calculated in the Responsibility and Capability sections above
+                    # We'll set it to None here and populate it in the scenario dictionary below
+                    total_available_budget = None
+                    
+                    latest_cumulative_emissions_per_capita = row[f'Latest_cumulative_CO2_emissions_Mt_{emissions_scope}'] / row[f'Latest_population_{emissions_scope}'] if row[f'Latest_population_{emissions_scope}'] > 0 else None
+                    
+                    # Calculate global cumulative emissions for this scope
+                    world_data = combined_df[
+                        (combined_df['Emissions_scope'] == emissions_scope) & 
+                        (combined_df['ISO2'] == 'WLD') & 
+                        (combined_df['Year'] == latest_year)
+                    ]
+                    
+                    if len(world_data) > 0:
+                        global_cumulative_emissions = world_data['Cumulative_CO2_emissions_Mt'].iloc[0]
+                        # Calculate share of global cumulative emissions
+                        share_of_global_cumulative_emissions = row[f'Latest_cumulative_CO2_emissions_Mt_{emissions_scope}'] / global_cumulative_emissions if global_cumulative_emissions > 0 else None
+                    else:
+                        global_cumulative_emissions = None
+                        share_of_global_cumulative_emissions = None
+                    
+                    # Calculate Total_available_budget for this scenario
+                    # Get world's latest cumulative emissions for this scope
+                    world_cumulative = base_df[
+                        (base_df['ISO2'] == 'WLD') &
+                        (base_df[f'Latest_cumulative_CO2_emissions_Mt_{emissions_scope}'].notna())
+                    ][f'Latest_cumulative_CO2_emissions_Mt_{emissions_scope}'].iloc[0] if len(base_df[
+                        (base_df['ISO2'] == 'WLD') &
+                        (base_df[f'Latest_cumulative_CO2_emissions_Mt_{emissions_scope}'].notna())
+                    ]) > 0 else 0
+                    
+                    # Total_available_budget = Global budget + sum of all countries' cumulative emissions
+                    total_available_budget = global_budget + world_cumulative
+                    
+                    # Determine ISO_Type based on ISO2 and Country
+                    if row['ISO2'] == 'WLD':
+                        iso_type = 'Global'
+                    elif row['ISO2'] in ['G20', 'EU']:
+                        iso_type = row['ISO2']
+                    elif row['Country'] == 'All':
+                        iso_type = 'IPCC Region'
+                    else:
+                        iso_type = 'Country'
+                    
                     scenario = {
                         'ISO2': row['ISO2'],
+                        'ISO_Type': iso_type,
                         'Country': row['Country'],
                         'Region': row['Region'],
                         'Share_of_cumulative_population_1970_to_2050': row[f'Share_of_cumulative_population_1970_to_2050_{emissions_scope}'],
@@ -885,16 +996,227 @@ for _, row in base_df.iterrows():
                         'Country_budget_per_capita': (country_budget * 1000000) / row[f'Latest_population_{emissions_scope}'] if pd.notna(country_budget) and pd.notna(row[f'Latest_population_{emissions_scope}']) and row[f'Latest_population_{emissions_scope}'] > 0 else None,
                         'Years_to_neutrality_from_latest_available': years_to_neutrality,
                         'Neutrality_year': neutrality_year,
-                        'Years_to_neutrality_from_today': years_to_neutrality_from_today
+                        'Years_to_neutrality_from_today': years_to_neutrality_from_today,
+                        'Global_Total_Budget': global_total_budget,
+                        'Total_available_budget': total_available_budget,
+                        'Latest_cumulative_emissions_per_capita': latest_cumulative_emissions_per_capita,
+                        'Share_of_global_cumulative_emissions': share_of_global_cumulative_emissions,
+                        'Country_theoretical_budget': theoretical_budget if distribution in ['Responsibility', 'Capability'] else None,
+                        'Country_share_of_positive_budgets': None  # Will be calculated during normalization for positive budgets
                     }
                     scenarios.append(scenario)
+
+# SIMPLE CALCULATION STEP: Apply the straightforward logic for Responsibility and Capability scenarios
+print("\n=== APPLYING SIMPLE CALCULATIONS FOR RESPONSIBILITY AND CAPACITY SCENARIOS ===")
+print("Using simple formulas: theoretical budget = total_available * share - cumulative_emissions")
+
+# Process Responsibility and Capability scenarios separately
+for scenario_type in ['Responsibility', 'Capability']:
+    print(f"\n--- Processing {scenario_type} scenarios ---")
+    
+    scenarios_to_process = [s for s in scenarios if s['Budget_distribution_scenario'] == scenario_type]
+    
+    if scenarios_to_process:
+        # Group by unique combinations of scope, warming, and probability
+        scenario_groups = {}
+        for scenario in scenarios_to_process:
+            key = (scenario['Emissions_scope'], scenario['Warming_scenario'], scenario['Probability_of_reach'])
+            if key not in scenario_groups:
+                scenario_groups[key] = []
+            scenario_groups[key].append(scenario)
+        
+        # Process each group
+        for (scope, warming, prob), group_scenarios in scenario_groups.items():
+            print(f"\nProcessing {scope} scope, {warming}, {prob}...")
+            
+            # Get the global budget for this scenario
+            global_budget = group_scenarios[0]['Global_Carbon_budget']
+            
+            # Step 1: Calculate theoretical budgets for ALL scenarios in this group
+            print(f"  Step 1: Calculating theoretical budgets for all types...")
+            for scenario in group_scenarios:
+                if scenario['ISO_Type'] != 'Global':  # Skip WLD for now
+                    # Get the population share based on scenario type
+                    if scenario_type == 'Responsibility':
+                        population_share = scenario['Share_of_cumulative_population_1970_to_latest']
+                    else:  # Capability
+                        population_share = scenario['share_of_capacity']
+                    
+                    # Calculate theoretical budget using the simple formula
+                    # Use Total_available_budget which is Global budget + sum of all countries' cumulative emissions
+                    total_available = scenario['Total_available_budget']
+                    cumulative_emissions = scenario['Latest_cumulative_CO2_emissions_Mt']
+                    theoretical_budget = (total_available * population_share) - cumulative_emissions
+                    
+                    # Store the theoretical budget
+                    scenario['Country_theoretical_budget'] = theoretical_budget
+                    
+                    print(f"    {scenario['Country']} ({scenario['ISO_Type']}): {theoretical_budget:,.0f} MtCO2 (share: {population_share:.3f}, total_available: {total_available:,.0f}, cumulative: {cumulative_emissions:,.0f})")
+            
+            # Step 2: Calculate denominator for normalization
+            print(f"  Step 2: Calculating denominator for normalization...")
+            
+            # Use the same denominator for all types (individual countries and regional aggregates)
+            # This ensures regional aggregates don't affect the global budget distribution
+            positive_theoretical_budgets = [s['Country_theoretical_budget'] for s in group_scenarios if s['Country_theoretical_budget'] is not None and s['Country_theoretical_budget'] > 0 and s['ISO_Type'] == 'Country']
+            total_positive_theoretical = sum(positive_theoretical_budgets)
+            print(f"    Individual countries denominator: {total_positive_theoretical:,.0f} MtCO2")
+            
+            # Step 3: Calculate shares and final budgets for all types
+            print(f"  Step 3: Calculating final budgets for all types...")
+            for scenario in group_scenarios:
+                if scenario['ISO_Type'] != 'Global':  # Skip WLD for now
+                    theoretical_budget = scenario['Country_theoretical_budget']
+                    
+                    if theoretical_budget > 0:
+                        # Use the same denominator for all types to ensure regional aggregates don't affect global budget distribution
+                        denominator = total_positive_theoretical
+                        
+                        # Calculate share of positive budgets
+                        share_of_positive = theoretical_budget / denominator
+                        scenario['Country_share_of_positive_budgets'] = share_of_positive
+                        
+                        # Calculate final budget
+                        final_budget = global_budget * share_of_positive
+                        scenario['Country_carbon_budget'] = final_budget
+                        
+                        print(f"    {scenario['Country']} ({scenario['ISO_Type']}): {theoretical_budget:,.0f} → {final_budget:,.0f} MtCO2 (share: {share_of_positive:.3f}, denominator: {denominator:,.0f})")
+                    else:
+                        # Negative budgets remain unchanged
+                        scenario['Country_share_of_positive_budgets'] = None
+                        scenario['Country_carbon_budget'] = theoretical_budget
+                        print(f"    {scenario['Country']} ({scenario['ISO2']}): {theoretical_budget:,.0f} MtCO2 (negative, unchanged)")
+            
+            # Step 4: Handle WLD aggregate only
+            print(f"  Step 4: Handling WLD aggregate...")
+            for scenario in group_scenarios:
+                if scenario['ISO2'] == 'WLD':
+                    # WLD gets the sum of individual country budgets (which equals global budget)
+                    real_country_budgets = [s['Country_carbon_budget'] for s in group_scenarios if s['ISO_Type'] == 'Country' and s['Country_carbon_budget'] > 0]
+                    wld_budget = sum(real_country_budgets)
+                    scenario['Country_carbon_budget'] = wld_budget
+                    scenario['Country_theoretical_budget'] = wld_budget
+                    scenario['Country_share_of_positive_budgets'] = None
+                    print(f"    WLD (World): gets sum of individual country budgets = {wld_budget:,.0f} MtCO2")
+                    break
+            
+            # Step 5: Update the main scenarios list
+            print(f"  Step 5: Updating main scenarios list...")
+            for scenario in group_scenarios:
+                # Find the corresponding scenario in the main scenarios list
+                for main_scenario in scenarios:
+                    if (main_scenario['ISO2'] == scenario['ISO2'] and
+                        main_scenario['Emissions_scope'] == scenario['Emissions_scope'] and
+                        main_scenario['Warming_scenario'] == scenario['Warming_scenario'] and
+                        main_scenario['Probability_of_reach'] == scenario['Probability_of_reach'] and
+                        main_scenario['Budget_distribution_scenario'] == scenario_type):
+                        
+                        # Update all the calculated fields
+                        main_scenario['Country_carbon_budget'] = scenario['Country_carbon_budget']
+                        main_scenario['Country_theoretical_budget'] = scenario['Country_theoretical_budget']
+                        main_scenario['Country_share_of_positive_budgets'] = scenario['Country_share_of_positive_budgets']
+                        
+                        # Recalculate neutrality year based on final budget (for real countries only)
+                        if (scenario['Country_carbon_budget'] > 0 and 
+                            scenario['Country'] != 'All' and 
+                            scenario['ISO2'] != 'WLD'):
+                            
+                            latest_annual = main_scenario['Latest_annual_CO2_emissions_Mt']
+                            latest_year = main_scenario['Latest_year']
+                            
+                            # Recalculate years to neutrality
+                            new_years_to_neutrality = int(round(2 * scenario['Country_carbon_budget'] / latest_annual))
+                            new_neutrality_year = int(round(latest_year + new_years_to_neutrality))
+                            
+                            # Cap neutrality year at 1970 (earliest) and 2100 (latest)
+                            if new_neutrality_year < 1970:
+                                new_neutrality_year = 1970
+                            elif new_neutrality_year > 2100:
+                                new_neutrality_year = 2100
+                            
+                            # Update the scenario with new neutrality values
+                            main_scenario['Years_to_neutrality_from_latest_available'] = new_years_to_neutrality
+                            main_scenario['Neutrality_year'] = new_neutrality_year
+                            
+                            # Recalculate years from today
+                            current_year = 2024
+                            main_scenario['Years_to_neutrality_from_today'] = new_neutrality_year - current_year
+                        break
+            
+            print(f"  ✓ Completed processing for {scope} scope, {warming}, {prob}")
+    else:
+        print(f"  No {scenario_type} scenarios found")
+
+# COMPREHENSIVE SANITY CHECK: Verify normalization worked correctly
+print("\n=== COMPREHENSIVE SANITY CHECK ===")
+print("Verifying that sum of positive budgets equals global budgets for each scenario type independently...")
+
+# Check each scenario type separately
+for scenario_type in ['Responsibility', 'Capability']:
+    print(f"\n🔍 SANITY CHECK: {scenario_type} scenarios")
+    
+    # Get scenarios of this type
+    type_scenarios = [s for s in scenarios if s['Budget_distribution_scenario'] == scenario_type]
+    
+    if type_scenarios:
+        # Group by unique combinations of scope, warming, and probability
+        type_scenario_groups = {}
+        for scenario in type_scenarios:
+            key = (scenario['Emissions_scope'], scenario['Warming_scenario'], scenario['Probability_of_reach'])
+            if key not in type_scenario_groups:
+                type_scenario_groups[key] = []
+            type_scenario_groups[key].append(scenario)
+        
+        # Check each group
+        for (scope, warming, prob), group_scenarios in type_scenario_groups.items():
+            if warming == '1.5°C' and prob == '50%' and scope == 'Territory':
+                print(f"\n  {scope} scope, {warming}, {prob}")
+                
+                # Get the original global budget
+                original_global_budget = group_scenarios[0]['Global_Carbon_budget']
+                print(f"    Original global budget: {original_global_budget:,.0f} MtCO2")
+                
+                # Calculate sum of all positive budgets after normalization (exclude WLD and regional aggregates - only count individual countries)
+                positive_budgets = []
+                for scenario in group_scenarios:
+                    if scenario['Country_carbon_budget'] > 0 and scenario['ISO_Type'] == 'Country':
+                        positive_budgets.append(scenario['Country_carbon_budget'])
+                
+                total_positive_budgets = sum(positive_budgets)
+                print(f"    Sum of positive {scenario_type} budgets: {total_positive_budgets:,.0f} MtCO2")
+                
+                # Check if they match
+                if abs(total_positive_budgets - original_global_budget) < 0.01:  # Allow small floating point differences
+                    print(f"    ✅ MATCH: Sum of positive budgets = Global budget")
+                else:
+                    print(f"    ❌ MISMATCH: Difference = {total_positive_budgets - original_global_budget:,.0f} MtCO2")
+                    print(f"    This indicates a problem with normalization!")
+                
+                # Show top 5 countries by budget size
+                top_countries = sorted(group_scenarios, key=lambda x: x['Country_carbon_budget'], reverse=True)[:5]
+                print(f"    Top 5 countries by budget:")
+                for i, country in enumerate(top_countries, 1):
+                    print(f"      {i}. {country['Country']}: {country['Country_carbon_budget']:,.0f} MtCO2")
+                
+                # Show budget distribution
+                budget_ranges = {
+                    '0-1000': len([b for b in positive_budgets if 0 < b <= 1000]),
+                    '1000-10000': len([b for b in positive_budgets if 1000 < b <= 10000]),
+                    '10000-100000': len([b for b in positive_budgets if 10000 < b <= 100000]),
+                    '>100000': len([b for b in positive_budgets if b > 100000])
+                }
+                print(f"    Budget distribution:")
+                for range_name, count in budget_ranges.items():
+                    print(f"      {range_name} MtCO2: {count} countries")
+
+print("=== END SANITY CHECK ===\n")
 
 # After creating the scenarios list, create two separate dataframes
 scenarios_df = pd.DataFrame(scenarios)
 
 # 1. Create scenario parameters dataframe (one row per unique scenario)
 scenario_params = scenarios_df[[
-    'ISO2', 'Country', 'Region', 'Emissions_scope',
+    'ISO2', 'ISO_Type', 'Country', 'Region', 'Emissions_scope',
     'Warming_scenario', 'Probability_of_reach',
     'Budget_distribution_scenario', 'Years_to_neutrality_from_latest_available', 'Years_to_neutrality_from_today', 'Neutrality_year',
     'Latest_year', 'Latest_population', 'Latest_annual_CO2_emissions_Mt',
@@ -903,7 +1225,9 @@ scenario_params = scenarios_df[[
     'Share_of_cumulative_population_1970_to_2050',
     'Share_of_cumulative_population_1970_to_latest',
     'share_of_capacity', 'Global_Carbon_budget',
-    'Country_carbon_budget', 'Country_budget_per_capita', 'Share_of_cumulative_emissions'
+    'Country_carbon_budget', 'Country_budget_per_capita', 'Share_of_cumulative_emissions',
+    'Global_Total_Budget', 'Total_available_budget', 'Latest_cumulative_emissions_per_capita', 'Share_of_global_cumulative_emissions',
+    'Country_theoretical_budget', 'Country_share_of_positive_budgets'
 ]].drop_duplicates()
 
 # Filter out rows where neutrality could not be calculated

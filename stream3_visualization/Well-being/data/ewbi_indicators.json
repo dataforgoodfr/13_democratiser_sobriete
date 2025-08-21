@@ -290,16 +290,6 @@
           "weight": "1/2",
           "indicators": [
             {
-              "code": "IS-SILC-1",
-              "description": "DEACTIVATED Share of nth decile households of age of being a pre-school student but not attaining pre-school",
-              "weight": 0
-            },
-            {
-              "code": "IS-SILC-2",
-              "description": "DEACTIVATED Share of nth decile households of age of being a compulsory school student but not attaining school",
-              "weight": 0
-            },
-            {
               "code": "IS-SILC-3",
               "description": "Share of nth decile households having no formal education",
               "weight": 2

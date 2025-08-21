@@ -96,19 +96,19 @@ app.layout = html.Div([
         html.H2([
             "From ",
             html.A("ICJ's July 2025 Ruling",
-                   href="https://www.icj-cij.org/sites/default/files/case-related/187/187-20250723-adv-01-01-en.pdf?__cf_chl_tk=Yr3gmWW.N9WZWS7uWgxCBO.lqeW_HYwLgAtsaO7txV8-1754635176-1.0.1.1-CTgho8.CllXbjOuGsjcZBsK2bI7y...6o_iO6c_9klI",
+                   href="https://www.icj-cij.org/sites/default/files/case-related/187/187-20250723-adv-01-00-en.pdf",
                    target="_blank",
                    style={'color': '#f39c12', 'textDecoration': 'underline'}),
-            " to Real-World Metamorphosis"
+            " to Real-World Metamorphosis: Visualizing how to Allocate Carbon Budgets Fairly Not to Exceed +1.5°C"
         ], style={
             'textAlign': 'center',
             'color': '#34495e',
-            'fontSize': '1.2rem',
+            'fontSize': '1.1rem',
             'fontWeight': 'normal',
             'marginBottom': '30px',
             'fontFamily': 'Arial, sans-serif',
             'lineHeight': '1.4',
-            'maxWidth': '900px',
+            'maxWidth': '1200px',
             'margin': '0 auto 30px auto'
         }),
 
@@ -129,8 +129,7 @@ app.layout = html.Div([
                     style={'marginTop': '8px'},
                     clearable=False
                 )
-            ], style={'width': '17%', 'display': 'inline-block', 'margin-right': '2%'}),
-
+            ], style={'width': '16%', 'display': 'inline-block', 'margin-right': '2.5%'}),
             html.Div([
                 html.Label("G20 Only", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
                 dcc.Dropdown(
@@ -143,10 +142,10 @@ app.layout = html.Div([
                     style={'marginTop': '8px'},
                     clearable=False
                 )
-            ], style={'width': '17%', 'display': 'inline-block', 'margin-right': '2%'}),
+            ], style={'width': '16%', 'display': 'inline-block', 'margin-right': '2.5%'}),
 
             html.Div([
-                html.Label("Zero Carbon Emissions Trajectory", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
+                html.Label("Carbon Budget Allocation", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
                 dcc.Dropdown(
                     id='budget-distribution-dropdown',
                     options=[{'label': i, 'value': i} for i in
@@ -155,8 +154,7 @@ app.layout = html.Div([
                     style={'marginTop': '8px'},
                     clearable=False
                 )
-            ], style={'width': '17%', 'display': 'inline-block', 'margin-right': '2%'}),
-
+            ], style={'width': '16%', 'display': 'inline-block', 'margin-right': '2.5%'}),
             html.Div([
                 html.Label("Scope of Emissions", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
                 dcc.Dropdown(
@@ -169,10 +167,9 @@ app.layout = html.Div([
                     style={'marginTop': '8px'},
                     clearable=False
                 )
-            ], style={'width': '17%', 'display': 'inline-block', 'margin-right': '2%'}),
-
+            ], style={'width': '16%', 'display': 'inline-block', 'margin-right': '2.5%'}),
             html.Div([
-                html.Label("Probability of holding temperature rise to 1.5°C",
+                html.Label("Probability of not exceeding +1.5°C",
                            style={'fontWeight': 'bold', 'color': '#2c3e50', 'whiteSpace': 'nowrap',
                                   'overflow': 'visible'}),
                 dcc.Dropdown(
@@ -182,7 +179,7 @@ app.layout = html.Div([
                     style={'marginTop': '8px'},
                     clearable=False
                 )
-            ], style={'width': '17%', 'display': 'inline-block'}),
+            ], style={'width': '16%', 'display': 'inline-block'}),
         ], style={
             'padding': '15px 20px',
             'backgroundColor': '#fdf6e3',
@@ -229,14 +226,14 @@ app.layout = html.Div([
         }),
 
         html.Div([
-            html.H4("Historical CO2 Emissions", style={
+            html.H4("Past CO2 Emissions", style={
                 'color': '#34495e',
                 'fontSize': '1.2rem',
                 'fontWeight': 'bold',
                 'marginBottom': '10px'
             }),
             html.P(
-                "Historical CO2 emissions from 1970 to 2022 for Consumption-based and from 1970 to 2023 for Territorial:",
+                "Past CO2 emissions from 1970 to 2022 for Consumption-based and from 1970 to 2023 for Territorial:",
                 style={
                     'marginBottom': '10px',
                     'lineHeight': '1.6'
@@ -280,7 +277,7 @@ app.layout = html.Div([
             ], style={'marginBottom': '10px', 'lineHeight': '1.6'}),
             html.P([
                 html.Strong("Population Data: "),
-                "Historical and forecasted population from United Nations data"
+                "Past and forecasted population from United Nations data"
             ], style={'marginBottom': '10px', 'lineHeight': '1.6'}),
             html.P([
                 html.Strong("GDP Data: "),
@@ -306,7 +303,7 @@ app.layout = html.Div([
                 "means taking into account each country's cumulative emissions when available and allocating the total carbon budget based on share of population from 1970 to 2050"
             ], style={'marginBottom': '10px', 'lineHeight': '1.6'}),
             html.P([
-                html.Strong('"Capacity" '),
+                html.Strong('"Capability" '),
                 "means taking into account each country's cumulative population and GDP per capita PPP from 1970 to the latest year available"
             ], style={'marginBottom': '10px', 'lineHeight': '1.6'}),
         ])
@@ -503,7 +500,9 @@ def update_bar_chart(probability, selected_country, g20_filter):
     if selected_country != 'ALL':
         # When a specific country is selected, show that country's data (ignore G20 filter)
         filtered_data = filtered_data[filtered_data['ISO2'] == selected_country]
-        chart_title = 'Zero Carbon Timeline by Budget Distribution Scenario'
+        # Get country name for the title
+        country_name = scenario_parameters[scenario_parameters['ISO2'] == selected_country]['Country'].iloc[0] if len(scenario_parameters[scenario_parameters['ISO2'] == selected_country]) > 0 else selected_country
+        chart_title = 'Zero Carbon Timeline by Budget Distribution Scenario - {country_name}'
     elif g20_filter == 'Yes':
         # When G20 filter is active (and no specific country), show G20 aggregate data
         filtered_data = filtered_data[filtered_data['ISO2'] == 'G20']
@@ -523,8 +522,8 @@ def update_bar_chart(probability, selected_country, g20_filter):
     # Define the desired order (NDC Pledges only has Territory)
     scenario_order = [
         'NDC Pledges - Territory',
-        'Capacity - Territory',
-        'Capacity - Consumption',
+                    'Capability - Territory',
+            'Capability - Consumption',
         'Responsibility - Territory',
         'Responsibility - Consumption'
     ]
@@ -535,10 +534,9 @@ def update_bar_chart(probability, selected_country, g20_filter):
         'Consumption': '#FB8072'  # Light red
     }
 
-    # Filter out Population - only show NDC Pledges, Responsibility, Capacity
+    # Filter out Population - only show NDC Pledges, Responsibility, Capability
     filtered_data = filtered_data[
-        filtered_data['Budget_distribution_scenario'].isin(['NDC Pledges', 'Responsibility', 'Capacity'])]
-
+        filtered_data['Budget_distribution_scenario'].isin(['NDC Pledges', 'Responsibility', 'Capability'])]
     # Create bar heights from 2025 baseline
     filtered_data['bar_height'] = filtered_data['Neutrality_year_numeric'] - 2025
 
@@ -614,7 +612,7 @@ def update_bar_chart(probability, selected_country, g20_filter):
         xaxis=dict(
             tickangle=0,  # Horizontal labels
             tickmode='array',
-            tickvals=['NDC Pledges - Territory', 'Capacity - Territory', 'Capacity - Consumption',
+            tickvals=['NDC Pledges - Territory', 'Capability - Territory', 'Capability - Consumption',
                       'Responsibility - Territory', 'Responsibility - Consumption'],
             ticktext=['', '', '', '', ''],  # Remove default tick labels
             tickfont=dict(size=12),
@@ -625,8 +623,8 @@ def update_bar_chart(probability, selected_country, g20_filter):
     # Add emissions scope labels at y=1965
     emissions_scope_labels = [
         (0, 'Territorial'),  # NDC Pledges - Territory
-        (1, 'Territorial'),  # Capacity - Territory
-        (2, 'Consumption-based'),  # Capacity - Consumption
+        (1, 'Territorial'),  # Capability - Territory
+        (2, 'Consumption-based'),  # Capability - Consumption
         (3, 'Territorial'),  # Responsibility - Territory
         (4, 'Consumption-based')  # Responsibility - Consumption
     ]
@@ -647,7 +645,7 @@ def update_bar_chart(probability, selected_country, g20_filter):
     # Add scenario group labels at the bottom
     scenario_groups = [
         ('NDC Pledges', 0, 0),  # Single bar for NDC Pledges
-        ('Capacity', 1, 2),  # Two bars for Capacity
+        ('Capability', 1, 2),  # Two bars for Capability
         ('Responsibility', 3, 4)  # Two bars for Responsibility
     ]
 
@@ -719,16 +717,15 @@ def update_line_chart(budget_dist, probability, emissions_scope, selected_countr
         target_iso = selected_country
         country_name = scenario_parameters[scenario_parameters['ISO2'] == selected_country]['Country'].iloc[0] if len(
             scenario_parameters[scenario_parameters['ISO2'] == selected_country]) > 0 else selected_country
-        chart_title = f'Historical Emissions and Trajectory Under the ICJ Ruling ({get_scope_display_label(emissions_scope)}) - Million Tons'
+        chart_title = f'Past Emissions and Trajectory Under the ICJ Ruling ({get_scope_display_label(emissions_scope)}) - {country_name} - Million Tons'
     elif g20_filter == 'Yes':
         # When G20 filter is active (and no specific country), show G20 aggregate data
         target_iso = 'G20'
-        chart_title = f'Historical Emissions and Trajectory Under the ICJ Ruling - G20 ({get_scope_display_label(emissions_scope)}) - Million Tons'
+        chart_title = f'Past Emissions and Trajectory Under the ICJ Ruling - G20 ({get_scope_display_label(emissions_scope)}) - Million Tons'
     else:
         # For "All Countries" without G20 filter, show world aggregate data
         target_iso = 'WLD'
-        chart_title = f'Historical Emissions and Trajectory Under the ICJ Ruling - Global ({get_scope_display_label(emissions_scope)}) - Million Tons'
-
+        chart_title = f'Past Emissions and Trajectory Under the ICJ Ruling - Global ({get_scope_display_label(emissions_scope)}) - Million Tons'
     # Filter historical data (exclude 2050 as it's only for population data)
     hist_data = historical_data[
         (historical_data['ISO2'] == target_iso) &
@@ -756,13 +753,13 @@ def update_line_chart(budget_dist, probability, emissions_scope, selected_countr
 
     fig = go.Figure()
 
-    # Historical emissions
+    # Past emissions
     if not hist_data.empty:
         fig.add_trace(go.Scatter(
             x=hist_data['Year'],
             y=hist_data['Annual_CO2_emissions_Mt'],
             mode='lines',
-            name='Historical Emissions',
+            name='Past Emissions',
             line=dict(color='#8DD3C7', width=3),  # Cyan from palette as requested
             hovertemplate="<b>Year: %{x}</b><br>Emissions: %{y:.2f} Mt<extra></extra>"
         ))
