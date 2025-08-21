@@ -148,7 +148,4 @@ def update_timeseries(selected_country_iso):
 
     return fig
 
-
-# --- 5. Run the App ---
-if __name__ == '__main__':
-    app.run_server(debug=True, port=8051)
+server = app.server
