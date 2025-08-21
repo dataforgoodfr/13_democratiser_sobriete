@@ -1069,9 +1069,4 @@ def update_top_per_capita_emitters(selected_country, selected_scope, g20_filter)
 
 
 # For gunicorn deployment
-# server = app.server
-
-if __name__ == '__main__':
-    app.run_server(
-        port=9000,
-    )
+server = app.server
