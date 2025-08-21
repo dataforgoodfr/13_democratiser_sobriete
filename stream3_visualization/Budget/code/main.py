@@ -1072,7 +1072,7 @@ def update_top_per_capita_emitters(selected_country, selected_scope, g20_filter)
 server = app.server
 
 if __name__ == '__main__':
-    subprocess.run(["netstat -lnp | grep 8080"])
+    # subprocess.run(["netstat -lnp | grep 8080"])
     app.run(
         port=8080,
         host='0.0.0.0',
