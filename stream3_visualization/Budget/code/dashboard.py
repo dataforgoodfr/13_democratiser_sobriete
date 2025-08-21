@@ -486,7 +486,9 @@ def update_bar_chart(probability, selected_country, g20_filter):
     if selected_country != 'ALL':
         # When a specific country is selected, show that country's data (ignore G20 filter)
         filtered_data = filtered_data[filtered_data['ISO2'] == selected_country]
-        chart_title = f'Zero Carbon Timeline by Budget Distribution Scenario'
+        # Get country name for the title
+        country_name = scenario_parameters[scenario_parameters['ISO2'] == selected_country]['Country'].iloc[0] if len(scenario_parameters[scenario_parameters['ISO2'] == selected_country]) > 0 else selected_country
+        chart_title = f'Zero Carbon Timeline by Budget Distribution Scenario - {country_name}'
     elif g20_filter == 'Yes':
         # When G20 filter is active (and no specific country), show G20 aggregate data
         filtered_data = filtered_data[filtered_data['ISO2'] == 'G20']
@@ -699,7 +701,7 @@ def update_line_chart(budget_dist, probability, emissions_scope, selected_countr
         # When a specific country is selected, show that country's data (ignore G20 filter)
         target_iso = selected_country
         country_name = scenario_parameters[scenario_parameters['ISO2'] == selected_country]['Country'].iloc[0] if len(scenario_parameters[scenario_parameters['ISO2'] == selected_country]) > 0 else selected_country
-        chart_title = f'Past Emissions and Trajectory Under the ICJ Ruling ({get_scope_display_label(emissions_scope)}) - Million Tons'
+        chart_title = f'Past Emissions and Trajectory Under the ICJ Ruling ({get_scope_display_label(emissions_scope)}) - {country_name} - Million Tons'
     elif g20_filter == 'Yes':
         # When G20 filter is active (and no specific country), show G20 aggregate data
         target_iso = 'G20'
@@ -1050,4 +1052,4 @@ def update_top_per_capita_emitters(selected_country, selected_scope, g20_filter)
 server = app.server
 
 if __name__ == '__main__':
-    app.run(debug=True, port=8058)
+    app.run(debug=True, host='0.0.0.0', port=8052)

@@ -1,0 +1,16 @@
+version: "3"
+agent:
+  authtoken: 30vBliIfbSaZGKAQsTOsE3jsiTm_2hFzpZg15YEPtHCaMGgqo
+
+tunnels:
+  budget:
+    addr: 8052
+    proto: http
+    
+  decomposition:
+    addr: 8051
+    proto: http
+    
+  wellbeing:
+    addr: 8050
+    proto: http 
