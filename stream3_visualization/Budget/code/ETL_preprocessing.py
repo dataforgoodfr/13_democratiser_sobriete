@@ -18,6 +18,11 @@ Precision Fix:
 - Uses float64 data types for capacity calculations
 - Sets minimum threshold (1e-12) to prevent very small values from rounding to 0
 - Ensures small countries like Tuvalu and Vanuatu maintain non-zero capacity shares
+
+Scope Independence Fix:
+- Allows countries to have Capacity scenarios for individual scopes (Territory OR Consumption)
+- No longer requires both scopes to be present (like Responsibility scenarios)
+- Increases inclusivity and scope-specific scenario coverage
 """
 
 # Constants
@@ -546,19 +551,18 @@ def main():
         count = len(capacity_calc[capacity_calc['Emissions_scope'] == scope])
         print(f"  {scope}: {count} countries")
     
-    # Step 2: Ensure consistent country coverage across both scopes
-    print("\nStep 2: Ensuring consistent country coverage...")
+    # Step 2: Allow independent scope processing (like Responsibility scenarios)
+    print("\nStep 2: Processing Territory and Consumption scopes independently...")
     territory_countries = set(capacity_calc[capacity_calc['Emissions_scope'] == 'Territory']['ISO2'])
     consumption_countries = set(capacity_calc[capacity_calc['Emissions_scope'] == 'Consumption']['ISO2'])
     
-    # Only keep countries that have data for BOTH Territory and Consumption
-    common_countries = territory_countries.intersection(consumption_countries)
     print(f"  Territory-only countries: {len(territory_countries - consumption_countries)}")
     print(f"  Consumption-only countries: {len(consumption_countries - territory_countries)}")
-    print(f"  Common countries (kept): {len(common_countries)}")
+    print(f"  Countries with both scopes: {len(territory_countries.intersection(consumption_countries))}")
+    print(f"  Total unique countries: {len(territory_countries.union(consumption_countries))}")
     
-    # Filter to keep only common countries
-    capacity_calc = capacity_calc[capacity_calc['ISO2'].isin(common_countries)].copy()
+    # Keep all countries - no filtering needed for scope independence
+    print(f"  Processing all countries independently by scope (no intersection requirement)")
     
     # Step 3: Calculate world totals and normalize shares to exactly 1.0
     print("\nStep 3: Normalizing capacity shares to sum exactly to 1.0...")
