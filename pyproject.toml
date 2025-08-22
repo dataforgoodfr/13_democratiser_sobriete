@@ -2,6 +2,7 @@
 name = "wsl_library"
 version = "0.0.1"
 description = "An application for the library data ingestion"
+requires-python = ">=3.10"
 dependencies = [
     "dependency-injector>=4.46.0",
     "icecream>=2.1.4",
