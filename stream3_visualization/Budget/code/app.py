@@ -88,34 +88,34 @@ app.layout = html.Div([
                 style={
                     'textAlign': 'center',
                     'color': '#2c3e50',
-                    'fontSize': '2.5rem',
+                    'fontSize': '1.9rem',
                     'fontWeight': 'bold',
-                    'marginBottom': '10px',
+                    'marginBottom': '6px',
+                    'marginTop': '0px',
                     'fontFamily': 'Arial, sans-serif'
                 }),
         html.H2([
-            "From ",
-            html.A("ICJ's July 2025 Ruling",
+            "A Sufficiency Timeline To Support the ",
+            html.A("ICJ's July 2025 Climate Change AO",
                    href="https://www.icj-cij.org/sites/default/files/case-related/187/187-20250723-adv-01-00-en.pdf",
                    target="_blank",
                    style={'color': '#f39c12', 'textDecoration': 'underline'}),
-            " to Real-World Metamorphosis: Visualizing how to Allocate Carbon Budgets Fairly Not to Exceed +1.5°C"
         ], style={
             'textAlign': 'center',
             'color': '#34495e',
-            'fontSize': '1.1rem',
+            'fontSize': '1.0rem',
             'fontWeight': 'normal',
-            'marginBottom': '30px',
+            'marginBottom': '20px',
             'fontFamily': 'Arial, sans-serif',
-            'lineHeight': '1.4',
+            'lineHeight': '1.3',
             'maxWidth': '1200px',
-            'margin': '0 auto 30px auto'
+            'margin': '0 auto 20px auto'
         }),
 
         # Controls section embedded within the header
         html.Div([
             html.Div([
-                html.Label("Country", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
+                html.Label("Country", style={'fontWeight': 'bold', 'color': '#2c3e50', 'fontSize': '0.9rem'}),
                 dcc.Dropdown(
                     id='country-dropdown',
                     options=[{'label': 'All Countries', 'value': 'ALL'}] +
@@ -126,12 +126,12 @@ app.layout = html.Div([
                                  (scenario_parameters['ISO2'].notna())
                                  ][['Country', 'ISO2']].drop_duplicates().sort_values('Country').values],
                     value='ALL',
-                    style={'marginTop': '8px'},
+                    style={'marginTop': '6px', 'fontSize': '0.85rem'},
                     clearable=False
                 )
             ], style={'width': '16%', 'display': 'inline-block', 'margin-right': '2.5%'}),
             html.Div([
-                html.Label("G20 Only", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
+                html.Label("G20 Only", style={'fontWeight': 'bold', 'color': '#2c3e50', 'fontSize': '0.9rem'}),
                 dcc.Dropdown(
                     id='g20-filter-dropdown',
                     options=[
@@ -139,24 +139,24 @@ app.layout = html.Div([
                         {'label': 'Yes', 'value': 'Yes'}
                     ],
                     value='No',
-                    style={'marginTop': '8px'},
+                    style={'marginTop': '6px', 'fontSize': '0.85rem'},
                     clearable=False
                 )
             ], style={'width': '16%', 'display': 'inline-block', 'margin-right': '2.5%'}),
 
             html.Div([
-                html.Label("Carbon Budget Allocation", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
+                html.Label("Carbon Budget Allocation", style={'fontWeight': 'bold', 'color': '#2c3e50', 'fontSize': '0.9rem'}),
                 dcc.Dropdown(
                     id='budget-distribution-dropdown',
                     options=[{'label': i, 'value': i} for i in
                              scenario_parameters['Budget_distribution_scenario'].unique()],
                     value='Responsibility',
-                    style={'marginTop': '8px'},
+                    style={'marginTop': '6px', 'fontSize': '0.85rem'},
                     clearable=False
                 )
             ], style={'width': '16%', 'display': 'inline-block', 'margin-right': '2.5%'}),
             html.Div([
-                html.Label("Scope of Emissions", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
+                html.Label("Scope of Emissions", style={'fontWeight': 'bold', 'color': '#2c3e50', 'fontSize': '0.9rem'}),
                 dcc.Dropdown(
                     id='emissions-scope-dropdown',
                     options=[
@@ -164,32 +164,32 @@ app.layout = html.Div([
                         {'label': 'Consumption-based', 'value': 'Consumption'}
                     ],
                     value='Territory',
-                    style={'marginTop': '8px'},
+                    style={'marginTop': '6px', 'fontSize': '0.85rem'},
                     clearable=False
                 )
             ], style={'width': '16%', 'display': 'inline-block', 'margin-right': '2.5%'}),
             html.Div([
                 html.Label("Probability of not exceeding +1.5°C",
                            style={'fontWeight': 'bold', 'color': '#2c3e50', 'whiteSpace': 'nowrap',
-                                  'overflow': 'visible'}),
+                                  'overflow': 'visible', 'fontSize': '0.9rem'}),
                 dcc.Dropdown(
                     id='probability-dropdown',
                     options=[{'label': i, 'value': i} for i in scenario_parameters['Probability_of_reach'].unique()],
                     value='50%',
-                    style={'marginTop': '8px'},
+                    style={'marginTop': '6px', 'fontSize': '0.85rem'},
                     clearable=False
                 )
             ], style={'width': '16%', 'display': 'inline-block'}),
         ], style={
-            'padding': '15px 20px',
+            'padding': '12px 20px',
             'backgroundColor': '#fdf6e3',
             'borderRadius': '8px',
             'boxShadow': '0 1px 2px rgba(0,0,0,0.05)',
-            'margin': '0 20px 10px 20px'  # Added some margin for spacing
+            'margin': '0 20px 8px 20px'  # Reduced margin for spacing
         })
     ], style={
         'backgroundColor': '#f4d03f',  # World Sufficiency Lab yellow
-        'padding': '25px 0px 15px 0px',  # Adjusted padding
+        'padding': '15px 0px 12px 0px',  # Further reduced top padding
         'position': 'sticky',
         'top': 0,
         'zIndex': 1000,
@@ -454,8 +454,8 @@ def update_map(budget_dist, probability, emissions_scope, selected_country, g20_
 
     # Make map bigger, wider, and center it properly
     fig.update_layout(
-        height=550,  # Slightly taller
-        margin={"r": 150, "t": 80, "l": 150, "b": 50},  # Increased top margin to give more space for colorbar title
+        height=600,  # Made taller to reduce flatness
+        margin={"r": 150, "t": 45, "l": 150, "b": 50},  # Further reduced top margin to bring title closer to map
         geo=dict(
             projection_scale=1.0  # Less zoom to show more countries
         ),
@@ -468,7 +468,7 @@ def update_map(budget_dist, probability, emissions_scope, selected_country, g20_
             color="#2c3e50"
         ),
         title=dict(
-            font=dict(size=16, color="#f4d03f", weight="bold"),  # Bold, smaller, yellow like top ribbon
+            font=dict(size=16, color="#2c3e50", weight="bold"),  # Bold, smaller, dark grey like World Sufficiency Lab theme
             x=0.5
         ),
         # Lighter hover box styling
@@ -502,7 +502,7 @@ def update_bar_chart(probability, selected_country, g20_filter):
         filtered_data = filtered_data[filtered_data['ISO2'] == selected_country]
         # Get country name for the title
         country_name = scenario_parameters[scenario_parameters['ISO2'] == selected_country]['Country'].iloc[0] if len(scenario_parameters[scenario_parameters['ISO2'] == selected_country]) > 0 else selected_country
-        chart_title = 'Zero Carbon Timeline by Budget Distribution Scenario - {country_name}'
+        chart_title = f'Zero Carbon Timeline by Budget Distribution Scenario - {country_name}'
     elif g20_filter == 'Yes':
         # When G20 filter is active (and no specific country), show G20 aggregate data
         filtered_data = filtered_data[filtered_data['ISO2'] == 'G20']
@@ -510,7 +510,7 @@ def update_bar_chart(probability, selected_country, g20_filter):
     else:
         # For "All Countries" without G20 filter, show world aggregate data
         filtered_data = filtered_data[filtered_data['ISO2'] == 'WLD']
-        chart_title = 'Zero Carbon Timeline by Budget Distribution Scenario - World Aggregate'
+        chart_title = 'Zero Carbon Timeline by Budget Distribution Scenario - World'
 
     # Convert 'Neutrality_year' to numeric
     filtered_data['Neutrality_year_numeric'] = pd.to_numeric(filtered_data['Neutrality_year'], errors='coerce')
@@ -595,7 +595,7 @@ def update_bar_chart(probability, selected_country, g20_filter):
             color="#2c3e50"
         ),
         title=dict(
-            font=dict(size=16, color="#f4d03f", weight="bold"),  # Bold, smaller, yellow like top ribbon
+            font=dict(size=16, color="#2c3e50", weight="bold"),  # Bold, smaller, dark grey like World Sufficiency Lab theme
             x=0.5
         ),
         height=500,
@@ -717,15 +717,15 @@ def update_line_chart(budget_dist, probability, emissions_scope, selected_countr
         target_iso = selected_country
         country_name = scenario_parameters[scenario_parameters['ISO2'] == selected_country]['Country'].iloc[0] if len(
             scenario_parameters[scenario_parameters['ISO2'] == selected_country]) > 0 else selected_country
-        chart_title = f'Past Emissions and Trajectory Under the ICJ Ruling ({get_scope_display_label(emissions_scope)}) - {country_name} - Million Tons'
+        chart_title = f'Past Emissions & Trajectory Under the ICJ Ruling - {get_scope_display_label(emissions_scope)} - {country_name} - Mt'
     elif g20_filter == 'Yes':
         # When G20 filter is active (and no specific country), show G20 aggregate data
         target_iso = 'G20'
-        chart_title = f'Past Emissions and Trajectory Under the ICJ Ruling - G20 ({get_scope_display_label(emissions_scope)}) - Million Tons'
+        chart_title = f'Past Emissions & Trajectory Under the ICJ Ruling - G20 ({get_scope_display_label(emissions_scope)}) - Mt'
     else:
         # For "All Countries" without G20 filter, show world aggregate data
         target_iso = 'WLD'
-        chart_title = f'Past Emissions and Trajectory Under the ICJ Ruling - Global ({get_scope_display_label(emissions_scope)}) - Million Tons'
+        chart_title = f'Past Emissions & Trajectory Under the ICJ Ruling - World ({get_scope_display_label(emissions_scope)}) - Mt'
     # Filter historical data (exclude 2050 as it's only for population data)
     hist_data = historical_data[
         (historical_data['ISO2'] == target_iso) &
@@ -789,7 +789,7 @@ def update_line_chart(budget_dist, probability, emissions_scope, selected_countr
         ),
         title=dict(
             text=chart_title,
-            font=dict(size=16, color="#f4d03f", weight="bold"),  # Bold, smaller, yellow like top ribbon
+            font=dict(size=16, color="#2c3e50", weight="bold"),  # Bold, smaller, dark grey like World Sufficiency Lab theme
             x=0.5
         ),
         height=500,
@@ -954,7 +954,7 @@ def update_top_cumulative_emitters(selected_country, selected_scope, g20_filter)
             color="#2c3e50"
         ),
         title=dict(
-            font=dict(size=16, color="#f4d03f", weight="bold"),
+            font=dict(size=16, color="#2c3e50", weight="bold"),
             x=0.5
         ),
         showlegend=False,
@@ -1052,7 +1052,7 @@ def update_top_per_capita_emitters(selected_country, selected_scope, g20_filter)
             color="#2c3e50"
         ),
         title=dict(
-            font=dict(size=16, color="#f4d03f", weight="bold"),
+            font=dict(size=16, color="#2c3e50", weight="bold"),
             x=0.5
         ),
         showlegend=False,
@@ -1067,3 +1067,6 @@ def update_top_per_capita_emitters(selected_country, selected_scope, g20_filter)
 
 # For gunicorn deployment
 server = app.server
+
+if __name__ == '__main__':
+    app.run_server(debug=True, host='0.0.0.0', port=8050)
