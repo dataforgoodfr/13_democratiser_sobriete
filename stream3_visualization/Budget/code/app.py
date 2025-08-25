@@ -82,6 +82,11 @@ server = app.server
 
 # App layout
 app.layout = html.Div([
+    # Font Awesome for icons
+    html.Link(
+        rel='stylesheet',
+        href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css'
+    ),
     # Header section with hierarchical titles
     html.Div([
         html.H1("Zero Carbon for All",
@@ -215,9 +220,9 @@ app.layout = html.Div([
         'paddingTop': '20px'  # Extra space to account for sticky headers
     }),
 
-    # Sources section
+    # Collaboration section
     html.Div([
-        html.H3("Data Sources", style={
+        html.H3("Collaboration", style={
             'color': '#2c3e50',
             'fontSize': '1.8rem',
             'fontWeight': 'bold',
@@ -226,86 +231,144 @@ app.layout = html.Div([
         }),
 
         html.Div([
-            html.H4("Past CO2 Emissions", style={
-                'color': '#34495e',
-                'fontSize': '1.2rem',
-                'fontWeight': 'bold',
-                'marginBottom': '10px'
-            }),
-            html.P(
-                "Past CO2 emissions from 1970 to 2022 for Consumption-based and from 1970 to 2023 for Territorial:",
-                style={
-                    'marginBottom': '10px',
-                    'lineHeight': '1.6'
+            html.Div([
+                html.P([
+                    "This tool was developed as a collaboration between ",
+                    html.Strong("Data for Good"),
+                    ", a community of 6000 tech experts volunteering for general interest projects, and the ",
+                    html.Strong("World Sufficiency Lab")
+                ], style={
+                    'textAlign': 'center',
+                    'fontSize': '1.1rem',
+                    'lineHeight': '1.6',
+                    'marginBottom': '30px',
+                    'color': '#2c3e50'
                 }),
-            html.P([
-                html.Strong("Territorial: "),
-                "Andrew, R. M., & Peters, G. P. (2024). The Global Carbon Project's fossil CO2 emissions dataset (2024v18) [Data set]. Zenodo. ",
-                html.A("https://doi.org/10.5281/zenodo.14106218",
-                       href="https://doi.org/10.5281/zenodo.14106218",
-                       target="_blank",
-                       style={'color': '#f39c12'})
-            ], style={'marginBottom': '10px', 'lineHeight': '1.6'}),
-            html.P([
-                html.Strong("Consumption: "),
-                "Fanning, A., & Hickel, J. (2023). a-fanning/compensation-atmospheric-appropriation: First release (v1.0.0). Zenodo. ",
-                html.A("https://doi.org/10.5281/zenodo.7779453",
-                       href="https://doi.org/10.5281/zenodo.7779453",
-                       target="_blank",
-                       style={'color': '#f39c12'})
-            ], style={'marginBottom': '20px', 'lineHeight': '1.6'}),
-
-            html.H4("Budget Distribution and Calculations", style={
-                'color': '#34495e',
-                'fontSize': '1.2rem',
-                'fontWeight': 'bold',
-                'marginBottom': '10px'
-            }),
-            html.P(
-                "Budget distribution definitions and calculations of zero carbon year, years to zero carbon and emissions trajectories made by the World Sufficiency Lab based on:",
-                style={
-                    'marginBottom': '10px',
-                    'lineHeight': '1.6'
-                }),
-            html.P([
-                html.Strong("Carbon Budgets: "),
-                "Carbon budgets from 2023 to stay within 1.5°C with probabilities of 50% and 67% from Lamboll (2023) Assessing the size and uncertainty of remaining carbon budgets. ",
-                html.A("https://www.nature.com/articles/s41558-023-01848-5",
-                       href="https://www.nature.com/articles/s41558-023-01848-5",
-                       target="_blank",
-                       style={'color': '#f39c12'})
-            ], style={'marginBottom': '10px', 'lineHeight': '1.6'}),
-            html.P([
-                html.Strong("Population Data: "),
-                "Past and forecasted population from United Nations data"
-            ], style={'marginBottom': '10px', 'lineHeight': '1.6'}),
-            html.P([
-                html.Strong("GDP Data: "),
-                "GDP Purchasing Power Parity based on World Bank data in constant 2021 US$"
-            ], style={'marginBottom': '20px', 'lineHeight': '1.6'}),
-
-            html.H4("Scenario Definitions", style={
-                'color': '#34495e',
-                'fontSize': '1.2rem',
-                'fontWeight': 'bold',
-                'marginBottom': '10px'
-            }),
-            html.P([
-                html.Strong('"NDC Pledges" '),
-                "(Nationally Determined Contributions) are official targets set by the countries, when available, compiled by Climate Analytics and NewClimate Institute in 2022: ",
-                html.A("CAT net zero target evaluations | Climate Action Tracker",
-                       href="https://climateactiontracker.org/countries/",
-                       target="_blank",
-                       style={'color': '#f39c12'})
-            ], style={'marginBottom': '10px', 'lineHeight': '1.6'}),
-            html.P([
-                html.Strong('"Responsibility" '),
-                "means taking into account each country's cumulative emissions when available and allocating the total carbon budget based on share of population from 1970 to 2050"
-            ], style={'marginBottom': '10px', 'lineHeight': '1.6'}),
-            html.P([
-                html.Strong('"Capability" '),
-                "means taking into account each country's cumulative population and GDP per capita PPP from 1970 to the latest year available"
-            ], style={'marginBottom': '10px', 'lineHeight': '1.6'}),
+                
+                # Logos section
+                html.Div([
+                    # Data for Good logo and info
+                    html.Div([
+                        html.Div([
+                            html.Div([
+                                html.Img(
+                                    src="https://dataforgood.fr/wp-content/uploads/2023/03/logo-data-for-good-2023.png",
+                                    style={
+                                        'width': '80px',
+                                        'height': '80px',
+                                        'objectFit': 'contain'
+                                    }
+                                )
+                            ], style={
+                                'textAlign': 'center',
+                                'marginBottom': '15px'
+                            }),
+                            html.H4("Data for Good", style={
+                                'color': '#2c3e50',
+                                'fontSize': '1.2rem',
+                                'fontWeight': 'bold',
+                                'textAlign': 'center',
+                                'marginBottom': '10px'
+                            }),
+                            html.Div([
+                                html.A([
+                                    html.I(className="fas fa-globe", style={'marginRight': '8px'}),
+                                    "Website"
+                                ], href="https://dataforgood.fr", target="_blank", style={
+                                    'color': '#f39c12',
+                                    'textDecoration': 'none',
+                                    'display': 'block',
+                                    'marginBottom': '8px'
+                                }),
+                                html.A([
+                                    html.I(className="fab fa-twitter", style={'marginRight': '8px'}),
+                                    "Twitter"
+                                ], href="https://twitter.com/DataForGood_FR", target="_blank", style={
+                                    'color': '#f39c12',
+                                    'textDecoration': 'none',
+                                    'display': 'block',
+                                    'marginBottom': '8px'
+                                }),
+                                html.A([
+                                    html.I(className="fab fa-linkedin", style={'marginRight': '8px'}),
+                                    "LinkedIn"
+                                ], href="https://www.linkedin.com/company/data-for-good-france/", target="_blank", style={
+                                    'color': '#f39c12',
+                                    'textDecoration': 'none',
+                                    'display': 'block'
+                                })
+                            ], style={'textAlign': 'center'})
+                        ], style={
+                            'display': 'inline-block',
+                            'width': '45%',
+                            'verticalAlign': 'top',
+                            'textAlign': 'center'
+                        }),
+                        
+                        # World Sufficiency Lab logo and info
+                        html.Div([
+                            html.Div([
+                                html.Img(
+                                    src="https://worldsufficiencylab.org/wp-content/uploads/2023/12/logo-wsl-2024.png",
+                                    style={
+                                        'width': '80px',
+                                        'height': '80px',
+                                        'objectFit': 'contain'
+                                    }
+                                )
+                            ], style={
+                                'textAlign': 'center',
+                                'marginBottom': '15px'
+                            }),
+                            html.H4("World Sufficiency Lab", style={
+                                'color': '#2c3e50',
+                                'fontSize': '1.2rem',
+                                'fontWeight': 'bold',
+                                'textAlign': 'center',
+                                'marginBottom': '10px'
+                            }),
+                            html.Div([
+                                html.A([
+                                    html.I(className="fas fa-globe", style={'marginRight': '8px'}),
+                                    "Website"
+                                ], href="https://worldsufficiencylab.org", target="_blank", style={
+                                    'color': '#f39c12',
+                                    'textDecoration': 'none',
+                                    'display': 'block',
+                                    'marginBottom': '8px'
+                                }),
+                                html.A([
+                                    html.I(className="fab fa-twitter", style={'marginRight': '8px'}),
+                                    "Twitter"
+                                ], href="https://twitter.com/WorldSufficiency", target="_blank", style={
+                                    'color': '#f39c12',
+                                    'textDecoration': 'none',
+                                    'display': 'block',
+                                    'marginBottom': '8px'
+                                }),
+                                html.A([
+                                    html.I(className="fab fa-linkedin", style={'marginRight': '8px'}),
+                                    "LinkedIn"
+                                ], href="https://www.linkedin.com/company/world-sufficiency-lab/", target="_blank", style={
+                                    'color': '#f39c12',
+                                    'textDecoration': 'none',
+                                    'display': 'block'
+                                })
+                            ], style={'textAlign': 'center'})
+                        ], style={
+                            'display': 'inline-block',
+                            'width': '45%',
+                            'verticalAlign': 'top',
+                            'textAlign': 'center'
+                        })
+                    ], style={
+                        'textAlign': 'center',
+                        'margin': '0 auto'
+                    })
+                ], style={
+                    'textAlign': 'center'
+                })
+            ])
         ])
     ], style={
         'margin': '40px 20px 20px 20px',
