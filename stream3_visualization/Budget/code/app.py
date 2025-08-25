@@ -222,154 +222,96 @@ app.layout = html.Div([
 
     # Collaboration section
     html.Div([
-        html.H3("Collaboration", style={
-            'color': '#2c3e50',
-            'fontSize': '1.8rem',
-            'fontWeight': 'bold',
-            'marginBottom': '20px',
-            'textAlign': 'center'
-        }),
-
         html.Div([
+            # Left side - Text content
             html.Div([
                 html.P([
                     "This tool was developed as a collaboration between ",
                     html.Strong("Data for Good"),
-                    ", a community of 6000 tech experts volunteering for general interest projects, and the ",
-                    html.Strong("World Sufficiency Lab")
+                    ", a community of 6000+ tech experts volunteering for general interest projects, and the ",
+                    html.Strong("World Sufficiency Lab.")
                 ], style={
-                    'textAlign': 'center',
                     'fontSize': '1.1rem',
                     'lineHeight': '1.6',
-                    'marginBottom': '30px',
-                    'color': '#2c3e50'
-                }),
-                
-                # Logos section
+                    'color': '#2c3e50',
+                    'margin': '0',
+                    'padding': '0'
+                })
+            ], style={
+                'display': 'inline-block',
+                'width': '60%',
+                'verticalAlign': 'top',
+                'paddingRight': '40px'
+            }),
+            
+            # Right side - Data for Good logo and links
+            html.Div([
                 html.Div([
-                    # Data for Good logo and info
-                    html.Div([
-                        html.Div([
-                            html.Div([
-                                html.Img(
-                                    src="https://dataforgood.fr/wp-content/uploads/2023/03/logo-data-for-good-2023.png",
-                                    style={
-                                        'width': '80px',
-                                        'height': '80px',
-                                        'objectFit': 'contain'
-                                    }
-                                )
-                            ], style={
-                                'textAlign': 'center',
-                                'marginBottom': '15px'
-                            }),
-                            html.H4("Data for Good", style={
-                                'color': '#2c3e50',
-                                'fontSize': '1.2rem',
-                                'fontWeight': 'bold',
-                                'textAlign': 'center',
-                                'marginBottom': '10px'
-                            }),
-                            html.Div([
-                                html.A([
-                                    html.I(className="fas fa-globe", style={'marginRight': '8px'}),
-                                    "Website"
-                                ], href="https://dataforgood.fr", target="_blank", style={
-                                    'color': '#f39c12',
-                                    'textDecoration': 'none',
-                                    'display': 'block',
-                                    'marginBottom': '8px'
-                                }),
-                                html.A([
-                                    html.I(className="fab fa-twitter", style={'marginRight': '8px'}),
-                                    "Twitter"
-                                ], href="https://twitter.com/DataForGood_FR", target="_blank", style={
-                                    'color': '#f39c12',
-                                    'textDecoration': 'none',
-                                    'display': 'block',
-                                    'marginBottom': '8px'
-                                }),
-                                html.A([
-                                    html.I(className="fab fa-linkedin", style={'marginRight': '8px'}),
-                                    "LinkedIn"
-                                ], href="https://www.linkedin.com/company/data-for-good-france/", target="_blank", style={
-                                    'color': '#f39c12',
-                                    'textDecoration': 'none',
-                                    'display': 'block'
-                                })
-                            ], style={'textAlign': 'center'})
-                        ], style={
-                            'display': 'inline-block',
-                            'width': '45%',
-                            'verticalAlign': 'top',
-                            'textAlign': 'center'
-                        }),
-                        
-                        # World Sufficiency Lab logo and info
-                        html.Div([
-                            html.Div([
-                                html.Img(
-                                    src="https://worldsufficiencylab.org/wp-content/uploads/2023/12/logo-wsl-2024.png",
-                                    style={
-                                        'width': '80px',
-                                        'height': '80px',
-                                        'objectFit': 'contain'
-                                    }
-                                )
-                            ], style={
-                                'textAlign': 'center',
-                                'marginBottom': '15px'
-                            }),
-                            html.H4("World Sufficiency Lab", style={
-                                'color': '#2c3e50',
-                                'fontSize': '1.2rem',
-                                'fontWeight': 'bold',
-                                'textAlign': 'center',
-                                'marginBottom': '10px'
-                            }),
-                            html.Div([
-                                html.A([
-                                    html.I(className="fas fa-globe", style={'marginRight': '8px'}),
-                                    "Website"
-                                ], href="https://worldsufficiencylab.org", target="_blank", style={
-                                    'color': '#f39c12',
-                                    'textDecoration': 'none',
-                                    'display': 'block',
-                                    'marginBottom': '8px'
-                                }),
-                                html.A([
-                                    html.I(className="fab fa-twitter", style={'marginRight': '8px'}),
-                                    "Twitter"
-                                ], href="https://twitter.com/WorldSufficiency", target="_blank", style={
-                                    'color': '#f39c12',
-                                    'textDecoration': 'none',
-                                    'display': 'block',
-                                    'marginBottom': '8px'
-                                }),
-                                html.A([
-                                    html.I(className="fab fa-linkedin", style={'marginRight': '8px'}),
-                                    "LinkedIn"
-                                ], href="https://www.linkedin.com/company/world-sufficiency-lab/", target="_blank", style={
-                                    'color': '#f39c12',
-                                    'textDecoration': 'none',
-                                    'display': 'block'
-                                })
-                            ], style={'textAlign': 'center'})
-                        ], style={
-                            'display': 'inline-block',
-                            'width': '45%',
-                            'verticalAlign': 'top',
-                            'textAlign': 'center'
-                        })
-                    ], style={
-                        'textAlign': 'center',
-                        'margin': '0 auto'
+                    html.Img(
+                        src="assets/d4g-logo.png",
+                        style={
+                            'width': '60px',
+                            'height': '60px',
+                            'objectFit': 'contain'
+                        }
+                    )
+                ], style={
+                    'textAlign': 'center',
+                    'marginBottom': '15px'
+                }),
+                html.H4([
+                    html.A("Data for Good", 
+                           href="https://dataforgood.fr",
+                           target="_blank",
+                           style={
+                               'color': '#2c3e50',
+                               'textDecoration': 'none'
+                           })
+                ], style={
+                    'fontSize': '1.1rem',
+                    'fontWeight': 'bold',
+                    'textAlign': 'center',
+                    'margin': '0 0 15px 0'
+                }),
+                # Links arranged side by side
+                html.Div([
+                    html.A([
+                        html.I(className="fas fa-globe", style={'marginRight': '8px'}),
+                        "Website"
+                    ], 
+                    href="https://dataforgood.fr",
+                    target="_blank",
+                    style={
+                        'color': '#2c3e50',
+                        'textDecoration': 'none',
+                        'marginRight': '20px',
+                        'fontSize': '0.9rem'
+                    }),
+                    html.A([
+                        html.I(className="fab fa-linkedin", style={'marginRight': '8px'}),
+                        "LinkedIn"
+                    ], 
+                    href="https://www.linkedin.com/company/dataforgood/",
+                    target="_blank",
+                    style={
+                        'color': '#2c3e50',
+                        'textDecoration': 'none',
+                        'fontSize': '0.9rem'
                     })
                 ], style={
                     'textAlign': 'center'
                 })
-            ])
-        ])
+            ], style={
+                'display': 'inline-block',
+                'width': '40%',
+                'verticalAlign': 'top',
+                'textAlign': 'center'
+            })
+        ], style={
+            'display': 'flex',
+            'alignItems': 'center',
+            'justifyContent': 'space-between'
+        })
     ], style={
         'margin': '40px 20px 20px 20px',
         'padding': '30px',
@@ -1131,5 +1073,6 @@ def update_top_per_capita_emitters(selected_country, selected_scope, g20_filter)
 # For gunicorn deployment
 server = app.server
 
-if __name__ == '__main__':
-    app.run_server(debug=True, host='0.0.0.0', port=8050)
+# Production deployment - no local server
+# if __name__ == '__main__':
+#     app.run_server(debug=True, host='0.0.0.0', port=8050)
