@@ -80,6 +80,18 @@ def get_scope_display_label(scope_value):
 app = dash.Dash(__name__)
 server = app.server
 
+# Add headers to allow iframe embedding
+@app.server.after_request
+def add_header(response):
+    # Allow iframe embedding from any domain
+    response.headers['X-Frame-Options'] = 'ALLOWALL'
+    response.headers['Content-Security-Policy'] = "frame-ancestors 'self' *; default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:;"
+    # Additional headers for better compatibility
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+    return response
+
 # App layout
 app.layout = html.Div([
     # Font Awesome for icons
