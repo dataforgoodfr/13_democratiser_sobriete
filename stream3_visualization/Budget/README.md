@@ -59,7 +59,7 @@ This script uses the `combined_data.csv` file to model future emissions pathways
 #### Global Carbon Budgets:
 The scenarios are based on the remaining global carbon budgets from the start of 2025, taken from the IPCC AR6 Synthesis Report. Budgets are available for both **1.5°C** and **2°C** warming targets at various probability levels (50%, 67%).
 
-#### Distribution Scenarios:
+#### Country CO2 Budget Methodology by Scenario:
 1.  **Population:** The remaining global budget is distributed to countries based on their **share of cumulative world population** from the latest available data year to 2050 (`Share_of_cumulative_population_Latest_to_2050`). This principle allocates budget based on human presence.
 2.  **Responsibility:** A "total" budget is created by adding the *future* global budget to the *world's historical emissions* since 1970. This total amount is then allocated to each country based on its share of cumulative population. The population share used depends on the configuration:
    - **Current setting** (`USE_LATEST_YEAR_FOR_RESPONSIBILITY = True`): Uses `Share_of_cumulative_population_1970_to_latest` (1970 to latest emissions year: 2022 for Consumption, 2023 for Territory)
@@ -67,6 +67,26 @@ The scenarios are based on the remaining global carbon budgets from the start of
    Finally, each country's own historical emissions are subtracted to determine its remaining budget. This method holds nations accountable for their past emissions.
 3.  **Capability:** The remaining global budget is distributed based on the `share_of_capacity` metric calculated in the preprocessing script. This allocates a larger portion of the remaining budget to countries with a lower GDP per capita, reflecting their reduced economic capacity to fund a rapid transition. **Countries with missing GDP data are excluded from this scenario.**
 4.  **NDC Pledges:** This scenario does not use the IPCC budgets. Instead, it calculates a linear pathway to neutrality based on each country's politically declared target year (Nationally Determined Contributions). If no target is declared, no pathway is calculated. **This scenario only applies to Territory emissions, not Consumption emissions.**
+
+
+#### Negative Budget Countries:
+For countries with negative carbon budgets (indicating they have already exceeded their allocated budget), the neutrality year calculation uses a **planetary boundary approach**:
+- **Method**: Find the historical year when cumulative emissions exceeded the allocated budget
+- **Result**: Shows when the country should have reached neutrality (e.g., 1976, 1991, 2007)
+- **Interpretation**: Countries with neutrality years in the past (e.g., 1976) indicate they should have reached carbon neutrality by that year to stay within their budget
+
+#### Positive Budget Countries:
+For countries with positive carbon budgets, the neutrality year is calculated using a **linear decrease approach**:
+- **Formula**: `Years to Neutrality = (2 × Country Carbon Budget) ÷ Latest Annual Emissions`
+- **Mathematical Basis**: This formula ensures that the area under the linear decrease curve equals the remaining carbon budget
+- **Visual Interpretation**: The linear decrease creates a triangle where the area = (base × height) ÷ 2 = (years × latest emissions) ÷ 2
+- **Budget Conservation**: Since we want area = budget, we solve: budget = (years × latest emissions) ÷ 2, therefore years = (2 × budget) ÷ latest emissions
+- **Example**: If a country has 100 MtCO2 remaining and emits 20 MtCO2/year, it would take (2 × 100) ÷ 20 = 10 years to reach neutrality
+
+#### Final Outputs:
+The script generates two files that are ready for visualization:
+*   `scenario_parameters.csv`: Contains the detailed parameters for every unique scenario combination (country, warming target, probability, distribution principle), including the calculated neutrality year and country-specific budget.
+*   `forecast_data.csv`: A long-format file containing the year-by-year forecasted emissions for every scenario, showing a linear decrease to zero.
 
 #### Forecast Continuity:
 For countries with negative budgets (indicating they have already exceeded their allocated carbon budget), the forecast ensures visual continuity by:
@@ -76,18 +96,6 @@ This prevents visual discontinuities in time-series visualizations and ensures s
 
 #### Neutrality Year Capping:
 To ensure meaningful visualization and interpretation, neutrality years are capped at **Maximum**: 2100 (standard future limit)
-
-
-#### Negative Budget Countries:
-For countries with negative carbon budgets (indicating they have already exceeded their allocated budget), the neutrality year calculation uses a **planetary boundary approach**:
-- **Method**: Find the historical year when cumulative emissions exceeded the allocated budget
-- **Result**: Shows when the country should have reached neutrality (e.g., 1976, 1991, 2007)
-- **Interpretation**: Countries with neutrality years in the past (e.g., 1976) indicate they should have reached carbon neutrality by that year to stay within their budget
-
-#### Final Outputs:
-The script generates two files that are ready for visualization:
-*   `scenario_parameters.csv`: Contains the detailed parameters for every unique scenario combination (country, warming target, probability, distribution principle), including the calculated neutrality year and country-specific budget.
-*   `forecast_data.csv`: A long-format file containing the year-by-year forecasted emissions for every scenario, showing a linear decrease to zero.
 
 ---
 
