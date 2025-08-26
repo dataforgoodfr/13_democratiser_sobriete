@@ -359,16 +359,67 @@ class CO2DecompositionPreprocessor:
         
         return df_unified
 
+    def combine_with_wsl_scenarios(self, output_dir="../Output"):
+        """Combine main data with World Sufficiency Lab scenarios"""
+        print("\n🔄 Combining with World Sufficiency Lab scenarios...")
+        
+        try:
+            # Import the sufficiency scenarios creation function
+            import sys
+            sys.path.append(os.path.dirname(__file__))
+            from create_sufficiency_scenarios_simple import create_sufficiency_scenarios
+            
+            # Generate WSL scenarios
+            wsl_scenarios = create_sufficiency_scenarios()
+            
+            if wsl_scenarios:
+                # Convert to DataFrame
+                df_wsl = pd.DataFrame(wsl_scenarios)
+                print(f"✅ WSL scenarios generated: {len(df_wsl)} records")
+                
+                # Load the main unified data
+                main_data_path = os.path.join(output_dir, "unified_decomposition_data.csv")
+                df_main = pd.read_csv(main_data_path)
+                print(f"📊 Main data loaded: {len(df_main)} records")
+                
+                # Combine both datasets
+                df_combined = pd.concat([df_main, df_wsl], ignore_index=True)
+                print(f"🔗 Combined data: {len(df_combined)} records")
+                
+                # Save the combined data back to unified_decomposition_data.csv
+                df_combined.to_csv(main_data_path, index=False)
+                print(f"💾 Combined data saved to: {main_data_path}")
+                print(f"📈 Final dataset: {len(df_combined)} total records")
+                
+                return df_combined
+            else:
+                print("⚠️  No WSL scenarios generated")
+                return None
+                
+        except Exception as e:
+            print(f"⚠️  Warning: Could not combine with WSL scenarios: {e}")
+            print("   Main data saved without WSL scenarios")
+            return None
+
 if __name__ == "__main__":
     # Initialize preprocessor
     preprocessor = CO2DecompositionPreprocessor()
     
-    # Process and save data
+    # Process and save main data
     df_processed = preprocessor.save_processed_data()
     
     if df_processed is not None:
         print("\nData processing complete!")
         print(f"Total records: {len(df_processed)}")
+        
+        # Combine with WSL scenarios
+        df_final = preprocessor.combine_with_wsl_scenarios()
+        
+        if df_final is not None:
+            print(f"\n🎉 FINAL RESULT: Complete dataset with {len(df_final)} records!")
+            print("📁 All scenarios now available in unified_decomposition_data.csv")
+        else:
+            print("\n📁 Main data saved (WSL scenarios not combined)")
         
         # Show sample data
         print("\nSample data:")
