@@ -191,7 +191,7 @@ def generate_scenario_1(base_scenario, sector, zone, co2_values):
         total_row = {
             'Zone': zone,
             'Sector': sector,
-            'Scenario': 'World Sufficiency Lab - No Increase in Consumption or Production Intensity',
+            'Scenario': 'World Sufficiency Lab - Consumption or Production per capita at 2015 Levels',
             'Lever': 'Total',
             'CO2_2015': co2_values['CO2_2015'],
             'CO2_2040': co2_values['CO2_2040'],
