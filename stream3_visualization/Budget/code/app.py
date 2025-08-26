@@ -119,7 +119,7 @@ app.layout = html.Div([
                 style={'marginTop': '6px', 'fontSize': '0.85rem'},
                 clearable=False
             )
-        ], style={'width': '16%', 'display': 'inline-block', 'margin-right': '2.5%'}),
+        ], style={'width': '18%', 'display': 'inline-block', 'margin-right': '2%'}),
         html.Div([
             html.Label("G20 Only", style={'fontWeight': 'bold', 'color': '#2c3e50', 'fontSize': '0.9rem'}),
             dcc.Dropdown(
@@ -132,7 +132,7 @@ app.layout = html.Div([
                 style={'marginTop': '6px', 'fontSize': '0.85rem'},
                 clearable=False
             )
-        ], style={'width': '16%', 'display': 'inline-block', 'margin-right': '2.5%'}),
+        ], style={'width': '18%', 'display': 'inline-block', 'margin-right': '2%'}),
         html.Div([
             html.Label("Carbon Budget Allocation", style={'fontWeight': 'bold', 'color': '#2c3e50', 'fontSize': '0.9rem'}),
             dcc.Dropdown(
@@ -143,7 +143,7 @@ app.layout = html.Div([
                 style={'marginTop': '6px', 'fontSize': '0.85rem'},
                 clearable=False
             )
-        ], style={'width': '16%', 'display': 'inline-block', 'margin-right': '2.5%'}),
+        ], style={'width': '18%', 'display': 'inline-block', 'margin-right': '2%'}),
         html.Div([
             html.Label("Scope of Emissions", style={'fontWeight': 'bold', 'color': '#2c3e50', 'fontSize': '0.9rem'}),
             dcc.Dropdown(
@@ -156,7 +156,7 @@ app.layout = html.Div([
                 style={'marginTop': '6px', 'fontSize': '0.85rem'},
                 clearable=False
             )
-        ], style={'width': '16%', 'display': 'inline-block', 'margin-right': '2.5%'}),
+        ], style={'width': '18%', 'display': 'inline-block', 'margin-right': '2%'}),
         html.Div([
             html.Label("Probability of not exceeding +1.5°C",
                        style={'fontWeight': 'bold', 'color': '#2c3e50', 'whiteSpace': 'nowrap',
@@ -168,7 +168,7 @@ app.layout = html.Div([
                 style={'marginTop': '6px', 'fontSize': '0.85rem'},
                 clearable=False
             )
-        ], style={'width': '16%', 'display': 'inline-block'}),
+        ], style={'width': '18%', 'display': 'inline-block'}),
     ], style={
         'padding': '12px 20px',
         'backgroundColor': '#fdf6e3',
@@ -177,7 +177,8 @@ app.layout = html.Div([
         'margin': '20px 20px 8px 20px',  # Added top margin to separate from header
         'position': 'sticky',
         'top': 0,
-        'zIndex': 1000
+        'zIndex': 1000,
+        'width': 'calc(100% - 40px)'  # Make filters take full width minus margins
     }),
 
     # Visualizations
@@ -191,10 +192,12 @@ app.layout = html.Div([
         ], style={'textAlign': 'center', 'margin': '0 auto'}),
         # Top 20 Emitters Charts
         html.Div([
-            dcc.Graph(id='top-cumulative-emitters', style={'display': 'inline-block', 'width': '49%'}),
+            dcc.Graph(id='top-cumulative-emitters', style={'display': 'inline-block', 'width': '49%', 'marginRight': '2%'}),
             dcc.Graph(id='top-per-capita-emitters', style={'display': 'inline-block', 'width': '49%'})
-        ], style={'marginTop': '20px'})
+        ], style={'marginTop': '20px', 'width': '100%'})
     ], style={
+        'width': '100%',
+        'padding': '0 20px',
         'margin': '0 20px',
         'paddingTop': '20px'  # Extra space to account for sticky headers
     }),
@@ -451,7 +454,7 @@ def update_map(budget_dist, probability, emissions_scope, selected_country, g20_
     # Make map bigger, wider, and center it properly
     fig.update_layout(
         height=600,  # Made taller to reduce flatness
-        margin={"r": 150, "t": 45, "l": 150, "b": 50},  # Further reduced top margin to bring title closer to map
+        margin={"r": 100, "t": 45, "l": 100, "b": 50},  # Reduced side margins to use more width
         geo=dict(
             projection_scale=1.0  # Less zoom to show more countries
         ),
@@ -595,7 +598,7 @@ def update_bar_chart(probability, selected_country, g20_filter):
             x=0.5
         ),
         height=500,
-        margin=dict(t=80, b=50, l=60, r=60),  # Match the line chart margin
+        margin=dict(t=80, b=50, l=40, r=40),  # Reduced side margins for better width usage
         showlegend=False,  # Remove legend
         yaxis=dict(
             title=None,  # Remove Y axis title
@@ -789,7 +792,7 @@ def update_line_chart(budget_dist, probability, emissions_scope, selected_countr
             x=0.5
         ),
         height=500,
-        margin=dict(t=80, b=50, l=60, r=60),  # Match the top margin of the bar chart
+        margin=dict(t=80, b=50, l=40, r=40),  # Reduced side margins for better width usage
         # Position legend to overlap at 2080-2100 years area
         legend=dict(
             x=0.75,  # Position at around 2080 area (75% of chart width)
