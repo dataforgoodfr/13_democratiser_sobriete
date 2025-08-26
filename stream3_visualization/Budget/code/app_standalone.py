@@ -100,84 +100,118 @@ app.layout = html.Div([
         rel='stylesheet',
         href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css'
     ),
-
-
-    # Controls section - sticky filters
+    # Header section with hierarchical titles
     html.Div([
+        html.H1("Zero Carbon for All",
+                style={
+                    'textAlign': 'center',
+                    'color': '#2c3e50',
+                    'fontSize': '1.9rem',
+                    'fontWeight': 'bold',
+                    'marginBottom': '6px',
+                    'marginTop': '0px',
+                    'fontFamily': 'Arial, sans-serif'
+                }),
+        html.H2([
+            "A Sufficiency Timeline To Support the ",
+            html.A("ICJ's July 2025 Climate Change AO",
+                   href="https://www.icj-cij.org/sites/default/files/case-related/187/187-20250723-adv-01-00-en.pdf",
+                   target="_blank",
+                   style={'color': '#f39c12', 'textDecoration': 'underline'}),
+        ], style={
+            'textAlign': 'center',
+            'color': '#34495e',
+            'fontSize': '1.0rem',
+            'fontWeight': 'normal',
+            'marginBottom': '20px',
+            'fontFamily': 'Arial, sans-serif',
+            'lineHeight': '1.3',
+            'maxWidth': '1200px',
+            'margin': '0 auto 20px auto'
+        }),
+
+        # Controls section embedded within the header
         html.Div([
-            html.Label("Country", style={'fontWeight': 'bold', 'color': '#2c3e50', 'fontSize': '0.9rem'}),
-            dcc.Dropdown(
-                id='country-dropdown',
-                options=[{'label': 'All Countries', 'value': 'ALL'}] +
-                        [{'label': f"{country} ({iso2})", 'value': iso2}
-                         for country, iso2 in scenario_parameters[
-                             (~scenario_parameters['ISO2'].isin(['WLD', 'EU', 'G20'])) &
-                             (scenario_parameters['Country'] != 'All') &
-                             (scenario_parameters['ISO2'].notna())
-                             ][['Country', 'ISO2']].drop_duplicates().sort_values('Country').values],
-                value='ALL',
-                style={'marginTop': '6px', 'fontSize': '0.85rem'},
-                clearable=False
-            )
-        ], style={'width': '16%', 'display': 'inline-block', 'margin-right': '2.5%'}),
-        html.Div([
-            html.Label("G20 Only", style={'fontWeight': 'bold', 'color': '#2c3e50', 'fontSize': '0.9rem'}),
-            dcc.Dropdown(
-                id='g20-filter-dropdown',
-                options=[
-                    {'label': 'No', 'value': 'No'},
-                    {'label': 'Yes', 'value': 'Yes'}
-                ],
-                value='No',
-                style={'marginTop': '6px', 'fontSize': '0.85rem'},
-                clearable=False
-            )
-        ], style={'width': '16%', 'display': 'inline-block', 'margin-right': '2.5%'}),
-        html.Div([
-            html.Label("Carbon Budget Allocation", style={'fontWeight': 'bold', 'color': '#2c3e50', 'fontSize': '0.9rem'}),
-            dcc.Dropdown(
-                id='budget-distribution-dropdown',
-                options=[{'label': i, 'value': i} for i in
-                         scenario_parameters['Budget_distribution_scenario'].unique()],
-                value='Responsibility',
-                style={'marginTop': '6px', 'fontSize': '0.85rem'},
-                clearable=False
-            )
-        ], style={'width': '16%', 'display': 'inline-block', 'margin-right': '2.5%'}),
-        html.Div([
-            html.Label("Scope of Emissions", style={'fontWeight': 'bold', 'color': '#2c3e50', 'fontSize': '0.9rem'}),
-            dcc.Dropdown(
-                id='emissions-scope-dropdown',
-                options=[
-                    {'label': 'Territorial', 'value': 'Territory'},
-                    {'label': 'Consumption-based', 'value': 'Consumption'}
-                ],
-                value='Territory',
-                style={'marginTop': '6px', 'fontSize': '0.85rem'},
-                clearable=False
-            )
-        ], style={'width': '16%', 'display': 'inline-block', 'margin-right': '2.5%'}),
-        html.Div([
-            html.Label("Probability of not exceeding +1.5°C",
-                       style={'fontWeight': 'bold', 'color': '#2c3e50', 'whiteSpace': 'nowrap',
-                              'overflow': 'visible', 'fontSize': '0.9rem'}),
-            dcc.Dropdown(
-                id='probability-dropdown',
-                options=[{'label': i, 'value': i} for i in scenario_parameters['Probability_of_reach'].unique()],
-                value='50%',
-                style={'marginTop': '6px', 'fontSize': '0.85rem'},
-                clearable=False
-            )
-        ], style={'width': '16%', 'display': 'inline-block'}),
+            html.Div([
+                html.Label("Country", style={'fontWeight': 'bold', 'color': '#2c3e50', 'fontSize': '0.9rem'}),
+                dcc.Dropdown(
+                    id='country-dropdown',
+                    options=[{'label': 'All Countries', 'value': 'ALL'}] +
+                            [{'label': f"{country} ({iso2})", 'value': iso2}
+                             for country, iso2 in scenario_parameters[
+                                 (~scenario_parameters['ISO2'].isin(['WLD', 'EU', 'G20'])) &
+                                 (scenario_parameters['Country'] != 'All') &
+                                 (scenario_parameters['ISO2'].notna())
+                                 ][['Country', 'ISO2']].drop_duplicates().sort_values('Country').values],
+                    value='ALL',
+                    style={'marginTop': '6px', 'fontSize': '0.85rem'},
+                    clearable=False
+                )
+            ], style={'width': '16%', 'display': 'inline-block', 'margin-right': '2.5%'}),
+            html.Div([
+                html.Label("G20 Only", style={'fontWeight': 'bold', 'color': '#2c3e50', 'fontSize': '0.9rem'}),
+                dcc.Dropdown(
+                    id='g20-filter-dropdown',
+                    options=[
+                        {'label': 'No', 'value': 'No'},
+                        {'label': 'Yes', 'value': 'Yes'}
+                    ],
+                    value='No',
+                    style={'marginTop': '6px', 'fontSize': '0.85rem'},
+                    clearable=False
+                )
+            ], style={'width': '16%', 'display': 'inline-block', 'margin-right': '2.5%'}),
+
+            html.Div([
+                html.Label("Carbon Budget Allocation", style={'fontWeight': 'bold', 'color': '#2c3e50', 'fontSize': '0.9rem'}),
+                dcc.Dropdown(
+                    id='budget-distribution-dropdown',
+                    options=[{'label': i, 'value': i} for i in
+                             scenario_parameters['Budget_distribution_scenario'].unique()],
+                    value='Responsibility',
+                    style={'marginTop': '6px', 'fontSize': '0.85rem'},
+                    clearable=False
+                )
+            ], style={'width': '16%', 'display': 'inline-block', 'margin-right': '2.5%'}),
+            html.Div([
+                html.Label("Scope of Emissions", style={'fontWeight': 'bold', 'color': '#2c3e50', 'fontSize': '0.9rem'}),
+                dcc.Dropdown(
+                    id='emissions-scope-dropdown',
+                    options=[
+                        {'label': 'Territorial', 'value': 'Territory'},
+                        {'label': 'Consumption-based', 'value': 'Consumption'}
+                    ],
+                    value='Territory',
+                    style={'marginTop': '6px', 'fontSize': '0.85rem'},
+                    clearable=False
+                )
+            ], style={'width': '16%', 'display': 'inline-block', 'margin-right': '2.5%'}),
+            html.Div([
+                html.Label("Probability of not exceeding +1.5°C",
+                           style={'fontWeight': 'bold', 'color': '#2c3e50', 'whiteSpace': 'nowrap',
+                                  'overflow': 'visible', 'fontSize': '0.9rem'}),
+                dcc.Dropdown(
+                    id='probability-dropdown',
+                    options=[{'label': i, 'value': i} for i in scenario_parameters['Probability_of_reach'].unique()],
+                    value='50%',
+                    style={'marginTop': '6px', 'fontSize': '0.85rem'},
+                    clearable=False
+                )
+            ], style={'width': '16%', 'display': 'inline-block'}),
+        ], style={
+            'padding': '12px 20px',
+            'backgroundColor': '#fdf6e3',
+            'borderRadius': '8px',
+            'boxShadow': '0 1px 2px rgba(0,0,0,0.05)',
+            'margin': '0 20px 8px 20px'  # Reduced margin for spacing
+        })
     ], style={
-        'padding': '12px 20px',
-        'backgroundColor': '#fdf6e3',
-        'borderRadius': '8px',
-        'boxShadow': '0 1px 2px rgba(0,0,0,0.05)',
-        'margin': '20px 20px 8px 20px',  # Added top margin to separate from header
+        'backgroundColor': '#f4d03f',  # World Sufficiency Lab yellow
+        'padding': '15px 0px 12px 0px',  # Further reduced top padding
         'position': 'sticky',
         'top': 0,
-        'zIndex': 1000
+        'zIndex': 1000,
+        'boxShadow': '0 2px 4px rgba(0,0,0,0.1)'
     }),
 
     # Visualizations
@@ -1064,6 +1098,6 @@ def update_top_per_capita_emitters(selected_country, selected_scope, g20_filter)
 # For gunicorn deployment
 server = app.server
 
-# Local development server
-if __name__ == '__main__':
-    app.run_server(debug=True, host='0.0.0.0', port=8050)
+# Production deployment - no local server
+# if __name__ == '__main__':
+#     app.run_server(debug=True, host='0.0.0.0', port=8050)
