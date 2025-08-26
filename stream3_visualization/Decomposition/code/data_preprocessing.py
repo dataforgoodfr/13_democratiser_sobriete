@@ -230,9 +230,9 @@ class CO2DecompositionPreprocessor:
                 "Contrib_2015_2040_abs": total_change_2015_2040,
                 "Contrib_2040_2050_abs": total_change_2040_2050,
                 "Contrib_2015_2050_abs": total_change_2015_2050,
-                "Contrib_2015_2040_pct": 100.0,  # Total represents 100% of change
-                "Contrib_2040_2050_pct": 100.0,
-                "Contrib_2015_2050_pct": 100.0
+                "Contrib_2015_2040_pct": (total_change_2015_2040 / abs(total_change_2015_2040)) * 100 if total_change_2015_2040 != 0 else 0,
+                "Contrib_2040_2050_pct": (total_change_2040_2050 / abs(total_change_2040_2050)) * 100 if total_change_2040_2050 != 0 else 0,
+                "Contrib_2015_2050_pct": (total_change_2015_2050 / abs(total_change_2015_2050)) * 100 if total_change_2015_2050 != 0 else 0
             })
             
             # Add data for each individual lever
@@ -249,10 +249,8 @@ class CO2DecompositionPreprocessor:
                 contrib_abs_total = contrib_abs_1 + contrib_abs_2
                 contrib_pct_total = (contrib_abs_total / abs(total_change_2015_2050)) * 100 if total_change_2015_2050 != 0 else 0
                 
-                # Flip the sign convention: emissions reductions = positive, emissions increases = negative
-                contrib_pct_1 = -contrib_pct_1
-                contrib_pct_2 = -contrib_pct_2
-                contrib_pct_total = -contrib_pct_total
+                # Keep original LMDI signs for mathematical consistency
+                # Positive values = emissions increases, Negative values = emissions reductions
                 
                 unified_data.append({
                     "Zone": zone,
