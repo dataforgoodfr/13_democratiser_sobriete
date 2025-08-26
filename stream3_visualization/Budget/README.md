@@ -33,8 +33,8 @@ This file contains historical and projected data for countries and regional aggr
     *   `share_of_GDP_PPP`: Share of the world's annual GDP.
     *   `share_of_capacity`: This metric is used for the "Capacity" scenario. It is calculated to be **inversely proportional to the square root of GDP per capita** (`Population / √(GDP_per_capita)`). This gives a larger share of the budget allocation to countries with lower economic capacity while reducing the extreme penalty for wealthy countries.
 4.  **Cumulative Population Measures:** Multiple cumulative population metrics are calculated for different time periods:
-    *   `Share_of_cumulative_population_1970_to_2050`: Used for Population and Responsibility scenarios
-    *   `Share_of_cumulative_population_1970_to_latest`: Used for Responsibility scenario (alternative approach)
+    *   `Share_of_cumulative_population_1970_to_2050`: Used for Responsibility scenario (when `USE_LATEST_YEAR_FOR_RESPONSIBILITY = False`)
+    *   `Share_of_cumulative_population_1970_to_latest`: Used for Responsibility scenario (when `USE_LATEST_YEAR_FOR_RESPONSIBILITY = True` - current setting)
     *   `Share_of_cumulative_population_Latest_to_2050`: Used for Population scenario
 
 ### B. Secondary Output: `planetary_boundary.csv`
@@ -57,12 +57,15 @@ This script uses the `combined_data.csv` file to model future emissions pathways
 *   `2025-04-21_Full file_Current carbon neutrality timeline per with Country ISO code.xlsx` (for the "Current Target" scenario)
 
 #### Global Carbon Budgets:
-The scenarios are based on the remaining global carbon budgets from the start of 2025, taken from the IPCC AR6 Synthesis Report. Budgets are available for both **1.5°C** and **2°C** warming targets at various probability levels (33%, 50%, 67%, 83%).
+The scenarios are based on the remaining global carbon budgets from the start of 2025, taken from the IPCC AR6 Synthesis Report. Budgets are available for both **1.5°C** and **2°C** warming targets at various probability levels (50%, 67%).
 
 #### Distribution Scenarios:
-1.  **Population:** The remaining global budget is distributed to countries based on their **share of cumulative world population** from the latest available data year to 2050. This principle allocates budget based on human presence.
-2.  **Responsibility:** A "total" budget is created by adding the *future* global budget to the *world's historical emissions* since 1970. This total amount is then allocated to each country based on its share of cumulative population from 1970 to the latest emissions year available (2022 for Consumption, 2023 for Territory). Finally, each country's own historical emissions are subtracted to determine its remaining budget. This method holds nations accountable for their past emissions while using a more recent population baseline.
-3.  **Capacity:** The remaining global budget is distributed based on the `share_of_capacity` metric calculated in the preprocessing script. This allocates a larger portion of the remaining budget to countries with a lower GDP per capita, reflecting their reduced economic capacity to fund a rapid transition. **Countries with missing GDP data are excluded from this scenario.**
+1.  **Population:** The remaining global budget is distributed to countries based on their **share of cumulative world population** from the latest available data year to 2050 (`Share_of_cumulative_population_Latest_to_2050`). This principle allocates budget based on human presence.
+2.  **Responsibility:** A "total" budget is created by adding the *future* global budget to the *world's historical emissions* since 1970. This total amount is then allocated to each country based on its share of cumulative population. The population share used depends on the configuration:
+   - **Current setting** (`USE_LATEST_YEAR_FOR_RESPONSIBILITY = True`): Uses `Share_of_cumulative_population_1970_to_latest` (1970 to latest emissions year: 2022 for Consumption, 2023 for Territory)
+   - **Alternative setting** (`USE_LATEST_YEAR_FOR_RESPONSIBILITY = False`): Uses `Share_of_cumulative_population_1970_to_2050` (1970 to 2050)
+   Finally, each country's own historical emissions are subtracted to determine its remaining budget. This method holds nations accountable for their past emissions.
+3.  **Capability:** The remaining global budget is distributed based on the `share_of_capacity` metric calculated in the preprocessing script. This allocates a larger portion of the remaining budget to countries with a lower GDP per capita, reflecting their reduced economic capacity to fund a rapid transition. **Countries with missing GDP data are excluded from this scenario.**
 4.  **NDC Pledges:** This scenario does not use the IPCC budgets. Instead, it calculates a linear pathway to neutrality based on each country's politically declared target year (Nationally Determined Contributions). If no target is declared, no pathway is calculated. **This scenario only applies to Territory emissions, not Consumption emissions.**
 
 #### Forecast Continuity:
@@ -72,10 +75,8 @@ For countries with negative budgets (indicating they have already exceeded their
 This prevents visual discontinuities in time-series visualizations and ensures smooth transitions from historical to forecast data.
 
 #### Neutrality Year Capping:
-To ensure meaningful visualization and interpretation, neutrality years are capped at:
-- **Minimum**: 1970 (earliest year in our dataset)
-- **Maximum**: 2100 (standard future limit)
-This prevents countries from having "neutrality years" in the distant past (e.g., -300 years) which would be mathematically correct but conceptually meaningless.
+To ensure meaningful visualization and interpretation, neutrality years are capped at **Maximum**: 2100 (standard future limit)
+
 
 #### Negative Budget Countries:
 For countries with negative carbon budgets (indicating they have already exceeded their allocated budget), the neutrality year calculation uses a **planetary boundary approach**:
@@ -156,6 +157,8 @@ Countries with neutrality year 1970 (showing -55 years to neutrality in 2025) in
 The Responsibility scenario can be configured using the `USE_LATEST_YEAR_FOR_RESPONSIBILITY` flag in `ETL_scenarios.py`:
 *   `True`: Uses cumulative population from 1970 to latest emissions year (current approach)
 *   `False`: Uses cumulative population from 1970 to 2050 (alternative approach)
+
+**Current Setting:** `USE_LATEST_YEAR_FOR_RESPONSIBILITY = True`
 
 Pour rendre l'environnement uv disponible depuis un jupyter notebook :
 
