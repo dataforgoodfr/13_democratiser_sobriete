@@ -426,7 +426,16 @@ def update_map(budget_dist, probability, emissions_scope, selected_country, g20_
             'Neutrality_year', 'Years_to_neutrality_from_today',
             'Latest_annual_CO2_emissions_Mt', 'Latest_cumulative_CO2_emissions_Mt',
             'Latest_emissions_per_capita_t', 'Country_carbon_budget'
-        ]].values,
+        ]].apply(lambda row: [
+            get_scope_display_label(row['Emissions_scope']),  # Transform scope to display label
+            row['Latest_year'],
+            row['Neutrality_year'],
+            row['Years_to_neutrality_from_today'],
+            row['Latest_annual_CO2_emissions_Mt'],
+            row['Latest_cumulative_CO2_emissions_Mt'],
+            row['Latest_emissions_per_capita_t'],
+            row['Country_carbon_budget']
+        ], axis=1).values,
         # Position colorbar to the left of centered map
         colorbar=dict(
             x=0.05,  # Position to the left but within the centered layout
