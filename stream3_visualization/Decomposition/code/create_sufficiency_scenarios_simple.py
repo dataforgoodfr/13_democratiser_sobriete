@@ -311,6 +311,9 @@ def generate_scenario_2(base_scenario, sector, zone, co2_values):
         return None
 
 if __name__ == "__main__":
+    # Define DATA_DIR for the main section
+    DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'Output'))
+    
     new_scenarios = create_sufficiency_scenarios()
     if new_scenarios:
         print(f"\n🎉 SUCCESS: Created {len(new_scenarios)} new scenario records!")
