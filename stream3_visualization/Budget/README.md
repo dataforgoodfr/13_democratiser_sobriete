@@ -110,6 +110,24 @@ cd deployment
 
 For detailed deployment instructions, see [deployment/DEPLOYMENT.md](deployment/DEPLOYMENT.md).
 
+### Pushing Changes to Clever Cloud
+
+After making changes to the code, you can deploy updates to Clever Cloud using Git:
+
+```bash
+# 1. Commit your changes
+git add .
+git commit -m "Description of your changes"
+
+# 2. Push to GitHub (optional but recommended)
+git push origin visualizations-combined
+
+# 3. Push to Clever Cloud for automatic deployment
+git push clever-budget visualizations-combined:master
+```
+
+**Note:** The Clever Cloud remote is configured as `clever-budget`. After pushing, Clever Cloud will automatically redeploy your application with the new changes.
+
 ---
 
 ## Data Coverage and Limitations
