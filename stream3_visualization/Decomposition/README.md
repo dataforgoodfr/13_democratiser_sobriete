@@ -111,4 +111,43 @@ grep -c "World Sufficiency Lab" Output/unified_decomposition_data.csv
 
 - **Original Scenarios**: Official EU and Switzerland decarbonization pathways
 - **World Sufficiency Lab**: Explores sufficiency measures with 40% intensity decrease
-- **Lever Analysis**: Breaks down emissions changes by population, sufficiency, efficiency, and supply-side factors 
+- **Lever Analysis**: Breaks down emissions changes by population, sufficiency, efficiency, and supply-side factors
+
+## Deployment to Clever Cloud
+
+This project includes two separate dashboards that can be deployed to Clever Cloud:
+
+### European Decomposition Dashboard (`app.py`)
+Deploy to Clever Cloud using:
+```bash
+git push clever-decomposition visualizations-combined:master
+```
+
+**Remote:** `clever-decomposition` → `git+ssh://git@push-n3-par-clevercloud-customers.services.clever-cloud.com/app_ac31ad44-d32f-4998-87c6-b9b699c29c63.git`
+
+### World Decomposition Dashboard (`app_world.py`)
+Deploy to Clever Cloud using:
+```bash
+git push clever-world-decomposition visualizations-combined:master
+```
+
+**Remote:** `clever-world-decomposition` → `git+ssh://git@push-n3-par-clevercloud-customers.services.clever-cloud.com/app_e1c3f118-5441-449a-99f3-fa4036bb2ad4.git`
+
+### Available Clever Cloud Remotes
+```bash
+# List all available remotes
+git remote -v
+
+# Available remotes:
+# - clever-budget → Budget dashboard
+# - clever-decomposition → European decomposition dashboard  
+# - clever-world-decomposition → World decomposition dashboard
+# - origin → GitHub repository
+```
+
+### Deployment Workflow
+1. **Make changes** to the dashboard code
+2. **Commit changes** to the `visualizations-combined` branch
+3. **Push to GitHub**: `git push origin visualizations-combined`
+4. **Deploy to Clever Cloud**: Use the appropriate push command above
+5. **Verify deployment** in Clever Cloud dashboard 
