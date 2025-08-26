@@ -96,7 +96,7 @@ def create_sufficiency_scenarios():
                 print(f"No CO2 values found for {sector} in {zone}, skipping...")
                 continue
             
-            # Generate Scenario 1: No increase in Consumption/Production Intensity
+            # Generate Scenario 1: Consumption or Production per capita at 2015 Levels
             scenario_1 = generate_scenario_1(reference_scenario, sector, zone, co2_values)
             if scenario_1:
                 new_scenarios.extend(scenario_1)
@@ -128,7 +128,7 @@ def create_sufficiency_scenarios():
     return new_scenarios
 
 def generate_scenario_1(base_scenario, sector, zone, co2_values):
-    """Generate Scenario 1: No increase in Consumption/Production Intensity"""
+    """Generate Scenario 1: Consumption or Production per capita at 2015 Levels"""
     try:
         # Get current Sufficiency values
         sufficiency_row = base_scenario[base_scenario['Lever'] == 'Sufficiency']
@@ -151,7 +151,7 @@ def generate_scenario_1(base_scenario, sector, zone, co2_values):
         
         # Create new scenario data
         new_scenario = base_scenario.copy()
-        new_scenario['Scenario'] = 'World Sufficiency Lab - No Increase in Consumption or Production Intensity'
+        new_scenario['Scenario'] = 'World Sufficiency Lab - Consumption or Production per capita at 2015 Levels'
         
         # Update Sufficiency to 0
         sufficiency_mask = new_scenario['Lever'] == 'Sufficiency'
