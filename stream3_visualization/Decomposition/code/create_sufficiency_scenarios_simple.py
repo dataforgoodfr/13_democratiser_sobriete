@@ -314,5 +314,31 @@ if __name__ == "__main__":
     new_scenarios = create_sufficiency_scenarios()
     if new_scenarios:
         print(f"\n🎉 SUCCESS: Created {len(new_scenarios)} new scenario records!")
+        
+        # Auto-combine with the main unified data
+        print("\n🔄 Auto-combining with main data...")
+        try:
+            # Load the main unified data
+            main_data_path = os.path.join(DATA_DIR, 'unified_decomposition_data.csv')
+            main_data = pd.read_csv(main_data_path)
+            print(f"Main data loaded: {main_data.shape[0]} records")
+            
+            # Load the WSL scenarios
+            wsl_data_path = os.path.join(DATA_DIR, 'world_sufficiency_lab_scenarios.csv')
+            wsl_data = pd.read_csv(wsl_data_path)
+            print(f"WSL scenarios loaded: {wsl_data.shape[0]} records")
+            
+            # Combine both datasets
+            combined_data = pd.concat([main_data, wsl_data], ignore_index=True)
+            print(f"Combined data: {combined_data.shape[0]} records")
+            
+            # Save the combined data back to unified_decomposition_data.csv
+            combined_data.to_csv(main_data_path, index=False)
+            print(f"✅ Combined data saved to: {main_data_path}")
+            print(f"📊 Final dataset: {combined_data.shape[0]} total records")
+            
+        except Exception as e:
+            print(f"⚠️  Warning: Could not auto-combine data: {e}")
+            print("   You may need to manually combine the files")
     else:
         print("\n❌ ERROR: No scenarios generated!") 
