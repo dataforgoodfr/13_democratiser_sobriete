@@ -488,8 +488,7 @@ def update_scenario_options(selected_zone):
             {'label': 'Scenario Zer0 A', 'value': 'Scenario Zer0 A'},
             {'label': 'Scenario Zer0 B', 'value': 'Scenario Zer0 B'},
             {'label': 'Scenario Zer0 C', 'value': 'Scenario Zer0 C'},
-            {'label': 'World Sufficiency Lab - No Increase in Consumption or Production Intensity', 'value': 'World Sufficiency Lab - No Increase in Consumption or Production Intensity'},
-            {'label': 'World Sufficiency Lab - With Sufficiency Measures', 'value': 'World Sufficiency Lab - With Sufficiency Measures'}
+            {'label': 'World Sufficiency Lab - No Increase in Consumption or Production Intensity', 'value': 'World Sufficiency Lab - No Increase in Consumption or Production Intensity'}
         ]
         value = 'Base Scenario'
     else:
@@ -499,8 +498,7 @@ def update_scenario_options(selected_zone):
             {'label': 'EU Commission >85% Decrease by 2040', 'value': 'EU Commission >85% Decrease by 2040'},
             {'label': 'EU Commission >90% Decrease by 2040', 'value': 'EU Commission >90% Decrease by 2040'},
             {'label': 'EU Commission LIFE Scenario', 'value': 'EU Commission LIFE Scenario'},
-            {'label': 'World Sufficiency Lab - No Increase in Consumption or Production Intensity', 'value': 'World Sufficiency Lab - No Increase in Consumption or Production Intensity'},
-            {'label': 'World Sufficiency Lab - With Sufficiency Measures', 'value': 'World Sufficiency Lab - With Sufficiency Measures'}
+            {'label': 'World Sufficiency Lab - No Increase in Consumption or Production Intensity', 'value': 'World Sufficiency Lab - No Increase in Consumption or Production Intensity'}
         ]
         value = 'EU Commission Fit-for-55'
     

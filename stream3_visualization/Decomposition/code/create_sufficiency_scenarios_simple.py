@@ -101,10 +101,10 @@ def create_sufficiency_scenarios():
             if scenario_1:
                 new_scenarios.extend(scenario_1)
             
-            # Generate Scenario 2: With Sufficiency Measures (20% decrease)
-            scenario_2 = generate_scenario_2(reference_scenario, sector, zone, co2_values)
-            if scenario_2:
-                new_scenarios.extend(scenario_2)
+            # Generate Scenario 2: With Sufficiency Measures (20% decrease) - DISABLED
+            # scenario_2 = generate_scenario_2(reference_scenario, sector, zone, co2_values)
+            # if scenario_2:
+            #     new_scenarios.extend(scenario_2)
     
     print(f"\n" + "="*80)
     print(f"GENERATION COMPLETE: Created {len(new_scenarios)} new scenario records")
