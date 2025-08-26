@@ -249,10 +249,10 @@ class CO2DecompositionPreprocessor:
                 contrib_abs_total = contrib_abs_1 + contrib_abs_2
                 contrib_pct_total = (contrib_abs_total / abs(total_change_2015_2050)) * 100 if total_change_2015_2050 != 0 else 0
                 
-
-                
-                # Keep original LMDI signs for mathematical consistency
-                # Positive values = emissions increases, Negative values = emissions reductions
+                # Align sign convention with dashboards: negative = reductions, positive = increases
+                contrib_pct_1 = -contrib_pct_1
+                contrib_pct_2 = -contrib_pct_2
+                contrib_pct_total = -contrib_pct_total
                 
                 unified_data.append({
                     "Zone": zone,
