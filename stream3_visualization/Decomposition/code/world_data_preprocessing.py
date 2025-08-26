@@ -8,303 +8,352 @@ import pandas as pd
 import numpy as np
 import os
 
-class WorldDataPreprocessor:
+class WorldCO2DecompositionPreprocessor:
     """
-    Preprocessor for world data from REMIND model
-    Handles different data structure and creates proper aggregates
+    Data preprocessor for world CO2 emission decomposition analysis
+    Handles world data from REMIND-MAgPIE scenarios with proper LMDI decomposition
+    Mirrors the structure of the EU/Switzerland preprocessor
     """
     
-    def __init__(self, data_dir="../data"):
-        self.data_dir = data_dir
-        self.world_data_file = "2025-08-20_REMIND Shape_Data_Compiled.xlsx"
+    def __init__(self, data_file="../Output/world_data_european_format.csv"):
+        self.data_file = data_file
         
-        # Gases to aggregate into Emissions
-        self.gases = ['BC', 'CO', 'CO2', 'NH3', 'NO2', 'OC', 'SO2', 'VOC']
+        # World regions (geographies) from the data
+        self.world_regions = [
+            "Canada, Australia, New Zealand", "China", "Europe", "India", "Japan",
+            "Latin America and Caribbean", "Middle East and Africa", "Non-EU Europe",
+            "Other Asia", "Russia and Former Soviet Union", "Sub-Saharan Africa",
+            "United States", "WLD"
+        ]
         
-        # Target years for analysis
-        self.target_years = [2015, 2040, 2050]
-        
-        # Region mapping to IPCC standard names
-        self.region_mapping = {
-            'CAZ': 'Canada, Australia, New Zealand',
-            'CHA': 'China',
-            'EUR': 'Europe',
-            'IND': 'India', 
-            'JPN': 'Japan',
-            'LAM': 'Latin America and Caribbean',
-            'MEA': 'Middle East and Africa',
-            'NEU': 'Non-EU Europe',
-            'OAS': 'Other Asia',
-            'REF': 'Russia and Former Soviet Union',
-            'SSA': 'Sub-Saharan Africa',
-            'USA': 'United States',
-            'China': 'China',
-            'India': 'India',
-            'United States of America': 'United States',
-            'WLD': 'World'
+        # Sector configuration (only one sector available in world data)
+        self.sector_configs = {
+            "Buildings - Residential and Commercial": [
+                "REMIND-MAgPIE 3.2-4.6 - SDP_EI-1p5C-CCimp",
+                "REMIND-MAgPIE 3.2-4.6 - SDP_MC-1p5C-CCimp", 
+                "REMIND-MAgPIE 3.2-4.6 - SDP_RC-1p5C-CCimp",
+                "REMIND-MAgPIE 3.2-4.6 - SSP1-1p5C",
+                "REMIND-MAgPIE 3.2-4.6 - SSP1-NPi",
+                "REMIND-MAgPIE 3.2-4.6 - SSP2-1p5C-CCimp",
+                "REMIndia-MAgPIE 3.2-4.6 - SSP2-NPi-CCimp"
+            ]
         }
         
-    def load_world_data(self):
-        """Load world data from Excel file"""
-        file_path = os.path.join(self.data_dir, self.world_data_file)
-        print(f"Loading world data from: {file_path}")
+        # Column mapping (same as European format)
+        self.sector_columns = ["Year", "Population (Mill)", "Volume", "Energy (Million toe)", "CO2 (Million tonn)"]
         
+        # Universal lever names (same as EU/Switzerland)
+        self.universal_levers = ["Population", "Sufficiency", "Energy Efficiency", "Supply Side Decarbonation"]
+        
+        # Scenario name mappings for display (internal name -> display name)
+        self.scenario_display_names = {
+            "REMIND-MAgPIE 3.2-4.6 - SDP_EI-1p5C-CCimp": "REMIND SDP_EI-1p5C-CCimp",
+            "REMIND-MAgPIE 3.2-4.6 - SDP_MC-1p5C-CCimp": "REMIND SDP_MC-1p5C-CCimp",
+            "REMIND-MAgPIE 3.2-4.6 - SDP_RC-1p5C-CCimp": "REMIND SDP_RC-1p5C-CCimp",
+            "REMIND-MAgPIE 3.2-4.6 - SSP1-1p5C": "REMIND SSP1-1p5C",
+            "REMIND-MAgPIE 3.2-4.6 - SSP1-NPi": "REMIND SSP1-NPi",
+            "REMIND-MAgPIE 3.2-4.6 - SSP2-1p5C-CCimp": "REMIND SSP2-1p5C-CCimp",
+            "REMIndia-MAgPIE 3.2-4.6 - SSP2-NPi-CCimp": "REMIndia SSP2-NPi-CCimp"
+        }
+        
+        # Sector name mappings for display (internal name -> display name)
+        self.sector_display_names = {
+            "Buildings - Residential and Commercial": "Buildings - Residential and Commercial"
+        }
+    
+    def calculate_intensity_factors(self, data_rows, sector):
+        """Calculate intensity factors for LMDI decomposition"""
+        intensity_factors = {}
+        
+        # All sectors use the same unified column structure
+        intensity_factors["Population"] = data_rows["Population (Mill)"]
+        intensity_factors["Sufficiency"] = data_rows["Volume"] / data_rows["Population (Mill)"]
+        intensity_factors["Energy Efficiency"] = data_rows["Energy (Million toe)"] / data_rows["Volume"]
+        intensity_factors["Supply Side Decarbonation"] = data_rows["CO2 (Million tonn)"] / data_rows["Energy (Million toe)"]
+        
+        return intensity_factors
+    
+    def safe_lmdi_contribution(self, co2_0, co2_t, x_0, x_t):
+        """Calculate LMDI contribution with safety checks"""
+        if co2_0 == co2_t or x_0 == 0 or x_t == 0:
+            return 0
         try:
-            # Load the Combined_data sheet
-            data = pd.read_excel(file_path, sheet_name="Combined_data")
-            print(f"Data loaded successfully! Shape: {data.shape}")
-            print(f"Columns: {list(data.columns)}")
-            return data
-        except Exception as e:
-            print(f"Error loading world data: {e}")
-            return None
-    
-    def clean_region_names(self, data):
-        """Clean region names and map to IPCC standard names"""
-        print("Cleaning and mapping region names...")
-        
-        # Remove the model prefix from region names
-        data['Region'] = data['Region'].str.replace('REMIndia-MAgPIE 3.2-4.6|', '')
-        data['Region'] = data['Region'].str.replace('REMIND-MAgPIE 3.2-4.6|', '')
-        
-        # Map regions to IPCC standard names
-        data['Region'] = data['Region'].map(self.region_mapping).fillna(data['Region'])
-        
-        # Get unique regions
-        unique_regions = data['Region'].unique()
-        print(f"Unique regions after mapping: {unique_regions}")
-        
-        return data
-    
-    def add_sector_column(self, data):
-        """Add sector column with fixed value for all rows"""
-        print("Adding sector column...")
-        
-        # All data is for Buildings - Residential and Commercial sector
-        data['Sector'] = 'Buildings - Residential and Commercial'
-        
-        print("Sector column added with value: 'Buildings - Residential and Commercial'")
-        
-        return data
-    
-    def identify_emission_variables(self, data):
-        """Identify which variables are emissions that need to be aggregated"""
-        print("Identifying emission variables...")
-        
-        # Check if the variable contains any of the gases
-        data['is_emission'] = data['Variable'].str.contains('|'.join(self.gases), case=False, na=False)
-        
-        # Also check if it's explicitly an emissions variable
-        data['is_emission'] = data['is_emission'] | data['Variable'].str.contains('Emissions', case=False, na=False)
-        
-        # Explicitly exclude non-emission variables that might contain "Energy" in their name
-        data['is_emission'] = data['is_emission'] & ~data['Variable'].str.contains('Final Energy', case=False, na=False)
-        data['is_emission'] = data['is_emission'] & ~data['Variable'].str.contains('Energy Service', case=False, na=False)
-        data['is_emission'] = data['is_emission'] & ~data['Variable'].str.contains('Population', case=False, na=False)
-        
-        emission_count = data['is_emission'].sum()
-        non_emission_count = (~data['is_emission']).sum()
-        
-        print(f"Emission variables: {emission_count}")
-        print(f"Non-emission variables: {non_emission_count}")
-        
-        # Show what variables are being classified as what
-        print("\nEmission variables found:")
-        emission_vars = data[data['is_emission']]['Variable'].unique()
-        print(emission_vars)
-        
-        print("\nNon-emission variables found:")
-        non_emission_vars = data[~data['is_emission']]['Variable'].unique()
-        print(non_emission_vars)
-        
-        return data
-    
-    def aggregate_emissions(self, data):
-        """Aggregate emission variables into a single Emissions variable"""
-        print("Aggregating emission variables...")
-        
-        # Get emission data
-        emission_data = data[data['is_emission']].copy()
-        
-        # Get year columns
-        year_cols = [col for col in data.columns if str(col).isdigit()]
-        
-        # Convert comma decimal separator to dot if present
-        for year_col in year_cols:
-            emission_data[year_col] = pd.to_numeric(
-                emission_data[year_col].astype(str).str.replace(',', '.'), 
-                errors='coerce'
-            )
-        
-        # Group by Model, Scenario, Region, Sector and sum emissions
-        group_cols = ['Model', 'Scenario', 'Region', 'Sector']
-        
-        aggregated_emissions = emission_data.groupby(group_cols)[year_cols].sum().reset_index()
-        
-        # Create the new Emissions variable
-        aggregated_emissions['Variable_clean'] = 'Emissions'
-        aggregated_emissions['Unit'] = 'Mt CO2e/yr'
-        
-        print(f"Aggregated emissions shape: {aggregated_emissions.shape}")
-        
-        return aggregated_emissions
-    
-    def prepare_non_emission_data(self, data):
-        """Prepare non-emission data for final aggregation"""
-        print("Preparing non-emission data...")
-        
-        # Get non-emission data
-        non_emission_data = data[~data['is_emission']].copy()
-        
-        # Clean up variable names using the new logic:
-        # 1. Take everything left of the second "|" (or keep whole if fewer than 2 "|")
-        # 2. Remove "|Residential and Commercial" if present
-        def clean_variable_name(var_name):
-            if pd.isna(var_name):
-                return var_name
-            
-            parts = var_name.split('|')
-            if len(parts) >= 2:
-                # Take everything left of the second "|"
-                result = '|'.join(parts[:2])
-            else:
-                # Keep the whole string if fewer than 2 "|"
-                result = var_name
-            
-            # Remove "|Residential and Commercial" if present
-            result = result.replace('|Residential and Commercial', '')
-            
-            return result
-        
-        non_emission_data['Variable_clean'] = non_emission_data['Variable'].apply(clean_variable_name)
-        
-        # Select only the columns we need
-        year_cols = [col for col in data.columns if str(col).isdigit()]
-        essential_cols = ['Model', 'Scenario', 'Region', 'Sector', 'Variable_clean', 'Unit'] + year_cols
-        
-        # Ensure all columns exist
-        for col in essential_cols:
-            if col not in non_emission_data.columns:
-                non_emission_data[col] = ''
-        
-        non_emission_data = non_emission_data[essential_cols]
-        
-        print(f"Non-emission data shape: {non_emission_data.shape}")
-        
-        # Show what variables we have
-        print("\nNon-emission variables found:")
-        unique_vars = non_emission_data['Variable_clean'].unique()
-        for var in unique_vars:
-            count = len(non_emission_data[non_emission_data['Variable_clean'] == var])
-            print(f"  {var}: {count} rows")
-        
-        return non_emission_data
-    
-    def create_world_aggregate(self, data):
-        """Create world aggregate by summing all regions"""
-        print("Creating world aggregate...")
-        
-        # Get year columns
-        year_cols = [col for col in data.columns if str(col).isdigit()]
-        
-        # Group by Model, Scenario, Sector, Variable_clean and sum across all regions
-        group_cols = ['Model', 'Scenario', 'Sector', 'Variable_clean', 'Unit']
-        
-        world_aggregate = data.groupby(group_cols)[year_cols].sum().reset_index()
-        
-        # Add 'WLD' as region
-        world_aggregate['Region'] = 'WLD'
-        
-        print(f"World aggregate shape: {world_aggregate.shape}")
-        
-        return world_aggregate
-    
-    def filter_target_years(self, data):
-        """Filter data to only include target years and essential columns"""
-        print("Filtering to target years...")
-        
-        # Get year columns that match our target years
-        available_years = [col for col in data.columns if str(col).isdigit()]
-        target_year_cols = [col for col in available_years if int(col) in self.target_years]
-        
-        # Essential non-year columns
-        essential_cols = ['Model', 'Scenario', 'Region', 'Sector', 'Variable_clean', 'Unit']
-        
-        # Combine essential and target year columns
-        final_cols = essential_cols + target_year_cols
-        
-        # Filter data
-        filtered_data = data[final_cols].copy()
-        
-        print(f"Filtered data shape: {filtered_data.shape}")
-        print(f"Target years available: {target_year_cols}")
-        
-        return filtered_data
+            weight = (co2_t - co2_0) / (np.log(np.abs(co2_t)) - np.log(np.abs(co2_0)))
+            return weight * np.log(np.abs(x_t) / np.abs(x_0))
+        except:
+            return 0
     
     def process_world_data(self):
-        """Main processing pipeline for world data"""
-        print("="*80)
-        print("WORLD DATA PREPROCESSING - COMPLETE PIPELINE")
-        print("="*80)
+        """Process world data from the CSV file"""
+        if not os.path.exists(self.data_file):
+            print(f"Warning: World data file not found: {self.data_file}")
+            return []
+            
+        all_scenario_data = []
         
-        # Load data
-        data = self.load_world_data()
-        if data is None:
+        try:
+            # Load world data
+            df_world = pd.read_csv(self.data_file)
+            print(f"World data loaded, shape: {df_world.shape}")
+            
+            # Process each geography and scenario combination
+            for geography in self.world_regions:
+                for sector, scenarios in self.sector_configs.items():
+                    for scenario in scenarios:
+                        try:
+                            # Filter data for this geography, sector and scenario
+                            sector_data = df_world[
+                                (df_world["Geography"] == geography) & 
+                                (df_world["Sector"] == sector) & 
+                                (df_world["Scenario"] == scenario)
+                            ].copy()
+                            
+                            if sector_data.empty:
+                                print(f"Warning: No data found for {geography} - {sector} - {scenario}")
+                                continue
+                            
+                            # Filter to only years 2015, 2040, 2050
+                            year_data = sector_data[sector_data["Year"].isin([2015, 2040, 2050])].copy()
+                            
+                            if len(year_data) != 3:
+                                print(f"Warning: Missing years for {geography} - {sector} - {scenario}. Found: {year_data['Year'].tolist()}")
+                                continue
+                            
+                            # Set year as index for easier access
+                            year_data.set_index("Year", inplace=True)
+                            
+                            # Convert only the numerical columns to float
+                            numerical_columns = ["Population (Mill)", "Volume", "Energy (Million toe)", "CO2 (Million tonn)"]
+                            for col in numerical_columns:
+                                if col in year_data.columns:
+                                    year_data[col] = pd.to_numeric(year_data[col], errors='coerce')
+                            
+                            # Extract CO2 values
+                            co2_2015 = year_data.loc[2015, "CO2 (Million tonn)"]
+                            co2_2040 = year_data.loc[2040, "CO2 (Million tonn)"]
+                            co2_2050 = year_data.loc[2050, "CO2 (Million tonn)"]
+                            
+                            # Calculate intensity factors
+                            intensity_factors = self.calculate_intensity_factors(year_data, sector)
+                            
+                            # Calculate LMDI contributions for each period
+                            contrib_2015_2040 = {}
+                            contrib_2040_2050 = {}
+                            
+                            for lever in self.universal_levers:
+                                # 2015-2040 period
+                                x0, xt = intensity_factors[lever].loc[2015], intensity_factors[lever].loc[2040]
+                                contrib_2015_2040[lever] = self.safe_lmdi_contribution(co2_2015, co2_2040, x0, xt)
+                                
+                                # 2040-2050 period
+                                x0b, xtb = intensity_factors[lever].loc[2040], intensity_factors[lever].loc[2050]
+                                contrib_2040_2050[lever] = self.safe_lmdi_contribution(co2_2040, co2_2050, x0b, xtb)
+                            
+                            # Store data
+                            all_scenario_data.append({
+                                "Zone": geography,
+                                "Sector": sector,
+                                "Scenario": scenario,
+                                "CO2_2015": co2_2015,
+                                "CO2_2040": co2_2040,
+                                "CO2_2050": co2_2050,
+                                "Contrib_2015_2040": contrib_2015_2040,
+                                "Contrib_2040_2050": contrib_2040_2050,
+                                "Intensity_Factors": intensity_factors
+                            })
+                            
+                        except Exception as e:
+                            print(f"Error processing {geography} scenario '{scenario}' in {sector}: {e}")
+                            continue
+                            
+        except Exception as e:
+            print(f"Error processing world data: {e}")
+            return []
+        
+        return all_scenario_data
+    
+    def create_unified_dataset(self):
+        """Create a unified dataset for all world regions, sectors, and scenarios"""
+        all_data = []
+        
+        print("Processing world data...")
+        all_data = self.process_world_data()
+        
+        # Process all scenarios into lever-level data
+        unified_data = []
+        
+        for scenario_data in all_data:
+            zone = scenario_data["Zone"]
+            sector = scenario_data["Sector"]
+            scenario = scenario_data["Scenario"]
+            
+            # Apply display name mappings
+            display_sector = self.sector_display_names.get(sector, sector)
+            display_scenario = self.scenario_display_names.get(scenario, scenario)
+            
+            co2_2015 = scenario_data["CO2_2015"]
+            co2_2040 = scenario_data["CO2_2040"]
+            co2_2050 = scenario_data["CO2_2050"]
+            
+            contrib_2015_2040 = scenario_data["Contrib_2015_2040"]
+            contrib_2040_2050 = scenario_data["Contrib_2040_2050"]
+            
+            # Calculate total changes
+            total_change_2015_2040 = co2_2040 - co2_2015
+            total_change_2040_2050 = co2_2050 - co2_2040
+            total_change_2015_2050 = co2_2050 - co2_2015
+            
+            # Add "Total" lever first (shows actual CO2 emissions)
+            unified_data.append({
+                "Zone": zone,
+                "Sector": display_sector,
+                "Scenario": display_scenario,
+                "Lever": "Total",
+                "CO2_2015": co2_2015,
+                "CO2_2040": co2_2040,
+                "CO2_2050": co2_2050,
+                "Contrib_2015_2040_abs": total_change_2015_2040,
+                "Contrib_2040_2050_abs": total_change_2040_2050,
+                "Contrib_2015_2050_abs": total_change_2015_2050,
+                "Contrib_2015_2040_pct": 100.0,  # Total represents 100% of change
+                "Contrib_2040_2050_pct": 100.0,
+                "Contrib_2015_2050_pct": 100.0
+            })
+            
+            # Add data for each individual lever
+            for lever in self.universal_levers:
+                # 2015-2040 period
+                contrib_abs_1 = contrib_2015_2040[lever]
+                contrib_pct_1 = (contrib_abs_1 / abs(total_change_2015_2040)) * 100 if total_change_2015_2040 != 0 else 0
+                
+                # 2040-2050 period  
+                contrib_abs_2 = contrib_2040_2050[lever]
+                contrib_pct_2 = (contrib_abs_2 / abs(total_change_2040_2050)) * 100 if total_change_2040_2050 != 0 else 0
+                
+                # Total period
+                contrib_abs_total = contrib_abs_1 + contrib_abs_2
+                contrib_pct_total = (contrib_abs_total / abs(total_change_2015_2050)) * 100 if total_change_2015_2050 != 0 else 0
+                
+                # Flip the sign convention: emissions reductions = positive, emissions increases = negative
+                contrib_pct_1 = -contrib_pct_1
+                contrib_pct_2 = -contrib_pct_2
+                contrib_pct_total = -contrib_pct_total
+                
+                unified_data.append({
+                    "Zone": zone,
+                    "Sector": display_sector,
+                    "Scenario": display_scenario,
+                    "Lever": lever,
+                    "CO2_2015": None,  # N/A for individual levers
+                    "CO2_2040": None,   # N/A for individual levers
+                    "CO2_2050": None,   # N/A for individual levers
+                    "Contrib_2015_2040_abs": contrib_abs_1,
+                    "Contrib_2040_2050_abs": contrib_abs_2,
+                    "Contrib_2015_2050_abs": contrib_abs_total,
+                    "Contrib_2015_2040_pct": contrib_pct_1,
+                    "Contrib_2040_2050_pct": contrib_pct_2,
+                    "Contrib_2015_2050_pct": contrib_pct_total
+                })
+        
+        return pd.DataFrame(unified_data)
+    
+    def create_intermediary_dataset(self, all_data):
+        """Create an intermediary dataset with raw data and calculated intensity factors"""
+        intermediary_data = []
+        
+        for scenario_data in all_data:
+            zone = scenario_data["Zone"]
+            sector = scenario_data["Sector"]
+            scenario = scenario_data["Scenario"]
+            
+            # Apply display name mappings
+            display_sector = self.sector_display_names.get(sector, sector)
+            display_scenario = self.scenario_display_names.get(scenario, scenario)
+            
+            co2_2015 = scenario_data["CO2_2015"]
+            co2_2040 = scenario_data["CO2_2040"]
+            co2_2050 = scenario_data["CO2_2050"]
+            
+            intensity_factors = scenario_data["Intensity_Factors"]
+            
+            # Get raw data for each year
+            for year in [2015, 2040, 2050]:
+                row_data = {
+                    "Zone": zone,
+                    "Sector": display_sector,
+                    "Scenario": display_scenario,
+                    "Year": year,
+                    "CO2_2015": co2_2015,
+                    "CO2_2040": co2_2040,
+                    "CO2_2050": co2_2050,
+                    "Population": intensity_factors["Population"].loc[year],
+                    "Volume": intensity_factors["Sufficiency"].loc[year] * intensity_factors["Population"].loc[year],  # Volume = Sufficiency * Population
+                    "Energy": intensity_factors["Energy Efficiency"].loc[year] * intensity_factors["Sufficiency"].loc[year] * intensity_factors["Population"].loc[year],  # Energy = Energy Efficiency * Volume
+                    "CO2": intensity_factors["Supply Side Decarbonation"].loc[year] * intensity_factors["Energy Efficiency"].loc[year] * intensity_factors["Sufficiency"].loc[year] * intensity_factors["Population"].loc[year],  # CO2 = Carbon Intensity * Energy
+                    "Population_Intensity": intensity_factors["Population"].loc[year],
+                    "Sufficiency_Intensity": intensity_factors["Sufficiency"].loc[year],
+                    "Energy_Efficiency_Intensity": intensity_factors["Energy Efficiency"].loc[year],
+                    "Carbon_Intensity": intensity_factors["Supply Side Decarbonation"].loc[year]
+                }
+                intermediary_data.append(row_data)
+        
+        return pd.DataFrame(intermediary_data)
+    
+    def save_processed_data(self, output_dir="../Output"):
+        """Process and save the unified world dataset"""
+        print("Starting world data processing...")
+        
+        # Create unified dataset
+        df_unified = self.create_unified_dataset()
+        
+        if df_unified.empty:
+            print("Warning: No world data was processed!")
             return None
         
-        # Step 1.1: Clean region names and map to IPCC standards
-        data = self.clean_region_names(data)
+        # Create intermediary dataset for auditing
+        print("Creating intermediary dataset for auditing...")
+        all_data = self.process_world_data()
+        df_intermediary = self.create_intermediary_dataset(all_data)
         
-        # Step 1.2: Add sector column with fixed value
-        data = self.add_sector_column(data)
+        # Save both datasets
+        unified_path = os.path.join(output_dir, "world_unified_decomposition_data.csv")
+        intermediary_path = os.path.join(output_dir, "world_intermediary_decomposition_data.csv")
         
-        # Step 1.3: Identify emission variables
-        data = self.identify_emission_variables(data)
+        df_unified.to_csv(unified_path, index=False)
+        df_intermediary.to_csv(intermediary_path, index=False)
         
-        # Step 1.4: Aggregate emissions
-        aggregated_emissions = self.aggregate_emissions(data)
+        print(f"World unified dataset saved to: {unified_path}")
+        print(f"World intermediary dataset saved to: {intermediary_path}")
         
-        # Step 1.5: Prepare non-emission data
-        non_emission_data = self.prepare_non_emission_data(data)
+        # Summary statistics for validation (not saved to file)
+        total_scenarios = len(df_unified.groupby(["Zone", "Sector", "Scenario"]).size())
         
-        # Step 1.6: Combine aggregated emissions with non-emission data
-        combined_data = pd.concat([aggregated_emissions, non_emission_data], ignore_index=True)
+        # Data validation summary
+        print("\nWorld Data Validation Summary:")
+        print(f"Total scenarios processed: {total_scenarios}")
+        print(f"Zones: {sorted(df_unified['Zone'].unique())}")
+        print(f"Sectors: {sorted(df_unified['Sector'].unique())}")
+        print(f"Scenarios: {sorted(df_unified['Scenario'].unique())}")
+        print(f"Levers: {sorted(df_unified['Lever'].unique())}")
+        print(f"\nIntermediary dataset shape: {df_intermediary.shape}")
+        print(f"Intermediary dataset columns: {df_intermediary.columns.tolist()}")
         
-        # Step 1.7: Create world aggregate
-        world_aggregate = self.create_world_aggregate(combined_data)
-        
-        # Step 1.8: Combine regional and world data
-        final_combined_data = pd.concat([combined_data, world_aggregate], ignore_index=True)
-        
-        # Step 1.9: Filter to target years
-        final_data = self.filter_target_years(final_combined_data)
-        
-        # Save only the final comprehensive output
-        output_dir = os.path.join(self.data_dir, '..', 'Output')
-        os.makedirs(output_dir, exist_ok=True)
-        
-        # Save final comprehensive data
-        final_output_path = os.path.join(output_dir, 'world_data_preprocessed.csv')
-        final_data.to_csv(final_output_path, index=False)
-        print(f"Final comprehensive world data saved to: {final_output_path}")
-        
-        print("\n" + "="*80)
-        print("WORLD DATA PREPROCESSING COMPLETED")
-        print("="*80)
-        
-        return final_data
-
-def main():
-    """Main function to run world data preprocessing"""
-    preprocessor = WorldDataPreprocessor()
-    result = preprocessor.process_world_data()
-    
-    if result is not None:
-        print("\nWorld data preprocessing completed successfully!")
-        print(f"Final data shape: {result.shape}")
-        print(f"Final columns: {list(result.columns)}")
-    else:
-        print("\nWorld data preprocessing failed!")
+        return df_unified
 
 if __name__ == "__main__":
-    main() 
+    # Initialize world preprocessor
+    preprocessor = WorldCO2DecompositionPreprocessor()
+    
+    # Process and save world data
+    df_processed = preprocessor.save_processed_data()
+    
+    if df_processed is not None:
+        print("\nWorld data processing complete!")
+        print(f"Total records: {len(df_processed)}")
+        
+        # Show sample data
+        print("\nSample world data:")
+        print(df_processed.head(10))
+        
+    else:
+        print("\nWorld data processing failed!") 

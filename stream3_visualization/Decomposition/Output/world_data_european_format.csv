@@ -1,0 +1,274 @@
+Geography,Sector,Scenario,Year,Population (Mill),Volume,Volume Unit,Energy (Million toe),CO2 (Million tonn)
+"Canada, Australia, New Zealand",Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_EI-1p5C-CCimp,2015,64.1343,3458.0,Floor area (Million m²),78.98633801471425,77.5662
+"Canada, Australia, New Zealand",Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_EI-1p5C-CCimp,2040,77.8257,5027.099999999999,Floor area (Million m²),57.542753415497295,12.6127
+"Canada, Australia, New Zealand",Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_EI-1p5C-CCimp,2050,81.071,5404.5,Floor area (Million m²),43.606095347282675,0.0106
+"Canada, Australia, New Zealand",Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_MC-1p5C-CCimp,2015,64.1343,3458.0,Floor area (Million m²),78.98633801471425,77.5662
+"Canada, Australia, New Zealand",Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_MC-1p5C-CCimp,2040,77.8257,4795.5,Floor area (Million m²),49.359892997039154,4.5192
+"Canada, Australia, New Zealand",Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_MC-1p5C-CCimp,2050,81.071,5106.4,Floor area (Million m²),36.87064106238717,0.0124999999999999
+"Canada, Australia, New Zealand",Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_RC-1p5C-CCimp,2015,64.1343,3458.0,Floor area (Million m²),78.98633801471425,77.5662
+"Canada, Australia, New Zealand",Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_RC-1p5C-CCimp,2040,77.8257,4609.9,Floor area (Million m²),47.788286997230195,3.9317
+"Canada, Australia, New Zealand",Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_RC-1p5C-CCimp,2050,81.071,4818.5,Floor area (Million m²),34.900162415210296,0.0115
+"Canada, Australia, New Zealand",Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-1p5C,2015,64.1343,3458.0,Floor area (Million m²),39.3522499283469,77.5662
+"Canada, Australia, New Zealand",Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-1p5C,2040,77.8257,5014.3,Floor area (Million m²),43.8712142925392,26.905099999999997
+"Canada, Australia, New Zealand",Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-1p5C,2050,81.071,5376.2,Floor area (Million m²),39.00592337823702,2.6555
+"Canada, Australia, New Zealand",Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-NPi,2015,64.1343,3458.0,Floor area (Million m²),78.98633801471425,77.5662
+"Canada, Australia, New Zealand",Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-NPi,2040,77.8257,5014.3,Floor area (Million m²),68.15228814369085,46.5869
+"Canada, Australia, New Zealand",Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-NPi,2050,81.071,5376.2,Floor area (Million m²),53.71883061049102,29.4312
+"Canada, Australia, New Zealand",Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP2-1p5C-CCimp,2015,64.1343,3458.0,Floor area (Million m²),78.98633801471425,155.1324
+"Canada, Australia, New Zealand",Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP2-1p5C-CCimp,2040,79.3606,5095.2,Floor area (Million m²),66.09582497372807,23.936200000000003
+"Canada, Australia, New Zealand",Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP2-1p5C-CCimp,2050,84.1386,5659.3,Floor area (Million m²),62.61822871883167,3.7802
+"Canada, Australia, New Zealand",Buildings - Residential and Commercial,REMIndia-MAgPIE 3.2-4.6 - SSP2-NPi-CCimp,2015,64.1343,3458.0,Floor area (Million m²),78.98633801471425,77.5662
+"Canada, Australia, New Zealand",Buildings - Residential and Commercial,REMIndia-MAgPIE 3.2-4.6 - SSP2-NPi-CCimp,2040,79.3606,5095.2,Floor area (Million m²),78.00945829750776,57.4949
+"Canada, Australia, New Zealand",Buildings - Residential and Commercial,REMIndia-MAgPIE 3.2-4.6 - SSP2-NPi-CCimp,2050,84.1386,5659.3,Floor area (Million m²),72.4562912009184,50.194700000000005
+China,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_EI-1p5C-CCimp,2015,1411.2736,64662.49999999999,Floor area (Million m²),448.01996751696566,676.4475
+China,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_EI-1p5C-CCimp,2040,1393.1334,109697.2,Floor area (Million m²),693.3457533199697,155.15529999999998
+China,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_EI-1p5C-CCimp,2050,1327.9226,110011.5,Floor area (Million m²),517.3139390465359,24.0684
+China,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_MC-1p5C-CCimp,2015,1411.2736,64662.49999999999,Floor area (Million m²),448.01996751696566,676.4475
+China,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_MC-1p5C-CCimp,2040,1393.1334,88407.6,Floor area (Million m²),578.6447883825455,105.4129
+China,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_MC-1p5C-CCimp,2050,1327.9226,84730.8,Floor area (Million m²),389.80605713194507,15.6788
+China,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_RC-1p5C-CCimp,2015,1411.2736,64662.49999999999,Floor area (Million m²),448.01996751696566,676.4475
+China,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_RC-1p5C-CCimp,2040,1393.133,74120.0,Floor area (Million m²),511.35473392567985,128.3354
+China,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_RC-1p5C-CCimp,2050,1327.9226,70878.7,Floor area (Million m²),320.1848667239951,30.4489
+China,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-1p5C,2015,1411.2736,64662.49999999999,Floor area (Million m²),139.3044807490231,676.4475
+China,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-1p5C,2040,1393.1334,104817.2,Floor area (Million m²),490.17149135378685,327.64820000000003
+China,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-1p5C,2050,1327.9226,105100.0,Floor area (Million m²),419.16260628643107,165.6073
+China,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-NPi,2015,1411.2736,64662.49999999999,Floor area (Million m²),448.01996751696566,676.4475
+China,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-NPi,2040,1393.1334,104817.2,Floor area (Million m²),800.2173497659446,708.7184
+China,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-NPi,2050,1327.9226,105100.0,Floor area (Million m²),628.0333428871799,491.4447
+China,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP2-1p5C-CCimp,2015,1411.2736,64662.49999999999,Floor area (Million m²),448.01996751696566,1352.895
+China,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP2-1p5C-CCimp,2040,1391.432,100301.0,Floor area (Million m²),681.5993121238292,441.3994
+China,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP2-1p5C-CCimp,2050,1318.2783,101874.5,Floor area (Million m²),661.204261010807,155.4762
+China,Buildings - Residential and Commercial,REMIndia-MAgPIE 3.2-4.6 - SSP2-NPi-CCimp,2015,1411.2736,64662.49999999999,Floor area (Million m²),448.01996751696566,676.4475
+China,Buildings - Residential and Commercial,REMIndia-MAgPIE 3.2-4.6 - SSP2-NPi-CCimp,2040,1391.432,100301.0,Floor area (Million m²),844.5375943441435,788.0279
+China,Buildings - Residential and Commercial,REMIndia-MAgPIE 3.2-4.6 - SSP2-NPi-CCimp,2050,1318.2783,101874.5,Floor area (Million m²),777.4768319480403,748.5459
+Europe,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_EI-1p5C-CCimp,2015,510.1029,26661.8,Floor area (Million m²),426.5620521639511,553.6432
+Europe,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_EI-1p5C-CCimp,2040,509.9892,31242.0,Floor area (Million m²),312.2599598738947,156.6263
+Europe,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_EI-1p5C-CCimp,2050,502.6132,31644.9,Floor area (Million m²),219.03601796121515,29.1033
+Europe,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_MC-1p5C-CCimp,2015,510.1029,26661.8,Floor area (Million m²),426.5620521639511,553.6432
+Europe,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_MC-1p5C-CCimp,2040,509.9892,30839.2,Floor area (Million m²),267.7462501194275,100.339
+Europe,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_MC-1p5C-CCimp,2050,502.6132,30907.0,Floor area (Million m²),177.88764689022943,12.8705
+Europe,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_RC-1p5C-CCimp,2015,510.1029,26661.8,Floor area (Million m²),426.5620521639511,553.6432
+Europe,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_RC-1p5C-CCimp,2040,509.9892,28392.2,Floor area (Million m²),265.01862997994147,108.0559
+Europe,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_RC-1p5C-CCimp,2050,502.6132,27990.100000000002,Floor area (Million m²),166.29645552689686,18.559499999999996
+Europe,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-1p5C,2015,510.1029,26661.8,Floor area (Million m²),139.0656348523956,553.6432
+Europe,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-1p5C,2040,509.9892,31171.7,Floor area (Million m²),174.22613929492988,206.3029
+Europe,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-1p5C,2050,502.6132,31488.1,Floor area (Million m²),155.6702015859394,36.6411
+Europe,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-NPi,2015,510.1029,26661.8,Floor area (Million m²),426.5620521639511,553.6432
+Europe,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-NPi,2040,509.9892,31171.7,Floor area (Million m²),379.2681761727398,431.882
+Europe,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-NPi,2050,502.6132,31488.1,Floor area (Million m²),302.3191936562581,357.7062
+Europe,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP2-1p5C-CCimp,2015,509.7676,26661.8,Floor area (Million m²),426.5620521639511,1107.2864
+Europe,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP2-1p5C-CCimp,2040,518.9234,31018.4,Floor area (Million m²),322.2890990732834,270.0772
+Europe,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP2-1p5C-CCimp,2050,515.8634,32445.8,Floor area (Million m²),273.89892041655185,49.73
+Europe,Buildings - Residential and Commercial,REMIndia-MAgPIE 3.2-4.6 - SSP2-NPi-CCimp,2015,509.7676,26661.8,Floor area (Million m²),426.5620521639511,553.6432
+Europe,Buildings - Residential and Commercial,REMIndia-MAgPIE 3.2-4.6 - SSP2-NPi-CCimp,2040,518.9234,31018.4,Floor area (Million m²),372.4658450367886,323.7154
+Europe,Buildings - Residential and Commercial,REMIndia-MAgPIE 3.2-4.6 - SSP2-NPi-CCimp,2050,515.8634,32445.8,Floor area (Million m²),319.76927486386325,237.1293
+India,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_EI-1p5C-CCimp,2015,1322.8665,17194.5,Floor area (Million m²),173.12267125251083,194.9417
+India,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_EI-1p5C-CCimp,2040,1572.9139,47867.7,Floor area (Million m²),323.0080252221322,85.2457
+India,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_EI-1p5C-CCimp,2050,1605.9617,56767.4,Floor area (Million m²),399.9976115410405,18.4985
+India,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_MC-1p5C-CCimp,2015,1322.8665,17194.5,Floor area (Million m²),173.12267125251083,194.9417
+India,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_MC-1p5C-CCimp,2040,1572.9139,44627.0,Floor area (Million m²),264.78217254228025,62.6574
+India,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_MC-1p5C-CCimp,2050,1605.9617,53063.0,Floor area (Million m²),306.7282889080018,22.106600000000004
+India,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_RC-1p5C-CCimp,2015,1322.8665,17194.5,Floor area (Million m²),173.12267125251083,194.9417
+India,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_RC-1p5C-CCimp,2040,1572.914,44169.5,Floor area (Million m²),270.14665138053385,78.5146
+India,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_RC-1p5C-CCimp,2050,1605.9617,51602.5,Floor area (Million m²),285.79583452756765,36.1479
+India,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-1p5C,2015,1322.8665,17194.5,Floor area (Million m²),33.43603706888372,194.9417
+India,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-1p5C,2040,1572.9139,41240.5,Floor area (Million m²),174.74443489061156,183.03239999999997
+India,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-1p5C,2050,1605.9617,49988.799999999996,Floor area (Million m²),266.14359415305694,140.419
+India,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-NPi,2015,1322.8665,17194.5,Floor area (Million m²),173.12267125251083,194.9417
+India,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-NPi,2040,1572.9139,41240.5,Floor area (Million m²),273.18954810356826,218.3293
+India,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-NPi,2050,1605.9617,49988.799999999996,Floor area (Million m²),343.39591095825557,226.0333
+India,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP2-1p5C-CCimp,2015,1322.8665,17194.5,Floor area (Million m²),173.12267125251083,389.8834
+India,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP2-1p5C-CCimp,2040,1602.4071,37107.4,Floor area (Million m²),227.15677844655013,326.846
+India,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP2-1p5C-CCimp,2050,1650.7419,44853.1,Floor area (Million m²),281.79038884112447,166.3624
+India,Buildings - Residential and Commercial,REMIndia-MAgPIE 3.2-4.6 - SSP2-NPi-CCimp,2015,1322.8665,17194.5,Floor area (Million m²),173.12267125251083,194.9417
+India,Buildings - Residential and Commercial,REMIndia-MAgPIE 3.2-4.6 - SSP2-NPi-CCimp,2040,1602.4071,37107.4,Floor area (Million m²),281.69246202350723,297.8401
+India,Buildings - Residential and Commercial,REMIndia-MAgPIE 3.2-4.6 - SSP2-NPi-CCimp,2050,1650.7419,44853.1,Floor area (Million m²),337.2790675456253,306.0565
+Japan,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_EI-1p5C-CCimp,2015,127.141,7171.8,Floor area (Million m²),96.36954237126369,105.7944
+Japan,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_EI-1p5C-CCimp,2040,112.6586,7323.7,Floor area (Million m²),55.025317665043445,16.1085
+Japan,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_EI-1p5C-CCimp,2050,105.4099,7012.1,Floor area (Million m²),41.82191649947524,3.0656
+Japan,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_MC-1p5C-CCimp,2015,127.141,7171.8,Floor area (Million m²),96.36954237126369,105.7944
+Japan,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_MC-1p5C-CCimp,2040,112.6586,7257.799999999999,Floor area (Million m²),49.88535396961965,11.536
+Japan,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_MC-1p5C-CCimp,2050,105.4099,6865.3,Floor area (Million m²),33.763255947263396,1.1677
+Japan,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_RC-1p5C-CCimp,2015,127.141,7171.8,Floor area (Million m²),96.36954237126369,105.7944
+Japan,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_RC-1p5C-CCimp,2040,112.6586,6439.8,Floor area (Million m²),45.90856979077177,12.2672
+Japan,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_RC-1p5C-CCimp,2050,105.4099,6005.6,Floor area (Million m²),30.651093914207078,0.9983
+Japan,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-1p5C,2015,127.141,7171.8,Floor area (Million m²),52.223655297602875,105.7944
+Japan,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-1p5C,2040,112.6586,7309.3,Floor area (Million m²),40.799656061909545,41.5877
+Japan,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-1p5C,2050,105.4099,6980.2,Floor area (Million m²),36.42161077672747,12.7512
+Japan,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-NPi,2015,127.141,7171.8,Floor area (Million m²),96.36954237126369,105.7944
+Japan,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-NPi,2040,112.6586,7309.3,Floor area (Million m²),68.0901882105677,50.9922
+Japan,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-NPi,2050,105.4099,6980.2,Floor area (Million m²),52.21887837967033,33.3003
+Japan,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP2-1p5C-CCimp,2015,127.141,7171.8,Floor area (Million m²),96.36954237126369,211.5888
+Japan,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP2-1p5C-CCimp,2040,112.9753,7263.200000000001,Floor area (Million m²),64.44301136906577,80.3938
+Japan,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP2-1p5C-CCimp,2050,106.2018,7042.799999999999,Floor area (Million m²),58.83729817521835,32.6992
+Japan,Buildings - Residential and Commercial,REMIndia-MAgPIE 3.2-4.6 - SSP2-NPi-CCimp,2015,127.141,7171.8,Floor area (Million m²),96.36954237126369,105.7944
+Japan,Buildings - Residential and Commercial,REMIndia-MAgPIE 3.2-4.6 - SSP2-NPi-CCimp,2040,112.9753,7263.200000000001,Floor area (Million m²),80.13996369542508,74.03999999999999
+Japan,Buildings - Residential and Commercial,REMIndia-MAgPIE 3.2-4.6 - SSP2-NPi-CCimp,2050,106.2018,7042.799999999999,Floor area (Million m²),71.04471195184988,60.1298
+Latin America and Caribbean,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_EI-1p5C-CCimp,2015,622.5515,20853.5,Floor area (Million m²),136.70344893474962,133.1766
+Latin America and Caribbean,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_EI-1p5C-CCimp,2040,713.9512,35307.899999999994,Floor area (Million m²),204.19891086271485,53.92659999999999
+Latin America and Caribbean,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_EI-1p5C-CCimp,2050,719.3392,39063.1,Floor area (Million m²),219.70717493073843,42.0669
+Latin America and Caribbean,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_MC-1p5C-CCimp,2015,622.5515,20853.5,Floor area (Million m²),136.70344893474962,133.1766
+Latin America and Caribbean,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_MC-1p5C-CCimp,2040,713.9512,34372.0,Floor area (Million m²),176.00315276583848,42.1694
+Latin America and Caribbean,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_MC-1p5C-CCimp,2050,719.3392,37842.9,Floor area (Million m²),169.66895958727716,23.827
+Latin America and Caribbean,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_RC-1p5C-CCimp,2015,622.5515,20853.5,Floor area (Million m²),136.70344893474962,133.1766
+Latin America and Caribbean,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_RC-1p5C-CCimp,2040,713.9512,33543.3,Floor area (Million m²),172.14340307633807,49.620999999999995
+Latin America and Caribbean,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_RC-1p5C-CCimp,2050,719.3392,35959.0,Floor area (Million m²),147.57093723130086,15.2732
+Latin America and Caribbean,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-1p5C,2015,622.5515,20853.5,Floor area (Million m²),58.579344606860644,133.1766
+Latin America and Caribbean,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-1p5C,2040,713.9512,33069.4,Floor area (Million m²),130.4839017865695,74.6669
+Latin America and Caribbean,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-1p5C,2050,719.3392,36713.4,Floor area (Million m²),156.396293111687,36.3707
+Latin America and Caribbean,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-NPi,2015,622.5515,20853.5,Floor area (Million m²),136.70344893474962,133.1766
+Latin America and Caribbean,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-NPi,2040,713.9512,33069.4,Floor area (Million m²),186.79421037546894,114.6699
+Latin America and Caribbean,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-NPi,2050,719.3392,36713.4,Floor area (Million m²),208.11598356740583,139.5958
+Latin America and Caribbean,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP2-1p5C-CCimp,2015,622.5515,20853.5,Floor area (Million m²),136.70344893474962,266.3532
+Latin America and Caribbean,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP2-1p5C-CCimp,2040,729.5408,31638.100000000002,Floor area (Million m²),170.4953663896083,156.9882
+Latin America and Caribbean,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP2-1p5C-CCimp,2050,744.9623,35906.9,Floor area (Million m²),217.2231776058124,132.5258
+Latin America and Caribbean,Buildings - Residential and Commercial,REMIndia-MAgPIE 3.2-4.6 - SSP2-NPi-CCimp,2015,622.5515,20853.5,Floor area (Million m²),136.70344893474962,133.1766
+Latin America and Caribbean,Buildings - Residential and Commercial,REMIndia-MAgPIE 3.2-4.6 - SSP2-NPi-CCimp,2040,729.5408,31638.100000000002,Floor area (Million m²),191.64278207700715,149.758
+Latin America and Caribbean,Buildings - Residential and Commercial,REMIndia-MAgPIE 3.2-4.6 - SSP2-NPi-CCimp,2050,744.9623,35906.9,Floor area (Million m²),244.91497086080474,176.0174
+Middle East and Africa,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_EI-1p5C-CCimp,2015,477.7181,11856.199999999999,Floor area (Million m²),169.86242476354545,204.5975
+Middle East and Africa,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_EI-1p5C-CCimp,2040,644.3892,23477.2,Floor area (Million m²),264.92309162129044,171.8004
+Middle East and Africa,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_EI-1p5C-CCimp,2050,680.3429,28284.300000000003,Floor area (Million m²),227.83271233400598,43.3456
+Middle East and Africa,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_MC-1p5C-CCimp,2015,477.7181,11856.199999999999,Floor area (Million m²),169.86242476354545,204.5975
+Middle East and Africa,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_MC-1p5C-CCimp,2040,644.3892,22194.3,Floor area (Million m²),247.21266838636134,172.8544
+Middle East and Africa,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_MC-1p5C-CCimp,2050,680.3429,26408.100000000002,Floor area (Million m²),204.3469953186239,52.8591
+Middle East and Africa,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_RC-1p5C-CCimp,2015,477.7181,11856.199999999999,Floor area (Million m²),169.86242476354545,204.5975
+Middle East and Africa,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_RC-1p5C-CCimp,2040,644.3892,21718.399999999998,Floor area (Million m²),243.22633037164834,173.6327
+Middle East and Africa,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_RC-1p5C-CCimp,2050,680.3429,25527.8,Floor area (Million m²),183.7775867010636,45.7328
+Middle East and Africa,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-1p5C,2015,477.7181,11856.199999999999,Floor area (Million m²),73.2110442342613,204.5975
+Middle East and Africa,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-1p5C,2040,644.3892,21413.0,Floor area (Million m²),137.54896340881095,147.5852
+Middle East and Africa,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-1p5C,2050,680.3429,25535.3,Floor area (Million m²),163.99636954237405,38.5405
+Middle East and Africa,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-NPi,2015,477.7181,11856.199999999999,Floor area (Million m²),169.86242476354545,204.5975
+Middle East and Africa,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-NPi,2040,644.3892,21413.0,Floor area (Million m²),267.00821629884854,283.2657
+Middle East and Africa,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-NPi,2050,680.3429,25535.3,Floor area (Million m²),267.9014999522354,264.6707
+Middle East and Africa,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP2-1p5C-CCimp,2015,477.7181,11856.199999999999,Floor area (Million m²),169.86242476354545,409.195
+Middle East and Africa,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP2-1p5C-CCimp,2040,669.4447,20718.800000000003,Floor area (Million m²),186.1732110442374,262.6168
+Middle East and Africa,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP2-1p5C-CCimp,2050,724.7476,24842.5,Floor area (Million m²),228.80481513327987,85.2658
+Middle East and Africa,Buildings - Residential and Commercial,REMIndia-MAgPIE 3.2-4.6 - SSP2-NPi-CCimp,2015,477.7181,11856.199999999999,Floor area (Million m²),169.86242476354545,204.5975
+Middle East and Africa,Buildings - Residential and Commercial,REMIndia-MAgPIE 3.2-4.6 - SSP2-NPi-CCimp,2040,669.4447,20718.800000000003,Floor area (Million m²),301.4020254132085,363.1338
+Middle East and Africa,Buildings - Residential and Commercial,REMIndia-MAgPIE 3.2-4.6 - SSP2-NPi-CCimp,2050,724.7476,24842.5,Floor area (Million m²),353.3223464220944,444.5402
+Non-EU Europe,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_EI-1p5C-CCimp,2015,111.6676,5594.1,Floor area (Million m²),54.48791439763157,71.82039999999999
+Non-EU Europe,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_EI-1p5C-CCimp,2040,123.9194,7742.0,Floor area (Million m²),52.85898538263202,24.5254
+Non-EU Europe,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_EI-1p5C-CCimp,2050,124.5923,8110.799999999999,Floor area (Million m²),43.37919174548655,4.5895
+Non-EU Europe,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_MC-1p5C-CCimp,2015,111.6676,5594.1,Floor area (Million m²),54.48791439763157,71.82039999999999
+Non-EU Europe,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_MC-1p5C-CCimp,2040,123.9194,7395.2,Floor area (Million m²),46.21906945638752,18.5956
+Non-EU Europe,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_MC-1p5C-CCimp,2050,124.5923,7676.599999999999,Floor area (Million m²),36.6676220502538,3.1931
+Non-EU Europe,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_RC-1p5C-CCimp,2015,111.6676,5594.1,Floor area (Million m²),54.48791439763157,71.82039999999999
+Non-EU Europe,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_RC-1p5C-CCimp,2040,123.9194,7117.6,Floor area (Million m²),46.565396006497394,20.0488
+Non-EU Europe,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_RC-1p5C-CCimp,2050,124.5923,7245.5,Floor area (Million m²),33.247348810548,2.8128
+Non-EU Europe,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-1p5C,2015,111.6676,5594.1,Floor area (Million m²),21.5630075475307,71.82039999999999
+Non-EU Europe,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-1p5C,2040,123.9194,7672.3,Floor area (Million m²),33.3237794974688,30.7684
+Non-EU Europe,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-1p5C,2050,124.5923,8022.4,Floor area (Million m²),34.5562243240667,6.0871
+Non-EU Europe,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-NPi,2015,111.6676,5594.1,Floor area (Million m²),54.48791439763157,71.82039999999999
+Non-EU Europe,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-NPi,2040,123.9194,7672.3,Floor area (Million m²),61.1541033725051,56.8611
+Non-EU Europe,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-NPi,2050,124.5923,8022.4,Floor area (Million m²),55.1638482850874,48.4315
+Non-EU Europe,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP2-1p5C-CCimp,2015,111.6676,5594.1,Floor area (Million m²),54.48791439763157,143.64079999999998
+Non-EU Europe,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP2-1p5C-CCimp,2040,125.6939,7720.1,Floor area (Million m²),59.6637049775495,61.0318
+Non-EU Europe,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP2-1p5C-CCimp,2050,127.3123,8276.199999999999,Floor area (Million m²),57.35645361612785,10.3786
+Non-EU Europe,Buildings - Residential and Commercial,REMIndia-MAgPIE 3.2-4.6 - SSP2-NPi-CCimp,2015,111.6676,5594.1,Floor area (Million m²),54.48791439763157,71.82039999999999
+Non-EU Europe,Buildings - Residential and Commercial,REMIndia-MAgPIE 3.2-4.6 - SSP2-NPi-CCimp,2040,125.6939,7720.1,Floor area (Million m²),70.96828126492906,81.08950000000002
+Non-EU Europe,Buildings - Residential and Commercial,REMIndia-MAgPIE 3.2-4.6 - SSP2-NPi-CCimp,2050,127.3123,8276.199999999999,Floor area (Million m²),73.69828986338139,76.1211
+Other Asia,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_EI-1p5C-CCimp,2015,1180.0654,24857.3,Floor area (Million m²),232.71472246107206,199.1249
+Other Asia,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_EI-1p5C-CCimp,2040,1431.5572,53124.6,Floor area (Million m²),348.91086271138454,131.3777
+Other Asia,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_EI-1p5C-CCimp,2050,1460.2328,61720.2,Floor area (Million m²),397.55660647750744,49.4725
+Other Asia,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_MC-1p5C-CCimp,2015,1180.0654,24857.3,Floor area (Million m²),232.71472246107206,199.1249
+Other Asia,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_MC-1p5C-CCimp,2040,1431.5572,50675.4,Floor area (Million m²),301.97047864718195,113.4282
+Other Asia,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_MC-1p5C-CCimp,2050,1460.2328,58269.0,Floor area (Million m²),310.2584312601562,40.1728
+Other Asia,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_RC-1p5C-CCimp,2015,1180.0654,24857.3,Floor area (Million m²),232.71472246107206,199.1249
+Other Asia,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_RC-1p5C-CCimp,2040,1431.557,49362.7,Floor area (Million m²),291.1125441864958,122.2928
+Other Asia,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_RC-1p5C-CCimp,2050,1460.2328,55770.8,Floor area (Million m²),271.18085411293094,41.7095
+Other Asia,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-1p5C,2015,1180.0654,24857.3,Floor area (Million m²),67.5074042227966,199.1249
+Other Asia,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-1p5C,2040,1431.5572,47196.6,Floor area (Million m²),202.10423234929166,170.4452
+Other Asia,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-1p5C,2050,1460.2328,54836.2,Floor area (Million m²),275.6687685105617,105.1772
+Other Asia,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-NPi,2015,1180.0654,24857.3,Floor area (Million m²),232.71472246107206,199.1249
+Other Asia,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-NPi,2040,1431.5572,47196.6,Floor area (Million m²),299.1401547721461,190.84690000000003
+Other Asia,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-NPi,2050,1460.2328,54836.2,Floor area (Million m²),340.30046813796315,208.6128
+Other Asia,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP2-1p5C-CCimp,2015,1180.0654,24857.3,Floor area (Million m²),232.71472246107206,398.2498
+Other Asia,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP2-1p5C-CCimp,2040,1478.0789,44494.700000000004,Floor area (Million m²),274.25480080252686,316.9006
+Other Asia,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP2-1p5C-CCimp,2050,1541.598,51751.9,Floor area (Million m²),339.9995223082125,109.9852
+Other Asia,Buildings - Residential and Commercial,REMIndia-MAgPIE 3.2-4.6 - SSP2-NPi-CCimp,2015,1180.0654,24857.3,Floor area (Million m²),232.71472246107206,199.1249
+Other Asia,Buildings - Residential and Commercial,REMIndia-MAgPIE 3.2-4.6 - SSP2-NPi-CCimp,2040,1478.0789,44494.700000000004,Floor area (Million m²),329.12248017579617,286.09350000000006
+Other Asia,Buildings - Residential and Commercial,REMIndia-MAgPIE 3.2-4.6 - SSP2-NPi-CCimp,2050,1541.598,51751.9,Floor area (Million m²),382.20120378332547,323.6334
+Russia and Former Soviet Union,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_EI-1p5C-CCimp,2015,286.8903,8890.9,Floor area (Million m²),234.37708990159948,263.4895
+Russia and Former Soviet Union,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_EI-1p5C-CCimp,2040,289.4048,13644.5,Floor area (Million m²),174.70383108818487,106.2953
+Russia and Former Soviet Union,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_EI-1p5C-CCimp,2050,286.8788,14602.800000000001,Floor area (Million m²),122.98175217349974,17.419900000000002
+Russia and Former Soviet Union,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_MC-1p5C-CCimp,2015,286.8903,8890.9,Floor area (Million m²),234.37708990159948,263.4895
+Russia and Former Soviet Union,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_MC-1p5C-CCimp,2040,289.4048,13257.7,Floor area (Million m²),161.13977261870915,66.6616
+Russia and Former Soviet Union,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_MC-1p5C-CCimp,2050,286.8788,14120.2,Floor area (Million m²),107.8245915735186,6.6587
+Russia and Former Soviet Union,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_RC-1p5C-CCimp,2015,286.8903,8890.9,Floor area (Million m²),234.37708990159948,263.4895
+Russia and Former Soviet Union,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_RC-1p5C-CCimp,2040,289.4048,12714.2,Floor area (Million m²),156.20760485335126,83.1459
+Russia and Former Soviet Union,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_RC-1p5C-CCimp,2050,286.8788,13226.5,Floor area (Million m²),101.12496417311722,13.4395
+Russia and Former Soviet Union,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-1p5C,2015,286.8903,8890.9,Floor area (Million m²),39.146842457247246,263.4895
+Russia and Former Soviet Union,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-1p5C,2040,289.4048,12879.9,Floor area (Million m²),61.61507595299617,137.08749999999998
+Russia and Former Soviet Union,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-1p5C,2050,286.8788,13788.199999999999,Floor area (Million m²),68.60370688831682,58.9778
+Russia and Former Soviet Union,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-NPi,2015,286.8903,8890.9,Floor area (Million m²),234.37708990159948,263.4895
+Russia and Former Soviet Union,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-NPi,2040,289.4048,12879.9,Floor area (Million m²),229.960829272957,255.8722
+Russia and Former Soviet Union,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-NPi,2050,286.8788,13788.199999999999,Floor area (Million m²),195.98261201872882,146.1583
+Russia and Former Soviet Union,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP2-1p5C-CCimp,2015,286.8903,8890.9,Floor area (Million m²),234.37708990159948,526.979
+Russia and Former Soviet Union,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP2-1p5C-CCimp,2040,290.345,12259.800000000001,Floor area (Million m²),145.96828126493034,220.198
+Russia and Former Soviet Union,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP2-1p5C-CCimp,2050,289.3406,13298.7,Floor area (Million m²),131.243431737845,78.7104
+Russia and Former Soviet Union,Buildings - Residential and Commercial,REMIndia-MAgPIE 3.2-4.6 - SSP2-NPi-CCimp,2015,286.8903,8890.9,Floor area (Million m²),234.37708990159948,263.4895
+Russia and Former Soviet Union,Buildings - Residential and Commercial,REMIndia-MAgPIE 3.2-4.6 - SSP2-NPi-CCimp,2040,290.345,12259.800000000001,Floor area (Million m²),245.9826120187297,279.03819999999996
+Russia and Former Soviet Union,Buildings - Residential and Commercial,REMIndia-MAgPIE 3.2-4.6 - SSP2-NPi-CCimp,2050,289.3406,13298.7,Floor area (Million m²),235.05063533008902,242.1575
+Sub-Saharan Africa,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_EI-1p5C-CCimp,2015,972.711,15211.5,Floor area (Million m²),287.5585172446786,123.0697
+Sub-Saharan Africa,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_EI-1p5C-CCimp,2040,1510.0457,40751.600000000006,Floor area (Million m²),190.71367153912618,82.6113
+Sub-Saharan Africa,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_EI-1p5C-CCimp,2050,1633.1926,55239.3,Floor area (Million m²),234.47262826025047,31.9075
+Sub-Saharan Africa,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_MC-1p5C-CCimp,2015,972.711,15211.5,Floor area (Million m²),287.5585172446786,123.0697
+Sub-Saharan Africa,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_MC-1p5C-CCimp,2040,1510.0457,38239.4,Floor area (Million m²),183.8611827648832,59.558499999999995
+Sub-Saharan Africa,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_MC-1p5C-CCimp,2050,1633.1926,50519.9,Floor area (Million m²),178.15276583548595,27.949800000000003
+Sub-Saharan Africa,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_RC-1p5C-CCimp,2015,972.711,15211.5,Floor area (Million m²),287.5585172446786,123.0697
+Sub-Saharan Africa,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_RC-1p5C-CCimp,2040,1510.046,37802.0,Floor area (Million m²),181.44167383204663,86.1198
+Sub-Saharan Africa,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_RC-1p5C-CCimp,2050,1633.1926,49305.5,Floor area (Million m²),177.45772427629996,53.5871
+Sub-Saharan Africa,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-1p5C,2015,972.711,15211.5,Floor area (Million m²),13.377758670106276,123.0697
+Sub-Saharan Africa,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-1p5C,2040,1510.0457,35495.5,Floor area (Million m²),72.85755230725259,123.6479
+Sub-Saharan Africa,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-1p5C,2050,1633.1926,47234.7,Floor area (Million m²),139.68902264259336,105.8932
+Sub-Saharan Africa,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-NPi,2015,972.711,15211.5,Floor area (Million m²),287.5585172446786,123.0697
+Sub-Saharan Africa,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-NPi,2040,1510.0457,35495.5,Floor area (Million m²),295.75093149900187,166.57340000000002
+Sub-Saharan Africa,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-NPi,2050,1633.1926,47234.7,Floor area (Million m²),279.5404604948934,181.1901
+Sub-Saharan Africa,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP2-1p5C-CCimp,2015,972.711,15211.5,Floor area (Million m²),287.5585172446786,246.1394
+Sub-Saharan Africa,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP2-1p5C-CCimp,2040,1688.2663,34697.899999999994,Floor area (Million m²),277.3908474252459,317.69
+Sub-Saharan Africa,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP2-1p5C-CCimp,2050,1959.0324,47341.799999999996,Floor area (Million m²),255.27849431547202,196.214
+Sub-Saharan Africa,Buildings - Residential and Commercial,REMIndia-MAgPIE 3.2-4.6 - SSP2-NPi-CCimp,2015,972.711,15211.5,Floor area (Million m²),287.5585172446786,123.0697
+Sub-Saharan Africa,Buildings - Residential and Commercial,REMIndia-MAgPIE 3.2-4.6 - SSP2-NPi-CCimp,2040,1688.2663,34697.899999999994,Floor area (Million m²),389.1157924906916,424.4539
+Sub-Saharan Africa,Buildings - Residential and Commercial,REMIndia-MAgPIE 3.2-4.6 - SSP2-NPi-CCimp,2050,1959.0324,47341.799999999996,Floor area (Million m²),459.374701442637,736.2359
+United States,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_EI-1p5C-CCimp,2015,320.739,30518.7,Floor area (Million m²),479.92022547053455,459.5749
+United States,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_EI-1p5C-CCimp,2040,361.0036,35857.100000000006,Floor area (Million m²),321.4507499761209,92.7294
+United States,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_EI-1p5C-CCimp,2050,370.1471,36818.8,Floor area (Million m²),259.9765931021349,17.6771
+United States,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_MC-1p5C-CCimp,2015,320.739,30518.7,Floor area (Million m²),479.92022547053455,459.5749
+United States,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_MC-1p5C-CCimp,2040,361.0036,33482.2,Floor area (Million m²),273.70545524028364,67.2625
+United States,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_MC-1p5C-CCimp,2050,370.1471,33767.8,Floor area (Million m²),207.0602847043123,1.8425
+United States,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_RC-1p5C-CCimp,2015,320.739,30518.7,Floor area (Million m²),479.92022547053455,459.5749
+United States,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_RC-1p5C-CCimp,2040,361.0036,32828.8,Floor area (Million m²),282.31107289577244,80.9554
+United States,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_RC-1p5C-CCimp,2050,370.1471,32829.4,Floor area (Million m²),203.1623196713515,9.615099999999998
+United States,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-1p5C,2015,320.739,30518.7,Floor area (Million m²),253.1742619661837,459.5749
+United States,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-1p5C,2040,361.0036,37560.8,Floor area (Million m²),241.99388554505043,130.5124
+United States,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-1p5C,2050,370.1471,38120.9,Floor area (Million m²),221.41492309162507,22.4897
+United States,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-NPi,2015,320.739,30518.7,Floor area (Million m²),479.92022547053455,459.5749
+United States,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-NPi,2040,361.0036,37560.8,Floor area (Million m²),391.855354925009,324.26439999999997
+United States,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-NPi,2050,370.1471,38120.9,Floor area (Million m²),319.7955479124923,265.3493
+United States,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP2-1p5C-CCimp,2015,320.739,30518.7,Floor area (Million m²),479.92022547053455,919.1498
+United States,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP2-1p5C-CCimp,2040,369.427,38837.1,Floor area (Million m²),395.8608006114522,327.58299999999997
+United States,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP2-1p5C-CCimp,2050,387.1595,40936.9,Floor area (Million m²),391.09343651476735,189.0052
+United States,Buildings - Residential and Commercial,REMIndia-MAgPIE 3.2-4.6 - SSP2-NPi-CCimp,2015,320.739,30518.7,Floor area (Million m²),479.92022547053455,459.5749
+United States,Buildings - Residential and Commercial,REMIndia-MAgPIE 3.2-4.6 - SSP2-NPi-CCimp,2040,369.427,38837.1,Floor area (Million m²),469.0097449125904,374.5279
+United States,Buildings - Residential and Commercial,REMIndia-MAgPIE 3.2-4.6 - SSP2-NPi-CCimp,2050,387.1595,40936.9,Floor area (Million m²),446.79707652623284,354.2024
+WLD,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_EI-1p5C-CCimp,2015,7407.8612,236930.80000000002,Floor area (Million m²),2818.6849144932166,3063.2464999999997
+WLD,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_EI-1p5C-CCimp,2040,8740.7919,411062.6,Floor area (Million m²),2998.9419126779912,1089.0146
+WLD,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_EI-1p5C-CCimp,2050,8897.7041,454679.7,Floor area (Million m²),2727.682239419173,281.2254
+WLD,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_MC-1p5C-CCimp,2015,7407.8612,236930.80000000002,Floor area (Million m²),2818.6849144932166,3063.2464999999997
+WLD,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_MC-1p5C-CCimp,2040,8740.7919,375543.3,Floor area (Million m²),2600.530237890557,824.9947
+WLD,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_MC-1p5C-CCimp,2050,8897.7041,409277.0,Floor area (Million m²),2159.0355402694545,208.3391
+WLD,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_RC-1p5C-CCimp,2015,7407.8612,236930.80000000002,Floor area (Million m²),2818.6849144932166,3063.2464999999997
+WLD,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_RC-1p5C-CCimp,2040,8740.7917,352818.4,Floor area (Million m²),2513.224897296307,946.9212
+WLD,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SDP_RC-1p5C-CCimp,2050,8897.7041,381159.89999999997,Floor area (Million m²),1955.350148084489,268.3361
+WLD,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-1p5C,2015,7407.8612,236930.80000000002,Floor area (Million m²),929.9417216012387,3063.2464999999997
+WLD,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-1p5C,2040,8740.7919,384840.5,Floor area (Million m²),1803.7403267412174,1600.1898
+WLD,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-1p5C,2050,8897.7041,423184.39999999997,Floor area (Million m²),1976.7292442916164,731.6103
+WLD,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-NPi,2015,7407.8612,236930.80000000002,Floor area (Million m²),2818.6849144932166,3063.2464999999997
+WLD,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-NPi,2040,8740.7919,384840.5,Floor area (Million m²),3320.5813509124478,2848.8624
+WLD,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP1-NPi,2050,8897.7041,423184.39999999997,Floor area (Million m²),3046.486576860661,2391.9242
+WLD,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP2-1p5C-CCimp,2015,14815.0518,473861.5999999999,Floor area (Million m²),5637.369828986433,6126.4929999999995
+WLD,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP2-1p5C-CCimp,2040,18111.79,742303.4,Floor area (Million m²),5742.782077004014,2805.661
+WLD,Buildings - Residential and Commercial,REMIND-MAgPIE 3.2-4.6 - SSP2-1p5C-CCimp,2050,18898.7534,828460.7999999999,Floor area (Million m²),5918.6968567881,1210.133
+WLD,Buildings - Residential and Commercial,REMIndia-MAgPIE 3.2-4.6 - SSP2-NPi-CCimp,2015,7407.5259,236930.80000000002,Floor area (Million m²),2818.6849144932166,3063.2464999999997
+WLD,Buildings - Residential and Commercial,REMIndia-MAgPIE 3.2-4.6 - SSP2-NPi-CCimp,2040,9055.895,371151.7,Floor area (Million m²),3654.089041750324,3499.2131
+WLD,Buildings - Residential and Commercial,REMIndia-MAgPIE 3.2-4.6 - SSP2-NPi-CCimp,2050,9449.3767,414230.39999999997,Floor area (Million m²),3773.3854017388626,3754.9641

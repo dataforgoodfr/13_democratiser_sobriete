@@ -344,25 +344,12 @@ class CO2DecompositionPreprocessor:
         print(f"Unified dataset saved to: {unified_path}")
         print(f"Intermediary dataset saved to: {intermediary_path}")
         
-        # Create summary statistics
-        summary = df_unified.groupby(["Zone", "Sector", "Scenario"]).agg({
-            "CO2_2015": "first",
-            "CO2_2040": "first",
-            "CO2_2050": "first"
-        }).reset_index()
-        
-        # Calculate total changes for summary
-        summary["Total_Change_2015_2040"] = summary["CO2_2040"] - summary["CO2_2015"]
-        summary["Total_Change_2040_2050"] = summary["CO2_2050"] - summary["CO2_2040"]
-        summary["Total_Change_2015_2050"] = summary["CO2_2050"] - summary["CO2_2015"]
-        
-        summary_path = os.path.join(output_dir, "decomposition_summary.csv")
-        summary.to_csv(summary_path, index=False)
-        print(f"Summary saved to: {summary_path}")
+        # Summary statistics for validation (not saved to file)
+        total_scenarios = len(df_unified.groupby(["Zone", "Sector", "Scenario"]).size())
         
         # Data validation summary
         print("\nData Validation Summary:")
-        print(f"Total scenarios processed: {len(summary)}")
+        print(f"Total scenarios processed: {total_scenarios}")
         print(f"Zones: {sorted(df_unified['Zone'].unique())}")
         print(f"Sectors: {sorted(df_unified['Sector'].unique())}")
         print(f"Scenarios: {sorted(df_unified['Scenario'].unique())}")
