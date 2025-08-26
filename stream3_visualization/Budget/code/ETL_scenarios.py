@@ -704,7 +704,7 @@ print("=== END VERIFICATION ===\n")
 
 # Create all scenario combinations
 scenarios = []
-current_year = datetime.now().year
+current_year = 2025  # Updated to current year 2025
 
 # Print budget adjustments for territory emissions
 print("\n=== Budget Adjustments for Territory Emissions ===")
@@ -1139,7 +1139,7 @@ for scenario_type in ['Responsibility', 'Capability']:
                             main_scenario['Neutrality_year'] = new_neutrality_year
                             
                             # Recalculate years from today
-                            current_year = 2024
+                            current_year = 2025  # Updated to current year 2025
                             main_scenario['Years_to_neutrality_from_today'] = new_neutrality_year - current_year
                         break
             

@@ -413,13 +413,16 @@ def update_map(budget_dist, probability, emissions_scope, selected_country, g20_
         marker_line_color="white",
         marker_line_width=0.5,
         hovertemplate="<b>%{hovertext}</b><br>" +
-                      "Zero Carbon Year = %{customdata[0]}<br>" +
-                      "Years to Zero Carbon = %{customdata[1]}<br>" +
-                      "Annual Emissions (Mt) = %{customdata[2]:.1f}<br>" +
-                      "Cumulative Emissions (Mt) = %{customdata[3]:.1f}<br>" +
-                      "Emissions Per Capita (tonnes) = %{customdata[4]:.2f}<br>" +
-                      "Carbon Budget (Mt) = %{customdata[5]:.1f}<extra></extra>",
+                      "Scope: %{customdata[0]}<br>" +
+                      "Latest Year: %{customdata[1]}<br>" +
+                      "Zero Carbon Year = %{customdata[2]}<br>" +
+                      "Years to Zero Carbon = %{customdata[3]}<br>" +
+                      "Annual Emissions (Mt) = %{customdata[4]:.1f}<br>" +
+                      "Cumulative Emissions (Mt) = %{customdata[5]:.1f}<br>" +
+                      "Emissions Per Capita (tonnes) = %{customdata[6]:.2f}<br>" +
+                      "Carbon Budget (Mt) = %{customdata[7]:.1f}<extra></extra>",
         customdata=plot_data[[
+            'Emissions_scope', 'Latest_year',
             'Neutrality_year', 'Years_to_neutrality_from_today',
             'Latest_annual_CO2_emissions_Mt', 'Latest_cumulative_CO2_emissions_Mt',
             'Latest_emissions_per_capita_t', 'Country_carbon_budget'
@@ -735,15 +738,15 @@ def update_line_chart(budget_dist, probability, emissions_scope, selected_countr
         target_iso = selected_country
         country_name = scenario_parameters[scenario_parameters['ISO2'] == selected_country]['Country'].iloc[0] if len(
             scenario_parameters[scenario_parameters['ISO2'] == selected_country]) > 0 else selected_country
-        chart_title = f'Past Emissions & Trajectory Under the ICJ Ruling - {get_scope_display_label(emissions_scope)} - {country_name} - Mt'
+        chart_title = f'Past Emissions & Required Trajectory Under the ICJ AO - {get_scope_display_label(emissions_scope)} - {country_name} - Mt'
     elif g20_filter == 'Yes':
         # When G20 filter is active (and no specific country), show G20 aggregate data
         target_iso = 'G20'
-        chart_title = f'Past Emissions & Trajectory Under the ICJ Ruling - G20 ({get_scope_display_label(emissions_scope)}) - Mt'
+        chart_title = f'Past Emissions & Required Trajectory Under the ICJ AO - G20 ({get_scope_display_label(emissions_scope)}) - Mt'
     else:
         # For "All Countries" without G20 filter, show world aggregate data
         target_iso = 'WLD'
-        chart_title = f'Past Emissions & Trajectory Under the ICJ Ruling - World ({get_scope_display_label(emissions_scope)}) - Mt'
+        chart_title = f'Past Emissions & Required Trajectory Under the ICJ AO - World ({get_scope_display_label(emissions_scope)}) - Mt'
     # Filter historical data (exclude 2050 as it's only for population data)
     hist_data = historical_data[
         (historical_data['ISO2'] == target_iso) &
