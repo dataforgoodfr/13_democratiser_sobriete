@@ -321,7 +321,7 @@ app.layout = html.Div([
             'height': 'fit-content',
             'overflowY': 'auto',
             'alignSelf': 'start',
-            'marginTop': '30vh',  # Position 30% from the top
+            'marginTop': '20vh',  # Reduced from 30vh to 20vh for better iframe positioning
             'display': 'flex',
             'flexDirection': 'column',
             'justifyContent': 'center'  # Center filters vertically within the container
