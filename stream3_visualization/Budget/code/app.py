@@ -71,7 +71,7 @@ def get_scope_display_label(scope_value):
     """Convert internal scope values to user-friendly display labels"""
     scope_mapping = {
         'Territory': 'Territorial',
-        'Consumption': 'Consumption-based'
+        'Consumption': 'Consumption'  # Changed from 'Consumption-based' to 'Consumption' to prevent title cropping
     }
     return scope_mapping.get(scope_value, scope_value)
 
@@ -104,6 +104,16 @@ app.layout = html.Div([
 
     # Controls section - sticky filters
     html.Div([
+        # Filters title
+        html.H3("Filters", style={
+            'textAlign': 'center',
+            'fontSize': '1.2rem',
+            'fontWeight': 'bold',
+            'color': '#2c3e50',
+            'marginBottom': '30px',  # Increased from 20px to 30px (50% more)
+            'marginTop': '0'
+        }),
+        
         html.Div([
             html.Label("Country", style={'fontWeight': 'bold', 'color': '#2c3e50', 'fontSize': '0.9rem'}),
             dcc.Dropdown(
@@ -119,7 +129,7 @@ app.layout = html.Div([
                 style={'marginTop': '6px', 'fontSize': '0.85rem'},
                 clearable=False
             )
-        ], style={'width': '18%', 'display': 'inline-block', 'margin-right': '2%'}),
+        ], style={'width': '100%', 'marginBottom': '52px'}),  # Increased from 35px to 52px (50% more)
         html.Div([
             html.Label("G20 Only", style={'fontWeight': 'bold', 'color': '#2c3e50', 'fontSize': '0.9rem'}),
             dcc.Dropdown(
@@ -132,7 +142,7 @@ app.layout = html.Div([
                 style={'marginTop': '6px', 'fontSize': '0.85rem'},
                 clearable=False
             )
-        ], style={'width': '18%', 'display': 'inline-block', 'margin-right': '2%'}),
+        ], style={'width': '100%', 'marginBottom': '52px'}),  # Increased from 35px to 52px (50% more)
         html.Div([
             html.Label("Carbon Budget Allocation", style={'fontWeight': 'bold', 'color': '#2c3e50', 'fontSize': '0.9rem'}),
             dcc.Dropdown(
@@ -143,7 +153,21 @@ app.layout = html.Div([
                 style={'marginTop': '6px', 'fontSize': '0.85rem'},
                 clearable=False
             )
-        ], style={'width': '18%', 'display': 'inline-block', 'margin-right': '2%'}),
+        ], style={'width': '100%', 'marginBottom': '52px'}),  # Increased from 35px to 52px (50% more)
+        html.Div([
+            html.Label([
+                "Probability of not exceeding",
+                html.Br(),
+                "+1.5°C"
+            ], style={'fontWeight': 'bold', 'color': '#2c3e50', 'fontSize': '0.9rem'}),
+            dcc.Dropdown(
+                id='probability-dropdown',
+                options=[{'label': i, 'value': i} for i in scenario_parameters['Probability_of_reach'].unique()],
+                value='50%',
+                style={'marginTop': '6px', 'fontSize': '0.85rem'},
+                clearable=False
+            )
+        ], style={'width': '100%', 'marginBottom': '52px'}),  # Increased from 35px to 52px (50% more)
         html.Div([
             html.Label("Scope of Emissions", style={'fontWeight': 'bold', 'color': '#2c3e50', 'fontSize': '0.9rem'}),
             dcc.Dropdown(
@@ -156,29 +180,22 @@ app.layout = html.Div([
                 style={'marginTop': '6px', 'fontSize': '0.85rem'},
                 clearable=False
             )
-        ], style={'width': '18%', 'display': 'inline-block', 'margin-right': '2%'}),
-        html.Div([
-            html.Label("Probability of not exceeding +1.5°C",
-                       style={'fontWeight': 'bold', 'color': '#2c3e50', 'whiteSpace': 'nowrap',
-                              'overflow': 'visible', 'fontSize': '0.9rem'}),
-            dcc.Dropdown(
-                id='probability-dropdown',
-                options=[{'label': i, 'value': i} for i in scenario_parameters['Probability_of_reach'].unique()],
-                value='50%',
-                style={'marginTop': '6px', 'fontSize': '0.85rem'},
-                clearable=False
-            )
-        ], style={'width': '18%', 'display': 'inline-block'}),
+        ], style={'width': '100%', 'marginBottom': '52px'}),  # Increased from 35px to 52px (50% more)
     ], style={
         'padding': '12px 20px',
         'backgroundColor': '#fdf6e3',
         'borderRadius': '8px',
         'boxShadow': '0 1px 2px rgba(0,0,0,0.05)',
-        'margin': '20px 20px 8px 20px',  # Added top margin to separate from header
+        'margin': '0 20px 8px 20px',
         'position': 'sticky',
-        'top': 0,
+        'top': '25%',  # Center vertically on the page
+        'transform': 'translateY(-50%)',  # Perfect vertical centering
         'zIndex': 1000,
-        'width': 'calc(100% - 40px)'  # Make filters take full width minus margins
+        'width': '12.5%',  # Reduced width by 50% (from 25% to 12.5%)
+        'float': 'right',  # Move to right side
+        'marginRight': '20px',
+        'height': 'calc(100vh - 250px)',  # Made 2cm shorter (reduced from 200px to 250px)
+        'overflowY': 'auto'  # Add scroll if content is too long
     }),
 
     # Visualizations
@@ -196,10 +213,10 @@ app.layout = html.Div([
             dcc.Graph(id='top-per-capita-emitters', style={'display': 'inline-block', 'width': '49%'})
         ], style={'marginTop': '20px', 'width': '100%'})
     ], style={
-        'width': '100%',
+        'width': '80%',  # Increased width to use more space
         'padding': '0 20px',
-        'margin': '0 20px',
-        'paddingTop': '20px'  # Extra space to account for sticky headers
+        'margin': '0 20px 0 20px',  # Reduced right margin for closer proximity to filters
+        'paddingTop': '20px'
     }),
 
     # Collaboration section
@@ -301,12 +318,19 @@ app.layout = html.Div([
         'borderRadius': '8px',
         'boxShadow': '0 2px 4px rgba(0,0,0,0.1)',
         'fontSize': '0.9rem',
-        'color': '#2c3e50'
+        'color': '#2c3e50',
+        'width': '100%',  # Full width to span entire dashboard
+        'marginRight': '20px',  # Reduced right margin
+        'marginLeft': '20px'  # Ensure left margin is consistent
     })
 ], style={
-    'backgroundColor': '#ffffff',  # Clean white background
+    'backgroundColor': '#ffffff',
     'minHeight': '100vh',
-    'fontFamily': 'Arial, sans-serif'
+    'fontFamily': 'Arial, sans-serif',
+    'width': '100%',  # Full width
+    'maxWidth': '100vw',  # Maximum viewport width
+    'overflowX': 'hidden',  # Prevent horizontal scrolling
+    'boxSizing': 'border-box'  # Include padding in width calculation
 })
 
 
