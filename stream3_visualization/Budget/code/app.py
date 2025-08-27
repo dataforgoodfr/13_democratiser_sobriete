@@ -101,236 +101,246 @@ app.layout = html.Div([
         href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css'
     ),
 
-
-    # Controls section - sticky filters
+    # Main container with CSS Grid layout
     html.Div([
-        # Filters title
-        html.H3("Filters", style={
-            'textAlign': 'center',
-            'fontSize': '1.2rem',
-            'fontWeight': 'bold',
-            'color': '#2c3e50',
-            'marginBottom': '30px',  # Increased from 20px to 30px (50% more)
-            'marginTop': '0'
-        }),
-        
+        # Left side - Main content (85%)
         html.Div([
-            html.Label("Country", style={'fontWeight': 'bold', 'color': '#2c3e50', 'fontSize': '0.9rem'}),
-            dcc.Dropdown(
-                id='country-dropdown',
-                options=[{'label': 'All Countries', 'value': 'ALL'}] +
-                        [{'label': f"{country} ({iso2})", 'value': iso2}
-                         for country, iso2 in scenario_parameters[
-                             (~scenario_parameters['ISO2'].isin(['WLD', 'EU', 'G20'])) &
-                             (scenario_parameters['Country'] != 'All') &
-                             (scenario_parameters['ISO2'].notna())
-                             ][['Country', 'ISO2']].drop_duplicates().sort_values('Country').values],
-                value='ALL',
-                style={'marginTop': '6px', 'fontSize': '0.85rem'},
-                clearable=False
-            )
-        ], style={'width': '100%', 'marginBottom': '52px'}),  # Increased from 35px to 52px (50% more)
-        html.Div([
-            html.Label("G20 Only", style={'fontWeight': 'bold', 'color': '#2c3e50', 'fontSize': '0.9rem'}),
-            dcc.Dropdown(
-                id='g20-filter-dropdown',
-                options=[
-                    {'label': 'No', 'value': 'No'},
-                    {'label': 'Yes', 'value': 'Yes'}
-                ],
-                value='No',
-                style={'marginTop': '6px', 'fontSize': '0.85rem'},
-                clearable=False
-            )
-        ], style={'width': '100%', 'marginBottom': '52px'}),  # Increased from 35px to 52px (50% more)
-        html.Div([
-            html.Label("Carbon Budget Allocation", style={'fontWeight': 'bold', 'color': '#2c3e50', 'fontSize': '0.9rem'}),
-            dcc.Dropdown(
-                id='budget-distribution-dropdown',
-                options=[{'label': i, 'value': i} for i in
-                         scenario_parameters['Budget_distribution_scenario'].unique()],
-                value='Responsibility',
-                style={'marginTop': '6px', 'fontSize': '0.85rem'},
-                clearable=False
-            )
-        ], style={'width': '100%', 'marginBottom': '52px'}),  # Increased from 35px to 52px (50% more)
-        html.Div([
-            html.Label([
-                "Probability of not exceeding",
-                html.Br(),
-                "+1.5°C"
-            ], style={'fontWeight': 'bold', 'color': '#2c3e50', 'fontSize': '0.9rem'}),
-            dcc.Dropdown(
-                id='probability-dropdown',
-                options=[{'label': i, 'value': i} for i in scenario_parameters['Probability_of_reach'].unique()],
-                value='50%',
-                style={'marginTop': '6px', 'fontSize': '0.85rem'},
-                clearable=False
-            )
-        ], style={'width': '100%', 'marginBottom': '52px'}),  # Increased from 35px to 52px (50% more)
-        html.Div([
-            html.Label("Scope of Emissions", style={'fontWeight': 'bold', 'color': '#2c3e50', 'fontSize': '0.9rem'}),
-            dcc.Dropdown(
-                id='emissions-scope-dropdown',
-                options=[
-                    {'label': 'Territorial', 'value': 'Territory'},
-                    {'label': 'Consumption-based', 'value': 'Consumption'}
-                ],
-                value='Territory',
-                style={'marginTop': '6px', 'fontSize': '0.85rem'},
-                clearable=False
-            )
-        ], style={'width': '100%', 'marginBottom': '52px'}),  # Increased from 35px to 52px (50% more)
-    ], style={
-        'padding': '12px 20px',
-        'backgroundColor': '#fdf6e3',
-        'borderRadius': '8px',
-        'boxShadow': '0 1px 2px rgba(0,0,0,0.05)',
-        'margin': '0 20px 8px 20px',
-        'position': 'sticky',
-        'top': '25%',  # Center vertically on the page
-        'transform': 'translateY(-50%)',  # Perfect vertical centering
-        'zIndex': 1000,
-        'width': '12.5%',  # Reduced width by 50% (from 25% to 12.5%)
-        'float': 'right',  # Move to right side
-        'marginRight': '20px',
-        'height': 'calc(100vh - 250px)',  # Made 2cm shorter (reduced from 200px to 250px)
-        'overflowY': 'auto'  # Add scroll if content is too long
-    }),
-
-    # Visualizations
-    html.Div([
-        dcc.Graph(id='world-map'),
-        html.Div([
-            dcc.Graph(id='scenario-comparison-bar',
-                      style={'display': 'inline-block', 'width': '49%', 'verticalAlign': 'top'}),
-            dcc.Graph(id='emissions-trajectory-line',
-                      style={'display': 'inline-block', 'width': '49%', 'verticalAlign': 'top'})
-        ], style={'textAlign': 'center', 'margin': '0 auto'}),
-        # Top 20 Emitters Charts
-        html.Div([
-            dcc.Graph(id='top-cumulative-emitters', style={'display': 'inline-block', 'width': '49%', 'marginRight': '2%'}),
-            dcc.Graph(id='top-per-capita-emitters', style={'display': 'inline-block', 'width': '49%'})
-        ], style={'marginTop': '20px', 'width': '100%'})
-    ], style={
-        'width': '80%',  # Increased width to use more space
-        'padding': '0 20px',
-        'margin': '0 20px 0 20px',  # Reduced right margin for closer proximity to filters
-        'paddingTop': '20px'
-    }),
-
-    # Collaboration section
-    html.Div([
-        html.Div([
-            # Left side - Text content
+            # Visualizations
             html.Div([
-                html.P([
-                    "This tool was developed as a collaboration between ",
-                    html.Strong("Data for Good"),
-                    ", a community of 6000+ tech experts volunteering for general interest projects, and the ",
-                    html.Strong("World Sufficiency Lab.")
-                ], style={
-                    'fontSize': '1.1rem',
-                    'lineHeight': '1.6',
-                    'color': '#2c3e50',
-                    'margin': '0',
-                    'padding': '0'
-                })
+                dcc.Graph(id='world-map'),
+                html.Div([
+                    dcc.Graph(id='scenario-comparison-bar',
+                              style={'display': 'inline-block', 'width': '49%', 'verticalAlign': 'top'}),
+                    dcc.Graph(id='emissions-trajectory-line',
+                              style={'display': 'inline-block', 'width': '49%', 'verticalAlign': 'top'})
+                ], style={'textAlign': 'center', 'margin': '0 auto'}),
+                # Top 20 Emitters Charts
+                html.Div([
+                    dcc.Graph(id='top-cumulative-emitters', style={'display': 'inline-block', 'width': '49%', 'marginRight': '2%'}),
+                    dcc.Graph(id='top-per-capita-emitters', style={'display': 'inline-block', 'width': '49%'})
+                ], style={'marginTop': '20px', 'width': '100%'})
             ], style={
-                'display': 'inline-block',
-                'width': '60%',
-                'verticalAlign': 'top',
-                'paddingRight': '40px'
+                'padding': '0 20px',
+                'paddingTop': '20px'
             }),
-            
-            # Right side - Data for Good logo and links
+
+            # Collaboration section
             html.Div([
                 html.Div([
-                    html.Img(
-                        src="assets/d4g-logo.png",
-                        style={
-                            'width': '60px',
-                            'height': '60px',
-                            'objectFit': 'contain'
-                        }
-                    )
-                ], style={
-                    'textAlign': 'center',
-                    'marginBottom': '15px'
-                }),
-                html.H4([
-                    html.A("Data for Good", 
-                           href="https://dataforgood.fr",
-                           target="_blank",
-                           style={
-                               'color': '#2c3e50',
-                               'textDecoration': 'none'
-                           })
-                ], style={
-                    'fontSize': '1.1rem',
-                    'fontWeight': 'bold',
-                    'textAlign': 'center',
-                    'margin': '0 0 15px 0'
-                }),
-                # Links arranged side by side
-                html.Div([
-                    html.A([
-                        html.I(className="fas fa-globe", style={'marginRight': '8px'}),
-                        "Website"
-                    ], 
-                    href="https://dataforgood.fr",
-                    target="_blank",
-                    style={
-                        'color': '#2c3e50',
-                        'textDecoration': 'none',
-                        'marginRight': '20px',
-                        'fontSize': '0.9rem'
+                    # Left side - Text content
+                    html.Div([
+                        html.P([
+                            "This tool was developed as a collaboration between ",
+                            html.Strong("Data for Good"),
+                            ", a community of 6000+ tech experts volunteering for general interest projects, and the ",
+                            html.Strong("World Sufficiency Lab.")
+                        ], style={
+                            'fontSize': '1.1rem',
+                            'lineHeight': '1.6',
+                            'color': '#2c3e50',
+                            'margin': '0',
+                            'padding': '0'
+                        })
+                    ], style={
+                        'display': 'inline-block',
+                        'width': '60%',
+                        'verticalAlign': 'top',
+                        'paddingRight': '40px'
                     }),
-                    html.A([
-                        html.I(className="fab fa-linkedin", style={'marginRight': '8px'}),
-                        "LinkedIn"
-                    ], 
-                    href="https://www.linkedin.com/company/dataforgood/",
-                    target="_blank",
-                    style={
-                        'color': '#2c3e50',
-                        'textDecoration': 'none',
-                        'fontSize': '0.9rem'
+                    
+                    # Right side - Data for Good logo and links
+                    html.Div([
+                        html.Div([
+                            html.Img(
+                                src="assets/d4g-logo.png",
+                                style={
+                                    'width': '60px',
+                                    'height': '60px',
+                                    'objectFit': 'contain'
+                                }
+                            )
+                        ], style={
+                            'textAlign': 'center',
+                            'marginBottom': '15px'
+                        }),
+                        html.H4([
+                            html.A("Data for Good", 
+                                   href="https://dataforgood.fr",
+                                   target="_blank",
+                                   style={
+                                       'color': '#2c3e50',
+                                       'textDecoration': 'none'
+                                   })
+                        ], style={
+                            'fontSize': '1.1rem',
+                            'fontWeight': 'bold',
+                            'textAlign': 'center',
+                            'margin': '0 0 15px 0'
+                        }),
+                        # Links arranged side by side
+                        html.Div([
+                            html.A([
+                                html.I(className="fas fa-globe", style={'marginRight': '8px'}),
+                                "Website"
+                            ], 
+                            href="https://dataforgood.fr",
+                            target="_blank",
+                            style={
+                                'color': '#2c3e50',
+                                'textDecoration': 'none',
+                                'marginRight': '20px',
+                                'fontSize': '0.9rem'
+                            }),
+                            html.A([
+                                html.I(className="fab fa-linkedin", style={'marginRight': '8px'}),
+                                "LinkedIn"
+                            ], 
+                            href="https://www.linkedin.com/company/dataforgood/",
+                            target="_blank",
+                            style={
+                                'color': '#2c3e50',
+                                'textDecoration': 'none',
+                                'fontSize': '0.9rem'
+                            })
+                        ], style={
+                            'textAlign': 'center'
+                        })
+                    ], style={
+                        'display': 'inline-block',
+                        'width': '40%',
+                        'verticalAlign': 'top',
+                        'textAlign': 'center'
                     })
                 ], style={
-                    'textAlign': 'center'
+                    'display': 'flex',
+                    'alignItems': 'center',
+                    'justifyContent': 'space-between'
                 })
             ], style={
-                'display': 'inline-block',
-                'width': '40%',
-                'verticalAlign': 'top',
-                'textAlign': 'center'
+                'margin': '40px 20px 20px 20px',
+                'padding': '30px',
+                'backgroundColor': '#fdf6e3',  # Light cream background like filters
+                'borderRadius': '8px',
+                'boxShadow': '0 2px 4px rgba(0,0,0,0.1)',
+                'fontSize': '0.9rem',
+                'color': '#2c3e50'
             })
         ], style={
+            'gridColumn': '1',
+            'width': '100%'
+        }),
+
+        # Right side - Filters (15%)
+        html.Div([
+            # Filters title
+            html.H3("Filters", style={
+                'textAlign': 'center',
+                'fontSize': '1.2rem',
+                'fontWeight': 'bold',
+                'color': '#2c3e50',
+                'marginBottom': '30px',
+                'marginTop': '0'
+            }),
+            
+            html.Div([
+                html.Label("Country", style={'fontWeight': 'bold', 'color': '#2c3e50', 'fontSize': '0.9rem'}),
+                dcc.Dropdown(
+                    id='country-dropdown',
+                    options=[{'label': 'All Countries', 'value': 'ALL'}] +
+                            [{'label': f"{country} ({iso2})", 'value': iso2}
+                             for country, iso2 in scenario_parameters[
+                                 (~scenario_parameters['ISO2'].isin(['WLD', 'EU', 'G20'])) &
+                                 (scenario_parameters['Country'] != 'All') &
+                                 (scenario_parameters['ISO2'].notna())
+                                 ][['Country', 'ISO2']].drop_duplicates().sort_values('Country').values],
+                    value='ALL',
+                    style={'marginTop': '6px', 'fontSize': '0.85rem'},
+                    clearable=False
+                )
+            ], style={'width': '100%', 'marginBottom': '52px'}),
+            
+            html.Div([
+                html.Label("G20 Only", style={'fontWeight': 'bold', 'color': '#2c3e50', 'fontSize': '0.9rem'}),
+                dcc.Dropdown(
+                    id='g20-filter-dropdown',
+                    options=[
+                        {'label': 'No', 'value': 'No'},
+                        {'label': 'Yes', 'value': 'Yes'}
+                    ],
+                    value='No',
+                    style={'marginTop': '6px', 'fontSize': '0.85rem'},
+                    clearable=False
+                )
+            ], style={'width': '100%', 'marginBottom': '52px'}),
+            
+            html.Div([
+                html.Label("Carbon Budget Allocation", style={'fontWeight': 'bold', 'color': '#2c3e50', 'fontSize': '0.9rem'}),
+                dcc.Dropdown(
+                    id='budget-distribution-dropdown',
+                    options=[{'label': i, 'value': i} for i in
+                             scenario_parameters['Budget_distribution_scenario'].unique()],
+                    value='Responsibility',
+                    style={'marginTop': '6px', 'fontSize': '0.85rem'},
+                    clearable=False
+                )
+            ], style={'width': '100%', 'marginBottom': '52px'}),
+            
+            html.Div([
+                html.Label([
+                    "Probability of not exceeding +1.5°C"
+                ], style={'fontWeight': 'bold', 'color': '#2c3e50', 'fontSize': '0.9rem'}),
+                dcc.Dropdown(
+                    id='probability-dropdown',
+                    options=[{'label': i, 'value': i} for i in scenario_parameters['Probability_of_reach'].unique()],
+                    value='50%',
+                    style={'marginTop': '6px', 'fontSize': '0.85rem'},
+                    clearable=False
+                )
+            ], style={'width': '100%', 'marginBottom': '52px'}),
+            
+            html.Div([
+                html.Label("Scope of Emissions", style={'fontWeight': 'bold', 'color': '#2c3e50', 'fontSize': '0.9rem'}),
+                dcc.Dropdown(
+                    id='emissions-scope-dropdown',
+                    options=[
+                        {'label': 'Territorial', 'value': 'Territory'},
+                        {'label': 'Consumption', 'value': 'Consumption'}
+                    ],
+                    value='Territory',
+                    style={'marginTop': '6px', 'fontSize': '0.85rem'},
+                    clearable=False
+                )
+            ], style={'width': '100%', 'marginBottom': '52px'})
+        ], style={
+            'gridColumn': '2',
+            'padding': '12px 20px',
+            'backgroundColor': '#fdf6e3',
+            'borderRadius': '8px',
+            'boxShadow': '0 1px 2px rgba(0,0,0,0.05)',
+            'margin': '20px 20px 20px 0',
+            'height': 'fit-content',
+            'overflowY': 'auto',
+            'alignSelf': 'start',
+            'marginTop': '30vh',  # Position 30% from the top
             'display': 'flex',
-            'alignItems': 'center',
-            'justifyContent': 'space-between'
+            'flexDirection': 'column',
+            'justifyContent': 'center'  # Center filters vertically within the container
         })
     ], style={
-        'margin': '40px 20px 20px 20px',
-        'padding': '30px',
-        'backgroundColor': '#fdf6e3',  # Light cream background like filters
-        'borderRadius': '8px',
-        'boxShadow': '0 2px 4px rgba(0,0,0,0.1)',
-        'fontSize': '0.9rem',
-        'color': '#2c3e50',
-        'width': '100%',  # Full width to span entire dashboard
-        'marginRight': '20px',  # Reduced right margin
-        'marginLeft': '20px'  # Ensure left margin is consistent
+        'display': 'grid',
+        'gridTemplateColumns': '85% 15%',
+        'gridGap': '0',
+        'width': '100%',
+        'minHeight': '100vh'
     })
 ], style={
     'backgroundColor': '#ffffff',
     'minHeight': '100vh',
     'fontFamily': 'Arial, sans-serif',
-    'width': '100%',  # Full width
-    'maxWidth': '100vw',  # Maximum viewport width
-    'overflowX': 'hidden',  # Prevent horizontal scrolling
-    'boxSizing': 'border-box'  # Include padding in width calculation
+    'width': '100%',
+    'maxWidth': '100vw',
+    'overflowX': 'hidden',
+    'boxSizing': 'border-box'
 })
 
 
