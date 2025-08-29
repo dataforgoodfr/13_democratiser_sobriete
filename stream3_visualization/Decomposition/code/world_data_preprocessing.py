@@ -236,8 +236,12 @@ class WorldCO2DecompositionPreprocessor:
                 
 
                 
-                # Keep original LMDI signs for mathematical consistency
-                # Positive values = emissions increases, Negative values = emissions reductions
+                # Align sign convention with EU/Switzerland dashboards: 
+                # negative = increases emissions, positive = decreases emissions
+                # Flip signs to match the desired convention
+                contrib_pct_1 = -contrib_pct_1
+                contrib_pct_2 = -contrib_pct_2
+                contrib_pct_total = -contrib_pct_total
                 
                 unified_data.append({
                     "Zone": zone,
