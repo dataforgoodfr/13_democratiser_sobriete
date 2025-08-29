@@ -219,13 +219,43 @@ Well-being/
 
 ### Adding New Indicators
 1. Update `ewbi_indicators.json` with new structure
-2. Regenerate data using `ewbi_computation.py`
+2. Regenerate data using `generate_outputs.py`
 3. Dashboard automatically adapts to new structure
 
 ### Modifying Visualizations
 - Chart colors and styling in individual chart functions
 - Layout modifications in `app.layout`
 - New chart types can be added to existing functions
+
+## 💻 Local Development
+
+### Running the Dashboard Locally
+The dashboard can be run locally for development and testing:
+
+```bash
+cd Well-being/code
+python app.py
+```
+
+### Local Access
+- **Dashboard URL**: http://localhost:8050
+- **Network Access**: http://0.0.0.0:8050 (for other devices on your network)
+- **Development Mode**: Debug mode enabled for easier development
+
+### Development Features
+- **Hot Reload**: Code changes automatically refresh the dashboard
+- **Debug Information**: Detailed error messages and logging
+- **Local Data**: Uses local CSV files for development
+
+### Start Script
+Use the main start script to run all dashboards simultaneously:
+```bash
+./start_dashboards.sh
+```
+This will start:
+- Budget Dashboard on port 8052
+- Decomposition Dashboard on port 8051  
+- Well-being Dashboard on port 8050
 
 ## 🔍 Troubleshooting
 
@@ -245,6 +275,49 @@ Well-being/
 - **Data Sources**: Eurostat and national statistical offices
 - **Visualization**: Built with Dash and Plotly
 - **Data Processing**: Pandas for data manipulation and aggregation
+
+## 🚀 Deployment
+
+This application is deployed on CleverCloud as a standalone service.
+
+### Deployment Files
+The dashboard is deployed directly from the main repository with the following key files:
+- `code/app.py` - Main dashboard application
+- `code/requirements.txt` - Python dependencies
+- `data/ewbi_indicators.json` - Indicator definitions and structure
+- `output/ewbi_master.csv` - Main data file
+- `output/ewbi_time_series.csv` - Time series data
+
+### Quick Deploy
+After making changes to the code, deploy updates to Clever Cloud using Git:
+
+```bash
+# 1. Commit your changes
+git add .
+git commit -m "Description of your changes"
+
+# 2. Push to GitHub (optional but recommended)
+git push origin visualizations-combined
+
+# 3. Push to Clever Cloud for automatic deployment
+git push clever-well-being visualizations-combined:master
+```
+
+**Note:** The Clever Cloud remote is configured as `clever-well-being`. After pushing, Clever Cloud will automatically redeploy your application with the new changes.
+
+### Recent Improvements (August 2024)
+- **Directory Cleanup**: Removed 15+ outdated files and Archive directory
+- **Indicator Names**: Updated primary indicators to use user-friendly descriptions
+- **Dashboard Enhancement**: Modified interface to display descriptive names instead of codes
+- **Start Script**: Updated to use correct filename (`app.py`)
+- **Local Development**: Added local port information for easier development
+
+### Indicator Naming Convention
+Primary indicators now display in the format: `"Proposed Name (Code)"`
+- **Before**: `"AN-EHIS-1"`
+- **After**: `"Struggling to Prepare Meals (AN-EHIS-1)"`
+
+This makes the dashboard much more user-friendly and accessible to non-technical users.
 
 ## 🤝 Contributing
 
