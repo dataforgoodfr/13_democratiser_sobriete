@@ -1,6 +1,6 @@
 # CO2 Decomposition Analysis Dashboard
 
-This project provides an interactive dashboard for analyzing CO2 emissions decomposition scenarios across different regions, sectors, and decarbonization levers.
+This project provides interactive dashboards for analyzing CO2 emissions decomposition scenarios across different regions, sectors, and decarbonization levers.
 
 ## Overview
 
@@ -10,23 +10,49 @@ The dashboard visualizes how different decarbonization levers contribute to CO2 
 - **Energy Efficiency**: Technological improvements
 - **Supply Side Decarbonation**: Energy mix changes
 
-## Files Structure
+## Current File Structure (August 2024)
 
-### Core Files
-- `code/dashboard.py` - Main Dash application with interactive visualizations
-- `code/data_preprocessing.py` - Processes raw Excel data into unified CSV format
-- `code/create_sufficiency_scenarios_simple.py` - Generates World Sufficiency Lab scenarios
+### Core Application Files
+- `code/app.py` - **Main EU/Switzerland decomposition dashboard**
+- `code/app_world.py` - **World decomposition dashboard**
 - `code/requirements.txt` - Python dependencies
 
-### Data Files
-- `Output/unified_decomposition_data.csv` - **Main dataset with ALL scenarios** (211 rows: 140 original + 70 WSL + 1 header)
-- `Output/decomposition_summary.csv` - Summary statistics
-- `Output/intermediary_decomposition_data.csv` - Detailed intermediate calculations (useful for analysis)
+### Data Processing Files
+- `code/data_preprocessing.py` - **Main data processor** (EU + Switzerland + World scenarios integration)
+- `code/world_data_preprocessing.py` - **World data processor** with corrected sign conventions
+- `code/create_sufficiency_scenarios_simple.py` - **Integrated into main preprocessing** (no need to run separately)
 
-### Data Sources
-- EU Commission scenarios (Fit-for-55, >85% decrease, >90% decrease, LIFE)
-- Switzerland scenarios (Base, Zer0 A/B/C)
-- World Sufficiency Lab scenarios (No Increase, With Sufficiency Measures)
+### Data Files
+- `data/2025-04-28_EC scenarios data_Decomposition_compiled.xlsx` - EU Commission scenarios
+- `data/2025-08-13_CH scenarios data_Decomposition_Compiled.xlsx` - Switzerland scenarios  
+- `data/2025-08-20_REMIND Shape_Data_Compiled.xlsx` - World data source
+
+### Output Files
+- `Output/unified_decomposition_data.csv` - **Main combined dataset** (300+ records: EU + Switzerland + World scenarios)
+- `Output/world_unified_decomposition_data.csv` - World-specific dataset
+- `Output/intermediary_decomposition_data.csv` - Debug/audit file (EU + Switzerland)
+- `Output/world_intermediary_decomposition_data.csv` - Debug/audit file (World)
+
+## Available Sectors
+
+### EU Sectors
+- Buildings - Residential
+- Buildings - Services
+- Transport - Passenger cars
+- Transport - Rail
+- Industry - Steel industry
+- Industry - Non-ferrous metal industry
+- Industry - Chemicals industry
+- Industry - Non-Metallic Minerals industry
+- Industry - Pulp, Paper & Print industry
+
+### Switzerland Sectors
+- Buildings - Residential
+- Buildings - Services
+- Passenger Land Transport
+- Industry - Cement
+- Cement industry
+- Steel industry
 
 ## Getting Started
 
@@ -35,14 +61,63 @@ The dashboard visualizes how different decarbonization levers contribute to CO2 
    pip install -r code/requirements.txt
    ```
 
-2. **Run the dashboard:**
+2. **Run the main dashboard (EU/Switzerland):**
    ```bash
    cd code
-   python dashboard.py
+   python app.py
    ```
 
-3. **Access the dashboard:**
-   Open your browser and go to `http://localhost:8051`
+3. **Run the world dashboard:**
+   ```bash
+   cd code
+   python app_world.py
+   ```
+
+4. **Access the dashboards:**
+   - Main dashboard: `http://localhost:8050`
+   - World dashboard: `http://localhost:8051`
+
+## Data Generation Workflow
+
+**Simplified workflow** - everything is now integrated into a single script:
+
+### Single Command to Regenerate All Data:
+```bash
+cd Decomposition
+python code/data_preprocessing.py
+```
+
+**What this does automatically:**
+1. ✅ Processes EU and Switzerland data with new sectors
+2. ✅ Generates World Sufficiency Lab scenarios
+3. ✅ Combines all datasets into unified file
+4. ✅ Applies consistent sign conventions across all zones
+
+**Output:**
+- `Output/unified_decomposition_data.csv` - Complete dataset (300+ records)
+- All sectors and scenarios integrated automatically
+
+## Recent Improvements (August 2024)
+
+### ✅ Sign Convention Fix
+- **World data** now uses same sign convention as EU/Switzerland
+- **Negative percentages** = increases emissions
+- **Positive percentages** = decreases emissions
+- Consistent interpretation across all dashboards
+
+### ✅ Sector Configuration Updates
+- Added new EU sectors (Transport, Industry sub-sectors)
+- Added new Switzerland sectors (Industry - Cement, Steel industry)
+- Updated sector names to match actual data files
+
+### ✅ Code Cleanup
+- Removed obsolete scripts and intermediate files
+- Streamlined data processing workflow
+- Integrated World scenarios generation into main processor
+
+### ✅ Path Fixes
+- Fixed data directory detection for different run locations
+- Fixed output directory paths for proper file saving
 
 ## Features
 
@@ -50,75 +125,12 @@ The dashboard visualizes how different decarbonization levers contribute to CO2 
 - **Bar Chart**: Displays lever contributions for selected scenarios
 - **Interactive Controls**: Select zone, sector, and scenario combinations
 - **Responsive Design**: Optimized for different screen sizes
-
-## Data Generation Workflow
-
-To regenerate the complete dataset with all scenarios, follow this **exact order**:
-
-### Step 1: Process Raw Data
-```bash
-cd code
-python data_preprocessing.py
-```
-**Outputs:**
-- `Output/unified_decomposition_data.csv` - Contains ONLY original scenarios (EU + Switzerland)
-- `Output/intermediary_decomposition_data.csv` - Detailed intermediate calculations
-- `Output/decomposition_summary.csv` - Summary statistics
-
-### Step 2: Generate World Sufficiency Lab Scenarios
-```bash
-python create_sufficiency_scenarios_simple.py
-```
-**Outputs:**
-- `Output/world_sufficiency_lab_scenarios.csv` - Contains ONLY WSL scenarios
-
-### Step 3: Combine All Scenarios (Manual Step)
-```bash
-# The WSL scenarios need to be manually combined with the original scenarios
-# This ensures no duplicates and proper data integrity
-# The final file should contain:
-# - 140 original scenario rows (EU + Switzerland)
-# - 70 World Sufficiency Lab scenario rows  
-# - 1 header row
-# Total: 211 rows
-```
-
-**Important Notes:**
-- **Order matters**: Always run `data_preprocessing.py` first to establish the base data
-- **No automatic combination**: The scripts don't automatically merge files to prevent data loss
-- **Dashboard compatibility**: The dashboard reads from `unified_decomposition_data.csv` which should contain ALL scenarios
-- **Data validation**: Check that the final file has exactly 211 rows (210 data + 1 header)
-
-## Troubleshooting
-
-### Common Issues
-- **Missing WSL scenarios**: If you only see 140 rows, you need to run Step 2 and manually combine
-- **Duplicate scenarios**: If you see more than 211 rows, there are duplicates that need to be removed
-- **Dashboard not updating**: Restart the dashboard after data changes
-
-### Data Verification
-```bash
-# Check the final dataset has correct number of rows
-wc -l Output/unified_decomposition_data.csv
-# Should show: 211
-
-# Verify scenario distribution
-grep -c "World Sufficiency Lab" Output/unified_decomposition_data.csv
-# Should show: 70 (35 scenarios × 2 levers each)
-```
-
-## Scenarios
-
-- **Original Scenarios**: Official EU and Switzerland decarbonization pathways
-- **World Sufficiency Lab**: Explores sufficiency measures with 40% intensity decrease
-- **Lever Analysis**: Breaks down emissions changes by population, sufficiency, efficiency, and supply-side factors
+- **Consistent Sign Convention**: Same interpretation across all zones
 
 ## Deployment to Clever Cloud
 
-This project includes two separate dashboards that can be deployed to Clever Cloud:
-
 ### European Decomposition Dashboard (`app.py`)
-Deploy to Clever Cloud using:
+Deploy using:
 ```bash
 git push clever-decomposition visualizations-combined:master
 ```
@@ -126,7 +138,7 @@ git push clever-decomposition visualizations-combined:master
 **Remote:** `clever-decomposition` → `git+ssh://git@push-n3-par-clevercloud-customers.services.clever-cloud.com/app_ac31ad44-d32f-4998-87c6-b9b699c29c63.git`
 
 ### World Decomposition Dashboard (`app_world.py`)
-Deploy to Clever Cloud using:
+Deploy using:
 ```bash
 git push clever-world-decomposition visualizations-combined:master
 ```
@@ -150,4 +162,30 @@ git remote -v
 2. **Commit changes** to the `visualizations-combined` branch
 3. **Push to GitHub**: `git push origin visualizations-combined`
 4. **Deploy to Clever Cloud**: Use the appropriate push command above
-5. **Verify deployment** in Clever Cloud dashboard 
+5. **Verify deployment** in Clever Cloud dashboard
+
+## Troubleshooting
+
+### Common Issues
+- **Missing sectors**: Ensure data files contain the expected sector names
+- **Sign convention confusion**: All zones now use consistent signs (negative = increases, positive = decreases)
+- **Dashboard not updating**: Restart the dashboard after data changes
+
+### Data Verification
+```bash
+# Check the final dataset has correct number of records
+wc -l Output/unified_decomposition_data.csv
+# Should show: 300+ (including header)
+
+# Verify all zones are present
+grep -c "EU" Output/unified_decomposition_data.csv
+grep -c "Switzerland" Output/unified_decomposition_data.csv
+grep -c "World" Output/unified_decomposition_data.csv
+```
+
+## Data Sources
+
+- **EU Commission scenarios**: Fit-for-55, >85% decrease, >90% decrease, LIFE
+- **Switzerland scenarios**: Base, Zer0 A/B/C
+- **World Sufficiency Lab scenarios**: Consumption/Production per capita at 2015 levels
+- **Lever Analysis**: Breaks down emissions changes by population, sufficiency, efficiency, and supply-side factors 
