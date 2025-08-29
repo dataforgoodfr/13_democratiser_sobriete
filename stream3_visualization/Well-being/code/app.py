@@ -1650,7 +1650,7 @@ def create_adaptive_map_chart(map_df, level_filters):
             (map_df['Secondary_indicator'] == level_filters['secondary_indicator']) &
             (map_df['primary_index'] == 'All')
             ].copy()
-        title = f'Well-Being Score by Country - {level_filters["eu_priority"]} - {level_filters["secondary_indicator"]} - All Primary Indicators (2023)'
+        title = f'Well-Being Score by Country - {level_filters["secondary_indicator"]} - All Primary Indicators (2023)'
         colorbar_title = "Score"
 
     else:  # Level 4: Primary Indicator
@@ -1659,7 +1659,7 @@ def create_adaptive_map_chart(map_df, level_filters):
             (map_df['Secondary_indicator'] == level_filters['secondary_indicator']) &
             (map_df['primary_index'] == level_filters['primary_indicator'])
             ].copy()
-        title = f'Well-Being Score by Country - {level_filters["eu_priority"]} - {level_filters["secondary_indicator"]} - {level_filters["primary_indicator"]} (2023)'
+        title = f'Well-Being Score by Country - {level_filters["primary_indicator"]} (2023)'
         colorbar_title = "Score"
 
     # Convert ISO-2 codes to ISO-3 codes for the map and prepare full names for hover
@@ -1810,7 +1810,7 @@ def create_adaptive_decile_chart(analysis_df, level_filters):
             (analysis_df['Secondary_indicator'] == level_filters['secondary_indicator']) &
             (analysis_df['primary_index'] == 'All')
             ].copy()
-        title = f'Well-Being Score by Decile - {level_filters["eu_priority"]} - {level_filters["secondary_indicator"]} - All Primary Indicators (2023)'
+        title = f'Well-Being Score by Decile - {level_filters["secondary_indicator"]} - All Primary Indicators (2023)'
 
     else:  # Level 4: Primary Indicator
         filtered_data = analysis_df[
@@ -1818,7 +1818,7 @@ def create_adaptive_decile_chart(analysis_df, level_filters):
             (analysis_df['Secondary_indicator'] == level_filters['secondary_indicator']) &
             (analysis_df['primary_index'] == level_filters['primary_indicator'])
             ].copy()
-        title = f'Well-Being Score by Decile - {level_filters["eu_priority"]} - {level_filters["secondary_indicator"]} - {level_filters["primary_indicator"]} (2023)'
+        title = f'Well-Being Score by Decile - {level_filters["primary_indicator"]} (2023)'
 
     # Create the decile analysis chart
     decile_analysis = go.Figure()
