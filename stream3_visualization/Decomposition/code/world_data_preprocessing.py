@@ -15,7 +15,7 @@ class WorldCO2DecompositionPreprocessor:
     Mirrors the structure of the EU/Switzerland preprocessor
     """
     
-    def __init__(self, data_file="../Output/world_data_european_format.csv"):
+    def __init__(self, data_file="Output/world_data_european_format.csv"):
         self.data_file = data_file
         
         # World regions (geographies) from the data
@@ -303,7 +303,7 @@ class WorldCO2DecompositionPreprocessor:
         
         return pd.DataFrame(intermediary_data)
     
-    def save_processed_data(self, output_dir="../Output"):
+    def save_processed_data(self, output_dir="Output"):
         """Process and save the unified world dataset"""
         print("Starting world data processing...")
         
