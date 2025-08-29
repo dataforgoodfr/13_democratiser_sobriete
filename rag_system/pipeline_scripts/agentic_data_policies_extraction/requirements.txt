@@ -7,3 +7,4 @@ pymupdf4llm>=0.0.1
 together>=0.0.1
 sentence_transformers>=2.2.2
 scikit-learn>=1.3.2
+faiss-cpu

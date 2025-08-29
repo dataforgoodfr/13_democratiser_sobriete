@@ -1,0 +1,101 @@
+policy,actor,population,factor,correlation,related_studied_policy_area,related_studied_sector,correlation_numeric,cluster_id,policy_canonical
+severe infestations of root-knot nematodes,None,None,energy from their hosts,decreasing,energy,cohesion,-1.0,0,severe infestations of root-knot nematodes
+severe infestations of root-knot nematodes,None,None,yield quantity and quality,decreasing,agriculture,cohesion,-1.0,0,severe infestations of root-knot nematodes
+property/structure buyout and habitat restoration project,None,None,flood losses,decreasing,climate_action,energy,-1.0,1,property/structure buyout and habitat restoration project
+property/structure buyout and habitat restoration project,None,None,natural resource conservation,increasing,biodiversity,energy,1.0,1,property/structure buyout and habitat restoration project
+property/structure buyout and habitat restoration project,None,None,flood exposure,decreasing,climate_action,energy,-1.0,1,property/structure buyout and habitat restoration project
+property/structure buyout and habitat restoration project,None,None,efficient use of limited governmental funds,increasing,finance_and_capital_markets,energy,1.0,1,property/structure buyout and habitat restoration project
+flood mitigation grant programs,None,None,funds for conservation and restoration of habitats,increasing,biodiversity,innovation_and_research,1.0,2,flood mitigation grant programs
+strengthening the capacity of rights-holders to demand their rights,None,None,development assistance effectiveness,increasing,reforms,Unknown,1.0,3,strengthening the capacity of rights-holders to demand their rights
+strengthening the capacity of duty-bearers to meet their obligations,None,None,development assistance effectiveness,increasing,reforms,innovation_and_research,1.0,4,strengthening the capacity of duty-bearers to meet their obligations
+limit on state coal-severance taxes,None,None,coal consumption,increasing,economy,agriculture,1.0,5,limit on state coal-severance taxes
+limit on state coal-severance taxes,None,None,state's coal production costs,decreasing,economy,agriculture,-1.0,5,limit on state coal-severance taxes
+Federal funds,None,None,environmental and socio-economic impacts,decreasing,economy,home_affairs,-1.0,6,Federal funds
+exploitation of coal-rich states,None,None,profits,increasing,economy,social_rights,1.0,7,exploitation of coal-rich states
+exploitation of coal-rich states,None,None,true costs borne by state governments,increasing,finance_and_capital_markets,social_rights,1.0,7,exploitation of coal-rich states
+control strategies,None,None,lighting energy demand,decreasing,energy,equality,-1.0,8,control strategies
+building features,None,None,lighting energy consumption,neutral,energy,reforms,0.0,9,building features
+adaptation strategies,None,None,vulnerability of agriculture and rural poor to impacts of climate change,decreasing,climate_action,education_and_youth,-1.0,10,adaptation strategies
+adaptation strategies,None,None,resilience of the agro-ecosystems,increasing,biodiversity,education_and_youth,1.0,10,adaptation strategies
+new public policies,None,None,"adaptation research, insurances, incentives to farmers to adapt new technologies",increasing,innovation_and_research,culture,1.0,11,new public policies
+FANTASTIC lifestyle assessment instrument,None,None,clinician's confidence,increasing,health,justice,1.0,12,FANTASTIC lifestyle assessment instrument
+microcomputer version of FANTASTIC questionnaire,None,None,reliability and validity,increasing,innovation_and_research,finance_and_capital_markets,1.0,13,microcomputer version of FANTASTIC questionnaire
+recycling the papers,None,None,climate change,decreasing,climate_action,food,-1.0,14,recycling the papers
+recycling the papers,None,None,greenhouse gases,decreasing,climate_action,food,-1.0,14,recycling the papers
+recycling the papers,None,None,forest preservation,increasing,biodiversity,food,1.0,14,recycling the papers
+recycling the papers,None,None,water and air pollution,decreasing,climate_action,food,-1.0,14,recycling the papers
+recycling the papers,None,None,waste management,improving,agriculture,food,0.0,14,recycling the papers
+recycling the papers,None,None,energy problems,decreasing,energy,food,-1.0,14,recycling the papers
+minimum paper fibre targets using property cascade analysis (PCA),None,None,fresh fibre use,decreasing,energy,social_rights,-1.0,15,minimum paper fibre targets using property cascade analysis (PCA)
+ex situ conservation,None,None,Bornean rhino population recovery,neutral,biodiversity,social_rights,0.0,16,ex situ conservation
+in situ conservation,None,None,Bornean rhino population recovery,increasing,biodiversity,social_rights,1.0,16,ex situ conservation
+human development issues,None,None,conservation planning process,increasing,biodiversity,climate_action,1.0,17,human development issues
+development of livestock for small holders,None,None,poverty reduction,increasing,reforms,jobs,1.0,18,development of livestock for small holders
+development of livestock for small holders,None,None,food safety,increasing,food,jobs,1.0,18,development of livestock for small holders
+low input goat production systems,None,None,real productivity,increasing,economy,jobs,1.0,19,low input goat production systems
+low input goat production systems,None,None,Internal Rate on Return (IRR) of the investments,increasing,finance_and_capital_markets,jobs,1.0,19,low input goat production systems
+traditional low input goat activities,None,None,rural life,supporting,agriculture,equality,0.0,20,traditional low input goat activities
+valorization of local resources with low external inputs,None,None,poverty reduction,increasing,reforms,food,1.0,21,valorization of local resources with low external inputs
+valorization of local resources with low external inputs,None,None,gender equity,increasing,equality,food,1.0,21,valorization of local resources with low external inputs
+valorization of local resources with low external inputs,None,None,preservation of non renewable resources,increasing,energy,food,1.0,21,valorization of local resources with low external inputs
+appropriate business planning and governance,None,None,ecological intensification,increasing,biodiversity,innovation_and_research,1.0,22,appropriate business planning and governance
+appropriate business planning and governance,None,None,food safety,increasing,food,innovation_and_research,1.0,22,appropriate business planning and governance
+appropriate business planning and governance,None,None,resilience in many rural areas,increasing,cohesion,innovation_and_research,1.0,22,appropriate business planning and governance
+transport systems,None,None,energy consumption,impacting,energy,food,0.0,23,transport systems
+transport systems,None,None,operational cost,impacting,economy,food,0.0,23,transport systems
+road transport,None,None,energy demand,impacting,energy,food,0.0,24,road transport
+road transport,None,None,environmental impact,impacting,climate_action,food,0.0,24,road transport
+European solutions for a transport system,None,None,energy supply,compliant with,energy,food,0.0,23,transport systems
+European solutions for a transport system,None,None,environment,compliant with,climate_action,food,0.0,23,transport systems
+marine and coastal habitats protection,None,None,biodiversity,increasing,biodiversity,jobs,1.0,25,marine and coastal habitats protection
+marine and coastal habitats protection,None,None,CO2 storage,increasing,energy,jobs,1.0,25,marine and coastal habitats protection
+effective and precautionary management of fish stocks,None,None,fish stocks sustainability,increasing,biodiversity,jobs,1.0,26,effective and precautionary management of fish stocks
+tool to measure well-being and quality of life,None,None,well-being of people,neutral,health,climate_action,0.0,27,tool to measure well-being and quality of life
+tool to measure well-being and quality of life,None,None,quality of life,neutral,health,climate_action,0.0,27,tool to measure well-being and quality of life
+literature review concerning building the conceptual framework and outline of the indicators,None,None,well-being of people,neutral,health,innovation_and_research,0.0,28,literature review concerning building the conceptual framework and outline of the indicators
+content validity analysis,None,None,well-being of people,neutral,health,equality,0.0,29,content validity analysis
+reliability value analysis of the instruments,None,None,well-being of people,neutral,health,finance_and_capital_markets,0.0,30,reliability value analysis of the instruments
+peer review for appropriate language,None,None,well-being of people,neutral,health,education_and_youth,0.0,31,peer review for appropriate language
+factor analysis of the 45 variables,None,None,well-being and quality of life,neutral,health,cohesion,0.0,32,factor analysis of the 45 variables
+supplemental food provision,None,None,resource use by deer,increasing,biodiversity,justice,1.0,33,supplemental food provision
+supplemental food provision,None,None,costs,increasing,transport,justice,1.0,33,supplemental food provision
+maize silage and apple pomace,None,None,consumption by red deer,increasing,agriculture,social_rights,1.0,34,maize silage and apple pomace
+Biomass imports,None,None,renewable energy consumption,increasing,energy,food,1.0,35,Biomass imports
+woody biomass consumption,None,None,wood market,neutral,home_affairs,jobs,0.0,36,woody biomass consumption
+woody biomass consumption,None,None,carbon storage,increasing,climate_action,jobs,1.0,36,woody biomass consumption
+U.S. domestic renewable energy policy,None,None,costs of EU imports,increasing,transport,agriculture,1.0,37,U.S. domestic renewable energy policy
+denning behavior of black bears,None,None,species management,neutral,biodiversity,social_rights,0.0,38,denning behavior of black bears
+denning behavior of black bears,None,None,impacts associated with the development of Alberta Oil Sands,neutral,economy,social_rights,0.0,38,denning behavior of black bears
+development of Alberta Oil Sands,None,None,black bear habitat,decreasing,biodiversity,reforms,-1.0,39,development of Alberta Oil Sands
+use of timber instead of concrete in walls,None,None,embedded energy,decreasing,energy,reforms,-1.0,40,use of timber instead of concrete in walls
+cold barns,None,None,embedded energy,decreasing,energy,reforms,-1.0,41,cold barns
+free-stall barns,None,None,embedded energy,increasing,energy,justice,1.0,42,free-stall barns
+tie-stall barns,None,None,embedded energy,decreasing,energy,reforms,-1.0,42,free-stall barns
+calculating the anticipated amount of embedded energy for a new building,None,None,energy use in agriculture,decreasing,energy,agriculture,-1.0,43,calculating the anticipated amount of embedded energy for a new building
+incorporating embedded energy in planning new buildings,None,None,sustainable production,increasing,agriculture,agriculture,1.0,43,calculating the anticipated amount of embedded energy for a new building
+"renovation, extension as well as recycling of building materials",None,None,embedded energy,decreasing,energy,reforms,-1.0,44,"renovation, extension as well as recycling of building materials"
+"planning new buildings to include operational energy, as well as working conditions, animal welfare and economic considerations",None,None,sustainable production,increasing,agriculture,agriculture,1.0,45,"planning new buildings to include operational energy, as well as working conditions, animal welfare and economic considerations"
+management of marine and fisheries resources,None,None,ecological sustainable development,increasing,biodiversity,jobs,1.0,46,management of marine and fisheries resources
+National Law No. 45/2009 about fisheries,None,None,harmonization between national and international law,increasing,justice,jobs,1.0,47,National Law No. 45/2009 about fisheries
+UNCLOS 1982,None,None,harmonization between national and international law,increasing,justice,Unknown,1.0,48,UNCLOS 1982
+electricity consumption in the residential sector,None,None,energy policy planning,neutral,energy,agriculture,0.0,49,electricity consumption in the residential sector
+GDP,None,None,residential electricity consumption,increasing,energy,Unknown,1.0,50,GDP
+inflation,None,None,residential electricity consumption,increasing,energy,education_and_youth,1.0,51,inflation
+geographic information system (GIS),None,None,weed control plans,increasing,agriculture,equality,1.0,52,geographic information system (GIS)
+human activity factors,None,None,weed spread,increasing,agriculture,climate_action,1.0,53,human activity factors
+land factors,None,None,weed spread,increasing,agriculture,energy,1.0,54,land factors
+Predict Weed Spread Model,None,None,weed spread,increasing,agriculture,jobs,1.0,55,Predict Weed Spread Model
+organic farming,None,None,nutrient resources availability,decreasing,food,jobs,-1.0,56,organic farming
+organic farming,None,None,environmental burdens,decreasing,climate_action,jobs,-1.0,56,organic farming
+organic farming,None,None,livestock performance,decreasing,agriculture,jobs,-1.0,56,organic farming
+organic farming,None,None,production costs,increasing,economy,jobs,1.0,56,organic farming
+organic pig and poultry production,None,None,protein supply,decreasing,food,jobs,-1.0,57,organic pig and poultry production
+organic pig and poultry production,None,None,energy supply,decreasing,energy,jobs,-1.0,57,organic pig and poultry production
+organic pig and poultry production,None,None,product quality,increasing,innovation_and_research,jobs,1.0,57,organic pig and poultry production
+home-grown feed materials,None,None,feed demand,neutral,food,justice,0.0,58,home-grown feed materials
+home-grown feed materials,None,None,feed supply and quality,neutral,food,justice,0.0,58,home-grown feed materials
+organic diets,None,None,amino acids intake,increasing,food,justice,1.0,59,organic diets
+protein sources,None,None,protein supply,neutral,food,education_and_youth,0.0,60,protein sources
+institutional conditions of life,None,None,physical development,decreasing,education_and_youth,climate_action,-1.0,61,institutional conditions of life
+institutional conditions of life,None,None,health status,decreasing,health,climate_action,-1.0,61,institutional conditions of life
+nutrition,None,None,physical development,decreasing,education_and_youth,justice,-1.0,62,nutrition
