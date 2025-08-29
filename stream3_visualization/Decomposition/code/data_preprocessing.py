@@ -8,8 +8,21 @@ class CO2DecompositionPreprocessor:
     Handles EU and Switzerland data sources with proper LMDI decomposition
     """
     
-    def __init__(self, data_dir="../data"):
+    def __init__(self, data_dir=None):
+                # Auto-detect data directory if not specified
+        if data_dir is None:
+            # Since the script is run from the root directory, use the correct relative path
+            data_dir = "Decomposition/data"
+            
+            # If running from Decomposition directory, adjust path
+            if not os.path.exists(data_dir):
+                data_dir = "data"
+                
         self.data_dir = data_dir
+        print(f"🔍 Data directory set to: {self.data_dir}")
+        print(f"📁 Data directory exists: {os.path.exists(self.data_dir)}")
+        if os.path.exists(self.data_dir):
+            print(f"📋 Files in data directory: {os.listdir(self.data_dir)}")
         self.zones = ["EU", "Switzerland"]  # World not available yet
         
         # File mappings for each zone
@@ -21,8 +34,8 @@ class CO2DecompositionPreprocessor:
         # Sector configurations for each zone
         self.sector_configs = {
                     "EU": {
-            "Buildings-Residential": ["Scenario 1", "Scenario 2", "Scenario 3", "Life Scenario"],
-            "Buildings -Services": ["Scenario 1", "Scenario 2", "Scenario 3", "Life Scenario"],
+            "Buildings - Residential": ["Scenario 1", "Scenario 2", "Scenario 3", "Life Scenario"],
+            "Buildings - Services": ["Scenario 1", "Scenario 2", "Scenario 3", "Life Scenario"],
             "Transport - Passenger cars": ["Scenario 1", "Scenario 2", "Scenario 3", "Life Scenario"],
             "Transport - Rail": ["Scenario 1", "Scenario 2", "Scenario 3", "Life Scenario"],
             "Industry - Steel industry": ["Scenario 1", "Scenario 2", "Scenario 3", "Life Scenario"],
@@ -32,8 +45,8 @@ class CO2DecompositionPreprocessor:
             "Industry - Pulp, Paper & Print industry": ["Scenario 1", "Scenario 2", "Scenario 3", "Life Scenario"]
         },
                     "Switzerland": {
-            "Buildings-Residential": ["Scenario Basis", "Scenario Zer0 A", "Scenario Zer0 B", "Scenario Zer0 C"],
-            "Buildings -Services": ["Scenario Basis", "Scenario Zer0 A", "Scenario Zer0 B", "Scenario Zer0 C"],
+            "Buildings - Residential": ["Scenario Basis", "Scenario Zer0 A", "Scenario Zer0 B", "Scenario Zer0 C"],
+            "Buildings - Services": ["Scenario Basis", "Scenario Zer0 A", "Scenario Zer0 B", "Scenario Zer0 C"],
             "Passenger Land Transport": ["Scenario Basis", "Scenario Zer0 A", "Scenario Zer0 B", "Scenario Zer0 C"],
             "Industry - Cement": ["Scenario Basis", "Scenario Zer0 A", "Scenario Zer0 B", "Scenario Zer0 C"],
             "Cement industry": ["Scenario Basis", "Scenario Zer0 A", "Scenario Zer0 B", "Scenario Zer0 C"],
@@ -44,8 +57,8 @@ class CO2DecompositionPreprocessor:
         # Column mapping for each sector (actual column names in Excel)
         # All sectors use the same column structure
         self.sector_columns = {
-            "Buildings-Residential": ["Year", "Population (Million)", "Volume", "Energy (Million toe)", "CO2 (Million tonnes)"],
-            "Buildings -Services": ["Year", "Population (Million)", "Volume", "Energy (Million toe)", "CO2 (Million tonnes)"],
+            "Buildings - Residential": ["Year", "Population (Million)", "Volume", "Energy (Million toe)", "CO2 (Million tonnes)"],
+            "Buildings - Services": ["Year", "Population (Million)", "Volume", "Energy (Million toe)", "CO2 (Million tonnes)"],
             "Passenger Land Transport": ["Year", "Population (Million)", "Volume", "Energy (Million toe)", "CO2 (Million tonnes)"],
             "Transport - Passenger cars": ["Year", "Population (Million)", "Volume", "Energy (Million toe)", "CO2 (Million tonnes)"],
             "Transport - Rail": ["Year", "Population (Million)", "Volume", "Energy (Million toe)", "CO2 (Million tonnes)"],
@@ -86,8 +99,8 @@ class CO2DecompositionPreprocessor:
         
         # Sector name mappings for display (internal name -> display name)
         self.sector_display_names = {
-            "Buildings-Residential": "Buildings - Residential",
-            "Buildings -Services": "Buildings - Services", 
+            "Buildings - Residential": "Buildings - Residential",
+            "Buildings - Services": "Buildings - Services", 
             "Passenger Land Transport": "Passenger Land Transport",
             "Transport - Passenger cars": "Transport - Passenger cars",
             "Transport - Rail": "Transport - Rail",
@@ -341,7 +354,13 @@ class CO2DecompositionPreprocessor:
         
         return pd.DataFrame(intermediary_data)
     
-    def save_processed_data(self, output_dir="../Output"):
+    def save_processed_data(self, output_dir=None):
+        if output_dir is None:
+            # If running from Decomposition directory, use "Output", otherwise use "Decomposition/Output"
+            if os.path.exists("Output"):
+                output_dir = "Output"
+            else:
+                output_dir = "Decomposition/Output"
         """Process and save the unified dataset"""
         print("Starting data processing...")
         
@@ -386,7 +405,13 @@ class CO2DecompositionPreprocessor:
         
         return df_unified
 
-    def combine_with_wsl_scenarios(self, output_dir="../Output"):
+    def combine_with_wsl_scenarios(self, output_dir=None):
+        if output_dir is None:
+            # If running from Decomposition directory, use "Output", otherwise use "Decomposition/Output"
+            if os.path.exists("Output"):
+                output_dir = "Output"
+            else:
+                output_dir = "Decomposition/Output"
         """Combine main data with World Sufficiency Lab scenarios"""
         print("\n🔄 Combining with World Sufficiency Lab scenarios...")
         
