@@ -20,25 +20,43 @@ class CO2DecompositionPreprocessor:
         
         # Sector configurations for each zone
         self.sector_configs = {
-            "EU": {
-                "Buildings-Residential": ["Scenario 1", "Scenario 2", "Scenario 3", "Life Scenario"],
-                "Buildings -Services": ["Scenario 1", "Scenario 2", "Scenario 3", "Life Scenario"],
-                "Industry": ["Scenario 1", "Scenario 2", "Scenario 3", "Life Scenario"],
-                "PassLandTransport": ["Scenario 1", "Scenario 2", "Scenario 3", "Life Scenario"]
-            },
-            "Switzerland": {
-                "Buildings-Residential": ["Scenario Basis", "Scenario Zer0 A", "Scenario Zer0 B", "Scenario Zer0 C"],
-                "Buildings -Services": ["Scenario Basis", "Scenario Zer0 A", "Scenario Zer0 B", "Scenario Zer0 C"],
-                "PassLandTransport": ["Scenario Basis", "Scenario Zer0 A", "Scenario Zer0 B", "Scenario Zer0 C"]
-            }
+                    "EU": {
+            "Buildings-Residential": ["Scenario 1", "Scenario 2", "Scenario 3", "Life Scenario"],
+            "Buildings -Services": ["Scenario 1", "Scenario 2", "Scenario 3", "Life Scenario"],
+            "Transport - Passenger cars": ["Scenario 1", "Scenario 2", "Scenario 3", "Life Scenario"],
+            "Transport - Rail": ["Scenario 1", "Scenario 2", "Scenario 3", "Life Scenario"],
+            "Industry - Steel industry": ["Scenario 1", "Scenario 2", "Scenario 3", "Life Scenario"],
+            "Industry - Non-ferrous metal industry": ["Scenario 1", "Scenario 2", "Scenario 3", "Life Scenario"],
+            "Industry - Chemicals industry": ["Scenario 1", "Scenario 2", "Scenario 3", "Life Scenario"],
+            "Industry - Non-Metallic Minerals industry": ["Scenario 1", "Scenario 2", "Scenario 3", "Life Scenario"],
+            "Industry - Pulp, Paper & Print industry": ["Scenario 1", "Scenario 2", "Scenario 3", "Life Scenario"]
+        },
+                    "Switzerland": {
+            "Buildings-Residential": ["Scenario Basis", "Scenario Zer0 A", "Scenario Zer0 B", "Scenario Zer0 C"],
+            "Buildings -Services": ["Scenario Basis", "Scenario Zer0 A", "Scenario Zer0 B", "Scenario Zer0 C"],
+            "Passenger Land Transport": ["Scenario Basis", "Scenario Zer0 A", "Scenario Zer0 B", "Scenario Zer0 C"],
+            "Industry - Cement": ["Scenario Basis", "Scenario Zer0 A", "Scenario Zer0 B", "Scenario Zer0 C"],
+            "Cement industry": ["Scenario Basis", "Scenario Zer0 A", "Scenario Zer0 B", "Scenario Zer0 C"],
+            "Steel industry": ["Scenario Basis", "Scenario Zer0 A", "Scenario Zer0 B", "Scenario Zer0 C"]
+        }
         }
         
         # Column mapping for each sector (actual column names in Excel)
+        # All sectors use the same column structure
         self.sector_columns = {
             "Buildings-Residential": ["Year", "Population (Million)", "Volume", "Energy (Million toe)", "CO2 (Million tonnes)"],
             "Buildings -Services": ["Year", "Population (Million)", "Volume", "Energy (Million toe)", "CO2 (Million tonnes)"],
-            "Industry": ["Year", "Population (Million)", "Volume", "Energy (Million toe)", "CO2 (Million tonnes)"],
-            "PassLandTransport": ["Year", "Population (Million)", "Volume", "Energy (Million toe)", "CO2 (Million tonnes)"]
+            "Passenger Land Transport": ["Year", "Population (Million)", "Volume", "Energy (Million toe)", "CO2 (Million tonnes)"],
+            "Transport - Passenger cars": ["Year", "Population (Million)", "Volume", "Energy (Million toe)", "CO2 (Million tonnes)"],
+            "Transport - Rail": ["Year", "Population (Million)", "Volume", "Energy (Million toe)", "CO2 (Million tonnes)"],
+            "Industry - Cement": ["Year", "Population (Million)", "Volume", "Energy (Million toe)", "CO2 (Million tonnes)"],
+            "Cement industry": ["Year", "Population (Million)", "Volume", "Energy (Million toe)", "CO2 (Million tonnes)"],
+            "Steel industry": ["Year", "Population (Million)", "Volume", "Energy (Million toe)", "CO2 (Million tonnes)"],
+            "Industry - Steel industry": ["Year", "Population (Million)", "Volume", "Energy (Million toe)", "CO2 (Million tonnes)"],
+            "Industry - Non-ferrous metal industry": ["Year", "Population (Million)", "Volume", "Energy (Million toe)", "CO2 (Million tonnes)"],
+            "Industry - Chemicals industry": ["Year", "Population (Million)", "Volume", "Energy (Million toe)", "CO2 (Million tonnes)"],
+            "Industry - Non-Metallic Minerals industry": ["Year", "Population (Million)", "Volume", "Energy (Million toe)", "CO2 (Million tonnes)"],
+            "Industry - Pulp, Paper & Print industry": ["Year", "Population (Million)", "Volume", "Energy (Million toe)", "CO2 (Million tonnes)"]
         }
         
         # Switzerland specific column mapping for the new compiled structure
@@ -70,8 +88,17 @@ class CO2DecompositionPreprocessor:
         self.sector_display_names = {
             "Buildings-Residential": "Buildings - Residential",
             "Buildings -Services": "Buildings - Services", 
-            "PassLandTransport": "Passenger Land Transportation",
-            "Industry": "Industry"
+            "Passenger Land Transport": "Passenger Land Transport",
+            "Transport - Passenger cars": "Transport - Passenger cars",
+            "Transport - Rail": "Transport - Rail",
+            "Industry - Cement": "Industry - Cement",
+            "Cement industry": "Cement industry",
+            "Steel industry": "Steel industry",
+            "Industry - Steel industry": "Industry - Steel industry",
+            "Industry - Non-ferrous metal industry": "Industry - Non-ferrous metal industry",
+            "Industry - Chemicals industry": "Industry - Chemicals industry",
+            "Industry - Non-Metallic Minerals industry": "Industry - Non-Metallic Minerals industry",
+            "Industry - Pulp, Paper & Print industry": "Industry - Pulp, Paper & Print industry"
         }
     
     def calculate_intensity_factors(self, data_rows, sector):
