@@ -19,7 +19,7 @@ echo "Decomposition Dashboard started with PID: $DECOMP_PID"
 # Start Well-being Dashboard on port 8050
 echo "Starting Well-being Dashboard on port 8050..."
 cd ../Well-being/code
-python ewbi_dashboard.py &
+python app.py &
 WELLBEING_PID=$!
 echo "Well-being Dashboard started with PID: $WELLBEING_PID"
 

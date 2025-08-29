@@ -386,7 +386,7 @@ def update_primary_indicator_dropdown(secondary_indicator, eu_priority):
                                 # Filter out economic indicators that should be removed
                                 if indicator['code'] not in economic_indicators_to_remove:
                                     primary_indicators.append({
-                                        'label': indicator['code'],
+                                        'label': indicator['description'],
                                         'value': indicator['code']
                                     })
                             break
@@ -1332,7 +1332,10 @@ def create_secondary_indicator_charts(map_df, analysis_df, time_df, eu_priority,
                     for component in priority['components']:
                         if component['name'] == secondary_indicator:
                             for indicator in component['indicators']:
-                                primary_indicators.append(indicator['code'])
+                                primary_indicators.append({
+                                    'code': indicator['code'],
+                                    'description': indicator['description']
+                                })
                             break
                     break
 
@@ -1368,9 +1371,9 @@ def create_secondary_indicator_charts(map_df, analysis_df, time_df, eu_priority,
 
             # Add primary indicator lines
             colors = ['#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2']
-            for i, primary_code in enumerate(primary_indicators):
+            for i, primary_indicator in enumerate(primary_indicators):
                 if i < len(colors):
-                    primary_col = f"primary_{primary_code}"
+                    primary_col = f"primary_{primary_indicator['code']}"
                     if primary_col in map_df.columns:
                         primary_scores = []
                         for country in individual_countries:
@@ -1384,7 +1387,7 @@ def create_secondary_indicator_charts(map_df, analysis_df, time_df, eu_priority,
                             go.Scatter(
                                 x=individual_countries,
                                 y=primary_scores,
-                                name=primary_code,
+                                name=primary_indicator['description'],
                                 mode='lines+markers',
                                 line=dict(color=colors[i]),
                                 marker=dict(
@@ -2398,3 +2401,12 @@ def create_adaptive_time_series_chart(analysis_df, level_filters, selected_count
     return time_series
 
 server = app.server
+
+# Local development server
+if __name__ == '__main__':
+    print("🚀 Starting European Well-Being Index Dashboard...")
+    print("📊 Dashboard will be available at: http://localhost:8050")
+    print("🌐 To access from other devices on your network, use: http://0.0.0.0:8050")
+    print("⏹️  Press Ctrl+C to stop the server")
+    print("-" * 60)
+    app.run_server(debug=True, host='0.0.0.0', port=8050)

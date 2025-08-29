@@ -14,7 +14,7 @@
             },
             {
               "code": "AN-EHIS-1",
-              "description": "Share of nth quintile population facing a lot of difficulty in preparing meals",
+              "description": "Struggling to Prepare Meals (AN-EHIS-1)",
               "weight": 2
             }
           ]
@@ -35,7 +35,7 @@
             },
             {
               "code": "AE-EHIS-1",
-              "description": "Share of nth quintile population not eating fruit, excluding juice less than once a week",
+              "description": "Rarely Eating Fruit (AE-EHIS-1)",
               "weight": 2
             }
           ]
@@ -67,12 +67,12 @@
           "indicators": [
             {
               "code": "HE-SILC-1",
-              "description": "Share of nth decile households unable to keep their homes warm in winter",
+              "description": "Homes Too Cold in Winter (HE-SILC-1)",
               "weight": 2
             },
             {
               "code": "HE-SILC-2",
-              "description": "Share of nth decile households having arrears on utility bills",
+              "description": "Behind on Utility Bills (HE-SILC-2)",
               "weight": 1
             },
             {
@@ -119,12 +119,12 @@
           "indicators": [
             {
               "code": "EL-SILC-1",
-              "description": "Share of nth decile households not satisfied with its life",
+              "description": "Low Life Satisfaction (EL-SILC-1)",
               "weight": 2
             },
             {
               "code": "EL-EHIS-1",
-              "description": "Share of nth quintile population that experience every day little interest or pleasure in doing things over the last 2 weeks",
+              "description": "No Joy in Daily Life (EL-EHIS-1)",
               "weight": 2
             }
           ]
@@ -135,12 +135,12 @@
           "indicators": [
             {
               "code": "ES-SILC-1",
-              "description": "Share of nth decile households in capacity to face unexpected financial expenses",
+              "description": "Unable to Handle Unexpected Costs (ES-SILC-1)",
               "weight": 1
             },
             {
               "code": "ES-SILC-2",
-              "description": "Share of nth decile households making ends meet with difficulty",
+              "description": "Hard to Make Ends Meet (ES-SILC-2)",
               "weight": 1
             }
           ]
@@ -151,12 +151,12 @@
           "indicators": [
             {
               "code": "EC-SILC-1",
-              "description": "Share of nth decile households uncapable of getting-together with friends/family for a drink/meal at least once a month",
+              "description": "Can't Meet Friends or Family Monthly (EC-SILC-1)",
               "weight": 2
             },
             {
               "code": "EC-SILC-2",
-              "description": "Share of nth decile households not trusting others",
+              "description": "Low Trust in Others (EC-SILC-2)",
               "weight": 2
             },
             {
@@ -171,7 +171,7 @@
             },
             {
               "code": "EC-EHIS-1",
-              "description": "Share of nth quintile population having no close people to count on in case of serious personal problems",
+              "description": "No One to Rely On in a Crisis (EC-EHIS-1)",
               "weight": 2
             }
           ]
@@ -198,32 +198,32 @@
           "indicators": [
             {
               "code": "AH-SILC-1",
-              "description": "Share of nth decile households having bad self-perceived general health",
+              "description": "Poor Self-Rated Health (AH-SILC-1)",
               "weight": 2
             },
             {
               "code": "AH-SILC-2",
-              "description": "Share of nth decile households suffering from any chronic illness or condition",
+              "description": "Living with Chronic Illness (AH-SILC-2)",
               "weight": 2
             },
             {
               "code": "AH-SILC-3",
-              "description": "Share of nth decile households encountering limitation in activities because of health problems",
+              "description": "Limited by Health Problems (AH-SILC-3)",
               "weight": 2
             },
             {
               "code": "AH-SILC-4",
-              "description": "Share of nth decile households unable to work for 6 months due to long-standing health problems",
+              "description": "Unable to Work Due to Long-Term Illness (AH-SILC-4)",
               "weight": 2
             },
             {
               "code": "AH-EHIS-1",
-              "description": "Share of nth quintile population that are every day feeling down, depressed or hopeless over the last 2 weeks",
+              "description": "Feeling Depressed Every Day (AH-EHIS-1)",
               "weight": 2
             },
             {
               "code": "AH-EHIS-2",
-              "description": "Share of nth quintile population that are never carrying out sports, fitness or recreational (leisure) physical activities",
+              "description": "No Physical Activity (AH-EHIS-2)",
               "weight": 2
             }
           ]
@@ -265,17 +265,17 @@
           "indicators": [
             {
               "code": "AB-EHIS-1",
-              "description": "Share of nth quintile population daily smoking",
+              "description": "Daily Smoking (AB-EHIS-1)",
               "weight": 2
             },
             {
               "code": "AB-EHIS-2",
-              "description": "Share of nth quintile population consuming alcoholic drink of any kind nearly every day in the past 12 months",
+              "description": "Drinking Alcohol Nearly Every Day (AB-EHIS-2)",
               "weight": 2
             },
             {
               "code": "AB-EHIS-3",
-              "description": "Share of nth quintile population that suffered a road traffic accident in the past 12 months",
+              "description": "Involved in a Road Accident (AB-EHIS-3)",
               "weight": 1
             }
           ]
@@ -291,7 +291,7 @@
           "indicators": [
             {
               "code": "IS-SILC-3",
-              "description": "Share of nth decile households having no formal education",
+              "description": "No Formal Education (IS-SILC-3)",
               "weight": 2
             }
           ]
@@ -349,27 +349,27 @@
           "indicators": [
             {
               "code": "RT-SILC-1",
-              "description": "Share of nth decile households over 18 having a fixed-term contract",
+              "description": "Adults on Fixed-Term Contracts (RT-SILC-1)",
               "weight": 2
             },
             {
               "code": "RT-SILC-2",
-              "description": "Share of nth decile households over 18 having a part-time contract",
+              "description": "Adults Working Part-Time (RT-SILC-2)",
               "weight": 2
             },
             {
               "code": "RT-LFS-1",
-              "description": "Share of nth decile households engage in two or more jobs",
+              "description": "Working Multiple Jobs (RT-LFS-1)",
               "weight": 2
             },
             {
               "code": "RT-LFS-2",
-              "description": "Share of nth decile households wishing to work more than the current number of usual hours",
+              "description": "Wanting to Work More Hours (RT-LFS-2)",
               "weight": 2
             },
             {
               "code": "RT-LFS-3",
-              "description": "Share of nth decile households doing some overtime or extra hours worked in main job",
+              "description": "Doing Overtime or Extra Hours (RT-LFS-3)",
               "weight": 2
             }
           ]
@@ -380,7 +380,7 @@
           "indicators": [
             {
               "code": "RU-SILC-1",
-              "description": "Share of nth decile households over 18 years old unemployed for the last 6 months",
+              "description": "Unemployed for Over 6 Months (RU-SILC-1)",
               "weight": 2
             },
             {

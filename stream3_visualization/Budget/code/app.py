@@ -563,8 +563,8 @@ def update_bar_chart(probability, selected_country, g20_filter):
 
     # Color scheme - Territory vs Consumption
     color_map = {
-        'Territory': '#80B1D3',  # Light blue
-        'Consumption': '#FB8072'  # Light red
+        'Territory': '#4ECDC4',  # Bright turquoise
+        'Consumption': '#FF6B6B'  # Bright coral red
     }
 
     # Filter out Population - only show NDC Pledges, Responsibility, Capability
