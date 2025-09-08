@@ -66,6 +66,7 @@ df = process_quantiles(df)
 
 # ### Fill missing values
 # The EU JRC methodology tells us to fill missing values (NaNs) for each indicator using the next last available one, and if absent the next available one. This is preferred to ignoring indicators for the years they're not available.
+## Change = only in the future
 
 # In[7]:
 
@@ -77,7 +78,8 @@ wide
 # In[8]:
 
 
-filled = wide.ffill(axis=1).bfill(axis=1)
+#filled = wide.ffill(axis=1).bfill(axis=1)
+filled = wide.ffill(axis=1)
 filled
 
 
@@ -87,20 +89,28 @@ filled
 
 
 # The normalisation is intra-decile and intra-indicator so we separate using groupby
+# We are using a Standardisation (or z-scores) method as described by the JRC 
+
+scaled_min = 0.1
+
 res = []
 for (ind, decile), grouped in filled.groupby(['primary_index', 'decile']):
     data = grouped.copy()
 
-    # normalize the data over countries, so that the best-performing coutry has value 1 and the worst 0
-    # values are negative in the sense that the best-performing country is the one with the lowest initial value and vice-versa
-    norm = 1 - (data - data.min(axis=0)) / (data.max(axis=0) - data.min(axis=0))
+    # Z-score normalization: (value - mean) / std, reversed
+    norm = -1 * (data - data.mean(axis=0)) / data.std(axis=0)
 
-    # replace 0 values with 0.001 as well as all values in between
-    norm[norm < 0.001] = 0.001
+    # Scale between 0.1 and 1
+    norm_min = norm.min().min()
+    norm_max = norm.max().max()
+    norm = scaled_min + (norm - norm_min) * (1 - scaled_min) / (norm_max - norm_min)
+
     res.append(norm)
+
 
 preprocessed = pd.concat(res)
 preprocessed
+
 
 
 # In[10]:
