@@ -102,15 +102,11 @@ def run_complete_pipeline(limit: int = 100, sim_threshold: float = 0.75):
         
         # Step 6: Cluster similar policies
         logger.info("Step 6: Clustering similar policies...")
-        try:
-            # Use a subset for clustering to avoid memory issues
-            clustering_size = min(100, len(flattened_df))
-            clustering_df = flattened_df.head(clustering_size).copy()
-            
-            clustered_df = merge_policies_semantic_medoid(
-                clustering_df,
+        try:            
+            flattened_df = merge_policies_semantic_medoid(
+                flattened_df,
                 text_col="policy",
-                batch_size=16,
+                batch_size=256,
                 max_neighbors=8,
                 sim_threshold=sim_threshold
             )
@@ -125,7 +121,7 @@ def run_complete_pipeline(limit: int = 100, sim_threshold: float = 0.75):
         
         # Save flattened data with all annotations
         flattened_output = "complete_flattened_policies.csv"
-        clustered_df.to_csv(flattened_output, index=False)
+        flattened_df.to_csv(flattened_output, index=False)
         logger.info(f"Complete flattened data saved to {flattened_output}")
         
         # Save pivot table
@@ -134,9 +130,9 @@ def run_complete_pipeline(limit: int = 100, sim_threshold: float = 0.75):
         logger.info(f"Policy-sector matrix saved to {pivot_output}")
         
         # Save clustering results if available
-        if 'cluster_id' in clustered_df.columns and clustered_df['cluster_id'].nunique() > 1:
+        if 'cluster_id' in flattened_df.columns and flattened_df['cluster_id'].nunique() > 1:
             cluster_output = "policy_clusters.csv"
-            cluster_summary = (clustered_df.groupby(['cluster_id', 'policy_canonical'])
+            cluster_summary = (flattened_df.groupby(['cluster_id', 'policy_canonical'])
                               .size()
                               .reset_index(name='count')
                               .sort_values(['cluster_id', 'count'], ascending=[True, False]))
@@ -171,8 +167,7 @@ def run_complete_pipeline(limit: int = 100, sim_threshold: float = 0.75):
         return None, None
 
 if __name__ == "__main__":
-    # Run with conservative limits to avoid memory issues
-    result_df, pivot_df = run_complete_pipeline(limit=3000, sim_threshold=0.75)
+    result_df, pivot_df = run_complete_pipeline(limit=50000, sim_threshold=0.75)
     
     if result_df is not None:
         print("\nPipeline completed successfully!")
