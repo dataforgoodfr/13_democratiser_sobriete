@@ -11,6 +11,8 @@ import numpy as np
 import json
 import os
 
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
 def calculate_aggregated_scores(df, config):
     """Calculate aggregated scores using the correct aggregation logic"""
     
@@ -1321,12 +1323,18 @@ def create_time_series_dataframe(df, secondary_scores, eu_priority_scores, ewbi_
 
 def generate_outputs():
     """Generate the two required output files"""
-    
+
     print("=== Generating EWBI Outputs ===")
-    
+
+    # Build paths relative to this script's location
+    data_path = os.path.join(script_dir, '..', 'output', 'primary_data_preprocessed.csv')
+    config_path = os.path.join(script_dir, '..', 'data', 'ewbi_indicators.json')
+    master_output_path = os.path.join(script_dir, '..', 'output', 'ewbi_master.csv')
+    time_series_output_path = os.path.join(script_dir, '..', 'output', 'ewbi_time_series.csv')
+
     # Load the preprocessed data
     print("Loading preprocessed data...")
-    df = pd.read_csv('output/primary_data_preprocessed.csv')
+    df = pd.read_csv(data_path)
     print(f"Loaded data: {df.shape}")
     
     # Convert to MultiIndex exactly as in the original notebook
@@ -1334,7 +1342,7 @@ def generate_outputs():
     print(f"Converted to MultiIndex: {df.shape}")
     
     # Load the EWBI structure
-    with open('data/ewbi_indicators.json', 'r') as f:
+    with open(config_path, 'r') as f:
         config = json.load(f)['EWBI']
     
     print(f"Loaded EWBI structure with {len(config)} EU priorities")
@@ -1386,16 +1394,15 @@ def generate_outputs():
     
     # Save the outputs
     print("\n=== Saving Outputs ===")
-    
+
     # Save master dataframe
-    master_output_path = 'output/ewbi_master.csv'
     master_df.to_csv(master_output_path, index=False)
     print(f"Saved master dataframe to: {master_output_path}")
-    
+
     # Save time series dataframe
-    time_series_output_path = 'output/ewbi_time_series.csv'
     time_series_df.to_csv(time_series_output_path, index=False)
     print(f"Saved time series dataframe to: {time_series_output_path}")
+
     
     print("\n=== Output Generation Complete ===")
     print(f"Master dataframe: {master_df.shape}")
