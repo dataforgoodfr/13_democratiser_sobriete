@@ -7,13 +7,36 @@
 
 
 import pandas as pd
-
+import os
 
 # In[2]:
 
 
-df = pd.read_csv('../data/2025-06-05_df_final_EWBI.csv')
+# Build path relative to this script's location
+script_dir = os.path.dirname(os.path.abspath(__file__))
+data_path = os.path.join(script_dir, '..', 'data', '2025-06-05_df_final_EWBI.csv')
+
+df = pd.read_csv(data_path)
 df
+
+import pandas as pd
+import os
+
+# Completeness
+output_dir = os.path.join(script_dir, '..', 'output')
+os.makedirs(output_dir, exist_ok=True)
+excel_path = os.path.join(output_dir, 'completeness.xlsx')
+
+with pd.ExcelWriter(excel_path) as writer:
+    for primary_index in df['primary_index'].unique():
+        sub = df[df['primary_index'] == primary_index]
+        # Create a pivot table: index=country, columns=year, values=number of unique deciles
+        completeness = sub.groupby(['country', 'year'])['decile'].nunique().unstack(fill_value=0)
+        # Ensure all countries and years are present
+        all_countries = df['country'].unique()
+        all_years = df['year'].unique()
+        completeness = completeness.reindex(index=all_countries, columns=sorted(all_years), fill_value=0)
+        completeness.to_excel(writer, sheet_name=str(primary_index)[:31])  # Excel sheet names max 31 chars
 
 
 # ## Preprocessing
@@ -114,9 +137,11 @@ preprocessed
 
 
 # In[10]:
+# Build path relative to this script's location
+script_dir = os.path.dirname(os.path.abspath(__file__))
+data_path = os.path.join(script_dir, '..', 'output', 'primary_data_preprocessed.csv')
 
-
-preprocessed.swaplevel(1, 2).sort_index().to_csv('../output/primary_data_preprocessed.csv')
+preprocessed.swaplevel(1, 2).sort_index().to_csv(data_path)
 
 
 # In[ ]:
