@@ -2409,4 +2409,4 @@ if __name__ == '__main__':
     print("🌐 To access from other devices on your network, use: http://0.0.0.0:8050")
     print("⏹️  Press Ctrl+C to stop the server")
     print("-" * 60)
-    app.run_server(debug=True, host='0.0.0.0', port=8050)
+    app.run(debug=True, host='0.0.0.0', port=8050)
