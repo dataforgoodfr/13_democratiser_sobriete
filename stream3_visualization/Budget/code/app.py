@@ -1103,4 +1103,8 @@ server = app.server
 
 # Local development server
 if __name__ == '__main__':
-    app.run_server(debug=True, host='0.0.0.0', port=8050)
+    print("📊 Dashboard will be available at: http://localhost:8050")
+    print("🌐 To access from other devices on your network, use: http://0.0.0.0:8050")
+    print("⏹️  Press Ctrl+C to stop the server")
+    print("-" * 60)
+    app.run(debug=True, host='0.0.0.0', port=8050)

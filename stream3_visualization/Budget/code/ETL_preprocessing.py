@@ -25,9 +25,14 @@ Scope Independence Fix:
 - Increases inclusivity and scope-specific scenario coverage
 """
 
-# Constants
-DATA_DIR = '/Users/louistronel/Desktop/D4G_WSL/13_democratiser_sobriete-1/stream3_visualization/Budget/Data'
-OUTPUT_DIR = '/Users/louistronel/Desktop/D4G_WSL/13_democratiser_sobriete-1/stream3_visualization/Budget/Output'
+import os
+
+# Get the directory where this script is located
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Build data and output directories relative to the script location
+DATA_DIR = os.path.join(SCRIPT_DIR, '..', 'Data')
+OUTPUT_DIR = os.path.join(SCRIPT_DIR, '..', 'Output')
 
 def load_iso_codes_mapping():
     """Load and process ISO codes mapping data."""

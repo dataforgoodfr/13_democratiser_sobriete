@@ -3,8 +3,15 @@ import numpy as np
 from datetime import datetime
 
 # Define the directory containing the data files
-output_directory = '/Users/louistronel/Desktop/D4G_WSL/13_democratiser_sobriete-1/stream3_visualization/Budget/Output'
-data_directory = '/Users/louistronel/Desktop/D4G_WSL/13_democratiser_sobriete-1/stream3_visualization/Budget/Data'
+import os
+
+# Get the directory where this script is located
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Build data and output directories relative to the script location
+data_directory = os.path.join(SCRIPT_DIR, '..', 'Data')
+output_directory = os.path.join(SCRIPT_DIR, '..', 'Output')
+
 
 # Configuration: Choose Responsibility methodology
 # True = Use 1970 to latest emissions year (new approach)
