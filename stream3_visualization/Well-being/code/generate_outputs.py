@@ -1414,8 +1414,7 @@ def generate_outputs():
 
 
 def generate_outputs_raw():
-
-    """Generate the master and time series output files using raw (non-standardized) data"""
+    """Generate the master output file using raw (non-standardized) data"""
 
     print("=== Generating EWBI Outputs (RAW) ===")
 
@@ -1423,7 +1422,6 @@ def generate_outputs_raw():
     data_path = os.path.join(script_dir, '..', 'output', 'raw_data_preprocessed.csv')
     config_path = os.path.join(script_dir, '..', 'data', 'ewbi_indicators.json')
     master_output_path = os.path.join(script_dir, '..', 'output', 'ewbi_master_raw.csv')
-    time_series_output_path = os.path.join(script_dir, '..', 'output', 'ewbi_time_series_raw.csv')
 
     # Load the raw preprocessed data
     print("Loading raw preprocessed data...")
@@ -1433,6 +1431,7 @@ def generate_outputs_raw():
     # Pivot to wide format: index = (primary_index, country, decile), columns = year, values = value
     df = df.pivot_table(index=['primary_index', 'country', 'decile'], columns='year', values='value')
     print(f"Pivoted to wide format: {df.shape}")
+
 
     # Load the EWBI structure
     with open(config_path, 'r') as f:
@@ -1463,27 +1462,20 @@ def generate_outputs_raw():
     master_df = complete_df[complete_df['year'] == latest_year_int].copy()
     print(f"Master dataframe (latest year {latest_year_int}, all deciles): {master_df.shape}")
 
-    # Time Series Dataframe: All years, but only "All" deciles
-    time_series_df = complete_df[complete_df['decile'] == 'All'].copy()
-    print(f"RAW time series dataframe (all years, All Deciles only): {time_series_df.shape}")
-
-    # Save the outputs
+    # Save the output
     print("\n=== Saving RAW Output ===")
     master_df.to_csv(master_output_path, index=False)
     print(f"Saved RAW master dataframe to: {master_output_path}")
-    time_series_df.to_csv(time_series_output_path, index=False)
-    print(f"Saved RAW time series dataframe to: {time_series_output_path}")
 
     print("\n=== RAW Output Generation Complete ===")
     print(f"RAW master dataframe: {master_df.shape}")
-    print(f"RAW time series dataframe: {time_series_df.shape}")
 
-    return master_df, time_series_df
+    return master_df
 
 
 if __name__ == "__main__":
     master_df, time_series_df = generate_outputs()
     print("Script completed successfully!")
     # Generate the raw version as well
-    master_df, time_series_df = generate_outputs_raw()
+    master_df = generate_outputs_raw()
     print("Script completed successfully!")

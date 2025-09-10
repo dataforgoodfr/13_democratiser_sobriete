@@ -98,12 +98,21 @@ except FileNotFoundError as e:
     exit()
 
 
+
+# Load raw master and time series data
 try:
     master_df_raw = pd.read_csv(os.path.join(DATA_DIR, 'ewbi_master_raw.csv'))
     print("Raw master data loaded successfully.")
 except Exception as e:
     print(f"Could not load ewbi_master_raw.csv: {e}")
     master_df_raw = None
+
+try:
+    time_series_df_raw = pd.read_csv(os.path.join(DATA_DIR, 'ewbi_time_series_raw.csv'))
+    print("Raw time series data loaded successfully.")
+except Exception as e:
+    print(f"Could not load ewbi_time_series_raw.csv: {e}")
+    time_series_df_raw = None
 
 
 # Initialize the Dash app
@@ -425,23 +434,27 @@ def update_primary_indicator_dropdown(secondary_indicator, eu_priority):
      Input('primary-indicator-dropdown', 'value'),
      Input('countries-filter', 'value')]
 )
+
 def update_charts(eu_priority, secondary_indicator, primary_indicator, selected_countries):
+    # Decide which dataframe to use: processed or raw
+    use_raw = primary_indicator and primary_indicator != 'ALL' and master_df_raw is not None and time_series_df_raw is not None
+    if use_raw:
+        df_to_use = master_df_raw
+        ts_df_to_use = time_series_df_raw
+    else:
+        df_to_use = master_df
+        ts_df_to_use = time_series_df
+
     # For the map (Graph 1), we always want to show all individual countries (exclude EU Average)
-    map_df = master_df[(~master_df['country'].str.contains('Average')) & (master_df['decile'] == 'All')].copy()
+    map_df = df_to_use[(~df_to_use['country'].str.contains('Average')) & (df_to_use['decile'] == 'All')].copy()
 
     # For analysis charts (Graphs 2, 3, 4), filter based on selection
     if not selected_countries or selected_countries == ['EU Average']:
         # Default to EU Average for analysis charts
-        filtered_df = master_df[master_df['country'] == 'EU Average'].copy()
-        time_filtered_df = time_series_df[time_series_df['country'] == 'EU Average'].copy()
+        filtered_df = df_to_use[df_to_use['country'] == 'EU Average'].copy()
     else:
         # Filter by selected countries, only "All" deciles for country-level analysis
-        filtered_df = master_df[(master_df['country'].isin(selected_countries)) & (master_df['decile'] == 'All')].copy()
-        # For time series, always include EU Average when other countries are selected (like decile chart)
-        time_filtered_df = time_series_df[
-            (time_series_df['country'].isin(['EU Average'] + selected_countries)) &
-            (time_series_df['decile'] == 'All Deciles')
-            ].copy()
+        filtered_df = df_to_use[(df_to_use['country'].isin(selected_countries)) & (df_to_use['decile'] == 'All')].copy()
 
     # Create level filters for adaptive charts
     level_filters = create_level_filters(eu_priority, secondary_indicator, primary_indicator)
@@ -453,12 +466,10 @@ def update_charts(eu_priority, secondary_indicator, primary_indicator, selected_
     # For decile chart, we want ALL deciles for both EU Average and individual countries
     if not selected_countries or selected_countries == ['EU Average']:
         # Default to EU Average with all deciles
-        decile_df = master_df[master_df['country'] == 'EU Average'].copy()
+        decile_df = df_to_use[df_to_use['country'] == 'EU Average'].copy()
     else:
         # Include EU Average and selected countries with ALL deciles
-        decile_df = master_df[
-            (master_df['country'].isin(['EU Average'] + selected_countries))
-        ].copy()
+        decile_df = df_to_use[(df_to_use['country'].isin(['EU Average'] + selected_countries))].copy()
 
     decile_chart = create_adaptive_decile_chart(decile_df, level_filters)
 
@@ -473,8 +484,8 @@ def update_charts(eu_priority, secondary_indicator, primary_indicator, selected_
     radar_country_chart = create_adaptive_radar_country_chart(radar_country_df, level_filters)
 
     # Create adaptive time series chart (works for all 4 levels)
-    # Pass the full time_series_df and let the chart function handle all filtering
-    time_series_chart = create_adaptive_time_series_chart(time_series_df, level_filters, selected_countries)
+    # Pass the correct time series df and let the chart function handle all filtering
+    time_series_chart = create_adaptive_time_series_chart(ts_df_to_use, level_filters, selected_countries)
 
     return map_chart, time_series_chart, decile_chart, radar_country_chart
 
