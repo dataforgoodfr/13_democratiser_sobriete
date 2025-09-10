@@ -135,7 +135,6 @@ app.layout = html.Div([
                             ", a community of 6000+ tech experts volunteering for general interest projects, and the ",
                             html.Strong("World Sufficiency Lab.")
                         ], style={
-                            'fontSize': '1.1rem',
                             'lineHeight': '1.6',
                             'color': '#2c3e50',
                             'margin': '0',
@@ -172,7 +171,6 @@ app.layout = html.Div([
                                        'textDecoration': 'none'
                                    })
                         ], style={
-                            'fontSize': '1.1rem',
                             'fontWeight': 'bold',
                             'textAlign': 'center',
                             'margin': '0 0 15px 0'
@@ -188,8 +186,7 @@ app.layout = html.Div([
                             style={
                                 'color': '#2c3e50',
                                 'textDecoration': 'none',
-                                'marginRight': '20px',
-                                'fontSize': '0.9rem'
+                                'marginRight': '20px'
                             }),
                             html.A([
                                 html.I(className="fab fa-linkedin", style={'marginRight': '8px'}),
@@ -199,8 +196,7 @@ app.layout = html.Div([
                             target="_blank",
                             style={
                                 'color': '#2c3e50',
-                                'textDecoration': 'none',
-                                'fontSize': '0.9rem'
+                                'textDecoration': 'none'
                             })
                         ], style={
                             'textAlign': 'center'
@@ -222,7 +218,6 @@ app.layout = html.Div([
                 'backgroundColor': '#fdf6e3',  # Light cream background like filters
                 'borderRadius': '8px',
                 'boxShadow': '0 2px 4px rgba(0,0,0,0.1)',
-                'fontSize': '0.9rem',
                 'color': '#2c3e50'
             })
         ], style={
@@ -235,7 +230,6 @@ app.layout = html.Div([
             # Filters title
             html.H3("Filters", style={
                 'textAlign': 'center',
-                'fontSize': '1.2rem',
                 'fontWeight': 'bold',
                 'color': '#2c3e50',
                 'marginBottom': '30px',
@@ -243,7 +237,7 @@ app.layout = html.Div([
             }),
             
             html.Div([
-                html.Label("Country", style={'fontWeight': 'bold', 'color': '#2c3e50', 'fontSize': '0.9rem'}),
+                html.Label("Country", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
                 dcc.Dropdown(
                     id='country-dropdown',
                     options=[{'label': 'All Countries', 'value': 'ALL'}] +
@@ -254,13 +248,13 @@ app.layout = html.Div([
                                  (scenario_parameters['ISO2'].notna())
                                  ][['Country', 'ISO2']].drop_duplicates().sort_values('Country').values],
                     value='ALL',
-                    style={'marginTop': '6px', 'fontSize': '0.85rem'},
+                    style={'marginTop': '6px'},
                     clearable=False
                 )
             ], style={'width': '100%', 'marginBottom': '52px'}),
             
             html.Div([
-                html.Label("G20 Only", style={'fontWeight': 'bold', 'color': '#2c3e50', 'fontSize': '0.9rem'}),
+                html.Label("G20 Only", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
                 dcc.Dropdown(
                     id='g20-filter-dropdown',
                     options=[
@@ -268,19 +262,19 @@ app.layout = html.Div([
                         {'label': 'Yes', 'value': 'Yes'}
                     ],
                     value='No',
-                    style={'marginTop': '6px', 'fontSize': '0.85rem'},
+                    style={'marginTop': '6px'},
                     clearable=False
                 )
             ], style={'width': '100%', 'marginBottom': '52px'}),
             
             html.Div([
-                html.Label("Carbon Budget Allocation", style={'fontWeight': 'bold', 'color': '#2c3e50', 'fontSize': '0.9rem'}),
+                html.Label("Carbon Budget Allocation", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
                 dcc.Dropdown(
                     id='budget-distribution-dropdown',
                     options=[{'label': i, 'value': i} for i in
                              scenario_parameters['Budget_distribution_scenario'].unique()],
                     value='Responsibility',
-                    style={'marginTop': '6px', 'fontSize': '0.85rem'},
+                    style={'marginTop': '6px'},
                     clearable=False
                 )
             ], style={'width': '100%', 'marginBottom': '52px'}),
@@ -288,18 +282,18 @@ app.layout = html.Div([
             html.Div([
                 html.Label([
                     "Probability of not exceeding +1.5°C"
-                ], style={'fontWeight': 'bold', 'color': '#2c3e50', 'fontSize': '0.9rem'}),
+                ], style={'fontWeight': 'bold', 'color': '#2c3e50'}),
                 dcc.Dropdown(
                     id='probability-dropdown',
                     options=[{'label': i, 'value': i} for i in scenario_parameters['Probability_of_reach'].unique()],
                     value='50%',
-                    style={'marginTop': '6px', 'fontSize': '0.85rem'},
+                    style={'marginTop': '6px'},
                     clearable=False
                 )
             ], style={'width': '100%', 'marginBottom': '52px'}),
             
             html.Div([
-                html.Label("Scope of Emissions", style={'fontWeight': 'bold', 'color': '#2c3e50', 'fontSize': '0.9rem'}),
+                html.Label("Scope of Emissions", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
                 dcc.Dropdown(
                     id='emissions-scope-dropdown',
                     options=[
@@ -307,7 +301,7 @@ app.layout = html.Div([
                         {'label': 'Consumption', 'value': 'Consumption'}
                     ],
                     value='Territory',
-                    style={'marginTop': '6px', 'fontSize': '0.85rem'},
+                    style={'marginTop': '6px'},
                     clearable=False
                 )
             ], style={'width': '100%', 'marginBottom': '52px'})
@@ -415,22 +409,17 @@ def update_map(budget_dist, probability, emissions_scope, selected_country, g20_
     fig.update_traces(
         marker_line_color="white",
         marker_line_width=0.5,
-        hovertemplate="<b>%{hovertext}</b><br>" +
-                      "Scope: %{customdata[0]}<br>" +
-                      "Latest Year: %{customdata[1]}<br>" +
-                      "Zero Carbon Year = %{customdata[2]}<br>" +
-                      "Years to Zero Carbon = %{customdata[3]}<br>" +
-                      "Annual Emissions (Mt) = %{customdata[4]:.1f}<br>" +
-                      "Cumulative Emissions (Mt) = %{customdata[5]:.1f}<br>" +
-                      "Emissions Per Capita (tonnes) = %{customdata[6]:.2f}<br>" +
-                      "Carbon Budget (Mt) = %{customdata[7]:.1f}<extra></extra>",
-        customdata=plot_data[[
-            'Emissions_scope', 'Latest_year',
-            'Neutrality_year', 'Years_to_neutrality_from_today',
-            'Latest_annual_CO2_emissions_Mt', 'Latest_cumulative_CO2_emissions_Mt',
-            'Latest_emissions_per_capita_t', 'Country_carbon_budget'
-        ]].apply(lambda row: [
-            get_scope_display_label(row['Emissions_scope']),  # Transform scope to display label
+        hovertemplate="<b>%{customdata[0]}<br>%{customdata[1]}</b><br>" +
+                      "Latest Year: %{customdata[2]}<br>" +
+                      "Zero Carbon Year = %{customdata[3]}<br>" +
+                      "Years to Zero Carbon = %{customdata[4]}<br>" +
+                      "Annual Emissions (Mt) = %{customdata[5]:.1f}<br>" +
+                      "Cumulative Emissions (Mt) = %{customdata[6]:.1f}<br>" +
+                      "Emissions Per Capita (tonnes) = %{customdata[7]:.2f}<br>" +
+                      "Carbon Budget (Mt) = %{customdata[8]:.1f}<extra></extra>",
+        customdata=plot_data.apply(lambda row: [
+            row['Budget_distribution_scenario'],
+            get_scope_display_label(row['Emissions_scope']),
             row['Latest_year'],
             row['Neutrality_year'],
             row['Years_to_neutrality_from_today'],
@@ -441,13 +430,13 @@ def update_map(budget_dist, probability, emissions_scope, selected_country, g20_
         ], axis=1).values,
         # Position colorbar to the left of centered map
         colorbar=dict(
-            x=0.05,  # Position to the left but within the centered layout
+            x=0.05,
             xanchor="left",
             thickness=15,
-            len=0.7,  # Shorter colorbar to create more space
+            len=0.7,
             title=dict(
                 text="Zero Carbon Year",
-                font=dict(size=14, color="#2c3e50"),
+                font=dict(color="#2c3e50"),
                 side="top"
             )
         )
@@ -497,18 +486,17 @@ def update_map(budget_dist, probability, emissions_scope, selected_country, g20_
         plot_bgcolor='#ffffff',
         font=dict(
             family="Arial, sans-serif",
-            size=12,
             color="#2c3e50"
         ),
         title=dict(
-            font=dict(size=16, color="#2c3e50", weight="bold"),  # Bold, smaller, dark grey like World Sufficiency Lab theme
+            font=dict(color="#2c3e50", weight="bold"),  # Bold, smaller, dark grey like World Sufficiency Lab theme
             x=0.5
         ),
         # Lighter hover box styling
         hoverlabel=dict(
             bgcolor="rgba(245, 245, 245, 0.9)",  # Light grey background for hover
             bordercolor="white",
-            font=dict(color="black", size=12)
+            font=dict(color="black")
         )
     )
 
@@ -608,7 +596,7 @@ def update_bar_chart(probability, selected_country, g20_filter):
             y=row['Neutrality_year_numeric'],
             text=str(int(row['Neutrality_year_numeric'])),
             showarrow=False,
-            font=dict(size=11, color="black", weight="bold"),
+            font=dict(color="black", weight="bold"),
             yshift=yshift,  # Dynamic positioning based on bar direction
             xanchor="center",  # Center the text horizontally
             yanchor=yanchor  # Dynamic anchor based on bar direction
@@ -624,11 +612,10 @@ def update_bar_chart(probability, selected_country, g20_filter):
         plot_bgcolor='#ffffff',
         font=dict(
             family="Arial, sans-serif",
-            size=14,  # Increased from 12 to 14
             color="#2c3e50"
         ),
         title=dict(
-            font=dict(size=16, color="#2c3e50", weight="bold"),  # Bold, smaller, dark grey like World Sufficiency Lab theme
+            font=dict(color="#2c3e50", weight="bold"),  # Bold, smaller, dark grey like World Sufficiency Lab theme
             x=0.5
         ),
         height=500,
@@ -648,7 +635,6 @@ def update_bar_chart(probability, selected_country, g20_filter):
             tickvals=['NDC Pledges - Territory', 'Capability - Territory', 'Capability - Consumption',
                       'Responsibility - Territory', 'Responsibility - Consumption'],
             ticktext=['', '', '', '', ''],  # Remove default tick labels
-            tickfont=dict(size=12),
             side='bottom'  # Put emissions scope labels below bars
         )
     )
@@ -668,7 +654,7 @@ def update_bar_chart(probability, selected_country, g20_filter):
             y=1960,  # Emissions scope labels at 1960
             text=label,
             showarrow=False,
-            font=dict(size=12, color="#2c3e50"),
+            font=dict(color="#2c3e50"),
             xref="x",
             yref="y",
             xanchor="center",
@@ -700,7 +686,7 @@ def update_bar_chart(probability, selected_country, g20_filter):
             y=1950,  # Budget distribution labels at the bottom
             text=f"<b>{group_name}</b>",
             showarrow=False,
-            font=dict(size=12, color="#2c3e50"),
+            font=dict(color="#2c3e50"),
             xref="x",
             yref="y",
             xanchor="center",
@@ -725,7 +711,7 @@ def update_bar_chart(probability, selected_country, g20_filter):
             y=row['Neutrality_year_numeric'],
             text=str(int(row['Neutrality_year_numeric'])),
             showarrow=False,
-            font=dict(size=11, color="black", weight="bold"),
+            font=dict(color="black", weight="bold"),
             yshift=yshift,  # Dynamic positioning based on bar direction
             xanchor="center",
             yanchor=yanchor
@@ -817,12 +803,11 @@ def update_line_chart(budget_dist, probability, emissions_scope, selected_countr
         plot_bgcolor='#ffffff',
         font=dict(
             family="Arial, sans-serif",
-            size=14,  # Increased from 12 to 14
             color="#2c3e50"
         ),
         title=dict(
             text=chart_title,
-            font=dict(size=16, color="#2c3e50", weight="bold"),  # Bold, smaller, dark grey like World Sufficiency Lab theme
+            font=dict(color="#2c3e50", weight="bold"),  # Bold, smaller, dark grey like World Sufficiency Lab theme
             x=0.5
         ),
         height=500,
@@ -983,11 +968,10 @@ def update_top_cumulative_emitters(selected_country, selected_scope, g20_filter)
         plot_bgcolor='#ffffff',
         font=dict(
             family="Arial, sans-serif",
-            size=14,
             color="#2c3e50"
         ),
         title=dict(
-            font=dict(size=16, color="#2c3e50", weight="bold"),
+            font=dict(color="#2c3e50", weight="bold"),
             x=0.5
         ),
         showlegend=False,
@@ -1081,11 +1065,10 @@ def update_top_per_capita_emitters(selected_country, selected_scope, g20_filter)
         plot_bgcolor='#ffffff',
         font=dict(
             family="Arial, sans-serif",
-            size=14,
             color="#2c3e50"
         ),
         title=dict(
-            font=dict(size=16, color="#2c3e50", weight="bold"),
+            font=dict(color="#2c3e50", weight="bold"),
             x=0.5
         ),
         showlegend=False,

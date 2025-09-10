@@ -1,0 +1,71 @@
+/* Set base font size relative to viewport width */
+html {
+    font-size: 1.2vw;
+}
+
+body, .dash-app, .dash-bootstrap {
+    font-family: Arial, sans-serif;
+    color: #2c3e50;
+}
+
+/* Responsive headings */
+h1, h2, h3, h4, h5, h6 {
+    font-weight: bold;
+    color: #2c3e50;
+    margin: 0.5em 0;
+}
+
+h1 { font-size: 2.5em; }
+h2 { font-size: 2em; }
+h3 { font-size: 1.5em; }
+h4 { font-size: 1.2em; }
+h5, h6 { font-size: 1em; }
+
+/* Responsive paragraph and label text */
+p, label, .dash-label {
+    font-size: 0.9em;
+    line-height: 1.6;
+}
+
+/* Responsive dropdowns and buttons */
+.Select-control, .Select-placeholder, .Select-value, .Select-input input, .dash-dropdown, .dash-dropdown * {
+    font-size: 0.95em !important;
+}
+
+/* Responsive graph titles and axis labels */
+.js-plotly-plot .gtitle, .js-plotly-plot .xtick, .js-plotly-plot .ytick, .js-plotly-plot .legendtext {
+    font-size: 0.85em !important;
+}
+
+/* Responsive annotations */
+.annotation {
+    font-size: 0.7em !important;
+}
+
+/* Reduce Plotly legend font size */
+.js-plotly-plot .legend text {
+    font-size: 12px !important;
+}
+
+/* Make Plotly annotation text smaller */
+.js-plotly-plot .annotation text {
+    font-size: 11.5px !important;
+}
+
+
+/* Responsive for small screens */
+@media (max-width: 900px) {
+    html { font-size: 2vw; }
+    h1 { font-size: 2em; }
+    h2 { font-size: 1.5em; }
+    h3 { font-size: 1.2em; }
+    p, label, .dash-label { font-size: 0.95em; }
+}
+
+@media (max-width: 600px) {
+    html { font-size: 3vw; }
+    h1 { font-size: 1.5em; }
+    h2 { font-size: 1.2em; }
+    h3 { font-size: 1em; }
+    p, label, .dash-label { font-size: 0.9em; }
+}
