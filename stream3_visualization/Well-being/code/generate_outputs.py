@@ -11,6 +11,22 @@ import numpy as np
 import json
 import os
 
+# Filter out economic good indicators (only keep satisfiers) - exactly as in original
+economic_indicators_to_remove = [
+    'AN-SILC-1',
+    'AE-HBS-1', 'AE-HBS-2',
+    'HQ-SILC-2',
+    'HH-SILC-1', 'HH-HBS-1', 'HH-HBS-2', 'HH-HBS-3', 'HH-HBS-4',
+    'EC-HBS-1', 'EC-HBS-2',
+    'ED-ICT-1', 'ED-EHIS-1',
+    'AC-SILC-1', 'AC-SILC-2', 'AC-HBS-1', 'AC-HBS-2', 'AC-EHIS-1',
+    'IE-HBS-1', 'IE-HBS-2',
+    'IC-SILC-1', 'IC-SILC-2', 'IC-HBS-1', 'IC-HBS-2',
+    'TT-SILC-1', 'TT-SILC-2', 'TT-HBS-1', 'TT-HBS-2',
+    'TS-SILC-1', 'TS-HBS-1', 'TS-HBS-2'
+]
+
+
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
 def calculate_aggregated_scores(df, config):
@@ -1346,21 +1362,7 @@ def generate_outputs():
         config = json.load(f)['EWBI']
     
     print(f"Loaded EWBI structure with {len(config)} EU priorities")
-    
-    # Filter out economic good indicators (only keep satisfiers) - exactly as in original
-    economic_indicators_to_remove = [
-        'AN-SILC-1',
-        'AE-HBS-1', 'AE-HBS-2',
-        'HQ-SILC-2',
-        'HH-SILC-1', 'HH-HBS-1', 'HH-HBS-2', 'HH-HBS-3', 'HH-HBS-4',
-        'EC-HBS-1', 'EC-HBS-2',
-        'ED-ICT-1', 'ED-EHIS-1',
-        'AC-SILC-1', 'AC-SILC-2', 'AC-HBS-1', 'AC-HBS-2', 'AC-EHIS-1',
-        'IE-HBS-1', 'IE-HBS-2',
-        'IC-SILC-1', 'IC-SILC-2', 'IC-HBS-1', 'IC-HBS-2',
-        'TT-SILC-1', 'TT-SILC-2', 'TT-HBS-1', 'TT-HBS-2',
-        'TS-SILC-1', 'TS-HBS-1', 'TS-HBS-2'
-    ]
+
     
     print(f"Filtering out {len(economic_indicators_to_remove)} economic indicators")
     print(f"Initial data shape: {df.shape}")
@@ -1403,13 +1405,77 @@ def generate_outputs():
     time_series_df.to_csv(time_series_output_path, index=False)
     print(f"Saved time series dataframe to: {time_series_output_path}")
 
-    
+
     print("\n=== Output Generation Complete ===")
     print(f"Master dataframe: {master_df.shape}")
     print(f"Time series dataframe: {time_series_df.shape}")
     
     return master_df, time_series_df
 
+
+def generate_outputs_raw():
+    """Generate the master output file using raw (non-standardized) data"""
+
+    print("=== Generating EWBI Outputs (RAW) ===")
+
+    # Build paths relative to this script's location
+    data_path = os.path.join(script_dir, '..', 'output', 'raw_data_preprocessed.csv')
+    config_path = os.path.join(script_dir, '..', 'data', 'ewbi_indicators.json')
+    master_output_path = os.path.join(script_dir, '..', 'output', 'ewbi_master_raw.csv')
+
+    # Load the raw preprocessed data
+    print("Loading raw preprocessed data...")
+    df = pd.read_csv(data_path)
+    print(f"Loaded data: {df.shape}")
+
+    # Pivot to wide format: index = (primary_index, country, decile), columns = year, values = value
+    df = df.pivot_table(index=['primary_index', 'country', 'decile'], columns='year', values='value')
+    print(f"Pivoted to wide format: {df.shape}")
+
+
+    # Load the EWBI structure
+    with open(config_path, 'r') as f:
+        config = json.load(f)['EWBI']
+
+    print(f"Loaded EWBI structure with {len(config)} EU priorities")
+
+    print(f"Filtering out {len(economic_indicators_to_remove)} economic indicators")
+    print(f"Initial data shape: {df.shape}")
+
+    # Remove economic indicators
+    df_filtered = df[~df.index.get_level_values('primary_index').isin(economic_indicators_to_remove)]
+
+    print(f"After filtering: {df_filtered.shape}")
+    print(f"Removed {df.shape[0] - df_filtered.shape[0]} rows")
+
+    # Use filtered data for the rest of the computation
+    df = df_filtered
+
+    # Generate complete hierarchical dataframe for ALL years and ALL deciles
+    print("\n=== Generating Complete Hierarchical Dataframe (RAW) ===")
+    complete_df = create_complete_hierarchical_dataframe(df, config)
+    print(f"Generated complete hierarchical dataframe: {complete_df.shape}")
+
+    # Master Dataframe: Latest year only, for all deciles
+    latest_year = max([col for col in df.columns if str(col).isdigit()])
+    latest_year_int = int(latest_year)
+    master_df = complete_df[complete_df['year'] == latest_year_int].copy()
+    print(f"Master dataframe (latest year {latest_year_int}, all deciles): {master_df.shape}")
+
+    # Save the output
+    print("\n=== Saving RAW Output ===")
+    master_df.to_csv(master_output_path, index=False)
+    print(f"Saved RAW master dataframe to: {master_output_path}")
+
+    print("\n=== RAW Output Generation Complete ===")
+    print(f"RAW master dataframe: {master_df.shape}")
+
+    return master_df
+
+
 if __name__ == "__main__":
     master_df, time_series_df = generate_outputs()
-    print("Script completed successfully!") 
+    print("Script completed successfully!")
+    # Generate the raw version as well
+    master_df = generate_outputs_raw()
+    print("Script completed successfully!")

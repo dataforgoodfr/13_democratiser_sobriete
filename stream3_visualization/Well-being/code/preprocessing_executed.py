@@ -117,7 +117,20 @@ filled
 scaled_min = 0.1
 
 res = []
-for (ind, decile), grouped in filled.groupby(['primary_index', 'decile']):
+#for (ind, decile), grouped in filled.groupby(['primary_index', 'decile']):
+ #   data = grouped.copy()
+#
+ #   # Z-score normalization: (value - mean) / std, reversed
+  #  norm = -1 * (data - data.mean(axis=0)) / data.std(axis=0)
+
+    # Scale between 0.1 and 1
+    #norm_min = norm.min().min()
+    #norm_max = norm.max().max()
+    #norm = scaled_min + (norm - norm_min) * (1 - scaled_min) / (norm_max - norm_min)
+
+    #res.append(norm)
+
+for ind, grouped in filled.groupby(['primary_index']):
     data = grouped.copy()
 
     # Z-score normalization: (value - mean) / std, reversed
@@ -131,6 +144,7 @@ for (ind, decile), grouped in filled.groupby(['primary_index', 'decile']):
     res.append(norm)
 
 
+
 preprocessed = pd.concat(res)
 preprocessed
 
@@ -142,6 +156,15 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 data_path = os.path.join(script_dir, '..', 'output', 'primary_data_preprocessed.csv')
 
 preprocessed.swaplevel(1, 2).sort_index().to_csv(data_path)
+
+
+# Save the filled (not standardized) data in the same format as the final output
+filled_long = filled.stack().reset_index()
+filled_long.columns = ['primary_index', 'decile', 'country', 'year', 'value']
+
+# Save to CSV
+raw_preprocessed_path = os.path.join(script_dir, '..', 'output', 'raw_data_preprocessed.csv')
+filled_long.to_csv(raw_preprocessed_path, index=False)
 
 
 # In[ ]:
