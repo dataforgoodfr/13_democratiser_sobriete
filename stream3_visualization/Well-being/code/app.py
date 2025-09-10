@@ -1690,12 +1690,22 @@ def create_adaptive_map_chart(map_df, level_filters):
     # Filter out countries without ISO-3 codes (like aggregates)
     filtered_data = filtered_data[filtered_data['iso3'].notna()].copy()
 
+    # Determine min and max for the color scale
+    score_min = filtered_data['Score'].min()
+    score_max = filtered_data['Score'].max()
+    # Fallback if all values are the same
+    if score_min == score_max:
+        score_min = 0
+        score_max = 1
+
     # Create the choropleth map
     european_map = go.Figure(data=go.Choropleth(
         locations=filtered_data['iso3'],
         z=filtered_data['Score'],
         locationmode='ISO-3',
         colorscale='RdYlGn',  # Red to Green scale
+        zmin=score_min,
+        zmax=score_max,
         colorbar_title=colorbar_title,
         text=filtered_data['full_name'],
         hovertemplate='<b>%{text}</b><br>Score: %{z:.2f}<extra></extra>'
@@ -1754,12 +1764,6 @@ def create_adaptive_map_chart(map_df, level_filters):
             y=0.95  # Consistent title position for alignment
         ),
 
-    )
-
-    # Set color scale from 0 to 1
-    european_map.update_traces(
-        zmin=0,
-        zmax=1
     )
 
     return european_map
@@ -1877,6 +1881,14 @@ def create_adaptive_decile_chart(analysis_df, level_filters):
                 hovertemplate='<b>Score:</b> %{y:.2f}<br><b>Decile:</b> %{x}<br><b>Country:</b> %{fullData.name}<extra></extra>'
             ))
 
+    # Calculate y-axis max (rounded up to nearest 0.2, unless 1)
+    y_max = filtered_data['Score'].max() if not filtered_data.empty else 1
+    if y_max < 1:
+        y_max = round(y_max, 1) + 0.1
+        y_max = min(y_max, 1)
+    else:
+        y_max = 1
+
     decile_analysis.update_layout(
         title=dict(
             text=title,
@@ -1896,7 +1908,7 @@ def create_adaptive_decile_chart(analysis_df, level_filters):
             categoryarray=['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'All']
         ),
         yaxis=dict(
-            range=[0, 1],
+            range=[0, y_max],
             showgrid=False,  # Remove horizontal grid lines
             tickformat='.2f'  # Show 2 decimal places
         ),
@@ -2227,6 +2239,14 @@ def create_levels2to4_country_chart(analysis_df, level_filters):
             )
 
     # Update layout
+    # Calculate y-axis max (rounded up to nearest 0.2, unless 1)
+    y_max = max(main_scores) if main_scores else 1
+    if y_max < 1:
+        y_max = round(y_max, 1) + 0.1
+        y_max = min(y_max, 1)
+    else:
+        y_max = 1
+
     country_chart.update_layout(
         title=dict(
             text=title,
@@ -2238,7 +2258,7 @@ def create_levels2to4_country_chart(analysis_df, level_filters):
             tickfont=dict(size=14)  # Increased font size for country names
         ),
         yaxis=dict(
-            range=[0, 1],
+            range=[0, y_max],
             tickformat='.1f',
             gridwidth=0.2,
             title=''  # Remove "Score" label
@@ -2380,6 +2400,14 @@ def create_adaptive_time_series_chart(analysis_df, level_filters, selected_count
                 marker_color=country_colors.get(country, '#1f77b4')  # Use consistent colors
             ))
 
+    # Calculate y-axis max (rounded up to nearest 0.2, unless 1)
+    y_max = filtered_data['Score'].max() if not filtered_data.empty else 1
+    if y_max < 1:
+        y_max = round(y_max, 1) + 0.1
+        y_max = min(y_max, 1)
+    else:
+        y_max = 1
+
     time_series.update_layout(
         title=dict(
             text=title,
@@ -2401,7 +2429,7 @@ def create_adaptive_time_series_chart(analysis_df, level_filters, selected_count
             range=[2004, 2024]  # Force full year range regardless of data
         ),
         yaxis=dict(
-            range=[0, 1],
+            range=[0, y_max],
             title='',  # Remove "Score" label
             showgrid=False,  # Remove horizontal grid lines
             tickformat='.2f'  # Show 2 decimal places
