@@ -2434,9 +2434,13 @@ server = app.server
 
 # Local development server
 if __name__ == '__main__':
+    import os
+    port = int(os.environ.get('PORT', 8050))
+    debug = os.environ.get('DEBUG', 'true').lower() == 'true'
+    
     print("🚀 Starting European Well-Being Index Dashboard...")
-    print("📊 Dashboard will be available at: http://localhost:8050")
-    print("🌐 To access from other devices on your network, use: http://0.0.0.0:8050")
+    print(f"📊 Dashboard will be available at: http://localhost:{port}")
+    print("🌐 To access from other devices on your network, use: http://0.0.0.0:" + str(port))
     print("⏹️  Press Ctrl+C to stop the server")
     print("-" * 60)
-    app.run(debug=True, host='0.0.0.0', port=8050)
+    app.run(debug=debug, host='0.0.0.0', port=port)

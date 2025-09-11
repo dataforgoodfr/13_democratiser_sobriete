@@ -1,0 +1,13 @@
+{
+  "type": "python",
+  "python": {
+    "version": "3.11"
+  },
+  "build": {
+    "type": "pip",
+    "requirements": "deployment/requirements.txt"
+  },
+  "deploy": {
+    "type": "python"
+  }
+}
