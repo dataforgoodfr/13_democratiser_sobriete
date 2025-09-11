@@ -120,6 +120,7 @@ app = dash.Dash(__name__)
 server = app.server
 
 # App layout
+
 app.layout = html.Div([
     # Header section with hierarchical titles
     html.Div([
@@ -146,67 +147,91 @@ app.layout = html.Div([
             'margin': '0 auto 30px auto'
         }),
 
-        # Controls section embedded within the header
+        # Controls section: Data types on top, Country/Normalize below
         html.Div([
+            # Top row: Data Type dropdowns side by side
             html.Div([
-                html.Label("EU Priority", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
-                dcc.Dropdown(
-                    id='eu-priority-dropdown',
-                    options=[{'label': 'ALL', 'value': 'ALL'}] + [{'label': prio, 'value': prio} for prio in
-                                                                  EU_PRIORITIES],
-                    value='ALL',
-                    style={'marginTop': '8px'},
-                    clearable=False
-                )
-            ], style={'width': '25%', 'display': 'inline-block', 'margin-right': '2%'}),
-
+                html.Div([
+                    html.Label("EU Priority", style={'fontWeight': 'bold', 'color': '#2c3e50', 'marginBottom': '4px'}),
+                    dcc.Dropdown(
+                        id='eu-priority-dropdown',
+                        options=[{'label': '(Select value)', 'value': 'ALL'}] + [{'label': prio, 'value': prio} for prio in EU_PRIORITIES],
+                        value='ALL',
+                        style={'marginTop': '0px'},
+                        clearable=False
+                    ),
+                ], style={'width': '32%', 'display': 'inline-block', 'verticalAlign': 'top', 'minWidth': '120px', 'maxWidth': '220px', 'marginRight': '2%'}),
+                html.Div([
+                    html.Label("Secondary Indicator", style={'fontWeight': 'bold', 'color': '#2c3e50', 'marginBottom': '4px'}),
+                    dcc.Dropdown(
+                        id='secondary-indicator-dropdown',
+                        options=[{'label': '(Select value)', 'value': 'ALL'}],
+                        value='ALL',
+                        style={'marginTop': '0px'},
+                        clearable=False,
+                        disabled=True
+                    ),
+                ], style={'width': '32%', 'display': 'inline-block', 'verticalAlign': 'top', 'minWidth': '120px', 'maxWidth': '220px', 'marginRight': '2%'}),
+                html.Div([
+                    html.Label("Raw Data", style={'fontWeight': 'bold', 'color': '#2c3e50', 'marginBottom': '4px'}),
+                    dcc.Dropdown(
+                        id='primary-indicator-dropdown',
+                        options=[{'label': '(Select value)', 'value': 'ALL'}],
+                        value='ALL',
+                        style={'marginTop': '0px'},
+                        clearable=False,
+                        disabled=True
+                    ),
+                ], style={'width': '32%', 'display': 'inline-block', 'verticalAlign': 'top', 'minWidth': '120px', 'maxWidth': '220px'}),
+            ], style={
+                'display': 'flex',
+                'flexDirection': 'row',
+                'justifyContent': 'center',
+                'alignItems': 'flex-start',
+                'gap': '2%',
+                'marginBottom': '12px',
+            }),
+            # Bottom row: Country selector and Normalize toggle
             html.Div([
-                html.Label("Secondary Indicator", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
-                dcc.Dropdown(
-                    id='secondary-indicator-dropdown',
-                    options=[{'label': 'ALL', 'value': 'ALL'}],
-                    value='ALL',
-                    style={'marginTop': '8px'},
-                    clearable=False,
-                    disabled=True
-                )
-            ], style={'width': '20%', 'display': 'inline-block', 'margin-right': '2%'}),
-
-            html.Div([
-                html.Label("Primary Indicator", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
-                dcc.Dropdown(
-                    id='primary-indicator-dropdown',
-                    options=[{'label': 'ALL', 'value': 'ALL'}],
-                    value='ALL',
-                    style={'marginTop': '8px'},
-                    clearable=False,
-                    disabled=True
-                )
-            ], style={'width': '20%', 'display': 'inline-block', 'margin-right': '2%'}),
-
-            html.Div([
-                html.Label("Countries", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
-                dcc.Dropdown(
-                    id='countries-filter',
-                    options=[
-                                {'label': 'EU Average', 'value': 'EU Average'}
-                            ] + [{'label': ISO2_TO_FULL_NAME.get(country, country), 'value': country} for country in
-                                 COUNTRIES],
-                    value=['EU Average'],  # Default to EU Average
-                    multi=True,
-                    placeholder='Select countries to display (default: EU Average)',
-                    style={'marginTop': '8px'}
-                )
-            ], style={'width': '20%', 'display': 'inline-block'}),
+                html.Div([
+                    html.Label("Country Selector", style={'fontWeight': 'bold', 'color': '#2c3e50', 'marginBottom': '4px'}),
+                    dcc.Dropdown(
+                        id='countries-filter',
+                        options=[{'label': ISO2_TO_FULL_NAME.get(country, country), 'value': country} for country in COUNTRIES],
+                        value=[],
+                        multi=True,
+                        placeholder='Add countries for comparison',
+                        style={'marginTop': '0px'}
+                    ),
+                ], style={'width': '60%', 'display': 'inline-block', 'verticalAlign': 'top', 'minWidth': '180px', 'maxWidth': '340px', 'marginRight': '2%'}),
+                html.Div([
+                    html.Label("Normalize to EU average", style={'fontWeight': 'bold', 'color': '#2c3e50', 'marginBottom': '4px'}),
+                    dcc.Checklist(
+                        id='normalize-toggle',
+                        options=[{'label': '', 'value': 'normalize'}],
+                        value=[],
+                        style={'marginTop': '8px', 'marginLeft': '8px'},
+                        inputStyle={"marginRight": "8px", "transform": "scale(1.5)"},
+                        inline=True
+                    ),
+                ], style={'width': '36%', 'display': 'inline-block', 'verticalAlign': 'top', 'minWidth': '120px', 'maxWidth': '180px'}),
+            ], style={
+                'display': 'flex',
+                'flexDirection': 'row',
+                'justifyContent': 'center',
+                'alignItems': 'flex-start',
+                'gap': '2%',
+            }),
         ], style={
             'padding': '15px 20px',
             'backgroundColor': '#fdf6e3',
             'borderRadius': '8px',
             'boxShadow': '0 1px 2px rgba(0,0,0,0.05)',
-            'margin': '0 20px 10px 20px'
+            'margin': '0 20px 10px 20px',
+            'flexWrap': 'wrap'
         })
     ], style={
-        'backgroundColor': '#f4d03f',  # World Sufficiency Lab yellow
+        'backgroundColor': '#f4d03f',
         'padding': '25px 0px 15px 0px',
         'position': 'sticky',
         'top': 0,
@@ -345,20 +370,20 @@ app.layout = html.Div([
 def update_secondary_indicator_dropdown(eu_priority):
     if eu_priority == 'ALL':
         # In overview mode (ALL EU priorities), show ALL secondary indicators
-        return [{'label': 'ALL', 'value': 'ALL'}], 'ALL', True
+        return [{'label': '(Select value)', 'value': 'ALL'}], 'ALL', True
     elif eu_priority:
         # When specific EU priority selected, show secondary indicators for that priority
         filtered_indicators = [
             indicator for indicator in SECONDARY_INDICATORS
             if indicator['eu_priority'] == eu_priority
         ]
-        options = [{'label': 'ALL', 'value': 'ALL'}] + [
+        options = [{'label': '(Select value)', 'value': 'ALL'}] + [
             {'label': indicator['secondary'], 'value': indicator['secondary']}
             for indicator in filtered_indicators
         ]
         return options, 'ALL', False
     else:
-        return [{'label': 'ALL', 'value': 'ALL'}], 'ALL', True
+        return [{'label': '(Select value)', 'value': 'ALL'}], 'ALL', True
 
 
 # Callback to update primary indicator dropdown based on secondary indicator
@@ -372,7 +397,7 @@ def update_secondary_indicator_dropdown(eu_priority):
 def update_primary_indicator_dropdown(secondary_indicator, eu_priority):
     if eu_priority == 'ALL':
         # In overview mode (ALL EU priorities), show ALL primary indicators
-        return [{'label': 'ALL', 'value': 'ALL'}], 'ALL', True
+        return [{'label': '(Select value)', 'value': 'ALL'}], 'ALL', True
     elif eu_priority and secondary_indicator and secondary_indicator != 'ALL':
         # In by_eu_priority mode with specific secondary indicator, show primary indicators
         # Load the EWBI structure to get the actual primary indicators
@@ -412,15 +437,15 @@ def update_primary_indicator_dropdown(secondary_indicator, eu_priority):
                     break
 
             if primary_indicators:
-                options = [{'label': 'ALL', 'value': 'ALL'}] + primary_indicators
+                options = [{'label': '(Select value)', 'value': 'ALL'}] + primary_indicators
                 return options, 'ALL', False
             else:
-                return [{'label': 'ALL', 'value': 'ALL'}], 'ALL', True
+                return [{'label': '(Select value)', 'value': 'ALL'}], 'ALL', True
         except:
             # Fallback if JSON loading fails
-            return [{'label': 'ALL', 'value': 'ALL'}], 'ALL', True
+            return [{'label': '(Select value)', 'value': 'ALL'}], 'ALL', True
     else:
-        return [{'label': 'ALL', 'value': 'ALL'}], 'ALL', True
+        return [{'label': '(Select value)', 'value': 'ALL'}], 'ALL', True
 
 
 # Callback to update all charts
@@ -448,13 +473,14 @@ def update_charts(eu_priority, secondary_indicator, primary_indicator, selected_
     # For the map (Graph 1), we always want to show all individual countries (exclude EU Average)
     map_df = df_to_use[(~df_to_use['country'].str.contains('Average')) & (df_to_use['decile'] == 'All')].copy()
 
-    # For analysis charts (Graphs 2, 3, 4), filter based on selection
-    if not selected_countries or selected_countries == ['EU Average']:
-        # Default to EU Average for analysis charts
+    # Always show EU Average, and add selected countries for comparison
+    if not selected_countries:
         filtered_df = df_to_use[df_to_use['country'] == 'EU Average'].copy()
+        decile_df = df_to_use[df_to_use['country'] == 'EU Average'].copy()
     else:
-        # Filter by selected countries, only "All" deciles for country-level analysis
-        filtered_df = df_to_use[(df_to_use['country'].isin(selected_countries)) & (df_to_use['decile'] == 'All')].copy()
+        countries_to_show = ['EU Average'] + [c for c in selected_countries if c != 'EU Average']
+        filtered_df = df_to_use[(df_to_use['country'].isin(countries_to_show)) & (df_to_use['decile'] == 'All')].copy()
+        decile_df = df_to_use[(df_to_use['country'].isin(countries_to_show))].copy()
 
     # Create level filters for adaptive charts
     level_filters = create_level_filters(eu_priority, secondary_indicator, primary_indicator)
@@ -463,19 +489,9 @@ def update_charts(eu_priority, secondary_indicator, primary_indicator, selected_
     map_chart = create_adaptive_map_chart(map_df, level_filters)
 
     # Create adaptive decile chart (works for all 4 levels)
-    # For decile chart, we want ALL deciles for both EU Average and individual countries
-    if not selected_countries or selected_countries == ['EU Average']:
-        # Default to EU Average with all deciles
-        decile_df = df_to_use[df_to_use['country'] == 'EU Average'].copy()
-    else:
-        # Include EU Average and selected countries with ALL deciles
-        decile_df = df_to_use[(df_to_use['country'].isin(['EU Average'] + selected_countries))].copy()
-
     decile_chart = create_adaptive_decile_chart(decile_df, level_filters)
 
     # Create adaptive radar/country comparison chart (works for all 4 levels)
-    # Level 1: Use filtered_df (respects country filter for radar chart)
-    # Levels 2-4: Use map_df (shows all countries for country comparison)
     if level_filters['current_level'] == 1:
         radar_country_df = filtered_df  # Use country filter for Level 1 radar
     else:
@@ -484,8 +500,7 @@ def update_charts(eu_priority, secondary_indicator, primary_indicator, selected_
     radar_country_chart = create_adaptive_radar_country_chart(radar_country_df, level_filters)
 
     # Create adaptive time series chart (works for all 4 levels)
-    # Pass the correct time series df and let the chart function handle all filtering
-    time_series_chart = create_adaptive_time_series_chart(ts_df_to_use, level_filters, selected_countries)
+    time_series_chart = create_adaptive_time_series_chart(ts_df_to_use, level_filters, ['EU Average'] + (selected_countries if selected_countries else []))
 
     return map_chart, time_series_chart, decile_chart, radar_country_chart
 
