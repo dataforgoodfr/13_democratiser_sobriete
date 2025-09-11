@@ -1690,47 +1690,97 @@ def create_adaptive_map_chart(map_df, level_filters):
     # Filter out countries without ISO-3 codes (like aggregates)
     filtered_data = filtered_data[filtered_data['iso3'].notna()].copy()
 
-    # Determine min and max for the color scale
-    score_min = filtered_data['Score'].min()
-    score_max = filtered_data['Score'].max()
-    # Fallback if all values are the same
-    if score_min == score_max:
-        score_min = 0
-        score_max = 1
 
-    # Create the choropleth map
+
+    # Use 5 quantile bins for the Score
+    num_bins = 5
+    filtered_data['quantile_bin'] = pd.qcut(filtered_data['Score'], num_bins, labels=False, duplicates='drop')
+
+    # Define 5 discrete colors (RdYlGn 5-class)
+    discrete_colors = [
+        '#d73027',  # Red
+        '#fc8d59',  # Orange
+        '#fee08b',  # Yellow
+        '#91cf60',  # Light Green
+        '#1a9850'   # Green
+    ]
+
+    # Map quantile bins to colors
+    filtered_data['color'] = filtered_data['quantile_bin'].map(lambda x: discrete_colors[int(x)] if pd.notnull(x) else '#cccccc')
+
+    # For legend: get bin edges
+    quantiles = filtered_data['Score'].quantile([i/num_bins for i in range(num_bins+1)]).values
+    colorbar_tickvals = [(quantiles[i]+quantiles[i+1])/2 for i in range(num_bins)]
+    colorbar_ticktext = [f"{quantiles[i]:.2f} – {quantiles[i+1]:.2f}" for i in range(num_bins)]
+
+    # Create the choropleth map with discrete colors, no colorbar, and hover info
     european_map = go.Figure(data=go.Choropleth(
         locations=filtered_data['iso3'],
-        z=filtered_data['Score'],
+        z=filtered_data['quantile_bin'],
         locationmode='ISO-3',
-        colorscale='RdYlGn',  # Red to Green scale
-        zmin=score_min,
-        zmax=score_max,
-        colorbar_title=colorbar_title,
+        colorscale=[
+            [i/(num_bins-1), color] for i, color in enumerate(discrete_colors)
+        ],
+        zmin=0,
+        zmax=num_bins-1,
         text=filtered_data['full_name'],
-        hovertemplate='<b>%{text}</b><br>Score: %{z:.2f}<extra></extra>'
+        hovertemplate='<b>%{text}</b><br>Score: %{customdata[0]:.2f}<br>Quantile: %{z}<extra></extra>',
+        customdata=np.stack([filtered_data['Score']], axis=-1),
+        showscale=False
     ))
 
     # Update traces for better styling like Budget dashboard
     european_map.update_traces(
         marker_line_color="white",
         marker_line_width=0.5,
-        colorbar=dict(
-            x=1.05,  # Position to the right of the map
-            xanchor="left",
-            thickness=15,
-            len=0.7,
-            title=dict(
-                text=colorbar_title,
-                font=dict(size=14, color="#2c3e50"),
-                side="top"
-            )
-        )
     )
+
+    # Add custom discrete legend as vertical colored boxes with labels on the right
+    legend_x = 1.1  # move legend further inside so it's always visible
+    legend_y_start = 0.85
+    legend_box_height = 0.07
+    legend_box_width = 0.045
+    legend_y_gap = 0.018
+    legend_annotations = []
+    for i, (color, label) in enumerate(reversed(list(zip(discrete_colors, colorbar_ticktext)))):
+        y0 = legend_y_start - i * (legend_box_height + legend_y_gap)
+        y1 = y0 - legend_box_height
+        # Colored box (no contour or white border)
+        european_map.add_shape(
+            type="rect",
+            xref="paper", yref="paper",
+            x0=legend_x, x1=legend_x + legend_box_width,
+            y0=y0, y1=y1,
+            fillcolor=color, line=dict(width=1, color="white"),
+            layer="above"
+        )
+        # Label to the right of box
+        legend_annotations.append(dict(
+            x=legend_x + legend_box_width + 0.025,
+            y=(y0 + y1) / 2,
+            xref="paper", yref="paper",
+            text=label,
+            showarrow=False,
+            font=dict(size=14, color="#2c3e50"),
+            xanchor="left",
+            yanchor="middle"
+        ))
+    # Legend title above boxes (remove 'Score' mention)
+    legend_annotations.append(dict(
+        x=legend_x + legend_box_width/2 + 0.015,
+        y=legend_y_start + 0.05,
+        xref="paper", yref="paper",
+        text="",
+        showarrow=False,
+        font=dict(size=22, color="#2c3e50", family="Arial, sans-serif"),
+        xanchor="center",
+        yanchor="bottom"
+    ))
+    european_map.update_layout(annotations=legend_annotations)
 
     european_map.update_layout(
         height=550,  # Match Budget dashboard map height
-        margin={"r": 120, "t": 80, "l": 80, "b": 20},  # Consistent top margin for title alignment
+    margin={"r": 220, "t": 80, "l": 80, "b": 20},  # More right margin for legend visibility
         geo=dict(
             scope='europe',
             projection=dict(type='equirectangular'),
