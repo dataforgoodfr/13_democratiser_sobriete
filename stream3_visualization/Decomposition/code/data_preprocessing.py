@@ -48,7 +48,6 @@ class CO2DecompositionPreprocessor:
             "Buildings - Residential": ["Scenario Basis", "Scenario Zer0 A", "Scenario Zer0 B", "Scenario Zer0 C"],
             "Buildings - Services": ["Scenario Basis", "Scenario Zer0 A", "Scenario Zer0 B", "Scenario Zer0 C"],
             "Passenger Land Transport": ["Scenario Basis", "Scenario Zer0 A", "Scenario Zer0 B", "Scenario Zer0 C"],
-            "Industry - Cement": ["Scenario Basis", "Scenario Zer0 A", "Scenario Zer0 B", "Scenario Zer0 C"],
             "Cement industry": ["Scenario Basis", "Scenario Zer0 A", "Scenario Zer0 B", "Scenario Zer0 C"],
             "Steel industry": ["Scenario Basis", "Scenario Zer0 A", "Scenario Zer0 B", "Scenario Zer0 C"]
         }
@@ -62,7 +61,6 @@ class CO2DecompositionPreprocessor:
             "Passenger Land Transport": ["Year", "Population (Million)", "Volume", "Energy (Million toe)", "CO2 (Million tonnes)"],
             "Transport - Passenger cars": ["Year", "Population (Million)", "Volume", "Energy (Million toe)", "CO2 (Million tonnes)"],
             "Transport - Rail": ["Year", "Population (Million)", "Volume", "Energy (Million toe)", "CO2 (Million tonnes)"],
-            "Industry - Cement": ["Year", "Population (Million)", "Volume", "Energy (Million toe)", "CO2 (Million tonnes)"],
             "Cement industry": ["Year", "Population (Million)", "Volume", "Energy (Million toe)", "CO2 (Million tonnes)"],
             "Steel industry": ["Year", "Population (Million)", "Volume", "Energy (Million toe)", "CO2 (Million tonnes)"],
             "Industry - Steel industry": ["Year", "Population (Million)", "Volume", "Energy (Million toe)", "CO2 (Million tonnes)"],
@@ -104,7 +102,6 @@ class CO2DecompositionPreprocessor:
             "Passenger Land Transport": "Passenger Land Transport",
             "Transport - Passenger cars": "Transport - Passenger cars",
             "Transport - Rail": "Transport - Rail",
-            "Industry - Cement": "Industry - Cement",
             "Cement industry": "Cement industry",
             "Steel industry": "Steel industry",
             "Industry - Steel industry": "Industry - Steel industry",
