@@ -1,8 +1,15 @@
-# Output data files
+# Output data files (exclude all except essential files)
 output/*.csv
+!output/unified_all_levels_1_to_5.csv
 output/*.html
 output/*.png
 output/*.json
+
+# Heavy data directories
+output/0_raw_data_EUROSTAT/
+output/1_data_app/
+output/2_data_validation/
+output/Archive/
 
 # Python cache files
 __pycache__/

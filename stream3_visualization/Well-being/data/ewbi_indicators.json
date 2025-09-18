@@ -193,8 +193,8 @@
       "name": "Health and Animal Welfare",
       "components": [
         {
-          "name": "Health condition and impact",
-          "weight": "1/2",
+          "name": "Health condition",
+          "weight": "1/4",
           "indicators": [
             {
               "code": "AH-SILC-1",
@@ -207,16 +207,6 @@
               "weight": 2
             },
             {
-              "code": "AH-SILC-3",
-              "description": "Limited by Health Problems (AH-SILC-3)",
-              "weight": 2
-            },
-            {
-              "code": "AH-SILC-4",
-              "description": "Unable to Work Due to Long-Term Illness (AH-SILC-4)",
-              "weight": 2
-            },
-            {
               "code": "AH-EHIS-1",
               "description": "Feeling Depressed Every Day (AH-EHIS-1)",
               "weight": 2
@@ -224,6 +214,22 @@
             {
               "code": "AH-EHIS-2",
               "description": "No Physical Activity (AH-EHIS-2)",
+              "weight": 2
+            }
+          ]
+        },
+        {
+          "name": "Health impact",
+          "weight": "1/4",
+          "indicators": [
+            {
+              "code": "AH-SILC-3",
+              "description": "Limited by Health Problems (AH-SILC-3)",
+              "weight": 2
+            },
+            {
+              "code": "AH-SILC-4",
+              "description": "Unable to Work Due to Long-Term Illness (AH-SILC-4)",
               "weight": 2
             }
           ]

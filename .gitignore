@@ -161,3 +161,90 @@ cython_debug/
 
 # Precommit hooks: ruff cache
 .ruff_cache
+
+# =============================================================================
+# DATA FILES AND HEAVY CONTENT - Exclude for CleverCloud deployment
+# =============================================================================
+
+# Large Excel files (too heavy for git)
+*.xlsx
+*.xls
+
+# Large CSV files (exclude most, keep only essential ones)
+*.csv
+
+# But keep essential files needed for the dashboard
+!stream3_visualization/Well-being/data/ewbi_indicators.json
+!stream3_visualization/Well-being/data/2025-08-29_EWBI-Renaming*.xlsx
+!stream3_visualization/Well-being/output/unified_all_levels_1_to_5.csv
+
+# Heavy data directories
+stream3_visualization/Budget/Data/
+stream3_visualization/Budget/Output/
+stream3_visualization/Decomposition/data/
+stream3_visualization/Decomposition/Output/
+
+# Well-being heavy output directories
+stream3_visualization/Well-being/output/0_raw_data_EUROSTAT/
+stream3_visualization/Well-being/output/1_data_app/
+stream3_visualization/Well-being/output/2_data_validation/
+stream3_visualization/Well-being/output/Archive/
+
+# Other output files not needed for production
+stream3_visualization/Well-being/output/*.html
+stream3_visualization/Well-being/output/*.png
+stream3_visualization/Well-being/output/*.json
+stream3_visualization/Well-being/output/completeness.xlsx
+
+# RAG system (likely heavy)
+rag_system/
+
+# PDF extraction and processing directories
+src/wsl_library/pdfextraction/
+
+# Any large zip files
+*.zip
+!stream3_visualization/Well-being/data/ne_110m_admin_0_countries.zip
+
+# =============================================================================
+# OS and IDE FILES (additional)
+# =============================================================================
+
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Linux
+*~
+
+# SSH Keys
+ssh-keygen*
+*.pub
+id_ed25519*
+id_rsa*
+
+# Ngrok config
+ngrok_config/
+
+# Temporary files
+*.tmp
+*.temp
+
+# =============================================================================
+# CLEVERCLOUD SPECIFIC
+# =============================================================================
+
+# Keep only what's needed for the Well-being dashboard deployment
+# Essential files kept:
+# - stream3_visualization/Well-being/code/ (Python files)
+# - stream3_visualization/Well-being/data/ewbi_indicators.json
+# - stream3_visualization/Well-being/output/unified_all_levels_1_to_5.csv
+# - requirements.txt, pyproject.toml etc.
