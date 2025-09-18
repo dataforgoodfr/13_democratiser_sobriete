@@ -6,11 +6,23 @@ import plotly.graph_objects as go
 from dash.dependencies import Input, Output
 import os
 import json
+import sys
 import numpy as np
+
+# Add the current directory to Python path for imports
+current_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, current_dir)
+
 from variable_mapping import get_display_name, get_acronym_from_display_name
 
-# Get the absolute path to the data directory - MODIFIED for CleverCloud deployment
-DATA_DIR = os.path.dirname(__file__)
+# Get the absolute path to the data directory - MODIFIED to use unified data
+# Handle both local development and CleverCloud deployment paths
+if os.path.exists(os.path.join(os.path.dirname(__file__), '..', 'output')):
+    # Local development path
+    DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'output'))
+else:
+    # CleverCloud deployment path (from repository root)
+    DATA_DIR = os.path.abspath(os.path.join('stream3_visualization', 'Well-being', 'output'))
 
 # ISO-2 to ISO-3 mapping for European countries
 ISO2_TO_ISO3 = {
@@ -61,7 +73,7 @@ try:
     unified_df = pd.read_csv(os.path.join(DATA_DIR, 'unified_all_levels_1_to_5.csv'))
     
     # Load EWBI structure for hierarchical navigation
-    with open(os.path.join(DATA_DIR, 'ewbi_indicators.json'), 'r') as f:
+    with open(os.path.join(DATA_DIR, '..', 'data', 'ewbi_indicators.json'), 'r') as f:
         ewbi_structure = json.load(f)['EWBI']
 
     print("Unified data file loaded successfully.")
