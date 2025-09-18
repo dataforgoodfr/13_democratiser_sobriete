@@ -1,0 +1,267 @@
+/* Responsive CSS Grid Layout for EWBI Dashboard */
+
+/* Main container for the dashboard */
+.dashboard-container {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+}
+
+/* Header section styling */
+.dashboard-header {
+    flex-shrink: 0;
+    background-color: #f4d03f;
+    padding: 1.5vw 0 1vw 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Controls section styling */
+.controls-section {
+    padding: 1vw 1.5vw;
+    background-color: #fdf6e3;
+    border-radius: 8px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    margin: 0 1.5vw 1vw 1.5vw;
+    flex-wrap: wrap;
+}
+
+/* Main visualization grid container */
+.visualization-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 1vw;
+    padding: 1vw;
+    margin: 0 auto;
+    width: calc(100vw - 4vw);
+    height: calc(100vh - 150px); /* Further increased height */
+    min-height: 750px; /* Further increased minimum height */
+    box-sizing: border-box;
+}
+
+/* Individual grid items */
+.grid-item {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    padding: 1vw;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+/* Graph containers within grid items */
+.grid-item .dash-graph {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100%;
+    max-height: 100%;
+}
+
+/* Specific styling for the map to ensure it fills the grid item properly */
+#european-map-chart {
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 300px !important;
+}
+
+/* Force the map's plotly container to use full space */
+#european-map-chart .js-plotly-plot,
+#european-map-chart .plotly,
+#european-map-chart .svg-container {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* Reduce padding specifically for the map grid item to maximize map space */
+.grid-item:has(#european-map-chart) {
+    padding: 0.3vw !important;
+}
+
+/* Alternative selector for browsers that don't support :has() */
+.grid-item:first-child {
+    padding: 0.3vw !important;
+}
+
+/* Responsive typography */
+.dashboard-title {
+    text-align: center;
+    color: #2c3e50;
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    font-weight: bold;
+    margin-bottom: 0.5vw;
+    font-family: 'Arial, sans-serif';
+}
+
+.dashboard-subtitle {
+    text-align: center;
+    color: #34495e;
+    font-size: clamp(0.9rem, 2vw, 1.2rem);
+    font-weight: normal;
+    margin-bottom: 2vw;
+    font-family: 'Arial, sans-serif';
+    line-height: 1.4;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Responsive controls */
+.controls-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 2%;
+    margin-bottom: 0.8vw;
+    flex-wrap: wrap;
+}
+
+.control-item {
+    min-width: 120px;
+    max-width: 220px;
+    flex: 1;
+}
+
+.control-label {
+    font-weight: bold;
+    color: #2c3e50;
+    margin-bottom: 4px;
+    font-size: clamp(0.8rem, 1.5vw, 1rem);
+}
+
+/* Sources section styling */
+.sources-section {
+    margin-top: 2vw;
+    padding: 2vw 0;
+    background-color: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+    flex-shrink: 0;
+}
+
+.sources-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1.5vw;
+}
+
+.sources-title {
+    color: #2c3e50;
+    font-size: clamp(1.2rem, 3vw, 1.8rem);
+    font-weight: bold;
+    margin-bottom: 1.5vw;
+    text-align: center;
+}
+
+.sources-subtitle {
+    color: #34495e;
+    font-size: clamp(1rem, 2vw, 1.2rem);
+    font-weight: bold;
+    margin-bottom: 0.8vw;
+}
+
+.sources-text {
+    margin-bottom: 0.8vw;
+    line-height: 1.6;
+    font-size: clamp(0.85rem, 1.5vw, 1rem);
+}
+
+/* Media queries for different screen sizes */
+@media (max-width: 1200px) {
+    .visualization-grid {
+        gap: 0.8vw;
+        padding: 0.8vw;
+    }
+    
+    .grid-item {
+        padding: 0.8vw;
+    }
+}
+
+@media (max-width: 768px) {
+    .visualization-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: repeat(4, 1fr);
+        gap: 1vw;
+        height: calc(100vh - 130px);
+        min-height: 950px;
+    }
+    
+    .controls-row {
+        flex-direction: column;
+        gap: 1vw;
+    }
+    
+    .control-item {
+        max-width: 100%;
+    }
+    
+    .dashboard-header {
+        padding: 2vw 0 1.5vw 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .visualization-grid {
+        padding: 0.5vw;
+        gap: 0.5vw;
+        width: calc(100vw - 2vw);
+    }
+    
+    .grid-item {
+        padding: 0.5vw;
+    }
+    
+    .controls-section {
+        margin: 0 0.5vw 0.5vw 0.5vw;
+        padding: 1.5vw;
+    }
+}
+
+/* Ensure Plotly graphs are responsive */
+.js-plotly-plot {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.js-plotly-plot .plotly {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* Force responsive behavior for all plotly elements */
+.js-plotly-plot .svg-container {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* Responsive plotly modebar */
+.js-plotly-plot .modebar {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    z-index: 1001;
+}
+
+/* Custom scrollbar for better aesthetics */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}

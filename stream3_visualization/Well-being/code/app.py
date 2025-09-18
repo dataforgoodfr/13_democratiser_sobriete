@@ -98,6 +98,8 @@ except FileNotFoundError as e:
     exit()
 
 
+
+# Load raw master and time series data
 try:
     master_df_raw = pd.read_csv(os.path.join(DATA_DIR, 'ewbi_master_raw.csv'))
     print("Raw master data loaded successfully.")
@@ -105,222 +107,171 @@ except Exception as e:
     print(f"Could not load ewbi_master_raw.csv: {e}")
     master_df_raw = None
 
+try:
+    time_series_df_raw = pd.read_csv(os.path.join(DATA_DIR, 'ewbi_time_series_raw.csv'))
+    print("Raw time series data loaded successfully.")
+except Exception as e:
+    print(f"Could not load ewbi_time_series_raw.csv: {e}")
+    time_series_df_raw = None
+
 
 # Initialize the Dash app
 app = dash.Dash(__name__)
 server = app.server
 
 # App layout
+
 app.layout = html.Div([
     # Header section with hierarchical titles
     html.Div([
-        html.H1("European Well-Being Index (EWBI)",
-                style={
-                    'textAlign': 'center',
-                    'color': '#2c3e50',
-                    'fontSize': '2.5rem',
-                    'fontWeight': 'bold',
-                    'marginBottom': '10px',
-                    'fontFamily': 'Arial, sans-serif'
-                }),
+        html.H1("European Well-Being Index (EWBI)", className="dashboard-title"),
         html.H2([
             "Multi-level Analysis of Well-being Indicators Across Europe"
-        ], style={
-            'textAlign': 'center',
-            'color': '#34495e',
-            'fontSize': '1.2rem',
-            'fontWeight': 'normal',
-            'marginBottom': '30px',
-            'fontFamily': 'Arial, sans-serif',
-            'lineHeight': '1.4',
-            'maxWidth': '900px',
-            'margin': '0 auto 30px auto'
-        }),
+        ], className="dashboard-subtitle"),
 
-        # Controls section embedded within the header
+        # Controls section: Data types on top, Country/Normalize below
         html.Div([
+            # Top row: Data Type dropdowns side by side
             html.Div([
-                html.Label("EU Priority", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
-                dcc.Dropdown(
-                    id='eu-priority-dropdown',
-                    options=[{'label': 'ALL', 'value': 'ALL'}] + [{'label': prio, 'value': prio} for prio in
-                                                                  EU_PRIORITIES],
-                    value='ALL',
-                    style={'marginTop': '8px'},
-                    clearable=False
-                )
-            ], style={'width': '25%', 'display': 'inline-block', 'margin-right': '2%'}),
-
+                html.Div([
+                    html.Label("EU Priority", className="control-label"),
+                    dcc.Dropdown(
+                        id='eu-priority-dropdown',
+                        options=[{'label': '(Select value)', 'value': 'ALL'}] + [{'label': prio, 'value': prio} for prio in EU_PRIORITIES],
+                        value='ALL',
+                        style={'marginTop': '0px'},
+                        clearable=False
+                    ),
+                ], className="control-item"),
+                html.Div([
+                    html.Label("Secondary Indicator", className="control-label"),
+                    dcc.Dropdown(
+                        id='secondary-indicator-dropdown',
+                        options=[{'label': '(Select value)', 'value': 'ALL'}],
+                        value='ALL',
+                        style={'marginTop': '0px'},
+                        clearable=False,
+                        disabled=True
+                    ),
+                ], className="control-item"),
+                html.Div([
+                    html.Label("Raw Data", className="control-label"),
+                    dcc.Dropdown(
+                        id='primary-indicator-dropdown',
+                        options=[{'label': '(Select value)', 'value': 'ALL'}],
+                        value='ALL',
+                        style={'marginTop': '0px'},
+                        clearable=False,
+                        disabled=True
+                    ),
+                ], className="control-item"),
+            ], className="controls-row"),
+            # Bottom row: Country selector and Normalize toggle
             html.Div([
-                html.Label("Secondary Indicator", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
-                dcc.Dropdown(
-                    id='secondary-indicator-dropdown',
-                    options=[{'label': 'ALL', 'value': 'ALL'}],
-                    value='ALL',
-                    style={'marginTop': '8px'},
-                    clearable=False,
-                    disabled=True
-                )
-            ], style={'width': '20%', 'display': 'inline-block', 'margin-right': '2%'}),
+                html.Div([
+                    html.Label("Country Selector", className="control-label"),
+                    dcc.Dropdown(
+                        id='countries-filter',
+                        options=[{'label': ISO2_TO_FULL_NAME.get(country, country), 'value': country} for country in COUNTRIES],
+                        value=[],
+                        multi=True,
+                        placeholder='Add countries for comparison',
+                        style={'marginTop': '0px'}
+                    ),
+                ], style={'width': '60%', 'minWidth': '180px', 'maxWidth': '340px'}),
+                html.Div([
+                    html.Label("Normalize to EU average", className="control-label"),
+                    dcc.Checklist(
+                        id='normalize-toggle',
+                        options=[{'label': '', 'value': 'normalize'}],
+                        value=[],
+                        style={'marginTop': '8px', 'marginLeft': '8px'},
+                        inputStyle={"marginRight": "8px", "transform": "scale(1.5)"},
+                        inline=True
+                    ),
+                ], style={'width': '36%', 'minWidth': '120px', 'maxWidth': '180px'}),
+            ], className="controls-row"),
+        ], className="controls-section")
+    ], className="dashboard-header"),
 
-            html.Div([
-                html.Label("Primary Indicator", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
-                dcc.Dropdown(
-                    id='primary-indicator-dropdown',
-                    options=[{'label': 'ALL', 'value': 'ALL'}],
-                    value='ALL',
-                    style={'marginTop': '8px'},
-                    clearable=False,
-                    disabled=True
-                )
-            ], style={'width': '20%', 'display': 'inline-block', 'margin-right': '2%'}),
-
-            html.Div([
-                html.Label("Countries", style={'fontWeight': 'bold', 'color': '#2c3e50'}),
-                dcc.Dropdown(
-                    id='countries-filter',
-                    options=[
-                                {'label': 'EU Average', 'value': 'EU Average'}
-                            ] + [{'label': ISO2_TO_FULL_NAME.get(country, country), 'value': country} for country in
-                                 COUNTRIES],
-                    value=['EU Average'],  # Default to EU Average
-                    multi=True,
-                    placeholder='Select countries to display (default: EU Average)',
-                    style={'marginTop': '8px'}
-                )
-            ], style={'width': '20%', 'display': 'inline-block'}),
-        ], style={
-            'padding': '15px 20px',
-            'backgroundColor': '#fdf6e3',
-            'borderRadius': '8px',
-            'boxShadow': '0 1px 2px rgba(0,0,0,0.05)',
-            'margin': '0 20px 10px 20px'
-        })
-    ], style={
-        'backgroundColor': '#f4d03f',  # World Sufficiency Lab yellow
-        'padding': '25px 0px 15px 0px',
-        'position': 'sticky',
-        'top': 0,
-        'zIndex': 1000,
-        'boxShadow': '0 2px 4px rgba(0,0,0,0.1)'
-    }),
-
-    # Visualizations
+    # Responsive 2x2 Visualization Grid
     html.Div([
-        # First row: Map and time series side by side
+        # Grid Item 1: European Map
         html.Div([
-            dcc.Graph(id='european-map-chart',
-                      style={'display': 'inline-block', 'width': '49%', 'verticalAlign': 'top'}),
-            dcc.Graph(id='time-series-chart', style={'display': 'inline-block', 'width': '49%', 'verticalAlign': 'top'})
-        ], style={'textAlign': 'center', 'margin': '0 auto'}),
-
-        # Second row: Decile analysis and radar chart side by side
+            dcc.Graph(id='european-map-chart', config={'responsive': True})
+        ], className="grid-item"),
+        
+        # Grid Item 2: Time Series Chart
         html.Div([
-            dcc.Graph(id='decile-analysis-chart', style={'display': 'inline-block', 'width': '49%'}),
-            dcc.Graph(id='radar-chart', style={'display': 'inline-block', 'width': '49%'})
-        ], style={'marginTop': '20px'})
-    ], style={
-        'margin': '0 20px',
-        'paddingTop': '20px'  # Extra space to account for sticky headers
-    }),
+            dcc.Graph(id='time-series-chart', config={'responsive': True})
+        ], className="grid-item"),
+        
+        # Grid Item 3: Decile Analysis Chart
+        html.Div([
+            dcc.Graph(id='decile-analysis-chart', config={'responsive': True})
+        ], className="grid-item"),
+        
+        # Grid Item 4: Radar Chart
+        html.Div([
+            dcc.Graph(id='radar-chart', config={'responsive': True})
+        ], className="grid-item"),
+    ], className="visualization-grid"),
 
     # Sources section
     html.Div([
-        html.H3("Data Sources", style={
-            'color': '#2c3e50',
-            'fontSize': '1.8rem',
-            'fontWeight': 'bold',
-            'marginBottom': '20px',
-            'textAlign': 'center'
-        }),
+        html.H3("Data Sources", className="sources-title"),
 
         html.Div([
-            html.H4("European Well-Being Index (EWBI)", style={
-                'color': '#34495e',
-                'fontSize': '1.2rem',
-                'fontWeight': 'bold',
-                'marginBottom': '10px'
-            }),
+            html.H4("European Well-Being Index (EWBI)", className="sources-subtitle"),
             html.P(
                 "The EWBI is a composite indicator measuring well-being across European countries, constructed from multiple data sources:",
-                style={
-                    'marginBottom': '10px',
-                    'lineHeight': '1.6'
-                }),
+                className="sources-text"),
             html.P([
                 html.Strong("EU-SILC: "),
                 "European Union Statistics on Income and Living Conditions - household surveys on income, living conditions, and social inclusion"
-            ], style={'marginBottom': '10px', 'lineHeight': '1.6'}),
+            ], className="sources-text"),
             html.P([
                 html.Strong("EU-SILC: "),
                 "European Health Interview Survey - population health and healthcare access data"
-            ], style={'marginBottom': '10px', 'lineHeight': '1.6'}),
+            ], className="sources-text"),
             html.P([
                 html.Strong("HBS: "),
                 "Household Budget Survey - expenditure patterns and consumption data"
-            ], style={'marginBottom': '10px', 'lineHeight': '1.6'}),
+            ], className="sources-text"),
             html.P([
                 html.Strong("LFS: "),
                 "Labour Force Survey - employment and working conditions data"
-            ], style={'marginBottom': '20px', 'lineHeight': '1.6'}),
+            ], className="sources-text", style={'marginBottom': '1.5vw'}),
 
-            html.H4("Indicator Structure", style={
-                'color': '#34495e',
-                'fontSize': '1.2rem',
-                'fontWeight': 'bold',
-                'marginBottom': '10px'
-            }),
-            html.P("The EWBI follows a hierarchical structure:", style={
-                'marginBottom': '10px',
-                'lineHeight': '1.6'
-            }),
+            html.H4("Indicator Structure", className="sources-subtitle"),
+            html.P("The EWBI follows a hierarchical structure:", className="sources-text"),
             html.P([
                 html.Strong("Level 1: "),
                 "EWBI - Overall well-being score (geometric mean of EU priorities)"
-            ], style={'marginBottom': '10px', 'lineHeight': '1.6'}),
+            ], className="sources-text"),
             html.P([
                 html.Strong("Level 2: "),
                 "6 EU Priorities - Major policy areas (Agriculture & Food, Energy & Housing, Equality, Health & Animal Welfare, Intergenerational Fairness, Youth, Culture & Sport, Social Rights & Skills, Quality Jobs & Preparedness)"
-            ], style={'marginBottom': '10px', 'lineHeight': '1.6'}),
+            ], className="sources-text"),
             html.P([
                 html.Strong("Level 3: "),
                 "19 Secondary Indicators - Specific well-being dimensions within each priority"
-            ], style={'marginBottom': '10px', 'lineHeight': '1.6'}),
+            ], className="sources-text"),
             html.P([
                 html.Strong("Level 4: "),
                 "27 Primary Indicators - Individual survey questions and expenditure measures (satisfier indicators only, economic good indicators excluded)"
-            ], style={'marginBottom': '20px', 'lineHeight': '1.6'}),
+            ], className="sources-text", style={'marginBottom': '1.5vw'}),
 
-            html.H4("Methodology", style={
-                'color': '#34495e',
-                'fontSize': '1.2rem',
-                'fontWeight': 'bold',
-                'marginBottom': '10px'
-            }),
+            html.H4("Methodology", className="sources-subtitle"),
             html.P(
                 "All indicators are normalized on a 0-1 scale where higher values indicate better well-being. The normalization is performed intra-decile and intra-indicator to ensure fair comparison across countries and income groups. Only satisfier indicators (measuring well-being outcomes) are included; economic good indicators (measuring consumption/expenditure) are excluded to focus on actual well-being rather than material consumption.",
-                style={
-                    'marginBottom': '10px',
-                    'lineHeight': '1.6'
-                }),
+                className="sources-text"),
             html.P(
                 "Missing values are handled using forward-fill and backward-fill strategies as recommended by EU JRC methodology.",
-                style={
-                    'marginBottom': '20px',
-                    'lineHeight': '1.6'
-                }),
-        ], style={
-            'maxWidth': '1200px',
-            'margin': '0 auto',
-            'padding': '0 20px'
-        })
-    ], style={
-        'marginTop': '40px',
-        'padding': '30px 0',
-        'backgroundColor': '#f8f9fa',
-        'borderTop': '1px solid #dee2e6'
-    })
-])
+                className="sources-text"),
+        ], className="sources-content")
+    ], className="sources-section")
+], className="dashboard-container")
 
 
 # Callback to update EU priority dropdown (no longer needed, but keeping for future extensibility)
@@ -336,20 +287,20 @@ app.layout = html.Div([
 def update_secondary_indicator_dropdown(eu_priority):
     if eu_priority == 'ALL':
         # In overview mode (ALL EU priorities), show ALL secondary indicators
-        return [{'label': 'ALL', 'value': 'ALL'}], 'ALL', True
+        return [{'label': '(Select value)', 'value': 'ALL'}], 'ALL', True
     elif eu_priority:
         # When specific EU priority selected, show secondary indicators for that priority
         filtered_indicators = [
             indicator for indicator in SECONDARY_INDICATORS
             if indicator['eu_priority'] == eu_priority
         ]
-        options = [{'label': 'ALL', 'value': 'ALL'}] + [
+        options = [{'label': '(Select value)', 'value': 'ALL'}] + [
             {'label': indicator['secondary'], 'value': indicator['secondary']}
             for indicator in filtered_indicators
         ]
         return options, 'ALL', False
     else:
-        return [{'label': 'ALL', 'value': 'ALL'}], 'ALL', True
+        return [{'label': '(Select value)', 'value': 'ALL'}], 'ALL', True
 
 
 # Callback to update primary indicator dropdown based on secondary indicator
@@ -363,7 +314,7 @@ def update_secondary_indicator_dropdown(eu_priority):
 def update_primary_indicator_dropdown(secondary_indicator, eu_priority):
     if eu_priority == 'ALL':
         # In overview mode (ALL EU priorities), show ALL primary indicators
-        return [{'label': 'ALL', 'value': 'ALL'}], 'ALL', True
+        return [{'label': '(Select value)', 'value': 'ALL'}], 'ALL', True
     elif eu_priority and secondary_indicator and secondary_indicator != 'ALL':
         # In by_eu_priority mode with specific secondary indicator, show primary indicators
         # Load the EWBI structure to get the actual primary indicators
@@ -403,15 +354,15 @@ def update_primary_indicator_dropdown(secondary_indicator, eu_priority):
                     break
 
             if primary_indicators:
-                options = [{'label': 'ALL', 'value': 'ALL'}] + primary_indicators
+                options = [{'label': '(Select value)', 'value': 'ALL'}] + primary_indicators
                 return options, 'ALL', False
             else:
-                return [{'label': 'ALL', 'value': 'ALL'}], 'ALL', True
+                return [{'label': '(Select value)', 'value': 'ALL'}], 'ALL', True
         except:
             # Fallback if JSON loading fails
-            return [{'label': 'ALL', 'value': 'ALL'}], 'ALL', True
+            return [{'label': '(Select value)', 'value': 'ALL'}], 'ALL', True
     else:
-        return [{'label': 'ALL', 'value': 'ALL'}], 'ALL', True
+        return [{'label': '(Select value)', 'value': 'ALL'}], 'ALL', True
 
 
 # Callback to update all charts
@@ -425,23 +376,28 @@ def update_primary_indicator_dropdown(secondary_indicator, eu_priority):
      Input('primary-indicator-dropdown', 'value'),
      Input('countries-filter', 'value')]
 )
-def update_charts(eu_priority, secondary_indicator, primary_indicator, selected_countries):
-    # For the map (Graph 1), we always want to show all individual countries (exclude EU Average)
-    map_df = master_df[(~master_df['country'].str.contains('Average')) & (master_df['decile'] == 'All')].copy()
 
-    # For analysis charts (Graphs 2, 3, 4), filter based on selection
-    if not selected_countries or selected_countries == ['EU Average']:
-        # Default to EU Average for analysis charts
-        filtered_df = master_df[master_df['country'] == 'EU Average'].copy()
-        time_filtered_df = time_series_df[time_series_df['country'] == 'EU Average'].copy()
+def update_charts(eu_priority, secondary_indicator, primary_indicator, selected_countries):
+    # Decide which dataframe to use: processed or raw
+    use_raw = primary_indicator and primary_indicator != 'ALL' and master_df_raw is not None and time_series_df_raw is not None
+    if use_raw:
+        df_to_use = master_df_raw
+        ts_df_to_use = time_series_df_raw
     else:
-        # Filter by selected countries, only "All" deciles for country-level analysis
-        filtered_df = master_df[(master_df['country'].isin(selected_countries)) & (master_df['decile'] == 'All')].copy()
-        # For time series, always include EU Average when other countries are selected (like decile chart)
-        time_filtered_df = time_series_df[
-            (time_series_df['country'].isin(['EU Average'] + selected_countries)) &
-            (time_series_df['decile'] == 'All Deciles')
-            ].copy()
+        df_to_use = master_df
+        ts_df_to_use = time_series_df
+
+    # For the map (Graph 1), we always want to show all individual countries (exclude EU Average)
+    map_df = df_to_use[(~df_to_use['country'].str.contains('Average')) & (df_to_use['decile'] == 'All')].copy()
+
+    # Always show EU Average, and add selected countries for comparison
+    if not selected_countries:
+        filtered_df = df_to_use[df_to_use['country'] == 'EU Average'].copy()
+        decile_df = df_to_use[df_to_use['country'] == 'EU Average'].copy()
+    else:
+        countries_to_show = ['EU Average'] + [c for c in selected_countries if c != 'EU Average']
+        filtered_df = df_to_use[(df_to_use['country'].isin(countries_to_show)) & (df_to_use['decile'] == 'All')].copy()
+        decile_df = df_to_use[(df_to_use['country'].isin(countries_to_show))].copy()
 
     # Create level filters for adaptive charts
     level_filters = create_level_filters(eu_priority, secondary_indicator, primary_indicator)
@@ -450,21 +406,9 @@ def update_charts(eu_priority, secondary_indicator, primary_indicator, selected_
     map_chart = create_adaptive_map_chart(map_df, level_filters)
 
     # Create adaptive decile chart (works for all 4 levels)
-    # For decile chart, we want ALL deciles for both EU Average and individual countries
-    if not selected_countries or selected_countries == ['EU Average']:
-        # Default to EU Average with all deciles
-        decile_df = master_df[master_df['country'] == 'EU Average'].copy()
-    else:
-        # Include EU Average and selected countries with ALL deciles
-        decile_df = master_df[
-            (master_df['country'].isin(['EU Average'] + selected_countries))
-        ].copy()
-
     decile_chart = create_adaptive_decile_chart(decile_df, level_filters)
 
     # Create adaptive radar/country comparison chart (works for all 4 levels)
-    # Level 1: Use filtered_df (respects country filter for radar chart)
-    # Levels 2-4: Use map_df (shows all countries for country comparison)
     if level_filters['current_level'] == 1:
         radar_country_df = filtered_df  # Use country filter for Level 1 radar
     else:
@@ -473,8 +417,7 @@ def update_charts(eu_priority, secondary_indicator, primary_indicator, selected_
     radar_country_chart = create_adaptive_radar_country_chart(radar_country_df, level_filters)
 
     # Create adaptive time series chart (works for all 4 levels)
-    # Pass the full time_series_df and let the chart function handle all filtering
-    time_series_chart = create_adaptive_time_series_chart(time_series_df, level_filters, selected_countries)
+    time_series_chart = create_adaptive_time_series_chart(ts_df_to_use, level_filters, ['EU Average'] + (selected_countries if selected_countries else []))
 
     return map_chart, time_series_chart, decile_chart, radar_country_chart
 
@@ -509,7 +452,7 @@ def create_overview_charts(map_df, analysis_df, time_df):
                 font=dict(size=16, color="#f4d03f", weight="bold"),  # Match Budget dashboard title size
                 x=0.5
             ),
-            height=500,  # Match Budget dashboard chart height
+            autosize=True,  # Enable automatic resizing
             margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
             barmode='group',
             font=dict(family='Arial, sans-serif', size=14),  # Match Budget dashboard font size
@@ -573,7 +516,7 @@ def create_overview_charts(map_df, analysis_df, time_df):
             font=dict(size=16, color="#f4d03f", weight="bold"),  # Match Budget dashboard title size
             x=0.5
         ),
-        height=500,  # Match Budget dashboard chart height
+        autosize=True,  # Enable automatic resizing
         margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
         font=dict(family='Arial, sans-serif', size=14)  # Match Budget dashboard font size
     )
@@ -609,7 +552,7 @@ def create_overview_charts(map_df, analysis_df, time_df):
                     font=dict(size=16, color="#f4d03f", weight="bold"),  # Match Budget dashboard title size
                     x=0.5
                 ),
-                height=500,  # Match Budget dashboard chart height
+                autosize=True,  # Enable automatic resizing
                 margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
                 font=dict(family='Arial, sans-serif', size=14),  # Match Budget dashboard font size
                 yaxis=dict(range=[0, 1])
@@ -628,7 +571,7 @@ def create_overview_charts(map_df, analysis_df, time_df):
                     font=dict(size=16, color="#f4d03f", weight="bold"),  # Match Budget dashboard title size
                     x=0.5
                 ),
-                height=500,  # Match Budget dashboard chart height
+                autosize=True,  # Enable automatic resizing
                 margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
                 font=dict(family='Arial, sans-serif', size=14),  # Match Budget dashboard font size
             )
@@ -683,7 +626,7 @@ def create_eu_priority_charts(map_df, analysis_df, time_df, eu_priority):
             font=dict(size=16, color="#f4d03f", weight="bold"),  # Match Budget dashboard title size
             x=0.5
         ),
-        height=500,  # Match Budget dashboard chart height
+        autosize=True,  # Enable automatic resizing
         margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
         barmode='group',
         font=dict(family='Arial, sans-serif', size=14),  # Match Budget dashboard font size
@@ -797,7 +740,7 @@ def create_eu_priority_charts(map_df, analysis_df, time_df, eu_priority):
             yanchor='top',
             orientation='h'
         ),
-        height=500,  # Match Budget dashboard chart height
+        autosize=True,  # Enable automatic resizing
         margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
         font=dict(family='Arial, sans-serif', size=14)  # Match Budget dashboard font size
     )
@@ -860,7 +803,7 @@ def create_eu_priority_charts(map_df, analysis_df, time_df, eu_priority):
                             font=dict(size=16, color="#f4d03f", weight="bold"),  # Match Budget dashboard title size
                             x=0.5
                         ),
-                        height=500,  # Match Budget dashboard chart height
+                        autosize=True,  # Enable automatic resizing
                         margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
                         font=dict(family='Arial, sans-serif', size=14),  # Match Budget dashboard font size
                         yaxis=dict(range=[0, 1])
@@ -879,7 +822,7 @@ def create_eu_priority_charts(map_df, analysis_df, time_df, eu_priority):
                             font=dict(size=16, color="#f4d03f", weight="bold"),  # Match Budget dashboard title size
                             x=0.5
                         ),
-                        height=500,  # Match Budget dashboard chart height
+                        autosize=True,  # Enable automatic resizing
                         margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
                         font=dict(family='Arial, sans-serif', size=14)  # Match Budget dashboard font size
                     )
@@ -897,7 +840,7 @@ def create_eu_priority_charts(map_df, analysis_df, time_df, eu_priority):
                         font=dict(size=16, color="#f4d03f", weight="bold"),  # Match Budget dashboard title size
                         x=0.5
                     ),
-                    height=500,  # Match Budget dashboard chart height
+                    autosize=True,  # Enable automatic resizing
                     margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
                     font=dict(family='Arial, sans-serif', size=14)  # Match Budget dashboard font size
                 )
@@ -915,7 +858,7 @@ def create_eu_priority_charts(map_df, analysis_df, time_df, eu_priority):
                     font=dict(size=16, color="#f4d03f", weight="bold"),  # Match Budget dashboard title size
                     x=0.5
                 ),
-                height=500,  # Match Budget dashboard chart height
+                autosize=True,  # Enable automatic resizing
                 margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
                 font=dict(family='Arial, sans-serif', size=14)  # Match Budget dashboard font size
             )
@@ -933,7 +876,7 @@ def create_eu_priority_charts(map_df, analysis_df, time_df, eu_priority):
                 font=dict(size=16, color="#f4d03f", weight="bold"),  # Match Budget dashboard title size
                 x=0.5
             ),
-            height=500,  # Match Budget dashboard chart height
+            autosize=True,  # Enable automatic resizing
             margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
             font=dict(family='Arial, sans-serif', size=14)  # Match Budget dashboard font size
         )
@@ -993,7 +936,7 @@ def create_eu_priority_charts(map_df, analysis_df, time_df, eu_priority):
         ),
         hovermode='closest',
         showlegend=False,  # No legend needed for single indicator
-        height=500,  # Match Budget dashboard chart height
+        autosize=True,  # Enable automatic resizing
         margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
         font=dict(family='Arial, sans-serif', size=14)  # Match Budget dashboard font size
     )
@@ -1042,7 +985,7 @@ def create_primary_indicator_charts(map_df, analysis_df, time_df, eu_priority, s
                 font=dict(size=16, color="#f4d03f", weight="bold"),  # Match Budget dashboard title size
                 x=0.5
             ),
-            height=500,  # Match Budget dashboard chart height
+            autosize=True,  # Enable automatic resizing
             margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
             font=dict(family='Arial, sans-serif', size=14),  # Match Budget dashboard font size
             paper_bgcolor='white',
@@ -1111,7 +1054,7 @@ def create_primary_indicator_charts(map_df, analysis_df, time_df, eu_priority, s
             yaxis=dict(range=[0, 1], tickformat='.1f', gridwidth=0.2),
             hovermode='closest',
             showlegend=False,  # No legend needed for single indicator
-            height=500,  # Match Budget dashboard chart height
+            autosize=True,  # Enable automatic resizing
             margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
             font=dict(family='Arial, sans-serif', size=14)  # Match Budget dashboard font size
         )
@@ -1167,7 +1110,7 @@ def create_primary_indicator_charts(map_df, analysis_df, time_df, eu_priority, s
                         font=dict(size=16, color="#f4d03f", weight="bold"),  # Match Budget dashboard title size
                         x=0.5
                     ),
-                    height=500,  # Match Budget dashboard chart height
+                    autosize=True,  # Enable automatic resizing
                     margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
                     font=dict(family='Arial, sans-serif', size=14),  # Match Budget dashboard font size
                     yaxis=dict(range=[0, 1])
@@ -1249,7 +1192,7 @@ def create_primary_indicator_charts(map_df, analysis_df, time_df, eu_priority, s
         ),
         hovermode='closest',
         showlegend=False,  # No legend needed for single indicator
-        height=500,  # Match Budget dashboard chart height
+        autosize=True,  # Enable automatic resizing
         margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
         font=dict(family='Arial, sans-serif', size=14)  # Match Budget dashboard font size
     )
@@ -1300,7 +1243,7 @@ def create_secondary_indicator_charts(map_df, analysis_df, time_df, eu_priority,
                 font=dict(size=16, color="#f4d03f", weight="bold"),  # Match Budget dashboard title size
                 x=0.5
             ),
-            height=500,  # Match Budget dashboard chart height
+            autosize=True,  # Enable automatic resizing
             margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
             font=dict(family='Arial, sans-serif', size=14),  # Match Budget dashboard font size
             paper_bgcolor='white',
@@ -1426,7 +1369,7 @@ def create_secondary_indicator_charts(map_df, analysis_df, time_df, eu_priority,
                     yanchor='top',
                     orientation='h'
                 ),
-                height=500,  # Match Budget dashboard chart height
+                autosize=True,  # Enable automatic resizing
                 margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
                 font=dict(family='Arial, sans-serif', size=14)  # Match Budget dashboard font size
             )
@@ -1486,7 +1429,7 @@ def create_secondary_indicator_charts(map_df, analysis_df, time_df, eu_priority,
                     font=dict(size=16, color="#f4d03f", weight="bold"),  # Match Budget dashboard title size
                     x=0.5
                 ),
-                height=500,  # Match Budget dashboard chart height
+                autosize=True,  # Enable automatic resizing
                 margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
                 font=dict(family='Arial, sans-serif', size=14),  # Match Budget dashboard font size
                 yaxis=dict(range=[0, 1])
@@ -1505,7 +1448,7 @@ def create_secondary_indicator_charts(map_df, analysis_df, time_df, eu_priority,
                 font=dict(size=16, color="#f4d03f", weight="bold"),  # Match Budget dashboard title size
                 x=0.5
             ),
-            height=500,  # Match Budget dashboard chart height
+            autosize=True,  # Enable automatic resizing
             margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
             font=dict(family='Arial, sans-serif', size=14)  # Match Budget dashboard font size
         )
@@ -1523,7 +1466,7 @@ def create_secondary_indicator_charts(map_df, analysis_df, time_df, eu_priority,
                 font=dict(size=16, color="#f4d03f", weight="bold"),  # Match Budget dashboard title size
                 x=0.5
             ),
-            height=500,  # Match Budget dashboard chart height
+            autosize=True,  # Enable automatic resizing
             margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
             font=dict(family='Arial, sans-serif', size=14)  # Match Budget dashboard font size
         )
@@ -1583,7 +1526,7 @@ def create_secondary_indicator_charts(map_df, analysis_df, time_df, eu_priority,
         ),
         hovermode='closest',
         showlegend=False,  # No legend needed for single indicator
-        height=500,  # Match Budget dashboard chart height
+        autosize=True,  # Enable automatic resizing
         margin=dict(t=80, b=50, l=60, r=60),  # Match Budget dashboard margins
         font=dict(family='Arial, sans-serif', size=14)  # Match Budget dashboard font size
     )
@@ -1679,37 +1622,97 @@ def create_adaptive_map_chart(map_df, level_filters):
     # Filter out countries without ISO-3 codes (like aggregates)
     filtered_data = filtered_data[filtered_data['iso3'].notna()].copy()
 
-    # Create the choropleth map
+
+
+    # Use 5 quantile bins for the Score
+    num_bins = 5
+    filtered_data['quantile_bin'] = pd.qcut(filtered_data['Score'], num_bins, labels=False, duplicates='drop')
+
+    # Define 5 discrete colors (RdYlGn 5-class)
+    discrete_colors = [
+        '#d73027',  # Red
+        '#fc8d59',  # Orange
+        '#fee08b',  # Yellow
+        '#91cf60',  # Light Green
+        '#1a9850'   # Green
+    ]
+
+    # Map quantile bins to colors
+    filtered_data['color'] = filtered_data['quantile_bin'].map(lambda x: discrete_colors[int(x)] if pd.notnull(x) else '#cccccc')
+
+    # For legend: get bin edges
+    quantiles = filtered_data['Score'].quantile([i/num_bins for i in range(num_bins+1)]).values
+    colorbar_tickvals = [(quantiles[i]+quantiles[i+1])/2 for i in range(num_bins)]
+    colorbar_ticktext = [f"{quantiles[i]:.2f} – {quantiles[i+1]:.2f}" for i in range(num_bins)]
+
+    # Create the choropleth map with discrete colors, no colorbar, and hover info
     european_map = go.Figure(data=go.Choropleth(
         locations=filtered_data['iso3'],
-        z=filtered_data['Score'],
+        z=filtered_data['quantile_bin'],
         locationmode='ISO-3',
-        colorscale='RdYlGn',  # Red to Green scale
-        colorbar_title=colorbar_title,
+        colorscale=[
+            [i/(num_bins-1), color] for i, color in enumerate(discrete_colors)
+        ],
+        zmin=0,
+        zmax=num_bins-1,
         text=filtered_data['full_name'],
-        hovertemplate='<b>%{text}</b><br>Score: %{z:.2f}<extra></extra>'
+        hovertemplate='<b>%{text}</b><br>Score: %{customdata[0]:.2f}<br>Quantile: %{z}<extra></extra>',
+        customdata=np.stack([filtered_data['Score']], axis=-1),
+        showscale=False
     ))
 
     # Update traces for better styling like Budget dashboard
     european_map.update_traces(
         marker_line_color="white",
         marker_line_width=0.5,
-        colorbar=dict(
-            x=1.05,  # Position to the right of the map
-            xanchor="left",
-            thickness=15,
-            len=0.7,
-            title=dict(
-                text=colorbar_title,
-                font=dict(size=14, color="#2c3e50"),
-                side="top"
-            )
-        )
     )
 
+    # Add custom discrete legend as vertical colored boxes with labels on the right
+    legend_x = 0.76  # Position legend just to the right of the map window
+    legend_y_start = 0.80
+    legend_box_height = 0.05  # Smaller box height
+    legend_box_width = 0.03   # Smaller box width
+    legend_y_gap = 0.012      # Smaller gap between boxes
+    legend_annotations = []
+    for i, (color, label) in enumerate(reversed(list(zip(discrete_colors, colorbar_ticktext)))):
+        y0 = legend_y_start - i * (legend_box_height + legend_y_gap)
+        y1 = y0 - legend_box_height
+        # Colored box (no contour or white border)
+        european_map.add_shape(
+            type="rect",
+            xref="paper", yref="paper",
+            x0=legend_x, x1=legend_x + legend_box_width,
+            y0=y0, y1=y1,
+            fillcolor=color, line=dict(width=1, color="white"),
+            layer="above"
+        )
+        # Label to the right of box
+        legend_annotations.append(dict(
+            x=legend_x + legend_box_width + 0.015,  # Reduced spacing from box
+            y=(y0 + y1) / 2,
+            xref="paper", yref="paper",
+            text=label,
+            showarrow=False,
+            font=dict(size=10, color="#2c3e50"),  # Smaller font size
+            xanchor="left",
+            yanchor="middle"
+        ))
+    # Legend title above boxes (remove 'Score' mention)
+    legend_annotations.append(dict(
+        x=legend_x + legend_box_width/2 + 0.015,
+        y=legend_y_start + 0.05,
+        xref="paper", yref="paper",
+        text="",
+        showarrow=False,
+        font=dict(size=22, color="#2c3e50", family="Arial, sans-serif"),
+        xanchor="center",
+        yanchor="bottom"
+    ))
+    european_map.update_layout(annotations=legend_annotations)
+
     european_map.update_layout(
-        height=550,  # Match Budget dashboard map height
-        margin={"r": 120, "t": 80, "l": 80, "b": 20},  # Consistent top margin for title alignment
+        autosize=True,  # Enable automatic resizing
+        margin={"r": 80, "t": 40, "l": 20, "b": 10},  # Balanced margins with space for legend
         geo=dict(
             scope='europe',
             projection=dict(type='equirectangular'),
@@ -1743,12 +1746,6 @@ def create_adaptive_map_chart(map_df, level_filters):
             y=0.95  # Consistent title position for alignment
         ),
 
-    )
-
-    # Set color scale from 0 to 1
-    european_map.update_traces(
-        zmin=0,
-        zmax=1
     )
 
     return european_map
@@ -1866,14 +1863,21 @@ def create_adaptive_decile_chart(analysis_df, level_filters):
                 hovertemplate='<b>Score:</b> %{y:.2f}<br><b>Decile:</b> %{x}<br><b>Country:</b> %{fullData.name}<extra></extra>'
             ))
 
+    # Calculate y-axis max (rounded up to nearest 0.2, unless 1)
+    y_max = filtered_data['Score'].max() if not filtered_data.empty else 1
+    if y_max < 1:
+        y_max = round(y_max, 1) + 0.1
+        y_max = min(y_max, 1)
+    else:
+        y_max = 1
+
     decile_analysis.update_layout(
         title=dict(
             text=title,
             font=dict(size=16, color="#f4d03f", weight="bold"),
             x=0.5
         ),
-        height=500,
-        width=700,  # 20% less wide (500 * 0.8 = 400)
+        autosize=True,  # Enable automatic resizing
         margin=dict(t=40, b=80, l=60, r=60),  # Reduced top margin to reduce padding with charts above
         barmode='group',
         font=dict(family='Arial, sans-serif', size=14),
@@ -1885,7 +1889,7 @@ def create_adaptive_decile_chart(analysis_df, level_filters):
             categoryarray=['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'All']
         ),
         yaxis=dict(
-            range=[0, 1],
+            range=[0, y_max],
             showgrid=False,  # Remove horizontal grid lines
             tickformat='.2f'  # Show 2 decimal places
         ),
@@ -2051,7 +2055,7 @@ def create_level1_radar_chart(analysis_df):
             font=dict(size=16, color="#f4d03f", weight="bold"),
             x=0.5
         ),
-        height=500,
+        autosize=True,  # Enable automatic resizing
         margin=dict(t=40, b=80, l=60, r=60),  # Reduced top margin to align with country comparison chart
         font=dict(family='Arial, sans-serif', size=14)
     )
@@ -2125,7 +2129,7 @@ def create_levels2to4_country_chart(analysis_df, level_filters):
         )
         country_chart.update_layout(
             title=dict(text=title, font=dict(size=16, color="#f4d03f", weight="bold"), x=0.5),
-            height=500,
+            autosize=True,  # Enable automatic resizing
             margin=dict(t=80, b=50, l=60, r=60)
         )
         return country_chart
@@ -2216,6 +2220,14 @@ def create_levels2to4_country_chart(analysis_df, level_filters):
             )
 
     # Update layout
+    # Calculate y-axis max (rounded up to nearest 0.2, unless 1)
+    y_max = max(main_scores) if main_scores else 1
+    if y_max < 1:
+        y_max = round(y_max, 1) + 0.1
+        y_max = min(y_max, 1)
+    else:
+        y_max = 1
+
     country_chart.update_layout(
         title=dict(
             text=title,
@@ -2227,7 +2239,7 @@ def create_levels2to4_country_chart(analysis_df, level_filters):
             tickfont=dict(size=14)  # Increased font size for country names
         ),
         yaxis=dict(
-            range=[0, 1],
+            range=[0, y_max],
             tickformat='.1f',
             gridwidth=0.2,
             title=''  # Remove "Score" label
@@ -2241,7 +2253,7 @@ def create_levels2to4_country_chart(analysis_df, level_filters):
             yanchor='top',
             orientation='h'
         ),
-        height=500,
+        autosize=True,  # Enable automatic resizing
         width=950,  # Make chart wider
         margin=dict(t=40, b=80, l=30, r=120),  # Reduced top margin to reduce padding with charts above
         font=dict(family='Arial, sans-serif', size=14),
@@ -2369,6 +2381,14 @@ def create_adaptive_time_series_chart(analysis_df, level_filters, selected_count
                 marker_color=country_colors.get(country, '#1f77b4')  # Use consistent colors
             ))
 
+    # Calculate y-axis max (rounded up to nearest 0.2, unless 1)
+    y_max = filtered_data['Score'].max() if not filtered_data.empty else 1
+    if y_max < 1:
+        y_max = round(y_max, 1) + 0.1
+        y_max = min(y_max, 1)
+    else:
+        y_max = 1
+
     time_series.update_layout(
         title=dict(
             text=title,
@@ -2376,8 +2396,8 @@ def create_adaptive_time_series_chart(analysis_df, level_filters, selected_count
             x=0.5,
             y=0.95  # Consistent title position for alignment
         ),
-        height=500,
-        width=700,  # Match decile chart width
+        autosize=True,  # Enable automatic resizing
+        # Responsive width handled by CSS grid
         margin=dict(t=80, b=60, l=40, r=10),  # Consistent top margin for title alignment with map
         font=dict(family='Arial, sans-serif', size=14),
         paper_bgcolor='white',
@@ -2390,7 +2410,7 @@ def create_adaptive_time_series_chart(analysis_df, level_filters, selected_count
             range=[2004, 2024]  # Force full year range regardless of data
         ),
         yaxis=dict(
-            range=[0, 1],
+            range=[0, y_max],
             title='',  # Remove "Score" label
             showgrid=False,  # Remove horizontal grid lines
             tickformat='.2f'  # Show 2 decimal places
