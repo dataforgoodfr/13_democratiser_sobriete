@@ -97,6 +97,15 @@ except FileNotFoundError as e:
     print(f"Please ensure that the CSV files are in the '{DATA_DIR}' directory.")
     exit()
 
+
+try:
+    master_df_raw = pd.read_csv(os.path.join(DATA_DIR, 'ewbi_master_raw.csv'))
+    print("Raw master data loaded successfully.")
+except Exception as e:
+    print(f"Could not load ewbi_master_raw.csv: {e}")
+    master_df_raw = None
+
+
 # Initialize the Dash app
 app = dash.Dash(__name__)
 server = app.server
@@ -368,6 +377,7 @@ def update_primary_indicator_dropdown(secondary_indicator, eu_priority):
                 'AE-HBS-1', 'AE-HBS-2',
                 'HQ-SILC-2',
                 'HH-SILC-1', 'HH-HBS-1', 'HH-HBS-2', 'HH-HBS-3', 'HH-HBS-4',
+                'HE-HBS-1', 'HE-HBS-2',
                 'EC-HBS-1', 'EC-HBS-2',
                 'ED-ICT-1', 'ED-EHIS-1',
                 'AC-SILC-1', 'AC-SILC-2', 'AC-HBS-1', 'AC-HBS-2', 'AC-EHIS-1',
@@ -2409,4 +2419,4 @@ if __name__ == '__main__':
     print("🌐 To access from other devices on your network, use: http://0.0.0.0:8050")
     print("⏹️  Press Ctrl+C to stop the server")
     print("-" * 60)
-    app.run_server(debug=True, host='0.0.0.0', port=8050)
+    app.run(debug=True, host='0.0.0.0', port=8050)

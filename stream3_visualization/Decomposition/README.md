@@ -186,7 +186,7 @@ git remote -v
 1. **Make changes** to the dashboard code
 2. **Commit changes** to the `visualizations-combined` branch
 3. **Push to GitHub**: `git push origin visualizations-combined`
-4. **Deploy to Clever Cloud**: Use the appropriate push command above
+4. **Deploy to Clever Cloud**: 'git push clever-decomposition visualizations-combined:master' for the EU/Switzerland app and 'git push clever-world-decomposition visualizations-combined:master' for the world app
 5. **Verify deployment** in Clever Cloud dashboard
 
 ## Troubleshooting
