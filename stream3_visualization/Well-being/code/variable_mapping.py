@@ -12,6 +12,7 @@ VARIABLE_NAME_MAPPING = {
     "AE-EHIS-1": "Rarely Eating Fruit",
     "HE-SILC-1": "Homes Too Cold in Winter",
     "HE-SILC-2 ": "Behind on Utility Bills",
+    "HQ-SILC-1": "Over-populated dwelling",
     "EL-SILC-1": "Low Life Satisfaction",
     "EL-EHIS-1": "No Joy in Daily Life",
     "ES-SILC-1": "Unable to Handle Unexpected Costs",
