@@ -270,7 +270,7 @@ def update_bar_chart(zone, sector):
         plot_bgcolor='white',
         font=dict(family='Arial, sans-serif', size=14),
         margin=dict(t=80, b=50, l=60, r=60),
-        yaxis=dict(range=[-20, 100])
+        yaxis=dict(range=[-20, 140])
     )
     
     # Remove grid lines
@@ -468,7 +468,7 @@ def update_waterfall_chart(zone, sector, scenario):
         ),
         yaxis=dict(
             showgrid=False,  # Remove horizontal lines
-            range=[-10, 110]  # Adjusted for percentage scale (2015 = 100%)
+            range=[-10, 150]  # Adjusted for percentage scale (2015 = 100%, max 140%)
         )
     )
     
@@ -511,11 +511,13 @@ def update_scenario_options(selected_zone):
 )
 def update_sector_options(selected_zone):
     if selected_zone == 'Switzerland':
-        # Switzerland doesn't have Industry sector
+        # Switzerland has specific sectors
         options = [
             {'label': 'Buildings - Services', 'value': 'Buildings - Services'},
             {'label': 'Buildings - Residential', 'value': 'Buildings - Residential'},
-            {'label': 'Passenger Land Transportation', 'value': 'Passenger Land Transportation'}
+            {'label': 'Passenger Land Transport', 'value': 'Passenger Land Transport'},
+            {'label': 'Cement industry', 'value': 'Cement industry'},
+            {'label': 'Steel industry', 'value': 'Steel industry'}
         ]
         value = 'Buildings - Services'
     else:
@@ -523,8 +525,13 @@ def update_sector_options(selected_zone):
         options = [
             {'label': 'Buildings - Services', 'value': 'Buildings - Services'},
             {'label': 'Buildings - Residential', 'value': 'Buildings - Residential'},
-            {'label': 'Passenger Land Transportation', 'value': 'Passenger Land Transportation'},
-            {'label': 'Industry', 'value': 'Industry'}
+            {'label': 'Transport - Passenger cars', 'value': 'Transport - Passenger cars'},
+            {'label': 'Transport - Rail', 'value': 'Transport - Rail'},
+            {'label': 'Industry - Steel industry', 'value': 'Industry - Steel industry'},
+            {'label': 'Industry - Non-ferrous metal industry', 'value': 'Industry - Non-ferrous metal industry'},
+            {'label': 'Industry - Chemicals industry', 'value': 'Industry - Chemicals industry'},
+            {'label': 'Industry - Non-Metallic Minerals industry', 'value': 'Industry - Non-Metallic Minerals industry'},
+            {'label': 'Industry - Pulp, Paper & Print industry', 'value': 'Industry - Pulp, Paper & Print industry'}
         ]
         value = 'Buildings - Services'
     

@@ -41,7 +41,22 @@ def create_sufficiency_scenarios():
     
     for zone in ['EU', 'Switzerland']:
         co2_lookup[zone] = {}
-        for sector in ['Buildings - Residential', 'Buildings - Services', 'Industry', 'Passenger Land Transportation']:
+        # Define sectors based on what actually exists in the data
+        if zone == 'EU':
+            sectors = [
+                'Buildings - Residential', 'Buildings - Services', 
+                'Transport - Passenger cars', 'Transport - Rail',
+                'Industry - Steel industry', 'Industry - Non-ferrous metal industry',
+                'Industry - Chemicals industry', 'Industry - Non-Metallic Minerals industry',
+                'Industry - Pulp, Paper & Print industry'
+            ]
+        else:  # Switzerland
+            sectors = [
+                'Buildings - Residential', 'Buildings - Services',
+                'Passenger Land Transport', 'Cement industry', 'Steel industry'
+            ]
+        
+        for sector in sectors:
             # Get CO2 values from the first scenario's Total row for this zone/sector
             sector_data = original_data[
                 (original_data['Zone'] == zone) & 
@@ -66,10 +81,22 @@ def create_sufficiency_scenarios():
     new_scenarios = []
     
     for zone in ['EU', 'Switzerland']:
-        for sector in ['Buildings - Residential', 'Buildings - Services', 'Industry', 'Passenger Land Transportation']:
-            # Skip Switzerland Industry (no data)
-            if zone == 'Switzerland' and sector == 'Industry':
-                continue
+        # Define sectors based on what actually exists in the data
+        if zone == 'EU':
+            sectors = [
+                'Buildings - Residential', 'Buildings - Services', 
+                'Transport - Passenger cars', 'Transport - Rail',
+                'Industry - Steel industry', 'Industry - Non-ferrous metal industry',
+                'Industry - Chemicals industry', 'Industry - Non-Metallic Minerals industry',
+                'Industry - Pulp, Paper & Print industry'
+            ]
+        else:  # Switzerland
+            sectors = [
+                'Buildings - Residential', 'Buildings - Services',
+                'Passenger Land Transport', 'Cement industry', 'Steel industry'
+            ]
+        
+        for sector in sectors:
                 
             print(f"\n--- Processing {sector} in {zone} ---")
             
