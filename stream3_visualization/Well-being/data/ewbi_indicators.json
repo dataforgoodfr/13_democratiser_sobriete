@@ -4,8 +4,8 @@
       "name": "Agriculture and Food",
       "components": [
         {
-          "name": "Nutrition need",
-          "weight": "2/3",
+          "name": "Nutrition",
+          "weight": 1,
           "indicators": [
             {
               "code": "AN-SILC-1",
@@ -16,13 +16,7 @@
               "code": "AN-EHIS-1",
               "description": "Struggling to Prepare Meals (AN-EHIS-1)",
               "weight": 2
-            }
-          ]
-        },
-        {
-          "name": "Nutrition expense",
-          "weight": "1/3",
-          "indicators": [
+            },
             {
               "code": "AE-HBS-1",
               "description": "Percentage of households of the nth decile whose share of equivalised food and nonalcoholic beverages expenditure in equivalised disposable income is above twice the national median share",
@@ -295,6 +289,16 @@
           "name": "Education",
           "weight": "1/2",
           "indicators": [
+            {
+              "code": "IS-SILC-1",
+              "description": "No pre-school education",
+              "weight": 2
+            },
+            {
+              "code": "IS-SILC-2",
+              "description": "No compulsory school education",
+              "weight": 2
+            },
             {
               "code": "IS-SILC-3",
               "description": "No Formal Education (IS-SILC-3)",

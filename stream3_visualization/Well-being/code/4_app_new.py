@@ -96,8 +96,8 @@ try:
         'Equality',
         'Health and Animal Welfare',
         'Intergenerational Fairness, Youth, Culture and Sport',
-        'Social Rights and Skills, Quality Jobs and Preparedness',
-        'Sustainable Transport and Tourism'
+        'Social Rights and Skills, Quality Jobs and Preparedness'
+        #,        'Sustainable Transport and Tourism'
     ]
 
     # Create secondary indicator options - get from the unified data
@@ -245,6 +245,10 @@ def update_secondary_indicator_dropdown(eu_priority):
     if eu_priority == 'ALL':
         return [{'label': '(Select value)', 'value': 'ALL'}], 'ALL', True
     elif eu_priority:
+        # Special case: For 'Agriculture and Food', always show only 'Nutrition'
+        if eu_priority == 'Agriculture and Food':
+            options = [{'label': '(Select value)', 'value': 'ALL'}, {'label': 'Nutrition', 'value': 'Nutrition'}]
+            return options, 'ALL', False
         filtered_indicators = [
             indicator for indicator in SECONDARY_INDICATORS
             if indicator['eu_priority'] == eu_priority

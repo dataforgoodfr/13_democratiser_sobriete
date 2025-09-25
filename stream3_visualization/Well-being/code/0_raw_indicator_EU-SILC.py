@@ -197,6 +197,7 @@ def combine_personal_register(dirs):
         "RB030",  # ID
         "RB050",  # Weight
         "RB081",  # Age
+        "RB082",  # Age of person interviewed (alternative age field)
         "RL010",  # IS-SILC-1 - Education at pre-school
         "RL020"   # IS-SILC-2 - Education at compulsory school
     ]
@@ -259,7 +260,7 @@ def combine_personal_data(dirs):
         pd.DataFrame: Combined personal dataset
     """
     cols_needed_personal = [
-        "PB010", "PB020", "PB030", "PB140", "PB205",
+        "PB010", "PB020", "PB030", "PB140", "PB200",
         "PW010", "PW191", "PD060", "PD070", "PH010", "PH020", "PH030",
         "PL086", "PH040", "PH050", "PE041", "PL141", "PL145", "PL080"
     ]
@@ -351,7 +352,7 @@ def calculate_income_deciles(dirs):
     
     # Load necessary data for equivalized income calculation
     cols_needed_household = ["HB010", "HB020", "HB030", "HY020"]
-    cols_needed_personal = ["RB010", "RB020", "RB030", "RB081"]
+    cols_needed_personal = ["RB010", "RB020", "RB030", "RB081", "RB082"]
 
     household_df = pd.read_csv(
         os.path.join(dirs['merged_dir'], "EU_SILC_combined_household_data.csv"),
@@ -376,18 +377,23 @@ def calculate_income_deciles(dirs):
         how="left"
     )
 
+    # Create unified age column using RB082 when RB081 is missing
+    merged_df['age'] = merged_df['RB081'].fillna(merged_df['RB082'])
+
     # Define the OECD modified scale weights
     def oecd_weight(age):
+        if pd.isna(age):
+            return 0.5  # Default weight for missing age
         if age < 14:
             return 0.3
         elif age >= 14:
             return 0.5
 
     # Apply weights and sum by household
-    merged_df["oecd_weight"] = merged_df["RB081"].apply(oecd_weight)
+    merged_df["oecd_weight"] = merged_df["age"].apply(oecd_weight)
 
     # Set weight of first adult to 1.0
-    merged_df.sort_values(by=["HB010", "HB020", "HB030", "RB081"], ascending=[True, True, True, False], inplace=True)
+    merged_df.sort_values(by=["HB010", "HB020", "HB030", "age"], ascending=[True, True, True, False], inplace=True)
 
     # Create a flag for the first person in each household
     merged_df["person_rank"] = merged_df.groupby(["HB010", "HB020", "HB030"]).cumcount()
@@ -490,7 +496,7 @@ def calculate_overcrowding(dirs):
     print("Calculating overcrowding indicators...")
     
     cols_needed_household = ["HB010", "HB020", "HB030", "HH030"]
-    cols_needed_personal = ["PB030", "PB010", "PB020", "PB140", "PB205"]
+    cols_needed_personal = ["PB030", "PB010", "PB020", "PB140", "PB200"]
 
     # Load the data
     print("Loading household data...")
@@ -536,8 +542,15 @@ def calculate_overcrowding(dirs):
 
     # Group by household and calculate required rooms
     def required_rooms(group):
-        n_couples = group['PB205'].notnull().sum() // 2
-        n_adults = sum((group['age_group'] == 'adult') & (group['PB205'].isnull()))
+        # Count adults in consensual unions (PB200 = 1 or 2) who can share bedrooms
+        adults_in_unions = group[(group['age_group'] == 'adult') & (group['PB200'].isin([1, 2]))]
+        adults_single = group[(group['age_group'] == 'adult') & (~group['PB200'].isin([1, 2]) | group['PB200'].isna())]
+        
+        # For adults in unions, assume they can share bedrooms in pairs
+        # This is a simplification - ideally we'd match actual couples
+        n_couples = len(adults_in_unions) // 2
+        n_single_adults = len(adults_single) + (len(adults_in_unions) % 2)  # Include unpaired adults
+        
         teens = group[group['age_group'] == 'teen']
         n_teen_pairs = len(teens) // 2
         n_remaining_teens = len(teens) % 2
@@ -545,7 +558,7 @@ def calculate_overcrowding(dirs):
         n_child_pairs = len(children) // 2
         n_remaining_children = len(children) % 2
         
-        required = (1 + n_couples + n_adults + n_teen_pairs + n_remaining_teens + 
+        required = (1 + n_couples + n_single_adults + n_teen_pairs + n_remaining_teens + 
                    n_child_pairs + n_remaining_children)
         return pd.Series({'required_rooms': required, 'HH030': group['HH030'].iloc[0]})
 
@@ -671,7 +684,7 @@ def process_household_indicators(dirs):
         for var in variable_filters.keys():
             mask = group[f"_valid_{var}"]
             weighted_sum = group.loc[mask, "DB090"].sum()
-            share = weighted_sum / total_weight if total_weight > 0 else np.nan
+            share = (weighted_sum / total_weight * 100) if total_weight > 0 else np.nan
             group_result[f"{var}_share"] = share
 
         results.append(group_result)
@@ -688,7 +701,7 @@ def process_household_indicators(dirs):
         for var in variable_filters.keys():
             mask = group[f"_valid_{var}"]
             weighted_sum = group.loc[mask, "DB090"].sum()
-            share = weighted_sum / total_weight if total_weight > 0 else np.nan
+            share = (weighted_sum / total_weight * 100) if total_weight > 0 else np.nan
             group_result[f"{var}_share"] = share
 
         results.append(group_result)
@@ -755,7 +768,7 @@ def process_personal_indicators(dirs):
     ]
 
     cols_needed_PR = [
-        "RB010", "RB020", "RB030", "RB050", "RB081", "RL010", "RL020"
+        "RB010", "RB020", "RB030", "RB050", "RB081", "RB082", "RL010", "RL020"
     ]
 
     pop_df = pd.read_csv(
@@ -792,6 +805,17 @@ def process_personal_indicators(dirs):
         right_on=['RB010', 'RB020', 'RB030'], how='left'
     )
 
+    # Create a unified age column:
+    # 1. Try RB081 (age from register) if available
+    # 2. Fall back to RB082 (age of person interviewed) if available  
+    # 3. Calculate from PB140 (birth year) as final fallback
+    merged_df['age'] = merged_df['RB081'].fillna(merged_df['RB082'])
+    
+    # For records still missing age, calculate from birth year (PB140)
+    mask_missing_age = merged_df['age'].isna()
+    if 'PB140' in merged_df.columns and mask_missing_age.sum() > 0:
+        merged_df.loc[mask_missing_age, 'age'] = merged_df.loc[mask_missing_age, 'PB010'] - merged_df.loc[mask_missing_age, 'PB140']
+    
     # Save merged dataset
     merged_df.to_csv(os.path.join(dirs['final_merged_dir'], "EU_SILC_personal_final_merged.csv"), index=False)
 
@@ -808,15 +832,15 @@ def process_personal_indicators(dirs):
             "PL086": df["PL086"] < 7,                                     # AH-SILC-4
             "PH040": df["PH040"] == 2,                                    # AC-SILC-2
             "PH050": df["PH050"] == 1,                                    # AC-SILC-1
-            "PE041": ((df["RB081"] > 15) & ((df["PE041"] == 0) | df["PE041"].isna())),  # IS-SILC-3
-            "PL141": ((df["RB081"] > 17) & (
+            "PE041": ((df["age"] > 15) & ((df["PE041"] == 0) | df["PE041"].isna())),  # IS-SILC-3
+            "PL141": ((df["age"] > 17) & (
                         ((df["PB010"] < 2021) & (df["PL141"] == 2)) |
                         ((df["PB010"] >= 2021) & df["PL141"].isin([11, 12]))
                       )),                                                # RT-SILC-1
-            "PL145": ((df["RB081"] > 17) & (df["PL145"] == 2)),           # RT-SILC-2
-            "PL080": ((df["RB081"] > 17) & (df["PL080"] > 5)),            # RU-SILC-1
-            "RL010": ((df["RB081"].between(2, 6)) & ((df["RL010"] == 0) | df["RL010"].isna())),  # IS-SILC-1
-            "RL020": ((df["RB081"].between(7, 11)) & ((df["RL020"] == 0) | df["RL020"].isna())), # IS-SILC-2
+            "PL145": ((df["age"] > 17) & (df["PL145"] == 2)),            # RT-SILC-2
+            "PL080": (df["PL080"] > 5),                                  # RU-SILC-1
+            "RL010": ((df["RL010"] == 0) | df["RL010"].isna()),  # IS-SILC-1 (whole population)
+            "RL020": ((df["RL020"] == 0) | df["RL020"].isna()),  # IS-SILC-2 (whole population)
         }
 
     # Apply conditions
@@ -850,7 +874,7 @@ def process_personal_indicators(dirs):
                 else:
                     # Calculate weighted share of positive responses
                     weighted_sum = group.loc[mask, "RB050"].sum()
-                    share = weighted_sum / total_weight if total_weight > 0 else np.nan
+                    share = (weighted_sum / total_weight * 100) if total_weight > 0 else np.nan
                     group_result[f"{var}_share"] = share
 
         results.append(group_result)
@@ -882,7 +906,7 @@ def process_personal_indicators(dirs):
                 else:
                     # Calculate weighted share of positive responses
                     weighted_sum = group.loc[mask, "RB050"].sum()
-                    share = weighted_sum / total_weight if total_weight > 0 else np.nan
+                    share = (weighted_sum / total_weight * 100) if total_weight > 0 else np.nan
                     group_result[f"{var}_share"] = share
 
         results.append(group_result)
@@ -913,8 +937,9 @@ def process_personal_indicators(dirs):
     # Melt to long format
     columns_to_melt = [
         "EL-SILC-1", "EC-SILC-2", "IC-SILC-1", "IC-SILC-2", "AH-SILC-1", "AH-SILC-2",
-        "AH-SILC-3", "AH-SILC-4", "AC-SILC-2", "AC-SILC-1", "IS-SILC-3",
-        "RT-SILC-1", "RT-SILC-2", "RU-SILC-1", "IS-SILC-1", "IS-SILC-2"
+        "AH-SILC-3", "AH-SILC-4", "AC-SILC-2", "AC-SILC-1",
+        "IS-SILC-1", "IS-SILC-2", "IS-SILC-3",
+        "RT-SILC-1", "RT-SILC-2", "RU-SILC-1"
     ]
 
     df_melted = summary_df2.melt(

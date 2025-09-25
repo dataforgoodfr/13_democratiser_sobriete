@@ -144,7 +144,7 @@ def weighted_percentage(df, condition_col, condition_func, weight_col='WGT', bas
         base_condition (function): Base filtering condition
         
     Returns:
-        float: Weighted percentage or NaN if no valid data
+        float: Weighted percentage (0-100) or NaN if no valid data
     """
     # Filter out rows where the condition column is NaN
     df_filtered = df[df[condition_col].notna()]
@@ -163,7 +163,7 @@ def weighted_percentage(df, condition_col, condition_func, weight_col='WGT', bas
     weighted_sum = df_valid[weight_col].sum()
     total_weight = df_filtered[weight_col].sum()
 
-    return weighted_sum / total_weight if total_weight > 0 else np.nan
+    return (weighted_sum / total_weight * 100) if total_weight > 0 else np.nan
 
 
 def calculate_ehis_indicators(df):
@@ -378,16 +378,16 @@ def calculate_level5_statistics(df):
         
         for indicator_code, percentage in indicator_pcts.items():
             if not pd.isna(percentage):
-                level5_results.append({
-                    "primary_index": indicator_code,
-                    "country": country,
-                    "quintile": quintile,
-                    "decile": np.nan,  # EHIS uses quintiles, not deciles
-                    "year": year,
-                    "value": percentage * 100,  # Convert to percentage
-                    "database": "EHIS",
-                    "level5_type": "value_5A"
-                })
+                    level5_results.append({
+                        "primary_index": indicator_code,
+                        "country": country,
+                        "quintile": quintile,
+                        "decile": np.nan,  # EHIS uses quintiles, not deciles
+                        "year": year,
+                        "value": percentage,  # Already a percentage (0-100)
+                        "database": "EHIS",
+                        "level5_type": "value_5A"
+                    })
     
     # Value_5B: Percentage per quintile, year (all countries combined)
     print("Computing value_5B: Percentage per quintile, year (all countries)...")
@@ -396,16 +396,16 @@ def calculate_level5_statistics(df):
         
         for indicator_code, percentage in indicator_pcts.items():
             if not pd.isna(percentage):
-                level5_results.append({
-                    "primary_index": indicator_code,
-                    "country": "All Countries",
-                    "quintile": quintile,
-                    "decile": np.nan,  # EHIS uses quintiles, not deciles
-                    "year": year,
-                    "value": percentage * 100,
-                    "database": "EHIS",
-                    "level5_type": "value_5B"
-                })
+                    level5_results.append({
+                        "primary_index": indicator_code,
+                        "country": "All Countries",
+                        "quintile": quintile,
+                        "decile": np.nan,  # EHIS uses quintiles, not deciles
+                        "year": year,
+                        "value": percentage,  # Already a percentage (0-100)
+                        "database": "EHIS",
+                        "level5_type": "value_5B"
+                    })
     
     # Value_5C: Overall percentage per country, year (all quintiles combined)
     print("Computing value_5C: Overall percentage per country, year...")

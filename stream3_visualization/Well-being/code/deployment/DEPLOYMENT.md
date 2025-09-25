@@ -17,6 +17,8 @@ cd deployment
 ./deploy-clevercloud.sh
 ```
 
+git remote add clever-decomposition git git+ssh://git@push-n3-par-clevercloud-customers.services.clever-cloud.com/app_ac31ad44-d32f-4998-87c6-b9b699c29c63.git
+
 ## Manual Deploy Steps
 1. **Commit your changes:**
    ```bash
@@ -26,14 +28,13 @@ cd deployment
 
 2. **Push to GitHub (optional but recommended):**
    ```bash
-   git push origin Well-being-RAw-data-and-relative-EWBI
+   git push origin visualizations-combined
    ```
 
-git remote add clever-decomposition git git+ssh://git@push-n3-par-clevercloud-customers.services.clever-cloud.com/app_ac31ad44-d32f-4998-87c6-b9b699c29c63.git
 
 3. **Deploy to CleverCloud:**
    ```bash
-   git push clever-wellbeing Well-being-RAw-data-and-relative-EWBI:master
+   git push clever-wellbeing visualizations-combined:master
    ```
 
 ## Notes

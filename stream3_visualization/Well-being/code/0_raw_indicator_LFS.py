@@ -172,7 +172,7 @@ def weighted_percentage(df, condition_col, condition_func, weight_col='COEFFY', 
         base_condition: Optional function to filter base population
         
     Returns:
-        Weighted percentage as float, or NaN if no valid data
+        Weighted percentage as float (0-100), or NaN if no valid data
     """
     # Filter out rows where the condition column is NaN
     df_filtered = df[df[condition_col].notna()]
@@ -191,7 +191,7 @@ def weighted_percentage(df, condition_col, condition_func, weight_col='COEFFY', 
     weighted_sum = df_valid[weight_col].sum()
     total_weight = df_filtered[weight_col].sum()
 
-    return weighted_sum / total_weight if total_weight > 0 else np.nan
+    return (weighted_sum / total_weight * 100) if total_weight > 0 else np.nan
 
 
 def calculate_lfs_indicators(df: pd.DataFrame) -> pd.DataFrame:

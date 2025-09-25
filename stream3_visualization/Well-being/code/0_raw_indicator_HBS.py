@@ -470,7 +470,7 @@ def process_final_indicators(dirs):
             if var in df.columns:
                 mask = group[f"_valid_{var}"]
                 weighted_sum = group.loc[mask, "HA10"].sum()
-                share = weighted_sum / total_weight if total_weight > 0 else np.nan
+                share = (weighted_sum / total_weight * 100) if total_weight > 0 else np.nan
                 group_result[f"{var}_share"] = share
 
         results.append(group_result)
@@ -488,7 +488,7 @@ def process_final_indicators(dirs):
             if var in df.columns:
                 mask = group[f"_valid_{var}"]
                 weighted_sum = group.loc[mask, "HA10"].sum()
-                share = weighted_sum / total_weight if total_weight > 0 else np.nan
+                share = (weighted_sum / total_weight * 100) if total_weight > 0 else np.nan
                 group_result[f"{var}_share"] = share
 
         results.append(group_result)
