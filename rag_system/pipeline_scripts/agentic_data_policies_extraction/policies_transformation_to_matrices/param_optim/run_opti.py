@@ -8,8 +8,7 @@ from optuna.visualization import (
     plot_param_importances,
     plot_slice,
     plot_contour,
-    plot_parallel_coordinate,
-    plot_intermediate_values,
+    plot_parallel_coordinate
 )
 from plotly.io import write_image
 from preprocess import preprocess_data
