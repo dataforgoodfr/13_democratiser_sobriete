@@ -13,68 +13,137 @@ from optuna.visualization import (
 from plotly.io import write_image
 from preprocess import preprocess_data
 import os
+import json
+import traceback
 
-# Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
-
-
-
-# Add the parent directory to the path
-current_dir = Path(__file__).parent
-sys.path.append(str(current_dir))
 
 from optimize_clustering import run_optuna_study
 
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    force=True 
+)
+logger = logging.getLogger(__name__)
+
+
+current_dir = Path(__file__).parent
+sys.path.append(str(current_dir))
+
+# PARAMS
+N_TRIALS = 5
+LIMIT = 15
+
 def main():
-    # Load preprocessed data
-    flattened_df, pivot_df = preprocess_data()
-    
+        # Load preprocessed data
+    flattened_df, pivot_df = preprocess_data(limit=LIMIT)
+
     logger.info("preprocess_data loaded.")
 
-    # Run Optuna study
+    # Run opti
     logger.info("Starting Optuna study...")
-    study = run_optuna_study(flattened_df, 
-                             n_trials=500
-                             )
+    study, best_clustered_df = run_optuna_study(flattened_df, N_TRIALS=N_TRIALS)
     logger.info("Optuna study completed.")
 
-    # Print best hyperparameters
+    # Best params
     print("Best trial:")
     trial = study.best_trial
+    
     print(f"  Value (silhouette score): {trial.value}")
+    
     print("  Params: ")
     for key, value in trial.params.items():
         print(f"    {key}: {value}")
-    
 
+    # Sauvegarder le nombre de clusters
+    n_clusters = len(best_clustered_df["cluster_id"].unique())
+    logger.info(f"Nombre de clusters dans le meilleur essai : {n_clusters}")
+
+    # Save data
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+
+    flattened_df.to_csv(os.path.join(current_dir, 
+                                     "flattened_df.csv"), 
+                                     index=False
+                                     )
     
-    params = list(trial.params.keys()) # Liste tous les paramètres optimisés
+    pivot_df.to_csv(os.path.join(current_dir, 
+                                 "pivot_df.csv")
+                                 )
+
+    best_clustered_df.to_csv(os.path.join(current_dir, 
+                                          "best_clustered_results.csv"), 
+                             index=False
+                             )
+
+
+    # Save best params
+    best_params = trial.params
+    
+    with open(os.path.join(current_dir, 
+                           "best_params.json"), 
+                           "w") as f:
+        
+        json.dump(best_params, 
+                  f, 
+                  indent=4
+                  )
+
+    # Create and save plots
+    os.makedirs(os.path.join(current_dir, 
+                             "plots"), 
+                             exist_ok=True
+                             )
 
     try:
         fig1 = plot_optimization_history(study)
-        write_image(fig1, "graphics/optimization_history.png")
+        write_image(fig1, 
+                    os.path.join(current_dir, 
+                                 "plots", 
+                                 "optimization_history.png")
+                                 )
 
         fig2 = plot_param_importances(study)
-        write_image(fig2, "graphics/param_importances.png")
-
+        write_image(fig2, 
+                    os.path.join(current_dir, 
+                                 "plots", 
+                                 "param_importances.png"
+                                 ))
+        
+        params = list(trial.params.keys())
         for param in params:
-            fig = plot_slice(study, params=[param])
-            write_image(fig, f"graphics/slice_{param}.png")
-
+            fig = plot_slice(study, 
+                             params=[param]
+                             )
+            write_image(fig, 
+                        os.path.join(current_dir, 
+                                     f"plots/slice_{param}.png")
+                                     )
+        
         for i in range(len(params)):
-            for j in range(i + 1, len(params)):
-                fig = plot_contour(study, params=[params[i], params[j]])
-                write_image(fig, f"graphics/contour_{params[i]}_vs_{params[j]}.png")
-
+            for j in range(i + 1, 
+                           len(params)):
+                fig = plot_contour(study, 
+                                   params=[params[i], 
+                                           params[j]]
+                                           )
+                write_image(fig, 
+                            os.path.join(current_dir, 
+                                         f"plots/contour_{params[i]}_vs_{params[j]}.png"))
+        
         fig5 = plot_parallel_coordinate(study)
-        write_image(fig5, "graphics/parallel_coordinate.png")
-
-        logger.info(f"All plots saved to: {os.path.abspath('graphics')}")
-
+        write_image(fig5, 
+                    os.path.join(current_dir, 
+                                 "plots", 
+                                 "parallel_coordinate.png")
+                                 )
+        
+        logger.info(f"All plots saved to: {os.path.join(current_dir, 'plots')}")
     except Exception as e:
+
         logger.error(f"Error saving images: {e}")
-        import traceback
+
         traceback.print_exc()
 
 if __name__ == "__main__":

@@ -4,8 +4,6 @@ import logging
 from pathlib import Path
 import sys
 
-# Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 # Add the parent directory to the path
@@ -19,7 +17,7 @@ from db_to_csv import (
     assign_policy_to_related_taxonomies
 )
 
-def preprocess_data(limit: int = 5000):
+def preprocess_data(limit: int = 10):
     print("preprocess_data")
     """
     Preprocess data for Optuna optimization.
@@ -50,7 +48,7 @@ def preprocess_data(limit: int = 5000):
         logger.info("Step 3: Assigning taxonomies...")
         try:
             # Process in smaller batches to avoid memory issues
-            batch_size = 50
+            batch_size = 100
             total_rows = len(flattened_df)
 
             # Initialize columns
@@ -97,6 +95,7 @@ def preprocess_data(limit: int = 5000):
         )
 
         logger.info("=== Data Preprocessing Completed ===")
+        logger.info(f"Final dataset size: {len(flattened_df)}")
         return flattened_df, pivot_df
 
     except Exception as e:
