@@ -420,7 +420,7 @@ def calculate_level5_statistics(df):
                     "quintile": "All",  # EHIS uses quintile='All' for overall aggregation
                     "decile": np.nan,   # EHIS always has NaN deciles
                     "year": year,
-                    "value": percentage * 100,
+                    "value": percentage,  # Already a percentage (0-100)
                     "database": "EHIS",
                     "level5_type": "value_5C"
                 })
@@ -438,7 +438,7 @@ def calculate_level5_statistics(df):
                     "quintile": "All",  # EHIS uses quintile='All' for overall aggregation
                     "decile": np.nan,   # EHIS always has NaN deciles
                     "year": year,
-                    "value": percentage * 100,
+                    "value": percentage,  # Already a percentage (0-100)
                     "database": "EHIS",
                     "level5_type": "value_5D"
                 })

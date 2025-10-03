@@ -45,7 +45,7 @@
           "indicators": [
             {
               "code": "HQ-SILC-1",
-              "description": "Share of nth decile households living in an over-populated dwelling",
+              "description": "Share of nth decile households living in an overcrowded dwelling",
               "weight": 2
             },
             {
@@ -169,17 +169,6 @@
               "weight": 2
             }
           ]
-        },
-        {
-          "name": "Digital Skills",
-          "weight": "1/4",
-          "indicators": [
-            {
-              "code": "ED-EHIS-1",
-              "description": "Share of nth quintile population having difficulty in using the telephone",
-              "weight": 2
-            }
-          ]
         }
       ]
     },
@@ -224,37 +213,6 @@
             {
               "code": "AH-SILC-4",
               "description": "Unable to Work Due to Long-Term Illness (AH-SILC-4)",
-              "weight": 2
-            }
-          ]
-        },
-        {
-          "name": "Health cost and medical care",
-          "weight": "1/4",
-          "indicators": [
-            {
-              "code": "AC-SILC-1",
-              "description": "Share of nth decile households that could not afford medical examination or treatment",
-              "weight": 1
-            },
-            {
-              "code": "AC-SILC-2",
-              "description": "Share of nth decile households having unmet need for medical examination or treatment",
-              "weight": 2
-            },
-            {
-              "code": "AC-HBS-1",
-              "description": "Percentage of households of the nth decile whose share of equivalised health expenditure in equivalised disposable income is above twice the national median share",
-              "weight": 1
-            },
-            {
-              "code": "AC-HBS-2",
-              "description": "Percentage of households of the nth decile whose share of equivalised health expenditure in equivalised disposable income is bellow half the national median share",
-              "weight": 1
-            },
-            {
-              "code": "AC-EHIS-1",
-              "description": "Share of nth quintile population that could not afford prescribed medicines in the past 12 months",
               "weight": 2
             }
           ]

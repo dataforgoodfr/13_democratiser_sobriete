@@ -489,9 +489,12 @@ def perform_data_validation(df: pd.DataFrame) -> dict:
     return validation
 
 
+
+
 def create_aggregated_data(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Create additional aggregated data for "All countries" entries.
+    Create additional aggregated data for "All countries" entries using median computation.
+    This includes median across countries for each decile (1-10) and "All" separately.
     
     Args:
         df: Final combined DataFrame
@@ -499,32 +502,95 @@ def create_aggregated_data(df: pd.DataFrame) -> pd.DataFrame:
     Returns:
         DataFrame with additional aggregated rows
     """
-    print("📊 Creating aggregated data for 'All countries'...")
+    print("📊 Creating aggregated data for 'All countries' using median computation...")
     
     aggregated_rows = []
     
-    # Create "All countries" aggregations for each year, decile, and indicator
-    for (year, decile, primary_index), group in df.groupby(['year', 'decile', 'primary_index']):
-        if len(group) > 1:  # Only aggregate if multiple countries
-            # Calculate mean value across countries (could be median or geometric mean)
-            agg_value = group['value'].mean()  # Simple mean for now
+    # Group by year, decile/quintile, and indicator to create country-level medians
+    grouping_cols = ['year', 'primary_index']
+    
+    # Handle both decile and quintile columns
+    if 'decile' in df.columns:
+        grouping_cols.append('decile')
+        income_group_col = 'decile'
+    elif 'quintile' in df.columns:
+        grouping_cols.append('quintile')
+        income_group_col = 'quintile'
+    else:
+        print("⚠️ Warning: No decile or quintile column found for aggregation")
+        return df
+    
+    # Create aggregations for each year, income group, and indicator
+    for group_keys, group_data in df.groupby(grouping_cols):
+        if len(group_keys) == 3:
+            year, primary_index, income_group = group_keys
+        else:
+            continue
             
-            aggregated_rows.append({
+        # Only aggregate if we have multiple countries (at least 2)
+        unique_countries = group_data['country'].nunique()
+        if unique_countries >= 2:
+            # Calculate median value across countries for this specific combination
+            median_value = group_data['value'].median()
+            
+            # Determine datasource based on the most common one in the group
+            datasource = group_data['datasource'].mode().iloc[0] if not group_data['datasource'].empty else 'Aggregated'
+            
+            # Create aggregated row
+            agg_row = {
                 'year': year,
                 'country': 'All Countries',
-                'decile': decile,
                 'primary_index': primary_index,
-                'value': agg_value,
-                'datasource': 'Aggregated'
-            })
+                'value': median_value,
+                'datasource': f'{datasource}_Aggregated'
+            }
+            
+            # Add the appropriate income group column
+            if income_group_col == 'decile':
+                agg_row['decile'] = income_group
+                agg_row['quintile'] = pd.NA
+            else:
+                agg_row['quintile'] = income_group
+                agg_row['decile'] = pd.NA
+            
+            aggregated_rows.append(agg_row)
     
     if aggregated_rows:
         agg_df = pd.DataFrame(aggregated_rows)
         combined_df = pd.concat([df, agg_df], ignore_index=True)
-        print(f"   Added {len(aggregated_rows):,} aggregated rows")
+        
+        # Count aggregations by income group type
+        if income_group_col == 'decile':
+            decile_counts = agg_df['decile'].value_counts().sort_index()
+            print(f"   Added {len(aggregated_rows):,} aggregated rows using median across countries")
+            print(f"   Median computed for deciles: {sorted(decile_counts.index.tolist())}")
+            print(f"   Records per decile: {dict(decile_counts)}")
+        else:
+            quintile_counts = agg_df['quintile'].value_counts().sort_index()
+            print(f"   Added {len(aggregated_rows):,} aggregated rows using median across countries")
+            print(f"   Median computed for quintiles: {sorted(quintile_counts.index.tolist())}")
+            print(f"   Records per quintile: {dict(quintile_counts)}")
+        
+        # Verify that we have "All" values aggregated
+        if income_group_col == 'decile':
+            all_values = agg_df[agg_df['decile'] == 'All']
+            individual_deciles = agg_df[agg_df['decile'] != 'All']
+            print(f"   'All' population aggregations: {len(all_values):,}")
+            print(f"   Individual decile aggregations (1-10): {len(individual_deciles):,}")
+        else:
+            all_values = agg_df[agg_df['quintile'] == 'All']
+            individual_quintiles = agg_df[agg_df['quintile'] != 'All']
+            print(f"   'All' population aggregations: {len(all_values):,}")
+            print(f"   Individual quintile aggregations (1-5): {len(individual_quintiles):,}")
+        
         return combined_df
     else:
+        print("   No aggregations created (insufficient country coverage)")
         return df
+
+
+
+
 
 
 def create_unified_dataframe(df: pd.DataFrame) -> pd.DataFrame:

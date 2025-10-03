@@ -573,7 +573,9 @@ def calculate_overcrowding(dirs):
 
     # Calculate overcrowding indicator
     print("Calculating overcrowding status...")
-    rooms_df['overcrowded'] = (rooms_df['HH030'] < rooms_df['required_rooms']).astype(int)
+    # Handle NaN values properly: if HH030 is NaN, overcrowded should be NaN
+    overcrowded_condition = rooms_df['HH030'] < rooms_df['required_rooms']
+    rooms_df['overcrowded'] = overcrowded_condition.where(rooms_df['HH030'].notna(), np.nan).astype('float')
 
     print("Saving overcrowding results...")
     rooms_df.to_csv(os.path.join(dirs['overcrowd_dir'], "EU_SILC_household_data_with_overcrowding.csv"), index=False)
@@ -682,9 +684,18 @@ def process_household_indicators(dirs):
         total_weight = group["DB090"].sum()
 
         for var in variable_filters.keys():
-            mask = group[f"_valid_{var}"]
-            weighted_sum = group.loc[mask, "DB090"].sum()
-            share = (weighted_sum / total_weight * 100) if total_weight > 0 else np.nan
+            # Check if all values are NaN for this variable in this group
+            all_nan = group[var].isna().all()
+            
+            if all_nan:
+                # If all values are NaN, the indicator should be NaN
+                share = np.nan
+            else:
+                # Normal calculation when we have at least some non-NaN data
+                mask = group[f"_valid_{var}"]
+                weighted_sum = group.loc[mask, "DB090"].sum()
+                share = (weighted_sum / total_weight * 100) if total_weight > 0 else np.nan
+            
             group_result[f"{var}_share"] = share
 
         results.append(group_result)
@@ -699,9 +710,18 @@ def process_household_indicators(dirs):
         total_weight = group["DB090"].sum()
 
         for var in variable_filters.keys():
-            mask = group[f"_valid_{var}"]
-            weighted_sum = group.loc[mask, "DB090"].sum()
-            share = (weighted_sum / total_weight * 100) if total_weight > 0 else np.nan
+            # Check if all values are NaN for this variable in this group
+            all_nan = group[var].isna().all()
+            
+            if all_nan:
+                # If all values are NaN, the indicator should be NaN
+                share = np.nan
+            else:
+                # Normal calculation when we have at least some non-NaN data
+                mask = group[f"_valid_{var}"]
+                weighted_sum = group.loc[mask, "DB090"].sum()
+                share = (weighted_sum / total_weight * 100) if total_weight > 0 else np.nan
+            
             group_result[f"{var}_share"] = share
 
         results.append(group_result)
@@ -829,7 +849,7 @@ def process_personal_indicators(dirs):
             "PH010": df["PH010"].isin([4, 5]),                            # AH-SILC-1
             "PH020": df["PH020"] == 1,                                    # AH-SILC-2
             "PH030": df["PH030"].isin([1, 2]),                            # AH-SILC-3
-            "PL086": df["PL086"] < 7,                                     # AH-SILC-4
+            "PL086": df["PL086"] > 0,                                     # AH-SILC-4
             "PH040": df["PH040"] == 2,                                    # AC-SILC-2
             "PH050": df["PH050"] == 1,                                    # AC-SILC-1
             "PE041": ((df["age"] > 15) & ((df["PE041"] == 0) | df["PE041"].isna())),  # IS-SILC-3

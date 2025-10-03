@@ -147,9 +147,9 @@ def create_unified_all_levels_dataframe():
         (df_level45['Type'] == 'Statistical computation')
     )
     if ehis_statistical_mask.sum() > 0:
-        print(f"   Converting {ehis_statistical_mask.sum()} EHIS 'Statistical computation' values from decimals to percentages...")
-        df_level45.loc[ehis_statistical_mask, 'Value'] = df_level45.loc[ehis_statistical_mask, 'Value'] * 100
-        print(f"✅ Fixed EHIS scaling for Statistical computation values")
+        print(f"   EHIS values are properly scaled at source in 0_raw_indicator_EHIS.py")
+        # No scaling needed - values should already be in percentage format (0-100) from the raw processing
+        print(f"✅ EHIS scaling is handled at source - no conversion needed")
     
     # Load EWBI configuration
     print(f"📂 Loading EWBI configuration from: {config_path}")

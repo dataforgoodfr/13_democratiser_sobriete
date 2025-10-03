@@ -13,6 +13,16 @@ import os
 # Configure pandas to suppress FutureWarnings about downcasting
 pd.set_option('future.no_silent_downcasting', True)
 
+# ===============================
+# NORMALIZATION CONFIGURATION
+# ===============================
+# Choose normalization approach to reduce inter-year variation:
+# - 'multi_year': Use pooled statistics across all years (recommended for stability)
+# - 'per_year': Use per-year statistics (original approach, more variation)
+# - 'reference_year': Use a specific reference year's statistics for all years
+NORMALIZATION_APPROACH = 'multi_year'
+REFERENCE_YEAR = 2015  # Only used if NORMALIZATION_APPROACH = 'reference_year'
+
 # In[2]:
 
 
@@ -301,74 +311,181 @@ print("Creating pivot table for normalization processing...")
 level5_data_for_normalization = forward_fill_missing_data(level5_data_for_normalization)
 
 # Create Level 4 normalization: 1:1 relationship with Level 5 data
-print("\n🎯 Creating Level 4 indicators via per-decile normalization...")
-print("Applying per-decile, per-year normalization for Level 4 indicators...")
+print(f"\n🎯 Creating Level 4 indicators via cross-decile normalization (method: {NORMALIZATION_APPROACH})...")
 
-# The normalization should be intra-decile, intra-indicator, AND intra-year
+if NORMALIZATION_APPROACH == 'multi_year':
+    print("Applying cross-decile, multi-year pooled normalization for Level 4 indicators...")
+elif NORMALIZATION_APPROACH == 'per_year':
+    print("Applying cross-decile, per-year normalization for Level 4 indicators...")
+elif NORMALIZATION_APPROACH == 'reference_year':
+    print(f"Applying cross-decile normalization using {REFERENCE_YEAR} as reference year...")
+
 # This creates a 1:1 relationship between Level 5 and Level 4 records
 scaled_min = 0.1
 normalized_records = []
 
-# Group by year, indicator, and decile for proper normalization
-for (year, indicator, decile), group_data in level5_data_for_normalization.groupby(['year', 'primary_index', 'decile']):
-    # Extract values for normalization
-    values = group_data['value'].values
+if NORMALIZATION_APPROACH == 'multi_year':
+    # Method 1: Multi-year pooled normalization (most stable across years)
+    print("Using pooled statistics across all years to ensure temporal stability...")
     
-    # Check if all values are NaN (no data available for this year/indicator/decile)
-    if np.all(np.isnan(values)):
-        # Skip normalization entirely - don't create Level 4 records when no Level 5 data exists
-        continue
-    
-    # Count valid (non-NaN) values
-    valid_values = values[~np.isnan(values)]
-    if len(valid_values) < 2:
-        # If insufficient valid data for normalization, skip this group
-        # Don't create Level 4 records when there's only 0 or 1 valid data points
-        continue
-    
-    # Z-score normalization: (value - mean) / std, reversed
-    # Reversed because higher values often indicate worse outcomes in social indicators
-    # Use nanmean/nanstd to handle mixed NaN/data cases properly
-    mean_val = np.nanmean(values)
-    std_val = np.nanstd(values)
-    
-    if std_val > 0 and not np.isnan(std_val):
-        normalized_values = -1 * (values - mean_val) / std_val
-    else:
-        # If all non-NaN values are the same, use middle value for non-NaN, keep NaN as NaN
-        normalized_values = np.where(np.isnan(values), np.nan, 0.5)
-    
-    # Handle infinite values but preserve NaN
-    normalized_values = np.where(np.isinf(normalized_values), 0, normalized_values)
-    
-    # Scale between scaled_min and 1, but only scale non-NaN values
-    if len(normalized_values) > 0:
-        # Only consider non-NaN values for scaling
+    # Group by indicator only (cross-decile, cross-year normalization)
+    for indicator, group_data in level5_data_for_normalization.groupby(['primary_index']):
+        print(f"Processing indicator: {indicator}")
+        
+        # Extract values for normalization across ALL years and deciles
+        values = group_data['value'].values
+        
+        # Check if all values are NaN
+        if np.all(np.isnan(values)):
+            print(f"  Skipping {indicator}: No valid data")
+            continue
+        
+        # Count valid (non-NaN) values
+        valid_values = values[~np.isnan(values)]
+        if len(valid_values) < 2:
+            print(f"  Skipping {indicator}: Insufficient data ({len(valid_values)} valid values)")
+            continue
+        
+        # Z-score normalization using pooled statistics across all years
+        global_mean = np.nanmean(values)
+        global_std = np.nanstd(values)
+        
+        print(f"  {indicator}: mean={global_mean:.3f}, std={global_std:.3f}, n_valid={len(valid_values)}")
+        
+        if global_std > 0 and not np.isnan(global_std):
+            normalized_values = -1 * (values - global_mean) / global_std
+        else:
+            normalized_values = np.where(np.isnan(values), np.nan, 0.5)
+            print(f"  {indicator}: Using constant value (std=0)")
+        
+        # Handle infinite values but preserve NaN
+        normalized_values = np.where(np.isinf(normalized_values), 0, normalized_values)
+        
+        # Scale between scaled_min and 1
         finite_values = normalized_values[~np.isnan(normalized_values)]
         if len(finite_values) > 0:
             min_norm = np.min(finite_values)
             max_norm = np.max(finite_values)
             
             if max_norm > min_norm:
-                # Scale only the non-NaN values
-                scaled_values = scaled_min + (finite_values - min_norm) * (1 - scaled_min) / (max_norm - min_norm)
-                # Put scaled values back, keeping NaN where they were
+                normalized_values = np.where(np.isnan(normalized_values), np.nan, 
+                                           scaled_min + (normalized_values - min_norm) * (1 - scaled_min) / (max_norm - min_norm))
+                print(f"  {indicator}: Scaled from [{min_norm:.3f}, {max_norm:.3f}] to [{scaled_min}, 1.0]")
+            else:
+                normalized_values = np.where(np.isnan(normalized_values), np.nan, 0.5)
+                print(f"  {indicator}: All values identical after normalization")
+        
+        # Create normalized records
+        for i, (_, row) in enumerate(group_data.iterrows()):
+            normalized_row = row.copy()
+            normalized_row['value'] = normalized_values[i]
+            normalized_records.append(normalized_row)
+
+elif NORMALIZATION_APPROACH == 'reference_year':
+    # Method 2: Reference year normalization (use one year's statistics for all years)
+    print(f"Computing normalization parameters from reference year {REFERENCE_YEAR}...")
+    
+    # First pass: compute normalization parameters from reference year
+    reference_params = {}
+    reference_data = level5_data_for_normalization[level5_data_for_normalization['year'] == REFERENCE_YEAR]
+    
+    for indicator, group_data in reference_data.groupby(['primary_index']):
+        values = group_data['value'].values
+        valid_values = values[~np.isnan(values)]
+        
+        if len(valid_values) >= 2:
+            reference_params[indicator] = {
+                'mean': np.nanmean(values),
+                'std': np.nanstd(values)
+            }
+            print(f"  {indicator}: ref_mean={reference_params[indicator]['mean']:.3f}, ref_std={reference_params[indicator]['std']:.3f}")
+    
+    # Second pass: apply reference year parameters to all years
+    for indicator, group_data in level5_data_for_normalization.groupby(['primary_index']):
+        if indicator not in reference_params:
+            print(f"  Skipping {indicator}: No reference data available")
+            continue
+            
+        values = group_data['value'].values
+        ref_mean = reference_params[indicator]['mean']
+        ref_std = reference_params[indicator]['std']
+        
+        if ref_std > 0:
+            normalized_values = -1 * (values - ref_mean) / ref_std
+        else:
+            normalized_values = np.where(np.isnan(values), np.nan, 0.5)
+        
+        # Handle infinite values but preserve NaN
+        normalized_values = np.where(np.isinf(normalized_values), 0, normalized_values)
+        
+        # Scale between scaled_min and 1
+        finite_values = normalized_values[~np.isnan(normalized_values)]
+        if len(finite_values) > 0:
+            min_norm = np.min(finite_values)
+            max_norm = np.max(finite_values)
+            
+            if max_norm > min_norm:
                 normalized_values = np.where(np.isnan(normalized_values), np.nan, 
                                            scaled_min + (normalized_values - min_norm) * (1 - scaled_min) / (max_norm - min_norm))
             else:
-                # All finite values are the same, set them to 0.5, keep NaN as NaN
                 normalized_values = np.where(np.isnan(normalized_values), np.nan, 0.5)
+        
+        # Create normalized records
+        for i, (_, row) in enumerate(group_data.iterrows()):
+            normalized_row = row.copy()
+            normalized_row['value'] = normalized_values[i]
+            normalized_records.append(normalized_row)
+
+else:  # NORMALIZATION_APPROACH == 'per_year'
+    # Method 3: Original per-year normalization
+    print("Using original per-year normalization approach...")
     
-    # Create normalized records
-    for i, (_, row) in enumerate(group_data.iterrows()):
-        normalized_row = row.copy()
-        normalized_row['value'] = normalized_values[i]
-        normalized_records.append(normalized_row)
+    # Group by year and indicator (original approach)
+    for (year, indicator), group_data in level5_data_for_normalization.groupby(['year', 'primary_index']):
+        values = group_data['value'].values
+        
+        if np.all(np.isnan(values)):
+            continue
+        
+        valid_values = values[~np.isnan(values)]
+        if len(valid_values) < 2:
+            continue
+        
+        # Z-score normalization per year
+        mean_val = np.nanmean(values)
+        std_val = np.nanstd(values)
+        
+        if std_val > 0 and not np.isnan(std_val):
+            normalized_values = -1 * (values - mean_val) / std_val
+        else:
+            normalized_values = np.where(np.isnan(values), np.nan, 0.5)
+        
+        # Handle infinite values but preserve NaN
+        normalized_values = np.where(np.isinf(normalized_values), 0, normalized_values)
+        
+        # Scale between scaled_min and 1
+        finite_values = normalized_values[~np.isnan(normalized_values)]
+        if len(finite_values) > 0:
+            min_norm = np.min(finite_values)
+            max_norm = np.max(finite_values)
+            
+            if max_norm > min_norm:
+                normalized_values = np.where(np.isnan(normalized_values), np.nan, 
+                                           scaled_min + (normalized_values - min_norm) * (1 - scaled_min) / (max_norm - min_norm))
+            else:
+                normalized_values = np.where(np.isnan(normalized_values), np.nan, 0.5)
+        
+        # Create normalized records
+        for i, (_, row) in enumerate(group_data.iterrows()):
+            normalized_row = row.copy()
+            normalized_row['value'] = normalized_values[i]
+            normalized_records.append(normalized_row)
 
 # Convert to DataFrame
 if normalized_records:
     level4_data = pd.DataFrame(normalized_records)
     print(f"✅ Created Level 4 normalized data: {len(level4_data):,} records (1:1 with provisional database)")
+    print(f"   Using multi-year pooled normalization to ensure stability across years")
 else:
     print("⚠️ No data available for Level 4 normalization")
     level4_data = pd.DataFrame()
