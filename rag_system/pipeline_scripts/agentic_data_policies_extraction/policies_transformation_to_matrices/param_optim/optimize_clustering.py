@@ -9,8 +9,9 @@ from optuna.samplers import RandomSampler
 
 import logging
 from sklearn.metrics import silhouette_score
-from sklearn.feature_extraction.text import TfidfVectorizer
 from merge_policies_knn import merge_policies_semantic_medoid, Config, CFG
+
+from merge_policies_kmean_2 import merge_policies_kmeans_2, prepare_evaluation_features, CFG_Kmean
 
 import traceback
 
@@ -23,12 +24,7 @@ def objective(trial, preprocessed_df):
     """
 
     try:
-        # Suggest hyperparameters
-        CFG.batch_size = trial.suggest_int("batch_size", 
-                                           16, 
-                                           128
-                                           )
-        
+        # Draw Hyperparameters for KNN      
         CFG.max_neighbors = trial.suggest_int("max_neighbors", 
                                               5, 
                                               100
@@ -36,16 +32,29 @@ def objective(trial, preprocessed_df):
         
         CFG.sim_threshold = trial.suggest_float("sim_threshold", 
                                                 0.75,
-                                                0.85
+                                                0.80
                                                 )
         
         CFG.medoid_exact_max_cluster = trial.suggest_int("medoid_exact_max_cluster", 
-                                                         5, 
-                                                         500, 
+                                                         100, 
+                                                         800, 
                                                          step=2
                                                          )
+        
+        # Draw Hyperparameters for KMEAN 
+        """
+        CFG_Kmean.n_words = trial.suggest_int("n_words", 
+                                              3, 
+                                              5
+                                              )"""
+        """
+        CFG_Kmean.max_clusters = trial.suggest_int("max_clusters", 
+                                              200, 
+                                              500
+                                              )"""
+        
 
-        logger.info(f"Running Optuna trial with batch_size={CFG.batch_size}, max_neighbors={CFG.max_neighbors}, "
+        logger.info(f"max_neighbors={CFG.max_neighbors}, "
                     f"sim_threshold={CFG.sim_threshold}, medoid_exact_max_cluster={CFG.medoid_exact_max_cluster}")
 
         # Run clustering with the updated config
@@ -53,27 +62,24 @@ def objective(trial, preprocessed_df):
             preprocessed_df.copy(),
             text_col="policy"
             )
-
-        # Extract features for evaluation
+        
+        clustered_df = merge_policies_kmeans_2(clustered_df, 
+                                         clustered_df["policy_canonical"], 
+                                         max_clusters=50
+                                         )
+        
+        
         logger.info("Extracting features for evaluation...")
-        tfidf = TfidfVectorizer()
-        X = tfidf.fit_transform(clustered_df['policy'])
-        labels = clustered_df["cluster_id"].values
+        
+        X, labels = prepare_evaluation_features(clustered_df,
+                                                text_column = 'policy')
 
         # Calculate and return silhouette score
         score = silhouette_score(X.toarray(), 
                                  labels
                                  )
         
-        # calculate the number of clusters
-        n_clusters = len(clustered_df["cluster_id"].unique())
-
         logger.info(f"Trial completed with silhouette score: {score}")
-        
-        
-        # Stocker resultats dans user_attrs
-        #trial.set_user_attr("n_clusters", n_clusters)
-        #trial.set_user_attr("sim_threshold", CFG.sim_threshold)
 
         # return le score seulement
         return score
@@ -83,6 +89,8 @@ def objective(trial, preprocessed_df):
         traceback.print_exc()
         return 0.0
 
+
+
 def get_best_clustered_df(study, preprocessed_df):
     """
     Re-run the clustering with the best parameters and return the clustered_df.
@@ -91,7 +99,6 @@ def get_best_clustered_df(study, preprocessed_df):
     best_params = best_trial.params
 
     # Appliquer les meilleurs paramètres
-    CFG.batch_size = best_params["batch_size"]
     CFG.max_neighbors = best_params["max_neighbors"]
     CFG.sim_threshold = best_params["sim_threshold"]
     CFG.medoid_exact_max_cluster = best_params["medoid_exact_max_cluster"]
@@ -101,6 +108,10 @@ def get_best_clustered_df(study, preprocessed_df):
         preprocessed_df.copy(),
         text_col="policy"
     )
+    
+    clustered_df = merge_policies_kmeans_2(clustered_df, 
+                                     clustered_df["policy_canonical"]
+                                     )
 
     return clustered_df
 
