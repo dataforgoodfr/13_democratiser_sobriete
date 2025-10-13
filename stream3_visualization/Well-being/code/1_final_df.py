@@ -28,12 +28,12 @@ from tqdm import tqdm
 economic_indicators_to_remove = [
     'AN-SILC-1',
     'AE-HBS-1', 'AE-HBS-2',
-    'HQ-SILC-2', 
+    # 'HQ-SILC-2',  # KEEP THIS NEW INDICATOR - housing quality satisfier
     'HH-SILC-1', 'HH-HBS-1', 'HH-HBS-2', 'HH-HBS-3', 'HH-HBS-4',
     'HE-HBS-1', 'HE-HBS-2',
     'EC-HBS-1', 'EC-HBS-2',
     'ED-ICT-1', 'ED-EHIS-1',
-    'AC-SILC-1', 'AC-SILC-2', 'AC-HBS-1', 'AC-HBS-2', 'AC-EHIS-1',
+    'AC-SILC-1', 'AC-HBS-1', 'AC-HBS-2', 'AC-EHIS-1',
     'IE-HBS-1', 'IE-HBS-2',
     'IC-SILC-1', 'IC-SILC-2', 'IC-HBS-1', 'IC-HBS-2',
     'TT-SILC-1', 'TT-SILC-2', 'TT-HBS-1', 'TT-HBS-2',
@@ -533,352 +533,82 @@ def create_aggregated_data(df: pd.DataFrame) -> pd.DataFrame:
             # Calculate median value across countries for this specific combination
             median_value = group_data['value'].median()
             
-            # Determine datasource based on the most common one in the group
-            datasource = group_data['datasource'].mode().iloc[0] if not group_data['datasource'].empty else 'Aggregated'
+            # Determine datasource based on the most common in the group
+            datasource = group_data['datasource'].mode()[0] if not group_data['datasource'].mode().empty else 'Unknown'
             
-            # Create aggregated row
-            agg_row = {
+            aggregated_rows.append({
                 'year': year,
                 'country': 'All Countries',
+                income_group_col: income_group,
                 'primary_index': primary_index,
                 'value': median_value,
-                'datasource': f'{datasource}_Aggregated'
-            }
-            
-            # Add the appropriate income group column
-            if income_group_col == 'decile':
-                agg_row['decile'] = income_group
-                agg_row['quintile'] = pd.NA
-            else:
-                agg_row['quintile'] = income_group
-                agg_row['decile'] = pd.NA
-            
-            aggregated_rows.append(agg_row)
+                'datasource': datasource
+            })
     
+    # Convert to DataFrame and combine with original data
     if aggregated_rows:
-        agg_df = pd.DataFrame(aggregated_rows)
-        combined_df = pd.concat([df, agg_df], ignore_index=True)
+        aggregated_df = pd.DataFrame(aggregated_rows)
         
-        # Count aggregations by income group type
-        if income_group_col == 'decile':
-            decile_counts = agg_df['decile'].value_counts().sort_index()
-            print(f"   Added {len(aggregated_rows):,} aggregated rows using median across countries")
-            print(f"   Median computed for deciles: {sorted(decile_counts.index.tolist())}")
-            print(f"   Records per decile: {dict(decile_counts)}")
-        else:
-            quintile_counts = agg_df['quintile'].value_counts().sort_index()
-            print(f"   Added {len(aggregated_rows):,} aggregated rows using median across countries")
-            print(f"   Median computed for quintiles: {sorted(quintile_counts.index.tolist())}")
-            print(f"   Records per quintile: {dict(quintile_counts)}")
+        # Add missing columns with NaN if they don't exist
+        for col in df.columns:
+            if col not in aggregated_df.columns:
+                aggregated_df[col] = pd.NA
+                
+        # Reorder columns to match original DataFrame
+        aggregated_df = aggregated_df[df.columns]
         
-        # Verify that we have "All" values aggregated
-        if income_group_col == 'decile':
-            all_values = agg_df[agg_df['decile'] == 'All']
-            individual_deciles = agg_df[agg_df['decile'] != 'All']
-            print(f"   'All' population aggregations: {len(all_values):,}")
-            print(f"   Individual decile aggregations (1-10): {len(individual_deciles):,}")
-        else:
-            all_values = agg_df[agg_df['quintile'] == 'All']
-            individual_quintiles = agg_df[agg_df['quintile'] != 'All']
-            print(f"   'All' population aggregations: {len(all_values):,}")
-            print(f"   Individual quintile aggregations (1-5): {len(individual_quintiles):,}")
+        # Combine with original data
+        final_with_aggregated = pd.concat([df, aggregated_df], axis=0, ignore_index=True)
         
-        return combined_df
+        print(f"✅ Added {len(aggregated_rows):,} aggregated rows for 'All Countries'")
+        return final_with_aggregated
     else:
-        print("   No aggregations created (insufficient country coverage)")
+        print("⚠️ No aggregated data created")
         return df
 
 
-
-
-
-
-def create_unified_dataframe(df: pd.DataFrame) -> pd.DataFrame:
+def save_outputs(final_df: pd.DataFrame, validation: dict, dirs: dict) -> None:
     """
-    Transform the final DataFrame into the unified format for the app.
+    Save final outputs and validation reports.
     
     Args:
-        df: Final combined DataFrame
-        
-    Returns:
-        Unified DataFrame with standardized structure
-    """
-    print("🔄 Creating unified dataframe structure...")
-    
-    # First create aggregated data
-    df_with_aggregations = create_aggregated_data(df)
-    
-    # Create base unified dataframe
-    unified_df = df_with_aggregations.copy()
-    
-    # Standardize column names and add required columns
-    unified_df = unified_df.rename(columns={
-        'year': 'Year',
-        'country': 'Country', 
-        'primary_index': 'Primary and raw data',
-        'value': 'Value'
-    })
-    
-    # Handle decile/quintile columns
-    if 'decile' in unified_df.columns:
-        unified_df = unified_df.rename(columns={'decile': 'Decile'})
-    
-    # Create Quintile column from Decile (proper 1-10 to 1-5 mapping)
-    def decile_to_quintile(decile_val):
-        """Convert decile values (1-10) to quintile equivalents (1-5)."""
-        if decile_val == "All":
-            return "All"
-        try:
-            decile_num = float(decile_val)
-            # Map deciles 1-2 to quintile 1, 3-4 to quintile 2, etc.
-            if decile_num in [1.0, 2.0]:
-                return 1.0
-            elif decile_num in [3.0, 4.0]:
-                return 2.0
-            elif decile_num in [5.0, 6.0]:
-                return 3.0
-            elif decile_num in [7.0, 8.0]:
-                return 4.0
-            elif decile_num in [9.0, 10.0]:
-                return 5.0
-            else:
-                return decile_val  # Keep original if not in 1-10 range
-        except (ValueError, TypeError):
-            return decile_val
-    
-    # Create Quintile column - ONLY preserve existing quintile data, do NOT convert deciles to quintiles
-    if 'quintile' in unified_df.columns:
-        # Only preserve existing quintile data, keep NaN for datasets that should not have quintiles
-        unified_df['Quintile'] = unified_df['quintile'].copy()
-    else:
-        # No existing quintile data, set all to NaN
-        unified_df['Quintile'] = pd.NA
-    
-    # Add required metadata columns
-    unified_df['Level'] = 5  # All current data is Level 5 (raw statistical data)
-    unified_df['EU priority'] = pd.NA  # To be determined in next phases
-    unified_df['Secondary'] = pd.NA  # To be determined in next phases
-    unified_df['Type'] = 'Statistical computation'  # As specified
-    
-    # Set aggregation method based on data characteristics
-    def determine_aggregation(row):
-        """Determine aggregation method based on row characteristics."""
-        if row['Decile'] == 'All' and row['Country'] != 'All Countries':
-            return 'Median across countries'  # Country totals
-        elif row['Country'] == 'All Countries':
-            return 'Median across countries'  # Multi-country aggregations
-        else:
-            return 'Geometric mean inter-decile'  # Individual decile data
-    
-    unified_df['Aggregation'] = unified_df.apply(determine_aggregation, axis=1)
-    
-    # Reorder columns to match specification
-    column_order = [
-        'Year',
-        'Country', 
-        'Decile',
-        'Quintile',
-        'Level',
-        'EU priority',
-        'Secondary',
-        'Primary and raw data',
-        'Type',
-        'Aggregation',
-        'Value'
-    ]
-    
-    # Add datasource column for reference (optional, can be removed if not needed)
-    if 'datasource' in unified_df.columns:
-        column_order.append('datasource')
-    
-    # Select and reorder columns
-    available_cols = [col for col in column_order if col in unified_df.columns]
-    unified_df = unified_df[available_cols]
-    
-    # Sort by logical order
-    sort_columns = ['Year', 'Country', 'Primary and raw data']
-    if 'Decile' in unified_df.columns:
-        # Custom sort for Decile to handle "All" properly
-        unified_df['_decile_sort'] = unified_df['Decile'].apply(
-            lambda x: 999 if x == 'All' else (int(x) if str(x).isdigit() else 998)
-        )
-        sort_columns.extend(['_decile_sort'])
-    
-    unified_df = unified_df.sort_values(sort_columns)
-    
-    # Remove temporary sorting column
-    if '_decile_sort' in unified_df.columns:
-        unified_df = unified_df.drop('_decile_sort', axis=1)
-    
-    print(f"✅ Created unified dataframe: {len(unified_df):,} rows, {len(unified_df.columns)} columns")
-    
-    return unified_df
-
-
-def save_outputs(df: pd.DataFrame, validation: dict, dirs: dict) -> None:
-    """
-    Save final outputs and create specialized datasets.
-    
-    Args:
-        df: Final combined DataFrame
+        final_df: Final combined DataFrame
         validation: Validation results dictionary
         dirs: Directory paths dictionary
     """
-    print("💾 Saving output files...")
+    print("💾 Saving final outputs...")
     
-    # Create unified dataframe structure
-    unified_df = create_unified_dataframe(df)
-    
-    # Main output files
-    outputs = {
-        'df_clean.csv': df,  # Keep original format for compatibility
-        'df_clean_with_transport.csv': df,  # Same as main for compatibility
-        'unified_app_data.csv': unified_df  # New unified format for the app
-    }
-    
-    for filename, data in outputs.items():
-        filepath = dirs['final_output'] / filename
-        data.to_csv(filepath, index=False)
-        print(f"✅ Saved: {filepath}")
-    
-    # Display unified dataframe structure
-    print("\n📊 Unified Dataframe Structure:")
-    print(f"   Shape: {unified_df.shape}")
-    print(f"   Columns: {list(unified_df.columns)}")
-    
-    # Show sample data
-    print("\n📋 Sample of Unified Data:")
-    print(unified_df.head(10).to_string(index=False, max_cols=6))
-    
-    # Show unique values for key columns
-    print(f"\n🔍 Unique Values Summary:")
-    print(f"   Years: {sorted(unified_df['Year'].unique())}")
-    print(f"   Countries: {unified_df['Country'].nunique()} unique")
-    print(f"   Deciles: {sorted(unified_df['Decile'].unique(), key=lambda x: (str(x) != 'All', str(x)))}")
-    print(f"   Indicators: {unified_df['Primary and raw data'].nunique()} unique")
-    print(f"   Aggregation methods: {list(unified_df['Aggregation'].unique())}")
-    
-    # Create Elma-specific dataset (as in original notebook)
-    elma_indicators = ['HE-SILC-1', 'HH-HBS-3', 'HH-HBS-4']
-    elma_df = unified_df[unified_df['Primary and raw data'].isin(elma_indicators)]
-    
-    if not elma_df.empty:
-        elma_path = dirs['final_output'] / f"2025-05-12_df_elma_unified.csv"
-        elma_df.to_csv(elma_path, index=False)
-        print(f"✅ Saved Elma dataset (unified format): {elma_path} ({len(elma_df):,} rows)")
+    # Save main unified dataset
+    final_output_file = dirs['final_output'] / "unified_app_data.csv"
+    final_df.to_csv(final_output_file, index=False)
+    print(f"✅ Saved unified dataset: {final_output_file}")
     
     # Save validation report
-    validation_path = dirs['final_output'] / "data_validation_report.txt"
-    with open(validation_path, 'w') as f:
-        f.write("European Well-Being Index (EWBI) - Data Integration Report\n")
-        f.write("=" * 60 + "\n\n")
+    validation_file = dirs['final_output'] / "data_validation_report.txt"
+    with open(validation_file, 'w') as f:
+        f.write("=== EWBI Data Validation Report ===\n\n")
+        f.write(f"Dataset Summary:\n")
+        f.write(f"- Total rows: {validation['total_rows']:,}\n")
+        f.write(f"- Countries: {validation['unique_countries']}\n") 
+        f.write(f"- Years: {validation['year_range']}\n")
+        f.write(f"- Indicators: {validation['unique_indicators']}\n")
+        f.write(f"- Databases: {', '.join(validation['databases'])}\n\n")
         
-        f.write("DATASET SUMMARY\n")
-        f.write("-" * 15 + "\n")
-        f.write(f"Total Records: {validation['total_rows']:,}\n")
-        f.write(f"Countries: {validation['unique_countries']}\n")
-        f.write(f"Years: {validation['year_range']}\n")
-        f.write(f"Indicators: {validation['unique_indicators']}\n")
-        f.write(f"Databases: {', '.join(validation['databases'])}\n\n")
+        f.write(f"Countries: {', '.join(validation['countries'])}\n\n")
         
-        f.write("UNIFIED DATAFRAME STRUCTURE\n")
-        f.write("-" * 30 + "\n")
-        f.write(f"Shape: {unified_df.shape}\n")
-        f.write(f"Columns: {', '.join(unified_df.columns)}\n\n")
-        
-        f.write("COUNTRIES INCLUDED\n")
-        f.write("-" * 17 + "\n")
-        for country in validation['countries']:
-            f.write(f"  • {country}\n")
-        f.write("\n")
-        
-        f.write("INDICATORS BY DATABASE\n")
-        f.write("-" * 22 + "\n")
+        f.write(f"Indicators by Database:\n")
         for db, count in validation['indicators_by_db'].items():
-            f.write(f"  • {db}: {count} indicators\n")
+            f.write(f"- {db}: {count} indicators\n")
         f.write("\n")
         
-        f.write("DATA QUALITY\n")
-        f.write("-" * 12 + "\n")
-        f.write(f"Value Range: {validation['value_stats']['min']:.2f} - {validation['value_stats']['max']:.2f}\n")
-        f.write(f"Mean Value: {validation['value_stats']['mean']:.2f}\n")
-        f.write(f"Zero Values: {validation['zero_values']:,} ({validation['zero_value_pct']:.1f}%)\n")
+        f.write(f"Value Statistics:\n")
+        f.write(f"- Min: {validation['value_stats']['min']:.2f}\n")
+        f.write(f"- Max: {validation['value_stats']['max']:.2f}\n")
+        f.write(f"- Mean: {validation['value_stats']['mean']:.2f}\n")
+        f.write(f"- Median: {validation['value_stats']['median']:.2f}\n")
+        f.write(f"- Zero values: {validation['zero_values']:,} ({validation['zero_value_pct']:.1f}%)\n")
     
-    print(f"✅ Saved validation report: {validation_path}")
-
-
-def analyze_data_coverage(df: pd.DataFrame) -> None:
-    """
-    Analyze and display data coverage by indicator and country.
-    
-    Args:
-        df: Final combined DataFrame
-    """
-    print("\n📈 Data Coverage Analysis:")
-    print("-" * 30)
-    
-    # Coverage by database
-    print("\nRecords by Database:")
-    db_counts = df['datasource'].value_counts()
-    for db, count in db_counts.items():
-        pct = (count / len(df)) * 100
-        print(f"  • {db}: {count:,} ({pct:.1f}%)")
-    
-    # Coverage by indicator type (first part of indicator code)
-    print("\nIndicators by Category:")
-    df['indicator_category'] = df['primary_index'].str.split('-').str[0]
-    cat_counts = df['indicator_category'].value_counts()
-    for cat, count in cat_counts.items():
-        indicators = df[df['indicator_category'] == cat]['primary_index'].nunique()
-        print(f"  • {cat}: {indicators} indicators, {count:,} records")
-    
-    # Top countries by data availability
-    print("\nTop Countries by Data Points:")
-    country_counts = df['country'].value_counts().head(10)
-    for country, count in country_counts.items():
-        print(f"  • {country}: {count:,} data points")
-
-
-def create_pivot_analysis(df: pd.DataFrame, dirs: dict) -> None:
-    """
-    Create pivot table analyses for key indicators (as done in original notebook).
-    
-    Args:
-        df: Final combined DataFrame
-        dirs: Directory paths dictionary
-    """
-    print("📋 Creating pivot table analyses...")
-    
-    # Key indicators for analysis
-    key_indicators = ['EL-SILC-1', 'HE-SILC-1', 'TT-HBS-2', 'RT-LFS-2']
-    
-    pivot_results = {}
-    
-    for indicator in key_indicators:
-        if indicator in df['primary_index'].values:
-            # Create pivot for decile 1
-            decile_col = 'decile' if 'decile' in df.columns else 'quintile'
-            
-            filtered_df = df[
-                (df[decile_col] == 1) & 
-                (df['primary_index'] == indicator)
-            ]
-            
-            if not filtered_df.empty and 'year' in filtered_df.columns:
-                pivot = filtered_df.pivot(
-                    index='country', 
-                    columns='year', 
-                    values='value'
-                ).sort_index().sort_index(axis=1)
-                
-                pivot_results[indicator] = pivot
-                
-                # Save pivot table
-                pivot_path = dirs['final_output'] / f"pivot_{indicator.replace('-', '_')}.csv"
-                pivot.to_csv(pivot_path)
-                print(f"✅ Saved pivot for {indicator}: {pivot_path}")
-    
-    return pivot_results
+    print(f"✅ Saved validation report: {validation_file}")
 
 
 def main():
@@ -891,58 +621,58 @@ def main():
     try:
         # Setup directories
         dirs = setup_directories()
-        print(f"📂 Output directory: {dirs['output_base']}")
         print(f"📂 Input data directory: {dirs['input_data']}")
+        print(f"📂 Output directory: {dirs['final_output']}")
         
         # Step 1: Load all survey datasets
         datasets = load_survey_datasets(dirs)
         
-        # Step 2: Process transport indicators (DISABLED - no transport data available)
-        # transport_df = process_transport_indicators(dirs)
-        transport_df = pd.DataFrame()  # Empty DataFrame for now
+        # Step 2: Process transport indicators
+        transport_df = process_transport_indicators(dirs)
         
         # Step 3: Combine all datasets
         final_df = combine_all_datasets(datasets, transport_df)
         
-        # Step 4: Perform data validation
+        # Step 4: Create aggregated data for "All countries"
+        final_df = create_aggregated_data(final_df)
+        
+        # Step 5: Perform data validation
         validation = perform_data_validation(final_df)
         
-        # Step 5: Analyze data coverage
-        analyze_data_coverage(final_df)
-        
-        # Step 6: Create pivot analyses
-        pivot_results = create_pivot_analysis(final_df, dirs)
-        
-        # Step 7: Save all outputs
+        # Step 6: Save outputs
         save_outputs(final_df, validation, dirs)
         
-        # Final summary
-        print(f"\n📊 Integration Summary:")
-        print(f"   • Total records: {len(final_df):,}")
-        print(f"   • Countries: {validation['unique_countries']}")
-        print(f"   • Years: {validation['year_range']}")
-        print(f"   • Indicators: {validation['unique_indicators']}")
-        print(f"   • Databases: {len(validation['databases'])}")
+        # Summary statistics
+        print("\n📈 Integration Summary:")
+        print(f"   • Total records processed: {len(final_df):,}")
+        print(f"   • Countries: {final_df['country'].nunique()}")
+        print(f"   • Years: {final_df['year'].min()}-{final_df['year'].max()}")
+        print(f"   • Indicators: {final_df['primary_index'].nunique()}")
+        print(f"   • Databases: {', '.join(final_df['datasource'].unique())}")
         
         print("\n✅ Final data integration completed successfully!")
         
-        return final_df, validation
+        return final_df
         
     except Exception as e:
-        print(f"\n❌ Error during final integration: {str(e)}")
+        print(f"\n❌ Error during final data integration: {str(e)}")
         raise
 
 
 if __name__ == "__main__":
     # Execute main processing
-    result, validation_info = main()
+    result = main()
     
     # Display sample of final results
     if result is not None:
-        print("\n📊 Sample of final integrated dataset:")
+        print("\n📊 Sample of final results:")
         print(result.head(10))
         print(f"\nFinal dataset shape: {result.shape}")
-        print("\nUnique indicators:")
-        for indicator in sorted(result['primary_index'].unique()):
-            count = len(result[result['primary_index'] == indicator])
-            print(f"  • {indicator}: {count:,} records")
+        
+        # Show new LFS indicators if present
+        new_lfs_indicators = ['RT-LFS-4', 'RT-LFS-5', 'RT-LFS-6', 'RT-LFS-7', 'RT-LFS-8', 'EL-LFS-2']
+        present_indicators = [ind for ind in new_lfs_indicators if ind in result['primary_index'].unique()]
+        if present_indicators:
+            print(f"\n✅ New LFS indicators present: {present_indicators}")
+        else:
+            print(f"\n⚠️ New LFS indicators not found in final dataset")

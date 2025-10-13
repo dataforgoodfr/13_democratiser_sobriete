@@ -54,8 +54,10 @@ def combine_household_data(dirs):
     """
     cols_needed_household = [
         "HB010", "HB020", "HB030", "HY020", "HH030",
-        "HS050", "HD080", "HS011", "HH050", "HS021",
-        "HS060", "HS120", "HS040"
+        "HS050", "HD080", "HS011", "HS021",
+        "HS060", "HS120", "HS040",
+        # New indicators for Energy and Housing (HQ-SILC-2 to HQ-SILC-8)
+        "HC060", "HC070", "HS160", "HS170", "HH040", "HS180", "HC003"
     ]
 
     base_path = os.path.join(dirs['external_data'], "0_data/EU-SILC/_Cross_2004-2023_full_set/_Cross_2004-2023_full_set")
@@ -199,7 +201,13 @@ def combine_personal_register(dirs):
         "RB081",  # Age
         "RB082",  # Age of person interviewed (alternative age field)
         "RL010",  # IS-SILC-1 - Education at pre-school
-        "RL020"   # IS-SILC-2 - Education at compulsory school
+        "RL020",  # IS-SILC-2 - Education at compulsory school
+        # New personal indicators
+        "PE010",  # IS-SILC-4 - Participation in formal training (student/apprentice)
+        "PE041",  # IS-SILC-5 - No secondary education
+        "PH060",  # AC-SILC-3 - Unmet need for medical care  
+        "PH040",  # AC-SILC-4 - Unmet need for dental examination and treatment
+        "PD050"   # EC-SILC-3 - Get-together with friends or family
     ]
 
     base_path = os.path.join(dirs['external_data'], "0_data/EU-SILC/_Cross_2004-2023_full_set/_Cross_2004-2023_full_set")
@@ -261,8 +269,12 @@ def combine_personal_data(dirs):
     """
     cols_needed_personal = [
         "PB010", "PB020", "PB030", "PB140", "PB200",
-        "PW010", "PW191", "PD060", "PD070", "PH010", "PH020", "PH030",
-        "PL086", "PH040", "PH050", "PE041", "PL141", "PL145", "PL080"
+        "PW191", "PD060", "PD070", "PH020", "PH030",
+        "PL086", "PH040", "PH050", "PE041", "PL141", "PL145", "PL080",
+        # New indicators for various EU priorities
+        "PE010",    # IS-SILC-4 - Not participating in training
+        "PH060",    # AC-SILC-4 - Unmet need for dental care
+        "PD050"     # EC-SILC-3 - Get-together w/ friends/family
     ]
 
     base_path = os.path.join(dirs['external_data'], "0_data/EU-SILC/_Cross_2004-2023_full_set/_Cross_2004-2023_full_set")
@@ -446,7 +458,7 @@ def calculate_income_deciles(dirs):
         return pd.Series(decile_values, index=[f'decile_{int(d*10)}' for d in deciles])
 
     # Apply the function
-    decile_df = equival_inc_df.groupby(['HB010', 'HB020']).apply(compute_deciles).reset_index()
+    decile_df = equival_inc_df.groupby(['HB010', 'HB020']).apply(compute_deciles, include_groups=False).reset_index()
     decile_df.rename(columns={'HB010': 'year', 'HB020': 'country'}, inplace=True)
     decile_df.to_csv(os.path.join(dirs['decile_dir'], "EU_SILC_household_decile.csv"), index=False)
 
@@ -598,8 +610,10 @@ def process_household_indicators(dirs):
     
     # Load and merge all necessary datasets
     cols_needed_household = [
-        "HB010", "HB020", "HB030", "HS050", "HD080", "HS011", "HH050", 
-        "HS021", "HS060", "HS120", "HS040"
+        "HB010", "HB020", "HB030", "HS050", "HD080", "HS011", 
+        "HS021", "HS060", "HS120", "HS040",
+        # New indicators
+        "HC060", "HC070", "HS160", "HS170", "HH040", "HS180", "HC003"
     ]
 
     household_df = pd.read_csv(
@@ -646,19 +660,27 @@ def process_household_indicators(dirs):
     # Save merged dataset
     merged_df.to_csv(os.path.join(dirs['final_merged_dir'], "EU_SILC_household_final_merged.csv"), index=False)
 
-    # Define variable filters for indicators
+    # Define variable filters for indicators (existing + new)
     df = merged_df
     
     variable_filters = {
+        # Existing indicators
         "HS050": [1],                          # AN-SILC-1
-        "HD080": [2, 3],                       # HQ-SILC-2
         "HS011": lambda row: [1] if row["HB010"] < 2008 else [1, 2],  # HH-SILC-1
-        "HH050": [2],                          # HE-SILC-1
         "HS021": lambda row: [1] if row["HB010"] < 2008 else [1, 2],  # HE-SILC-2
         "HS060": [2],                          # ES-SILC-1
         "HS120": [1, 2],                       # ES-SILC-2
         "HS040": [2],                          # TS-SILC-1
-        "overcrowded": [1],                   # HQ-SILC-1
+        "overcrowded": [1],                    # HQ-SILC-1
+        
+        # New Energy and Housing indicators
+        "HC060": [2],                          # HQ-SILC-2 - Cannot keep dwelling comfortably warm
+        "HC070": [2],                          # HQ-SILC-3 - Cannot keep dwelling comfortably cool
+        "HS160": [1],                          # HQ-SILC-4 - Dwelling too dark
+        "HS170": [1],                          # HQ-SILC-5 - Noise from street
+        "HH040": [1],                          # HQ-SILC-6 - Leaking roof / damp / rot
+        "HS180": [1],                          # HQ-SILC-7 - Pollution or crime
+        "HC003": [4, 99],                     # HQ-SILC-8 - No renovation measures
     }
 
     # Precompute masks per row
@@ -728,12 +750,22 @@ def process_household_indicators(dirs):
 
     summary_df = pd.DataFrame(results)
 
-    # Rename columns according to EWBI naming convention
+    # Rename columns according to EWBI naming convention (existing + new)
     rename_dict = {
-        "HB010": "year", "HB020": "country", "HS050": "AN-SILC-1", "HD080": "HQ-SILC-2",
-        "HS011": "HH-SILC-1", "HH050": "HE-SILC-1", "HS021": "HE-SILC-2",
+        "HB010": "year", "HB020": "country", 
+        # Existing indicators
+        "HS050": "AN-SILC-1",
+        "HS011": "HH-SILC-1", "HS021": "HE-SILC-2",
         "HS060": "ES-SILC-1", "HS120": "ES-SILC-2", "HS040": "TS-SILC-1",
-        "overcrowded": "HQ-SILC-1"
+        "overcrowded": "HQ-SILC-1",
+        # New Energy and Housing indicators as specified by user
+        "HC060": "HQ-SILC-2",    # Keep dwelling comfortably warm
+        "HC070": "HQ-SILC-3",    # Keep dwelling comfortably cool
+        "HS160": "HQ-SILC-4",    # Dwelling too dark
+        "HS170": "HQ-SILC-5",    # Noise from street
+        "HH040": "HQ-SILC-6",    # Leaking roof / damp / rot
+        "HS180": "HQ-SILC-7",    # Pollution or crime
+        "HC003": "HQ-SILC-8"     # No renovation measures
     }
 
     new_column_names = {}
@@ -747,10 +779,14 @@ def process_household_indicators(dirs):
 
     summary_df2 = summary_df.rename(columns=new_column_names)
 
-    # Melt to long format
+    # Melt to long format (existing + new indicators)
     columns_to_melt = [
-        "AN-SILC-1", "HQ-SILC-2", "HH-SILC-1", "HE-SILC-1", "HE-SILC-2",
-        "ES-SILC-1", "ES-SILC-2", "TS-SILC-1", "HQ-SILC-1"
+        # Existing indicators
+        "AN-SILC-1", "HH-SILC-1", "HE-SILC-2",
+        "ES-SILC-1", "ES-SILC-2", "TS-SILC-1", "HQ-SILC-1",
+        # New Energy and Housing indicators
+        "HQ-SILC-2", "HQ-SILC-3", "HQ-SILC-4", "HQ-SILC-5", 
+        "HQ-SILC-6", "HQ-SILC-7", "HQ-SILC-8"
     ]
 
     df_melted = summary_df2.melt(
@@ -782,9 +818,11 @@ def process_personal_indicators(dirs):
     
     # Load datasets
     cols_needed_PD = [
-        "PB010", "PB020", "PB030", "PW010", "PW191", "PD060", "PD070", 
-        "PH010", "PH020", "PH030", "PL086", "PH040", "PH050", "PE041", 
-        "PL141", "PL145", "PL080"
+        "PB010", "PB020", "PB030", "PW191", "PD060", "PD070", 
+        "PH020", "PH030", "PL086", "PH040", "PH050", "PE041", 
+        "PL141", "PL145", "PL080",
+        # New indicators
+        "PE010", "PH060", "PD050"
     ]
 
     cols_needed_PR = [
@@ -839,18 +877,16 @@ def process_personal_indicators(dirs):
     # Save merged dataset
     merged_df.to_csv(os.path.join(dirs['final_merged_dir'], "EU_SILC_personal_final_merged.csv"), index=False)
 
-    # Define condition rules for personal indicators
+    # Define condition rules for personal indicators (existing + new)
     def make_conditions(df):
         return {
-            "PW010": df["PW010"] < 4,                                     # EL-SILC-1
+            # Existing indicators
             "PW191": df["PW191"] < 4,                                     # EC-SILC-2
             "PD060": df["PD060"].isin([2, 3]),                            # IC-SILC-1
             "PD070": df["PD070"].isin([2, 3]),                            # IC-SILC-2
-            "PH010": df["PH010"].isin([4, 5]),                            # AH-SILC-1
             "PH020": df["PH020"] == 1,                                    # AH-SILC-2
             "PH030": df["PH030"].isin([1, 2]),                            # AH-SILC-3
             "PL086": df["PL086"] > 0,                                     # AH-SILC-4
-            "PH040": df["PH040"] == 2,                                    # AC-SILC-2
             "PH050": df["PH050"] == 1,                                    # AC-SILC-1
             "PE041": ((df["age"] > 15) & ((df["PE041"] == 0) | df["PE041"].isna())),  # IS-SILC-3
             "PL141": ((df["age"] > 17) & (
@@ -859,14 +895,52 @@ def process_personal_indicators(dirs):
                       )),                                                # RT-SILC-1
             "PL145": ((df["age"] > 17) & (df["PL145"] == 2)),            # RT-SILC-2
             "PL080": (df["PL080"] > 5),                                  # RU-SILC-1
-            "RL010": ((df["RL010"] == 0) | df["RL010"].isna()),  # IS-SILC-1 (whole population)
-            "RL020": ((df["RL020"] == 0) | df["RL020"].isna()),  # IS-SILC-2 (whole population)
+            "RL010": ((df["RL010"] == 0) | df["RL010"].isna()),         # IS-SILC-1 (whole population)
+            "RL020": ((df["RL020"] == 0) | df["RL020"].isna()),         # IS-SILC-2 (whole population)
+            
+            # New indicators
+            "PE010": df["PE010"] == 2,                                   # IS-SILC-4 - Not participating in training
+            "PE041_new": ((df["PE041"].isin(['000', '100', 0, 100]))),  # IS-SILC-5 - No secondary education
+            "PH060": df["PH060"] == 1,                                   # AC-SILC-3 - Unmet need for medical care
+            "PH040": df["PH040"] == 1,                                   # AC-SILC-4 - Unmet need for dental care
+            "PD050": df["PD050"].isin([2, 3]),                          # EC-SILC-3 - Get-together w/ friends/family
+        }
+
+    # Define mapping from indicator names to source column names
+    def get_source_column_mapping():
+        """Maps indicator names to their source column names."""
+        return {
+            # Most indicators use their own name as column
+            "PW191": "PW191", 
+            "PD060": "PD060",
+            "PD070": "PD070",
+            "PH020": "PH020",
+            "PH030": "PH030",
+            "PL086": "PL086",
+            "PH040": "PH040",
+            "PH050": "PH050",
+            "PE041": "PE041",
+            "PL141": "PL141",
+            "PL145": "PL145",
+            "PL080": "PL080",
+            "RL010": "RL010",
+            "RL020": "RL020",
+            "PE010": "PE010",
+            "PH060": "PH060", 
+            "PH040": "PH040",
+            "PD050": "PD050",
+            
+            # Special mappings for renamed indicators
+            "PE041_new": "PE041",  # PE041_new indicator uses PE041 column
         }
 
     # Apply conditions
     conditions = make_conditions(merged_df)
+    source_mapping = get_source_column_mapping()
     for var, cond in conditions.items():
-        merged_df[f"_valid_{var}"] = cond & merged_df[var].notna()
+        # Use the source column mapping instead of string replacement
+        source_col = source_mapping.get(var, var)
+        merged_df[f"_valid_{var}"] = cond & merged_df[source_col].notna()
 
     # Group by Year, Country, Decile and calculate indicators
     group_cols = ["PB010", "PB020", "decile"]
@@ -877,10 +951,11 @@ def process_personal_indicators(dirs):
         total_weight = group["RB050"].sum()
 
         for var in conditions.keys():
+            source_col = source_mapping.get(var, var)  # Use mapping instead of string replacement
             mask = group[f"_valid_{var}"]
             
             # FIXED: Check if this variable has any data for this group
-            has_any_data = group[var].notna().any()
+            has_any_data = group[source_col].notna().any()
             
             if not has_any_data:
                 # Variable not collected in this year/country/decile - use NaN
@@ -909,10 +984,11 @@ def process_personal_indicators(dirs):
         total_weight = group["RB050"].sum()
 
         for var in conditions.keys():
+            var_col = var.replace('_new', '')  # Handle the PE041_new case
             mask = group[f"_valid_{var}"]
             
             # FIXED: Check if this variable has any data for this group
-            has_any_data = group[var].notna().any()
+            has_any_data = group[var_col].notna().any()
             
             if not has_any_data:
                 # Variable not collected in this year/country - use NaN
@@ -933,14 +1009,18 @@ def process_personal_indicators(dirs):
 
     summary_df2 = pd.DataFrame(results)
 
-    # Rename columns according to EWBI naming convention
+    # Rename columns according to EWBI naming convention (existing + new)
     rename_dict = {
         "PB010": "year", "PB020": "country", "RB050": "Weight",
-        "PW010": "EL-SILC-1", "PW191": "EC-SILC-2", "PD060": "IC-SILC-1", "PD070": "IC-SILC-2",
-        "PH010": "AH-SILC-1", "PH020": "AH-SILC-2", "PH030": "AH-SILC-3", "PL086": "AH-SILC-4",
-        "PH040": "AC-SILC-2", "PH050": "AC-SILC-1", "PE041": "IS-SILC-3",
+        # Existing indicators
+        "PW191": "EC-SILC-2", "PD060": "IC-SILC-1", "PD070": "IC-SILC-2",
+        "PH020": "AH-SILC-2", "PH030": "AH-SILC-3", "PL086": "AH-SILC-4",
+        "PH040": "AC-SILC-4", "PH050": "AC-SILC-1", "PE041": "IS-SILC-3",
         "PL141": "RT-SILC-1", "PL145": "RT-SILC-2", "PL080": "RU-SILC-1",
-        "RL010": "IS-SILC-1", "RL020": "IS-SILC-2"
+        "RL010": "IS-SILC-1", "RL020": "IS-SILC-2",
+        # New indicators
+        "PE010": "IS-SILC-4", "PE041_new": "IS-SILC-5", "PH060": "AC-SILC-3", 
+        "PD050": "EC-SILC-3"
     }
 
     new_column_names = {}
@@ -954,12 +1034,15 @@ def process_personal_indicators(dirs):
 
     summary_df2 = summary_df2.rename(columns=new_column_names)
 
-    # Melt to long format
+    # Melt to long format (existing + new indicators)
     columns_to_melt = [
-        "EL-SILC-1", "EC-SILC-2", "IC-SILC-1", "IC-SILC-2", "AH-SILC-1", "AH-SILC-2",
-        "AH-SILC-3", "AH-SILC-4", "AC-SILC-2", "AC-SILC-1",
+        # Existing indicators
+        "EC-SILC-2", "IC-SILC-1", "IC-SILC-2", "AH-SILC-2",
+        "AH-SILC-3", "AH-SILC-4", "AC-SILC-1",
         "IS-SILC-1", "IS-SILC-2", "IS-SILC-3",
-        "RT-SILC-1", "RT-SILC-2", "RU-SILC-1"
+        "RT-SILC-1", "RT-SILC-2", "RU-SILC-1",
+        # New indicators
+        "IS-SILC-4", "IS-SILC-5", "AC-SILC-3", "AC-SILC-4", "EC-SILC-3"
     ]
 
     df_melted = summary_df2.melt(
@@ -975,6 +1058,90 @@ def process_personal_indicators(dirs):
     df_melted.to_csv(os.path.join(dirs['final_merged_dir'], "EU_SILC_personal_final_summary.csv"), index=False)
 
     return df_melted
+
+
+def geometric_mean_robust(values):
+    """
+    Compute geometric mean while properly handling NaN values.
+    NaN values are excluded from both numerator and denominator.
+    """
+    # Remove NaN values
+    clean_values = values.dropna()
+    
+    if len(clean_values) == 0:
+        return np.nan
+    
+    # Ensure all values are positive for geometric mean
+    if (clean_values <= 0).any():
+        return np.nan
+    
+    return np.exp(np.log(clean_values).mean())
+
+
+def arithmetic_mean_robust(values):
+    """
+    Compute arithmetic mean while properly handling NaN values.
+    NaN values are excluded from both numerator and denominator.
+    """
+    return values.mean()  # pandas mean() already excludes NaN values
+
+
+# Update the aggregation functions to use robust mean calculations
+def aggregate_to_country_level(df, indicator_col='indicator_value', groupby_cols=['country', 'year']):
+    """
+    Aggregate indicator values to country level using geometric mean.
+    Properly handles NaN values by excluding them from computation.
+    """
+    def safe_geometric_mean(series):
+        return geometric_mean_robust(series)
+    
+    return df.groupby(groupby_cols)[indicator_col].agg(safe_geometric_mean).reset_index()
+
+
+def aggregate_hierarchical(df, level_col='level', value_col='value', groupby_cols=['country', 'year']):
+    """
+    Aggregate indicators hierarchically using arithmetic mean.
+    Properly handles NaN values by excluding them from computation.
+    """
+    def safe_arithmetic_mean(series):
+        return arithmetic_mean_robust(series)
+    
+    return df.groupby(groupby_cols + [level_col])[value_col].agg(safe_arithmetic_mean).reset_index()
+
+
+def compute_level5_indicators(df):
+    """
+    Compute Level 5 indicators with proper NaN handling.
+    When computing aggregations, NaN values are excluded from both numerator and denominator.
+    """
+    import numpy as np
+    import pandas as pd
+    
+    # Ensure we're working with a copy
+    df_work = df.copy()
+    
+    # Group by relevant columns for Level 5 computation
+    groupby_cols = ['country', 'year', 'level5_indicator_name']  # Adjust based on actual column names
+    
+    # Apply geometric mean for individual-level to aggregate-level computation
+    def robust_geometric_mean(series):
+        # Remove NaN values
+        clean_series = series.dropna()
+        
+        if len(clean_series) == 0:
+            return np.nan
+        
+        # Check for non-positive values
+        if (clean_series <= 0).any():
+            return np.nan
+        
+        # Compute geometric mean
+        return np.exp(np.log(clean_series).mean())
+    
+    # Apply the robust aggregation
+    level5_aggregated = df_work.groupby(groupby_cols)['indicator_value'].agg(robust_geometric_mean).reset_index()
+    
+    return level5_aggregated
 
 
 def main():

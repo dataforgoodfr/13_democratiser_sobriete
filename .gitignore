@@ -173,16 +173,58 @@ cython_debug/
 # Large CSV files (exclude most, keep only essential ones)
 *.csv
 
-# But keep essential files needed for the dashboard
+# But keep essential small files needed for the dashboards
 !stream3_visualization/Well-being/data/ewbi_indicators.json
 !stream3_visualization/Well-being/data/2025-08-29_EWBI-Renaming*.xlsx
 !stream3_visualization/Well-being/output/unified_all_levels_1_to_5.csv
 
-# Heavy data directories
-stream3_visualization/Budget/Data/
-stream3_visualization/Budget/Output/
-stream3_visualization/Decomposition/data/
-stream3_visualization/Decomposition/Output/
+# Exclude specific large files even if they match allowed patterns
+stream3_visualization/Budget/Output/combined_data.csv
+stream3_visualization/Budget/Output/forecast_data.csv
+stream3_visualization/Budget/Output/scenario_parameters.csv
+stream3_visualization/Budget/Data/*Population*.xlsx
+stream3_visualization/Budget/Data/*CO2*.xlsx
+stream3_visualization/Well-being/output/Archive/ewbi_time_series_fixed.csv
+
+# Heavy data directories (commented out to allow selective inclusion)
+# stream3_visualization/Budget/Data/
+# stream3_visualization/Budget/Output/
+# stream3_visualization/Decomposition/data/
+# stream3_visualization/Decomposition/Output/
+
+# Large HTML documentation files
+docs/*.html
+
+# Jupyter notebook outputs and checkpoints  
+*.ipynb_checkpoints/
+*/.ipynb_checkpoints/
+
+# Python virtual environments (additional patterns)
+.Python
+pyvenv.cfg
+
+# IDE and editor files
+*.swp
+*.swo
+*~
+.idea/
+*.iml
+
+# Node.js (if any JS components)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
 
 # Well-being heavy output directories
 stream3_visualization/Well-being/output/0_raw_data_EUROSTAT/
@@ -202,9 +244,26 @@ rag_system/
 # PDF extraction and processing directories
 src/wsl_library/pdfextraction/
 
-# Any large zip files
+# Archive files
 *.zip
+*.tar
+*.tar.gz
+*.rar
+*.7z
 !stream3_visualization/Well-being/data/ne_110m_admin_0_countries.zip
+
+# Data science and ML specific files
+*.h5
+*.hdf5
+*.pkl
+*.pickle
+*.joblib
+*.model
+*.weights
+
+# Large image files
+*.tiff
+*.tif
 
 # =============================================================================
 # OS and IDE FILES (additional)
@@ -246,5 +305,16 @@ ngrok_config/
 # Essential files kept:
 # - stream3_visualization/Well-being/code/ (Python files)
 # - stream3_visualization/Well-being/data/ewbi_indicators.json
-# - stream3_visualization/Well-being/output/unified_all_levels_1_to_5.csv
+# - stream3_visualization/Well-being/output/unified_all_levels_1_to_5.csv (WARNING: ~20MB file)
 # - requirements.txt, pyproject.toml etc.
+
+# Note: Some large files are currently tracked in git history.
+# Consider using Git LFS for files > 100MB or removing large files from history if needed.
+# Current large files in repo: 
+# - unified_all_levels_1_to_5.csv (~20MB) - Essential for dashboard
+# - Various Excel/CSV files in Budget and Decomposition directories
+
+# Performance monitoring files
+.pytest_cache/
+.coverage
+htmlcov/

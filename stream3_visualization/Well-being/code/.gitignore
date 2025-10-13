@@ -1,0 +1,67 @@
+# Files not necessary for building/running the EWBI Dashboard App
+# These files are for data processing pipeline - not required for app runtime
+
+# Data processing pipeline files (not needed for app runtime)
+0_raw_indicator_EHIS.py
+0_raw_indicator_EU-SILC.py  
+0_raw_indicator_HBS.py
+0_raw_indicator_LFS.py
+1_final_df.py
+2_preprocessing_executed_pca.py
+3_generate_outputs_pca.py
+4_PCA.py
+apply_population_weighting.py
+population_data_transform.py
+detailed_data_analysis.py
+
+# One-time fix scripts (not needed for app runtime)
+fix_population_weights.py
+
+# Utility files (may be needed for data processing but not app runtime)
+eu27_utils.py
+
+# Large output files generated during processing
+../output/ewbi_time_series_pca_weighted.csv
+../output/ewbi_master_pca_weighted.csv
+../output/level4_*.csv
+../output/unified_all_levels_1_to_5_pca*.csv
+../output/*_pca_weighted.csv
+../output/completeness_pca*.xlsx
+
+# Archive and backup files
+../output/Archive/
+../output/*_backup.csv
+
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Development/testing files
+*.log
+*.tmp
+*.temp
+
+# Jupyter notebook files and outputs
+*.ipynb_checkpoints/
+*.ipynb
+
+# Data validation and testing outputs
+../output/column_testing/
+../output/2_data_validation/
+
+# Optional: Uncomment if you want to suppress deployment files from development
+# deployment/
+
+# Environment and configuration files
+.env
+.env.local
+config.json
+
+# Note: Keep these files for app runtime:
+# - app_pca.py (main dashboard application)
+# - variable_mapping.py (required by app_pca.py) 
+# - assets/ (CSS and static files)
+# - requirements.txt (Python dependencies)
+# - README.md (documentation)

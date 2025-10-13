@@ -40,8 +40,7 @@
       "name": "Energy and Housing",
       "components": [
         {
-          "name": "Housing quality",
-          "weight": "1/3",
+          "name": "Housing Quality",
           "indicators": [
             {
               "code": "HQ-SILC-1",
@@ -50,7 +49,37 @@
             },
             {
               "code": "HQ-SILC-2",
-              "description": "Share of nth decile households uncapable to replace worn-out furniture",
+              "description": "Cannot keep dwelling comfortably warm (HQ-SILC-2)",
+              "weight": 2
+            },
+            {
+              "code": "HQ-SILC-3",
+              "description": "Keep dwelling comfortably cool",
+              "weight": 2
+            },
+            {
+              "code": "HQ-SILC-4",
+              "description": "Dwelling too dark",
+              "weight": 2
+            },
+            {
+              "code": "HQ-SILC-5",
+              "description": "Noise from street",
+              "weight": 2
+            },
+            {
+              "code": "HQ-SILC-6",
+              "description": "Leaking roof / damp / rot",
+              "weight": 2
+            },
+            {
+              "code": "HQ-SILC-7",
+              "description": "Pollution or crime",
+              "weight": 2
+            },
+            {
+              "code": "HQ-SILC-8",
+              "description": "Renovation, < 3 measures",
               "weight": 2
             }
           ]
@@ -167,6 +196,22 @@
               "code": "EC-EHIS-1",
               "description": "No One to Rely On in a Crisis (EC-EHIS-1)",
               "weight": 2
+            },
+            {
+              "code": "EC-SILC-3",
+              "description": "Cannot get together with friends or family (EC-SILC-3)",
+              "weight": 2
+            }
+          ]
+        },
+        {
+          "name": "Care Services",
+          "weight": "1/4",
+          "indicators": [
+            {
+              "code": "EL-LFS-2",
+              "description": "No relevant care service (EL-LFS-2)",
+              "weight": 2
             }
           ]
         }
@@ -237,6 +282,22 @@
               "weight": 1
             }
           ]
+        },
+        {
+          "name": "Access to care",
+          "weight": "1/4",
+          "indicators": [
+            {
+              "code": "AC-SILC-3",
+              "description": "Unmet need for medical care (AC-SILC-3)",
+              "weight": 2
+            },
+            {
+              "code": "AC-SILC-4",
+              "description": "Unmet need for dental examination and treatment (AC-SILC-4)",
+              "weight": 2
+            }
+          ]
         }
       ]
     },
@@ -260,6 +321,16 @@
             {
               "code": "IS-SILC-3",
               "description": "No Formal Education (IS-SILC-3)",
+              "weight": 2
+            },
+            {
+              "code": "IS-SILC-4",
+              "description": "Not participating in formal training (IS-SILC-4)",
+              "weight": 2
+            },
+            {
+              "code": "IS-SILC-5",
+              "description": "No secondary education (IS-SILC-5)",
               "weight": 2
             }
           ]
@@ -338,6 +409,31 @@
             {
               "code": "RT-LFS-3",
               "description": "Doing Overtime or Extra Hours (RT-LFS-3)",
+              "weight": 2
+            },
+            {
+              "code": "RT-LFS-4",
+              "description": "No freedom on working time choice (RT-LFS-4)",
+              "weight": 2
+            },
+            {
+              "code": "RT-LFS-5",
+              "description": "Shift work in main job (RT-LFS-5)",
+              "weight": 2
+            },
+            {
+              "code": "RT-LFS-6",
+              "description": "Night work in main job (RT-LFS-6)",
+              "weight": 2
+            },
+            {
+              "code": "RT-LFS-7",
+              "description": "Saturday work in main job (RT-LFS-7)",
+              "weight": 2
+            },
+            {
+              "code": "RT-LFS-8",
+              "description": "Sunday work in main job (RT-LFS-8)",
               "weight": 2
             }
           ]

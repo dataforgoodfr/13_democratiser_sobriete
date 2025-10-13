@@ -96,7 +96,13 @@ def get_required_columns() -> list:
         "EDUCNFE12", 
         "GENHEALTH", 
         "GALI", 
-        "INCDECIL"
+        "INCDECIL",
+        # Additional columns for new indicators
+        "VARITIME",  # RT-LFS-4 - No freedom on working time choice
+        "SHIFTWK",   # RT-LFS-5 - Shift work in main job
+        "NIGHTWK",   # RT-LFS-6 - Night work in main job
+        "SATWK",     # RT-LFS-7 - Saturday work in main job
+        "SUNWK"      # RT-LFS-8 - Sunday work in main job
     ]
 
 
@@ -141,11 +147,32 @@ def combine_lfs_data(data_path: Path, cols_needed: list) -> pd.DataFrame:
             year = match_file.group(1)
 
             try:
-                df = pd.read_csv(file_path, usecols=cols_needed)
+                # First, check which columns are actually available in this file
+                df_check = pd.read_csv(file_path, nrows=0)  # Read only header
+                available_cols = set(df_check.columns)
+                
+                # Filter requested columns to only those available
+                cols_to_use = [col for col in cols_needed if col in available_cols]
+                missing_cols = [col for col in cols_needed if col not in available_cols]
+                
+                # Read with available columns only
+                df = pd.read_csv(file_path, usecols=cols_to_use)
+                
+                # Add missing columns as NaN
+                for missing_col in missing_cols:
+                    df[missing_col] = np.nan
+                
+                # Ensure all requested columns are present in the correct order
+                df = df.reindex(columns=cols_needed, fill_value=np.nan)
+                
                 df["country"] = country_code
                 df["year"] = int(year)
                 df_list.append(df)
-                print(f"✅ Loaded {file_name} from {folder_name} with shape {df.shape}")
+                
+                if missing_cols:
+                    print(f"✅ Loaded {file_name} from {folder_name} with shape {df.shape} (missing: {missing_cols})")
+                else:
+                    print(f"✅ Loaded {file_name} from {folder_name} with shape {df.shape}")
                 
             except Exception as e:
                 print(f"❌ Failed to read {file_path}: {e}")
@@ -216,7 +243,14 @@ def calculate_lfs_indicators(df: pd.DataFrame) -> pd.DataFrame:
         "NUMJOB",    # RT-LFS-1 - Number of jobs
         "WISHMORE",  # RT-LFS-2 - Wish to work more
         "EXTRAHRS",  # RT-LFS-3 - Overtime or extra hours
-        "EMPSTAT"    # RU-LFS-1 - Being in employment
+        "EMPSTAT",   # RU-LFS-1 - Being in employment
+        # New indicators
+        "VARITIME",  # RT-LFS-4 - No freedom on working time choice
+        "SHIFTWK",   # RT-LFS-5 - Shift work in main job
+        "NIGHTWK",   # RT-LFS-6 - Night work in main job
+        "SATWK",     # RT-LFS-7 - Saturday work in main job
+        "SUNWK",     # RT-LFS-8 - Sunday work in main job
+        "NEEDCARE"   # EL-LFS-2 - No relevant care service
     ]
     
     # Filter and prepare data
@@ -278,6 +312,54 @@ def calculate_lfs_indicators(df: pd.DataFrame) -> pd.DataFrame:
             base_condition=lambda x: (x != 9)
         )
         
+        # RT-LFS-4: No freedom on working time choice
+        varitime_pct = weighted_percentage(
+            group,
+            "VARITIME",
+            lambda x: x.isin([3, 4]),
+            base_condition=lambda x: (x != 9)
+        )
+        
+        # RT-LFS-5: Shift work in main job
+        shiftwk_pct = weighted_percentage(
+            group,
+            "SHIFTWK",
+            lambda x: (x == 1),
+            base_condition=lambda x: (x != 9)
+        )
+        
+        # RT-LFS-6: Night work in main job
+        nightwk_pct = weighted_percentage(
+            group,
+            "NIGHTWK",
+            lambda x: x.isin([1, 2]),
+            base_condition=lambda x: (x != 9)
+        )
+        
+        # RT-LFS-7: Saturday work in main job
+        satwk_pct = weighted_percentage(
+            group,
+            "SATWK",
+            lambda x: x.isin([1, 2]),
+            base_condition=lambda x: (x != 9)
+        )
+        
+        # RT-LFS-8: Sunday work in main job
+        sunwk_pct = weighted_percentage(
+            group,
+            "SUNWK",
+            lambda x: x.isin([1, 2]),
+            base_condition=lambda x: (x != 9)
+        )
+        
+        # EL-LFS-2: No relevant care service
+        needcare_pct = weighted_percentage(
+            group,
+            "NEEDCARE",
+            lambda x: x.isin([1, 2]),
+            base_condition=lambda x: (x != 9)
+        )
+        
         results.append({
             "year": year,
             "country": country,
@@ -285,7 +367,13 @@ def calculate_lfs_indicators(df: pd.DataFrame) -> pd.DataFrame:
             "NUMJOB_2or3_pct": numjob_pct,
             "WISHMORE_2_pct": wishmore_pct,
             "EXTRAHRS_gt0_pct": extrahrs_pct,
-            "EMPSTAT_1_pct": empstat_pct
+            "EMPSTAT_1_pct": empstat_pct,
+            "VARITIME_34_pct": varitime_pct,
+            "SHIFTWK_1_pct": shiftwk_pct,
+            "NIGHTWK_12_pct": nightwk_pct,
+            "SATWK_12_pct": satwk_pct,
+            "SUNWK_12_pct": sunwk_pct,
+            "NEEDCARE_12_pct": needcare_pct
         })
     
     # Also calculate indicators for total population per country (decile = "All")
@@ -325,6 +413,54 @@ def calculate_lfs_indicators(df: pd.DataFrame) -> pd.DataFrame:
             base_condition=lambda x: (x != 9)
         )
         
+        # RT-LFS-4: No freedom on working time choice
+        varitime_pct = weighted_percentage(
+            group,
+            "VARITIME",
+            lambda x: x.isin([3, 4]),
+            base_condition=lambda x: (x != 9)
+        )
+        
+        # RT-LFS-5: Shift work in main job
+        shiftwk_pct = weighted_percentage(
+            group,
+            "SHIFTWK",
+            lambda x: (x == 1),
+            base_condition=lambda x: (x != 9)
+        )
+        
+        # RT-LFS-6: Night work in main job
+        nightwk_pct = weighted_percentage(
+            group,
+            "NIGHTWK",
+            lambda x: x.isin([1, 2]),
+            base_condition=lambda x: (x != 9)
+        )
+        
+        # RT-LFS-7: Saturday work in main job
+        satwk_pct = weighted_percentage(
+            group,
+            "SATWK",
+            lambda x: x.isin([1, 2]),
+            base_condition=lambda x: (x != 9)
+        )
+        
+        # RT-LFS-8: Sunday work in main job
+        sunwk_pct = weighted_percentage(
+            group,
+            "SUNWK",
+            lambda x: x.isin([1, 2]),
+            base_condition=lambda x: (x != 9)
+        )
+        
+        # EL-LFS-2: No relevant care service
+        needcare_pct = weighted_percentage(
+            group,
+            "NEEDCARE",
+            lambda x: x.isin([1, 2]),
+            base_condition=lambda x: (x != 9)
+        )
+        
         results.append({
             "year": year,
             "country": country,
@@ -332,7 +468,13 @@ def calculate_lfs_indicators(df: pd.DataFrame) -> pd.DataFrame:
             "NUMJOB_2or3_pct": numjob_pct,
             "WISHMORE_2_pct": wishmore_pct,
             "EXTRAHRS_gt0_pct": extrahrs_pct,
-            "EMPSTAT_1_pct": empstat_pct
+            "EMPSTAT_1_pct": empstat_pct,
+            "VARITIME_34_pct": varitime_pct,
+            "SHIFTWK_1_pct": shiftwk_pct,
+            "NIGHTWK_12_pct": nightwk_pct,
+            "SATWK_12_pct": satwk_pct,
+            "SUNWK_12_pct": sunwk_pct,
+            "NEEDCARE_12_pct": needcare_pct
         })
 
     return pd.DataFrame(results)
@@ -355,7 +497,13 @@ def prepare_final_output(results_df: pd.DataFrame) -> pd.DataFrame:
         "NUMJOB_2or3_pct": "RT-LFS-1",
         "WISHMORE_2_pct": "RT-LFS-2",
         "EXTRAHRS_gt0_pct": "RT-LFS-3",
-        "EMPSTAT_1_pct": "RU-LFS-1"
+        "EMPSTAT_1_pct": "RU-LFS-1",
+        "VARITIME_34_pct": "RT-LFS-4",
+        "SHIFTWK_1_pct": "RT-LFS-5",
+        "NIGHTWK_12_pct": "RT-LFS-6",
+        "SATWK_12_pct": "RT-LFS-7",
+        "SUNWK_12_pct": "RT-LFS-8",
+        "NEEDCARE_12_pct": "EL-LFS-2"
     }
     
     results_df = results_df.rename(columns=rename_dict)
@@ -397,6 +545,24 @@ def save_outputs(combined_df: pd.DataFrame, final_df: pd.DataFrame, dirs: dict) 
     final_output = dirs['final_dir'] / "LFS_household_final_summary.csv"
     final_df.to_csv(final_output, index=False)
     print(f"✅ Saved final indicators to: {final_output}")
+
+
+def process_lfs_indicators(dirs):
+    """
+    Process and calculate LFS indicators.
+    
+    Args:
+        dirs (dict): Dictionary containing directory paths
+    
+    Returns:
+        pd.DataFrame: Final LFS indicators dataset
+    """
+    print("Processing LFS indicators...")
+    
+    # This function can be removed or renamed if not needed
+    # as the main processing is handled by calculate_lfs_indicators
+    
+    return pd.DataFrame()  # Placeholder
 
 
 def main():

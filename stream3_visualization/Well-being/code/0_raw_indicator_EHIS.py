@@ -180,7 +180,7 @@ def calculate_ehis_indicators(df):
     cols_needed_household = [
         "PID", "HHID", "WGT", "REFYEAR", "COUNTRY", "REGION", "DEG_URB",
         "HATLEVEL", "HHTYPE", "quintile", "HS1", "HS2", "HS3", "AC1A", "AW1", "AW2",
-        "HA1A", "HA1B", "MH1A", "MH1B", "UN1A", "UN1B", "UN2A", "UN2B", "UN2C", "UN2D",
+        "HA1A", "HA1B", "UN1A", "UN1B", "UN2A", "UN2B", "UN2C", "UN2D",
         "PE6", "FV1", "SK1", "AL1", "SS1"
     ]
     
@@ -240,11 +240,6 @@ def calculate_ehis_indicators(df):
             base_condition=lambda x: (x != -1)
         )
 
-        MH1b_pct = weighted_percentage(
-            group, "MH1B", lambda x: (x.isin([4])),
-            base_condition=lambda x: (x != -1)
-        )
-
         HA1b_pct = weighted_percentage(
             group, "HA1B", lambda x: (x.isin([2, 3, 4])),
             base_condition=lambda x: (x != -1) & (x != -2)
@@ -252,11 +247,6 @@ def calculate_ehis_indicators(df):
 
         SS1_pct = weighted_percentage(
             group, "SS1", lambda x: (x.isin([1])),
-            base_condition=lambda x: (x != -1)
-        )
-
-        MH1a_pct = weighted_percentage(
-            group, "MH1A", lambda x: (x.isin([4])),
             base_condition=lambda x: (x != -1)
         )
 
@@ -271,10 +261,8 @@ def calculate_ehis_indicators(df):
             "quintile": quintile,
             "HA1A": HA1a_pct,
             "FV1": FV1_pct,
-            "MH1A": MH1a_pct,
             "SS1": SS1_pct,
             "HA1B": HA1b_pct,
-            "MH1B": MH1b_pct,
             "PE6": PE6_pct,
             "UN2C": UN2c_pct,
             "SK1": SK1_pct,
@@ -300,7 +288,7 @@ def calculate_level5_statistics(df):
     # Define columns needed for analysis
     cols_needed = [
         "PID", "HHID", "WGT", "REFYEAR", "COUNTRY", "quintile",
-        "HA1A", "HA1B", "MH1A", "MH1B", "UN2C", "PE6", "FV1", "SK1", "AL1", "SS1", "AC1A"
+        "HA1A", "HA1B", "UN2C", "PE6", "FV1", "SK1", "AL1", "SS1", "AC1A"
     ]
     
     # Filter and clean data
@@ -333,10 +321,6 @@ def calculate_level5_statistics(df):
                 group_data, "FV1", lambda x: x.isin([4]),
                 base_condition=lambda x: (x != -1)
             ),
-            "EL-EHIS-1": weighted_percentage(
-                group_data, "MH1A", lambda x: x.isin([4]),
-                base_condition=lambda x: (x != -1)
-            ),
             "EC-EHIS-1": weighted_percentage(
                 group_data, "SS1", lambda x: x.isin([1]),
                 base_condition=lambda x: (x != -1)
@@ -344,10 +328,6 @@ def calculate_level5_statistics(df):
             "ED-EHIS-1": weighted_percentage(
                 group_data, "HA1B", lambda x: x.isin([2, 3, 4]),
                 base_condition=lambda x: (x != -1) & (x != -2)
-            ),
-            "AH-EHIS-1": weighted_percentage(
-                group_data, "MH1B", lambda x: x.isin([4]),
-                base_condition=lambda x: (x != -1)
             ),
             "AH-EHIS-2": weighted_percentage(
                 group_data, "PE6", lambda x: x.isin([0]),
@@ -468,10 +448,8 @@ def format_final_output(df):
         "Country": "country",
         "HA1A": "AN-EHIS-1",
         "FV1": "AE-EHIS-1",
-        "MH1A": "EL-EHIS-1",
         "SS1": "EC-EHIS-1",
         "HA1B": "ED-EHIS-1",
-        "MH1B": "AH-EHIS-1",
         "PE6": "AH-EHIS-2",
         "UN2C": "AC-EHIS-1",
         "SK1": "AB-EHIS-1",
@@ -483,8 +461,8 @@ def format_final_output(df):
 
     # Define the columns to melt (convert from wide to long format)
     columns_to_melt = [
-        "AN-EHIS-1", "AE-EHIS-1", "EL-EHIS-1", "EC-EHIS-1", "ED-EHIS-1",
-        "AH-EHIS-1", "AH-EHIS-2", "AC-EHIS-1", "AB-EHIS-1", "AB-EHIS-2", "AB-EHIS-3"
+        "AN-EHIS-1", "AE-EHIS-1", "EC-EHIS-1", "ED-EHIS-1",
+        "AH-EHIS-2", "AC-EHIS-1", "AB-EHIS-1", "AB-EHIS-2", "AB-EHIS-3"
     ]
 
     # Melt the DataFrame to long format
