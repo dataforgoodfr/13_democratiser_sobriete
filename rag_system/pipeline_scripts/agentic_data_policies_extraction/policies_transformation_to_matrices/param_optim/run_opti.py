@@ -32,9 +32,11 @@ current_dir = Path(__file__).parent
 sys.path.append(str(current_dir))
 
 # PARAMS
-N_TRIALS = 5
-LIMIT = 15
-
+#N_TRIALS = 500
+#LIMIT = 2000
+# DONT FORGET TO SETUP HYPERPARAMETERS IN OPTIMIZE_CLUSTERING
+N_TRIALS = 100
+LIMIT = 1000
 def main():
         # Load preprocessed data
     flattened_df, pivot_df = preprocess_data(limit=LIMIT)

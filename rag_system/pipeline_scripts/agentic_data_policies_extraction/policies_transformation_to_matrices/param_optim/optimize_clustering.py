@@ -108,7 +108,7 @@ def run_optuna_study(preprocessed_df, N_TRIALS):
     """
     Run the Optuna study using preprocessed data.
     """
-    study = optuna.create_study(direction=None, 
+    study = optuna.create_study(direction="maximize",
                                 sampler = RandomSampler(), 
                                 )
     study.optimize(lambda trial: objective(trial, preprocessed_df), 
