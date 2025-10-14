@@ -1,6 +1,7 @@
 # Output data files (exclude all except essential files)
 output/*.csv
 !output/unified_all_levels_1_to_5.csv
+!output/unified_all_levels_1_to_5_pca*.csv
 output/*.html
 output/*.png
 output/*.json

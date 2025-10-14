@@ -177,6 +177,7 @@ cython_debug/
 !stream3_visualization/Well-being/data/ewbi_indicators.json
 !stream3_visualization/Well-being/data/2025-08-29_EWBI-Renaming*.xlsx
 !stream3_visualization/Well-being/output/unified_all_levels_1_to_5.csv
+!stream3_visualization/Well-being/output/unified_all_levels_1_to_5_pca*.csv
 
 # Exclude specific large files even if they match allowed patterns
 stream3_visualization/Budget/Output/combined_data.csv
