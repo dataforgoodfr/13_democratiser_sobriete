@@ -3,13 +3,7 @@ import sys
 from pathlib import Path
 import pandas as pd
 import logging
-from optuna.visualization import (
-    plot_optimization_history,
-    plot_param_importances,
-    plot_slice,
-    plot_contour,
-    plot_parallel_coordinate
-)
+
 from plotly.io import write_image
 from preprocess import preprocess_data
 import os
@@ -32,11 +26,10 @@ current_dir = Path(__file__).parent
 sys.path.append(str(current_dir))
 
 # PARAMS
-#N_TRIALS = 500
-#LIMIT = 2000
+N_TRIALS = 500
+LIMIT = 5000
 # DONT FORGET TO SETUP HYPERPARAMETERS IN OPTIMIZE_CLUSTERING
-N_TRIALS = 1
-LIMIT = 200
+
 
 def main():
         # Load preprocessed data
@@ -61,7 +54,7 @@ def main():
 
     # Sauvegarder le nombre de clusters
     n_clusters_KNN = len(best_clustered_df["cluster_id"].unique())
-    n_clusters_Kmean = len(best_clustered_df["cluster_name"].unique())
+    n_clusters_Kmean = len(best_clustered_df["cluster_id_KMEAN"].unique())
     logger.info(f"Nombre de clusters dans le meilleur essai : KNN {n_clusters_KNN}, KMEAN {n_clusters_Kmean}")
 
     # Save data
@@ -100,6 +93,6 @@ def main():
                              "plots"), 
                              exist_ok=True
                              )
-    #save_optuna_plots(study, current_dir, logger)
+    save_optuna_plots(study, current_dir, logger)
 if __name__ == "__main__":
     main()

@@ -108,7 +108,7 @@ def get_best_clustered_df(study, preprocessed_df):
         preprocessed_df.copy(),
         text_col="policy"
     )
-    
+
     clustered_df = merge_policies_kmeans_2(clustered_df, 
                                      clustered_df["policy_canonical"]
                                      )
@@ -124,7 +124,7 @@ def run_optuna_study(preprocessed_df, N_TRIALS):
                                 )
     study.optimize(lambda trial: objective(trial, preprocessed_df), 
                    n_trials=N_TRIALS, 
-                   timeout=3600
+                   timeout=10000
                    )
     
     return study, get_best_clustered_df(study, preprocessed_df)

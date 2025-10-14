@@ -36,14 +36,15 @@ def cluster_from_kmeans_2(texts: List[str],
     Args:
         texts: List of text documents to cluster.
         max_clusters: Maximum number of clusters.
-        random_state: Random seed for reproducibility.
 
     Returns:
         Tuple of (fitted KMeans model, TF-IDF matrix, feature names).
     """
     vectorizer = TfidfVectorizer(stop_words='english')
     X = vectorizer.fit_transform(texts)
-    kmeans = KMeans(n_clusters=max_clusters, random_state=CFG_Kmean.random_seed)
+    kmeans = KMeans(n_clusters=max_clusters, 
+                    random_state=CFG_Kmean.random_seed
+                    )
     kmeans.fit(X)
     return kmeans, X, vectorizer.get_feature_names_out()
 
