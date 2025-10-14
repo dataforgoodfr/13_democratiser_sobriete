@@ -5,7 +5,7 @@
   },
   "build": {
     "type": "pip",
-    "requirements": "stream3_visualization/Well-being/code/deployment/requirements.txt"
+    "requirements": "requirements.txt"
   },
   "deploy": {
     "type": "python"
