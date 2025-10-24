@@ -108,11 +108,6 @@
               "code": "EL-SILC-1",
               "description": "Low Life Satisfaction (EL-SILC-1)",
               "weight": 2
-            },
-            {
-              "code": "EL-EHIS-1",
-              "description": "No Joy in Daily Life (EL-EHIS-1)",
-              "weight": 2
             }
           ]
         },
@@ -157,11 +152,6 @@
               "weight": 1
             },
             {
-              "code": "EC-EHIS-1",
-              "description": "No One to Rely On in a Crisis (EC-EHIS-1)",
-              "weight": 2
-            },
-            {
               "code": "EC-SILC-3",
               "description": "Cannot get together with friends or family (EC-SILC-3)",
               "weight": 2
@@ -188,16 +178,6 @@
           "name": "Nutrition",
           "weight": "1/5",
           "indicators": [
-            {
-              "code": "AN-EHIS-1",
-              "description": "Struggling to Prepare Meals (AN-EHIS-1)",
-              "weight": 2
-            },
-            {
-              "code": "AE-EHIS-1",
-              "description": "Rarely Eating Fruit (AE-EHIS-1)",
-              "weight": 2
-            }
           ]
         },
         {
@@ -212,16 +192,6 @@
             {
               "code": "AH-SILC-2",
               "description": "Living with Chronic Illness (AH-SILC-2)",
-              "weight": 2
-            },
-            {
-              "code": "AH-EHIS-1",
-              "description": "Feeling Depressed Every Day (AH-EHIS-1)",
-              "weight": 2
-            },
-            {
-              "code": "AH-EHIS-2",
-              "description": "No Physical Activity (AH-EHIS-2)",
               "weight": 2
             }
           ]
@@ -246,21 +216,6 @@
           "name": "Accidents and addictive behaviour",
           "weight": "1/5",
           "indicators": [
-            {
-              "code": "AB-EHIS-1",
-              "description": "Daily Smoking (AB-EHIS-1)",
-              "weight": 2
-            },
-            {
-              "code": "AB-EHIS-2",
-              "description": "Drinking Alcohol Nearly Every Day (AB-EHIS-2)",
-              "weight": 2
-            },
-            {
-              "code": "AB-EHIS-3",
-              "description": "Involved in a Road Accident (AB-EHIS-3)",
-              "weight": 1
-            }
           ]
         },
         {

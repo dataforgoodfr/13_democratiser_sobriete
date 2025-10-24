@@ -32,8 +32,8 @@ economic_indicators_to_remove = [
     'HH-SILC-1', 'HH-HBS-1', 'HH-HBS-2', 'HH-HBS-3', 'HH-HBS-4',
     'HE-HBS-1', 'HE-HBS-2',
     'EC-HBS-1', 'EC-HBS-2',
-    'ED-ICT-1', 'ED-EHIS-1',
-    'AC-SILC-1', 'AC-HBS-1', 'AC-HBS-2', 'AC-EHIS-1',
+    'ED-ICT-1',
+    'AC-SILC-1', 'AC-HBS-1', 'AC-HBS-2',
     'IE-HBS-1', 'IE-HBS-2',
     'IC-SILC-1', 'IC-SILC-2', 'IC-HBS-1', 'IC-HBS-2',
     'TT-SILC-1', 'TT-SILC-2', 'TT-HBS-1', 'TT-HBS-2',
@@ -135,49 +135,11 @@ def load_survey_datasets(dirs: dict) -> dict:
         print(f"❌ Error loading LFS data: {e}")
         raise
     
-    # Load EHIS dataset
-    try:
-        datasets['ehis'] = pd.read_csv(
-            dirs['ehis_final'] / "EHIS_level4_indicators.csv"
-        )
-        # EHIS uses 'quintile' (5 income groups) while others use 'decile' (10 income groups)
-        # Keep EHIS as quintile data and add NaN decile column since others use decile
-        datasets['ehis']['decile'] = pd.NA
-        print(f"✅ EHIS Level 4: {len(datasets['ehis']):,} rows (quintile-based data)")
-        
-        # Load EHIS "All" population values from level5 statistics
-        try:
-            ehis_level5 = pd.read_csv(
-                dirs['ehis_final'] / "EHIS_level5_statistics.csv"
-            )
-            # Filter for "All" population values (value_5C type)
-            ehis_all = ehis_level5[
-                (ehis_level5['level5_type'] == 'value_5C') & 
-                (ehis_level5['decile'] == 'All')
-            ].copy()
-            
-            if not ehis_all.empty:
-                # Set quintile to "All" and decile to NaN for consistency
-                ehis_all['quintile'] = 'All'
-                ehis_all['decile'] = pd.NA
-                # Select only the columns we need
-                ehis_all = ehis_all[['year', 'country', 'quintile', 'primary_index', 'value', 'database']]
-                # Add decile column for consistency
-                ehis_all['decile'] = pd.NA
-                
-                # Combine with the quintile-based EHIS data  
-                datasets['ehis'] = pd.concat([datasets['ehis'], ehis_all], axis=0, ignore_index=True)
-                print(f"✅ EHIS All values: {len(ehis_all):,} rows added (total population data)")
-            else:
-                print("⚠️  No EHIS 'All' population values found in level5 statistics")
-                
-        except FileNotFoundError:
-            print("⚠️  EHIS level5 statistics file not found - continuing without 'All' values")
-        
-        print(f"✅ EHIS Total: {len(datasets['ehis']):,} rows (quintile + All population data)")
-    except FileNotFoundError as e:
-        print(f"❌ Error loading EHIS data: {e}")
-        raise
+    
+    # Skip EHIS dataset (EHIS indicators are excluded from EWBI)
+    print("⏭️  Skipping EHIS data loading (EHIS indicators excluded from EWBI)")
+    datasets['ehis'] = pd.DataFrame()  # Empty dataframe to avoid issues in later processing
+    
     
     return datasets
 

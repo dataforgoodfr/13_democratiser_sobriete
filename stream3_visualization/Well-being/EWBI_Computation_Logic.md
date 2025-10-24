@@ -2,6 +2,29 @@
 
 This document provides a detailed technical explanation of how the European Well-Being Index (EWBI) is computed based on the implementation in the codebase.
 
+## Important Methodological Notes
+
+### EHIS and HBS Data Exclusion in Current EWBI Implementation
+
+**Critical Note for Scientific Reporting**: The current EWBI implementation uses only **EU-SILC and LFS data sources**. HBS (Household Budget Survey) and EHIS (European Health Interview Survey) data are no longer included in the calculations.
+
+**Rationale for Exclusion**:
+1. **Focus on Core Well-being Dimensions**: Concentrating on the most comprehensive and consistent data sources
+2. **Methodological Consistency**: Maintaining uniform income stratification (deciles) across all indicators
+3. **Data Quality and Coverage**: Ensuring temporal and geographical consistency
+
+This is a significant methodological decision that should be clearly stated in any scientific publication using the EWBI.
+
+## Executive Summary
+
+The European Well-Being Index (EWBI) is a comprehensive, distributional measure of well-being that tracks quality of life across income groups within European countries. Unlike traditional indices that provide only country-level averages, the EWBI reveals how well-being varies across the income distribution, making it a powerful tool for understanding and addressing inequality. The index is constructed from detailed household and individual survey data (EU-SILC and Labor Force Survey) and produces well-being scores for each income decile (poorest 10%, second poorest 10%, etc.) as well as overall country scores.
+
+The methodology follows a rigorous four-level aggregation process designed to ensure comparability and non-compensability. Starting from raw survey responses, indicators are first normalized using robust statistical techniques (winsorization and percentile scaling) to handle outliers while preserving relative rankings. These normalized indicators are then aggregated into policy-relevant dimensions (EU priorities such as health, education, economic security) using population-weighted Principal Component Analysis (PCA) that accounts for both statistical relationships between indicators and country population sizes. Finally, these dimensions are combined into the overall EWBI using geometric means, which prevents high performance in one area from masking poor performance in another.
+
+A key innovation of the EWBI is its consistent maintenance of income stratification throughout the entire computation process. Every indicator, at every level of aggregation, is calculated separately for each income decile and for the overall population. This means researchers and policymakers can examine not just whether a country has high or low well-being overall, but specifically which income groups face the greatest challenges. For example, the EWBI can reveal that while a country's overall well-being appears adequate, the poorest decile experiences significant deprivation in housing quality or healthcare access.
+
+The resulting dataset provides unprecedented granularity for policy analysis and academic research. Users can compare well-being across countries, track changes over time, analyze inequality within countries, and identify which specific dimensions of well-being (health, economic security, education, etc.) drive overall patterns. This makes the EWBI particularly valuable for evidence-based policymaking focused on reducing inequality, targeting interventions to specific income groups, and monitoring progress toward inclusive well-being goals across Europe.
+
 ## Overview
 
 The EWBI is a composite indicator that measures well-being across European countries using a hierarchical aggregation structure. The computation involves multiple levels of aggregation from raw survey data to the final EWBI score.
@@ -10,7 +33,7 @@ The EWBI is a composite indicator that measures well-being across European count
 
 The EWBI follows a 4-level hierarchical structure (in the PCA version):
 
-1. **Level 5 (Raw Data)**: Original survey responses from EU-SILC, HBS, LFS, and EHIS
+1. **Level 5 (Raw Data)**: Original survey responses from EU-SILC and LFS
 2. **Level 4 (Normalized Data)**: Standardized indicators using winsorization and percentile scaling
 3. **Level 2 (EU Priorities)**: Aggregated indicators grouped by EU policy priorities using PCA-based weights
 4. **Level 1 (EWBI)**: Final composite index aggregating all EU priorities
@@ -23,9 +46,9 @@ The EWBI follows a 4-level hierarchical structure (in the PCA version):
 
 #### Data Sources:
 - **EU-SILC (European Union Statistics on Income and Living Conditions)**: Household and personal indicators
-- **HBS (Household Budget Survey)**: Consumption and expenditure data
 - **LFS (Labor Force Survey)**: Employment and labor market indicators
-- **EHIS (European Health Interview Survey)**: Health-related indicators
+
+*Note: HBS (Household Budget Survey) and EHIS (European Health Interview Survey) data are no longer used in the current EWBI implementation.*
 
 #### Key Processing Steps:
 
@@ -106,21 +129,135 @@ def percentile_scaling(values, target_min=0.1, target_max=1.0):
     return scaled
 ```
 
-**Normalization Approaches:**
-- **Multi-year**: Uses pooled statistics across all years (reduces temporal variation)
-- **Per-year**: Uses year-specific statistics (preserves temporal patterns)
-- **Reference-year**: Uses a specific reference year's statistics
+#### Normalization Approaches
 
-#### EHIS Quintile Conversion
+The system supports three normalization strategies to handle temporal variation:
 
-EHIS data uses income quintiles instead of deciles. The conversion process:
+**Multi-year Normalization (Default)**:
 ```python
-# Convert quintiles to deciles
-# Quintile 1 -> Deciles 1&2, Quintile 2 -> Deciles 3&4, etc.
-for quintile_val in [1, 2, 3, 4, 5]:
-    decile_1 = (quintile_val * 2) - 1  # Q1->D1, Q2->D3, Q3->D5
-    decile_2 = quintile_val * 2        # Q1->D2, Q2->D4, Q3->D6
+NORMALIZATION_APPROACH = 'multi_year'
+# Uses pooled statistics across all years for stability
+# Reduces temporal variation while preserving trends
 ```
+
+**Per-year Normalization**:
+```python
+NORMALIZATION_APPROACH = 'per_year'
+# Uses year-specific statistics (original approach)
+# Preserves temporal patterns but increases variation
+```
+
+**Reference-year Normalization**:
+```python
+NORMALIZATION_APPROACH = 'reference_year'
+REFERENCE_YEAR = 2015
+# Uses a specific reference year's statistics for all years
+```
+
+#### Income Stratification and Decile-Based Computation
+
+All indicators in the current EWBI implementation use consistent income decile stratification based on equivalized disposable income from EU-SILC data. This ensures methodological consistency across all well-being dimensions.
+
+**Key Principle**: The EWBI computation maintains **dual granularity** at every level:
+
+## Decile-Based Computation Structure
+
+### What is Computed Per Decile vs. Aggregated
+
+The EWBI follows a systematic approach where **every indicator is computed both per individual decile (1-10) AND as country-level aggregations (decile = "All")**:
+
+#### Level 5 (Raw Data): Per-Decile Calculation
+```python
+# Group by Year, Country, Decile and calculate indicators
+group_cols = ["HB010", "HB020", "decile"]  # Year, Country, Decile
+
+for group_keys, group in df.groupby(group_cols):
+    # Calculate weighted share for this specific decile
+    total_weight = group["DB090"].sum()
+    mask = group[f"_valid_{var}"]
+    weighted_sum = group.loc[mask, "DB090"].sum()
+    share = (weighted_sum / total_weight * 100)
+```
+
+**Output**: 10 values per country per year per indicator (one for each income decile)
+
+#### Level 5 (Raw Data): Country-Level Aggregation  
+```python
+# Also calculate indicators for total population per country (decile = "All")
+total_group_cols = ["HB010", "HB020"]  # Year, Country only
+
+for group_keys, group in df.groupby(total_group_cols):
+    group_result['decile'] = "All"
+    # Calculate across entire population, not stratified by income
+```
+
+**Output**: 1 value per country per year per indicator (population-wide average)
+
+#### Level 4 (Normalized Data): Maintains Decile Structure
+- **Per-decile normalization**: Each (country, year, decile, indicator) value is normalized using winsorization and percentile scaling
+- **1:1 relationship**: Every Level 5 record has a corresponding normalized Level 4 record
+- **Preserves stratification**: Decile 1-10 and "All" values are maintained separately
+
+#### Level 2 (EU Priorities): PCA Aggregation Per Decile
+```python
+# Compute Level 2: PCA-weighted aggregation by (Year, Country, Decile, EU priority)
+grouped = level4_filtered.groupby(['Year', 'Country', 'Decile', 'EU priority'])
+
+for (year, country, decile, eu_priority), group in grouped:
+    # Apply PCA weights within this specific decile
+    level2_value = weighted_geometric_mean(values, pca_weights)
+```
+
+**Output**: EU Priority scores for each decile (1-10) AND "All" per country per year
+
+#### Level 1 (EWBI): Final Aggregation Per Decile
+```python
+# Compute Level 1: Geometric mean of Level 2 indicators per (Year, Country, Decile)
+for (year, country, decile), group in level2_df.groupby(['Year', 'Country', 'Decile']):
+    ewbi_value = nan_aware_gmean(group['Value'])  # Across EU priorities
+```
+
+**Output**: Final EWBI scores for each decile (1-10) AND "All" per country per year
+
+### Cross-Decile Aggregations ("All" Deciles)
+
+For each level, **"All" decile aggregations are computed separately**:
+
+```python
+def create_all_deciles(df, level_num):
+    """Create 'All' decile aggregations using geometric mean across deciles 1-10"""
+    for group_key, group in df.groupby(['Year', 'Country', 'EU priority']):
+        values = group['Value']  # Values from deciles 1-10
+        all_deciles_value = nan_aware_gmean(values)  # Geometric mean across deciles
+```
+
+**Important Distinction**:
+- **Decile = "All" (population-wide)**: Computed directly from raw survey data across entire population
+- **"All" deciles aggregation**: Geometric mean of individual decile values (1-10)
+
+These can differ because:
+- Population-wide calculation uses all survey respondents
+- Cross-decile aggregation uses geometric mean of 10 decile-specific values
+
+### Summary: Complete Data Structure
+
+The EWBI produces a comprehensive dataset with the following structure:
+
+**For each combination of (Year, Country, Level, Indicator):**
+- **10 individual decile values** (Decile = 1, 2, 3, ..., 10)
+- **1 population-wide value** (Decile = "All")  
+- **1 cross-decile aggregation** (computed from geometric mean of deciles 1-10)
+
+**Example for Germany 2020, Level 1 (EWBI):**
+- `DE, 2020, 1, EWBI, Decile=1`: EWBI score for poorest income decile
+- `DE, 2020, 1, EWBI, Decile=2`: EWBI score for second poorest decile
+- ...
+- `DE, 2020, 1, EWBI, Decile=10`: EWBI score for richest income decile  
+- `DE, 2020, 1, EWBI, Decile="All"`: EWBI score for entire German population
+
+This dual structure enables both:
+1. **Inequality analysis**: Comparing well-being across income deciles
+2. **Country comparisons**: Using population-wide or aggregated measures
 
 ## Aggregation Methodology
 
@@ -173,7 +310,24 @@ for indicator in indicators:
 
 #### Population-Weighted PCA
 
-For country-level aggregations, the system uses population-weighted covariance matrices:
+For country-level aggregations, the system uses population-weighted covariance matrices with sophisticated fallback strategies for missing population data:
+
+```python
+def get_population_weights(countries, year, population_data=None):
+    """
+    Get population weights with automatic fallback for missing data.
+    
+    Fallback strategy:
+    1. Use exact year data if available
+    2. For missing countries, use closest available year (prefer past years)
+    3. If no historical data, use most recent available year
+    4. Log all fallback operations for transparency
+    """
+    # Implementation handles missing population data gracefully
+    # Ensures robust weighting even with incomplete time series
+```
+
+This approach ensures reliable population weighting for the PCA methodology even when exact year data is unavailable, maintaining methodological consistency across the time series.
 
 ```python
 def weighted_covariance_matrix(data, population_weights):
@@ -263,13 +417,28 @@ def create_all_deciles(df, level_num):
 
 ## Technical Implementation Details
 
-### Missing Value Handling
+#### Data Quality and Missing Value Handling
 
-The system implements robust missing value handling:
+The system implements comprehensive data quality controls:
 
-1. **NaN Exclusion**: All aggregation functions exclude NaN values from both numerator and denominator
-2. **Minimum Data Requirements**: Requires minimum number of valid observations for meaningful aggregation
-3. **Graceful Degradation**: Falls back to simpler methods when advanced techniques fail
+1. **Forward Fill Missing Data**: `forward_fill_missing_data()` function handles systematic gaps
+2. **NaN Exclusion**: All aggregation functions exclude NaN values from both numerator and denominator  
+3. **Minimum Data Requirements**: Requires minimum number of valid observations for meaningful aggregation
+4. **Graceful Degradation**: Falls back to simpler methods when advanced techniques fail
+5. **Coverage Thresholds**: Sets minimum coverage requirements (e.g., 10%) for reliable indicators
+
+```python
+def forward_fill_missing_data(df):
+    """Forward fill missing data within country-indicator groups"""
+    # Handles systematic data gaps while preserving data integrity
+    
+def nan_aware_gmean(values):
+    """Geometric mean that handles NaN values properly"""
+    clean_values = values.dropna()
+    if len(clean_values) == 0:
+        return np.nan
+    return gmean(clean_values)
+```
 
 ### Data Validation
 

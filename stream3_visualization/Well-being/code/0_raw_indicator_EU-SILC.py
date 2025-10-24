@@ -709,11 +709,15 @@ def process_household_indicators(dirs):
             # Check if all values are NaN for this variable in this group
             all_nan = group[var].isna().all()
             
-            if all_nan:
+            # Specific exclusion: Skip HQ-SILC-2 (HC060) for 2016 due to data quality issues
+            year = group_keys[0]  # HB010 is the first element (year)
+            if var == "HC060" and year == 2016:
+                share = np.nan
+            elif all_nan:
                 # If all values are NaN, the indicator should be NaN
                 share = np.nan
             else:
-                # Normal calculation when we have at least some non-NaN data
+                # Normal calculation
                 mask = group[f"_valid_{var}"]
                 weighted_sum = group.loc[mask, "DB090"].sum()
                 share = (weighted_sum / total_weight * 100) if total_weight > 0 else np.nan
@@ -735,11 +739,19 @@ def process_household_indicators(dirs):
             # Check if all values are NaN for this variable in this group
             all_nan = group[var].isna().all()
             
-            if all_nan:
-                # If all values are NaN, the indicator should be NaN
+            # Calculate data coverage for this variable in this group
+            total_records = len(group)
+            available_records = group[var].notna().sum()
+            coverage_pct = (available_records / total_records * 100) if total_records > 0 else 0
+            
+            # Set minimum coverage threshold for reliable indicators (10%)
+            min_coverage_threshold = 10.0
+            
+            if all_nan or coverage_pct < min_coverage_threshold:
+                # If all values are NaN or coverage is too low, the indicator should be NaN
                 share = np.nan
             else:
-                # Normal calculation when we have at least some non-NaN data
+                # Normal calculation when we have sufficient data coverage
                 mask = group[f"_valid_{var}"]
                 weighted_sum = group.loc[mask, "DB090"].sum()
                 share = (weighted_sum / total_weight * 100) if total_weight > 0 else np.nan

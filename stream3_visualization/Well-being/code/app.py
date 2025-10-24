@@ -70,24 +70,6 @@ def get_country_color(country, all_countries):
     
     return COUNTRY_COLORS[0]  # Default color
 
-# Helper function to check if an indicator is from EHIS datasource
-def is_ehis_indicator(primary_indicator):
-    """Check if a primary indicator comes from EHIS datasource (uses quintiles instead of deciles)"""
-    if not primary_indicator or pd.isna(primary_indicator):
-        return False
-    
-    # Check if we have Level 5 data for this indicator
-    level5_data = unified_df[
-        (unified_df['Level'] == 5) & 
-        (unified_df['Primary and raw data'] == primary_indicator)
-    ]
-    
-    if level5_data.empty:
-        return False
-    
-    # Check if this indicator comes from EHIS datasource
-    return (level5_data['datasource'] == 'EHIS').any()
-
 # Load the unified PCA data from 3_generate_outputs_pca.py
 try:
     # Use the population-weighted version of the data
@@ -437,28 +419,14 @@ def create_map_chart_pca(level_filters):
         
     else:  # Level 5
         # Level 5: Raw statistical values
-        # Check if this is EHIS data (uses quintiles) or other data (uses deciles)
         primary_indicator = level_filters['primary_indicator']
-        is_ehis_indicator_flag = is_ehis_indicator(primary_indicator)
-        
-        if is_ehis_indicator_flag:
-            # For EHIS data, filter by Quintile == 'All'
-            map_data = unified_df[
-                (unified_df['Level'] == 5) & 
-                (unified_df['Year'] == latest_year) &
-                (unified_df['Quintile'] == 'All') &
-                (unified_df['Primary and raw data'] == primary_indicator) &
-                (unified_df['Country'] != 'All Countries')
-            ].copy()
-        else:
-            # For other data sources, filter by Decile == 'All'
-            map_data = unified_df[
-                (unified_df['Level'] == 5) & 
-                (unified_df['Year'] == latest_year) &
-                (unified_df['Decile'] == 'All') &
-                (unified_df['Primary and raw data'] == primary_indicator) &
-                (unified_df['Country'] != 'All Countries')
-            ].copy()
+        map_data = unified_df[
+            (unified_df['Level'] == 5) & 
+            (unified_df['Year'] == latest_year) &
+            (unified_df['Decile'] == 'All') &
+            (unified_df['Primary and raw data'] == primary_indicator) &
+            (unified_df['Country'] != 'All Countries')
+        ].copy()
         title = f'{get_display_name(primary_indicator)} - Population Share by Country ({int(latest_year)})'
     
     if map_data.empty:
@@ -579,36 +547,18 @@ def create_time_series_chart_pca(level_filters, selected_countries):
         
     else:  # Level 5
         # Level 5: Raw data
-        # Check if this is EHIS data (uses quintiles) or other data (uses deciles)
         primary_indicator = level_filters['primary_indicator']
-        is_ehis_indicator_flag = is_ehis_indicator(primary_indicator)
-        
-        if is_ehis_indicator_flag:
-            # For EHIS data, filter by Quintile == 'All'
-            ts_data = unified_df[
-                (unified_df['Level'] == 5) & 
-                (unified_df['Quintile'] == 'All') &
-                (unified_df['Primary and raw data'] == primary_indicator) &
-                (unified_df['Country'].isin(countries_to_show)) &
-                (
-                    (unified_df['Country'] != 'All Countries') |
-                    ((unified_df['Country'] == 'All Countries') & 
-                     (unified_df['Aggregation'].isin(['Median across countries', 'Population-weighted average'])))
-                )
-            ].copy()
-        else:
-            # For other data sources, filter by Decile == 'All'
-            ts_data = unified_df[
-                (unified_df['Level'] == 5) & 
-                (unified_df['Decile'] == 'All') &
-                (unified_df['Primary and raw data'] == primary_indicator) &
-                (unified_df['Country'].isin(countries_to_show)) &
-                (
-                    (unified_df['Country'] != 'All Countries') |
-                    ((unified_df['Country'] == 'All Countries') & 
-                     (unified_df['Aggregation'].isin(['Median across countries', 'Population-weighted average'])))
-                )
-            ].copy()
+        ts_data = unified_df[
+            (unified_df['Level'] == 5) & 
+            (unified_df['Decile'] == 'All') &
+            (unified_df['Primary and raw data'] == primary_indicator) &
+            (unified_df['Country'].isin(countries_to_show)) &
+            (
+                (unified_df['Country'] != 'All Countries') |
+                ((unified_df['Country'] == 'All Countries') & 
+                 (unified_df['Aggregation'].isin(['Median across countries', 'Population-weighted average'])))
+            )
+        ].copy()
         title = f'{get_display_name(primary_indicator)} - Population Share Over Time'
     
     fig = go.Figure()
@@ -685,11 +635,7 @@ def create_decile_chart_pca(level_filters, selected_countries):
     if selected_countries:
         countries_to_show.extend(selected_countries)
     
-    # Determine if we're dealing with EHIS data (Level 5 only)
-    is_ehis_data = (level_filters['current_level'] == 5 and 
-                    is_ehis_indicator(level_filters.get('primary_indicator')))
-    
-    # Filter data based on level - exclude "All" deciles/quintiles
+    # Filter data based on level - exclude "All" deciles
     if level_filters['current_level'] == 1:
         decile_data = unified_df[
             (unified_df['Level'] == 1) & 
@@ -722,57 +668,33 @@ def create_decile_chart_pca(level_filters, selected_countries):
         x_axis_title = 'Income Decile'
         
     else:  # Level 5
-        if is_ehis_data:
-            # For EHIS data, use quintiles instead of deciles
-            decile_data = unified_df[
-                (unified_df['Level'] == 5) & 
-                (unified_df['Year'] == latest_year) &
-                (unified_df['Quintile'].notna()) &  # Use quintiles for EHIS
-                (unified_df['Quintile'] != 'All') &
-                (unified_df['Primary and raw data'] == level_filters['primary_indicator']) &
-                (unified_df['Country'].isin(countries_to_show))
-            ].copy()
-            title = f'{get_display_name(level_filters["primary_indicator"])} - Population Share by Quintile ({int(latest_year)})'
-            x_axis_title = 'Income Quintile'
-        else:
-            # For other data sources, use deciles
-            decile_data = unified_df[
-                (unified_df['Level'] == 5) & 
-                (unified_df['Year'] == latest_year) &
-                (unified_df['Decile'] != 'All') &
-                (unified_df['Primary and raw data'] == level_filters['primary_indicator']) &
-                (unified_df['Country'].isin(countries_to_show))
-            ].copy()
-            title = f'{get_display_name(level_filters["primary_indicator"])} - Population Share by Decile ({int(latest_year)})'
-            x_axis_title = 'Income Decile'
+        decile_data = unified_df[
+            (unified_df['Level'] == 5) & 
+            (unified_df['Year'] == latest_year) &
+            (unified_df['Decile'] != 'All') &
+            (unified_df['Primary and raw data'] == level_filters['primary_indicator']) &
+            (unified_df['Country'].isin(countries_to_show))
+        ].copy()
+        title = f'{get_display_name(level_filters["primary_indicator"])} - Population Share by Decile ({int(latest_year)})'
+        x_axis_title = 'Income Decile'
     
     fig = go.Figure()
     
     if decile_data.empty:
-        data_type = "quintile" if is_ehis_data else "decile"
         fig.add_annotation(
-            text=f"No {data_type} data available for {level_filters['level_name']}",
+            text=f"No decile data available for {level_filters['level_name']}",
             xref="paper", yref="paper",
             x=0.5, y=0.5, showarrow=False,
             font=dict(size=16, family="Arial, sans-serif")
         )
     else:
-        # Add "All" decile/quintile values for comparison
-        # For EHIS data (quintiles), use Quintile='All'; for other data, use Decile='All'
-        if is_ehis_data:
-            all_aggregate_data = unified_df[
-                (unified_df['Level'] == level_filters['current_level']) & 
-                (unified_df['Year'] == latest_year) &
-                (unified_df['Quintile'] == 'All') &
-                (unified_df['Country'].isin(countries_to_show))
-            ]
-        else:
-            all_aggregate_data = unified_df[
-                (unified_df['Level'] == level_filters['current_level']) & 
-                (unified_df['Year'] == latest_year) &
-                (unified_df['Decile'] == 'All') &
-                (unified_df['Country'].isin(countries_to_show))
-            ]
+        # Add "All" decile values for comparison
+        all_aggregate_data = unified_df[
+            (unified_df['Level'] == level_filters['current_level']) & 
+            (unified_df['Year'] == latest_year) &
+            (unified_df['Decile'] == 'All') &
+            (unified_df['Country'].isin(countries_to_show))
+        ]
         
         if level_filters['current_level'] == 1:
             all_aggregate_data = all_aggregate_data[all_aggregate_data['Aggregation'] == 'Geometric mean inter-decile']
@@ -792,50 +714,27 @@ def create_decile_chart_pca(level_filters, selected_countries):
                 else:
                     display_name = ISO2_TO_FULL_NAME.get(country, country)
                 
-                if is_ehis_data:
-                    # For EHIS data, use quintiles
-                    country_data['Quintile_num'] = pd.to_numeric(country_data['Quintile'], errors='coerce')
-                    country_data = country_data.sort_values('Quintile_num')
-                    
-                    # Adjust values and text for level 5 data
-                    if level_filters['current_level'] == 5:
-                        y_values = country_data['Value']  # Data is already in percentage format
-                        text_values = [f'{v:.1f}%' for v in y_values]
-                    else:
-                        y_values = country_data['Value']
-                        text_values = [f'{v:.2f}' for v in y_values]
-                    
-                    # Add quintile bars
-                    fig.add_trace(go.Bar(
-                        x=[str(int(q)) for q in country_data['Quintile_num']],
-                        y=y_values,
-                        name=display_name,
-                        text=text_values,
-                        textposition='auto',
-                        marker=dict(color=get_country_color(country, countries_to_show))
-                    ))
+                # For other data sources, use deciles
+                country_data['Decile_num'] = pd.to_numeric(country_data['Decile'], errors='coerce')
+                country_data = country_data.sort_values('Decile_num')
+                
+                # Adjust values and text for level 5 data
+                if level_filters['current_level'] == 5:
+                    y_values = country_data['Value']  # Data is already in percentage format
+                    text_values = [f'{v:.1f}%' for v in y_values]
                 else:
-                    # For other data sources, use deciles
-                    country_data['Decile_num'] = pd.to_numeric(country_data['Decile'], errors='coerce')
-                    country_data = country_data.sort_values('Decile_num')
-                    
-                    # Adjust values and text for level 5 data
-                    if level_filters['current_level'] == 5:
-                        y_values = country_data['Value']  # Data is already in percentage format
-                        text_values = [f'{v:.1f}%' for v in y_values]
-                    else:
-                        y_values = country_data['Value']
-                        text_values = [f'{v:.2f}' for v in y_values]
-                    
-                    # Add decile bars
-                    fig.add_trace(go.Bar(
-                        x=[str(int(d)) for d in country_data['Decile_num']],
-                        y=y_values,
-                        name=display_name,
-                        text=text_values,
-                        textposition='auto',
-                        marker=dict(color=get_country_color(country, countries_to_show))
-                    ))
+                    y_values = country_data['Value']
+                    text_values = [f'{v:.2f}' for v in y_values]
+                
+                # Add decile bars
+                fig.add_trace(go.Bar(
+                    x=[str(int(d)) for d in country_data['Decile_num']],
+                    y=y_values,
+                    name=display_name,
+                    text=text_values,
+                    textposition='auto',
+                    marker=dict(color=get_country_color(country, countries_to_show))
+                ))
                 
                 # Add "All" value as a reference line
                 all_value = all_aggregate_data[all_aggregate_data['Country'] == country]
@@ -973,28 +872,15 @@ def create_radar_chart_pca(level_filters, selected_countries):
             title = f'{level_filters["eu_priority"]} by Country ({int(latest_year)}) - PCA Weighted'
             
         else:  # Level 5
-            # Check if this is EHIS data (uses quintiles) or other data (uses deciles)
+            # For other data sources, filter by Decile == 'All'
             primary_indicator = level_filters['primary_indicator']
-            is_ehis_indicator_flag = is_ehis_indicator(primary_indicator)
-            
-            if is_ehis_indicator_flag:
-                # For EHIS data, filter by Quintile == 'All'
-                chart_data = unified_df[
-                    (unified_df['Level'] == 5) & 
-                    (unified_df['Year'] == latest_year) &
-                    (unified_df['Quintile'] == 'All') &
-                    (unified_df['Primary and raw data'] == primary_indicator) &
-                    (unified_df['Country'] != 'All Countries')
-                ].copy()
-            else:
-                # For other data sources, filter by Decile == 'All'
-                chart_data = unified_df[
-                    (unified_df['Level'] == 5) & 
-                    (unified_df['Year'] == latest_year) &
-                    (unified_df['Decile'] == 'All') &
-                    (unified_df['Primary and raw data'] == primary_indicator) &
-                    (unified_df['Country'] != 'All Countries')
-                ].copy()
+            chart_data = unified_df[
+                (unified_df['Level'] == 5) & 
+                (unified_df['Year'] == latest_year) &
+                (unified_df['Decile'] == 'All') &
+                (unified_df['Primary and raw data'] == primary_indicator) &
+                (unified_df['Country'] != 'All Countries')
+            ].copy()
             title = f'{get_display_name(primary_indicator)} - Population Share by Country ({int(latest_year)})'
         
         fig = go.Figure()
@@ -1020,28 +906,15 @@ def create_radar_chart_pca(level_filters, selected_countries):
                 ].copy()
             else:  # Level 5
                 primary_indicator = level_filters['primary_indicator']
-                is_ehis_indicator_flag = is_ehis_indicator(primary_indicator)
-                
-                if is_ehis_indicator_flag:
-                    # For EHIS data, filter by Quintile == 'All'
-                    eu_data = unified_df[
-                        (unified_df['Level'] == 5) & 
-                        (unified_df['Year'] == latest_year) &
-                        (unified_df['Quintile'] == 'All') &
-                        (unified_df['Primary and raw data'] == primary_indicator) &
-                        (unified_df['Country'] == 'All Countries') &
-                        (unified_df['Aggregation'].isin(['Median across countries', 'Population-weighted average']))
-                    ].copy()
-                else:
-                    # For other data sources, filter by Decile == 'All'
-                    eu_data = unified_df[
-                        (unified_df['Level'] == 5) & 
-                        (unified_df['Year'] == latest_year) &
-                        (unified_df['Decile'] == 'All') &
-                        (unified_df['Primary and raw data'] == primary_indicator) &
-                        (unified_df['Country'] == 'All Countries') &
-                        (unified_df['Aggregation'].isin(['Median across countries', 'Population-weighted average']))
-                    ].copy()
+                # For other data sources, filter by Decile == 'All'
+                eu_data = unified_df[
+                    (unified_df['Level'] == 5) & 
+                    (unified_df['Year'] == latest_year) &
+                    (unified_df['Decile'] == 'All') &
+                    (unified_df['Primary and raw data'] == primary_indicator) &
+                    (unified_df['Country'] == 'All Countries') &
+                    (unified_df['Aggregation'].isin(['Median across countries', 'Population-weighted average']))
+                ].copy()
             
             # Combine EU-27 data with country data
             all_data = chart_data.copy()
