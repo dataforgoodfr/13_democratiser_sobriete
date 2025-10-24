@@ -37,6 +37,98 @@ def setup_directories():
     return dirs
 
 
+def extract_year_from_ehis_data(df, wave):
+    """
+    Extract proper year from EHIS data based on the wave and available variables.
+    
+    Args:
+        df (pd.DataFrame): EHIS dataframe for a specific wave
+        wave (int): EHIS wave number (1, 2, or 3)
+        
+    Returns:
+        pd.DataFrame: Dataframe with proper REFYEAR column
+    """
+    if wave == 1:
+        # EHIS 1: Use "YEAR" if available, otherwise "IP04" (ddmmyyyy)
+        if "YEAR" in df.columns:
+            df["REFYEAR"] = df["YEAR"]
+            print(f"Wave {wave}: Using YEAR column")
+        elif "IP04" in df.columns:
+            # IP04 is in ddmmyyyy format, extract year (last 4 digits)
+            df["REFYEAR"] = pd.to_numeric(df["IP04"].astype(str).str[-4:], errors='coerce')
+            print(f"Wave {wave}: Using IP04 column, extracting year from ddmmyyyy format")
+        else:
+            print(f"Wave {wave}: No year column found (YEAR or IP04)")
+            df["REFYEAR"] = np.nan
+            
+    elif wave == 2:
+        # EHIS 2: Use "REFYEAR"
+        if "REFYEAR" in df.columns:
+            df["REFYEAR"] = pd.to_numeric(df["REFYEAR"], errors='coerce')
+            print(f"Wave {wave}: Using REFYEAR column")
+        else:
+            print(f"Wave {wave}: No REFYEAR column found")
+            df["REFYEAR"] = np.nan
+            
+    elif wave == 3:
+        # EHIS 3: Use "YEAR" if available, otherwise "REFDATE" (YYYYMMDD format)
+        if "YEAR" in df.columns:
+            df["REFYEAR"] = pd.to_numeric(df["YEAR"], errors='coerce')
+            print(f"Wave {wave}: Using YEAR column")
+        elif "REFDATE" in df.columns:
+            # REFDATE is in YYYYMMDD format (8 digits), extract year (first 4 digits)
+            df["REFYEAR"] = pd.to_numeric(df["REFDATE"].astype(str).str[:4], errors='coerce')
+            print(f"Wave {wave}: Using REFDATE column, extracting year from YYYYMMDD format")
+        else:
+            print(f"Wave {wave}: No year column found (YEAR or REFDATE)")
+            df["REFYEAR"] = np.nan
+    
+    return df
+
+
+def validate_ehis_years(df, wave):
+    """
+    Validate that the years are within expected ranges for each EHIS wave.
+    
+    Args:
+        df (pd.DataFrame): EHIS dataframe with REFYEAR column
+        wave (int): EHIS wave number (1, 2, or 3)
+        
+    Returns:
+        pd.DataFrame: Filtered dataframe with valid years only
+    """
+    # Define expected year ranges for each wave
+    expected_ranges = {
+        1: (2006, 2009),  # EHIS 1: 2006-2009
+        2: (2013, 2015),  # EHIS 2: 2013-2015
+        3: (2018, 2020)   # EHIS 3: 2018-2020
+    }
+    
+    if wave not in expected_ranges:
+        print(f"Warning: Unknown wave {wave}, skipping year validation")
+        return df
+    
+    min_year, max_year = expected_ranges[wave]
+    
+    # Check current year distribution
+    unique_years = sorted([y for y in df["REFYEAR"].unique() if not pd.isna(y)])
+    print(f"Wave {wave} years found: {unique_years}")
+    
+    # Filter to valid year range
+    valid_mask = (df["REFYEAR"] >= min_year) & (df["REFYEAR"] <= max_year)
+    valid_df = df[valid_mask].copy()
+    
+    invalid_count = len(df) - len(valid_df)
+    if invalid_count > 0:
+        print(f"Wave {wave}: Filtered out {invalid_count} records with years outside {min_year}-{max_year}")
+    
+    # Final validation
+    final_years = sorted([y for y in valid_df["REFYEAR"].unique() if not pd.isna(y)])
+    print(f"Wave {wave} valid years: {final_years}")
+    
+    return valid_df
+
+
 def combine_ehis_waves(dirs):
     """
     Combine EHIS data from multiple waves into a single dataset.
@@ -54,28 +146,41 @@ def combine_ehis_waves(dirs):
     # List to collect dataframes
     dfs = []
 
-    # Column mapping for Wave 1
+    # Column mapping for Wave 1 (excluding YEAR since we handle it separately)
+    # Map Wave 1 column names to standardized names used by Waves 2 & 3
     wave1_rename_map = {
-        "YEAR": "REFYEAR",
         "PWGT": "WGT",
         "IP01": "COUNTRY",
-        "HA1A": "HA01A",
-        "FV1": "FV01",
-        "HA1": "HA01",
-        "PE6": "PE06",
-        "SK1": "SK01",
-        "AL1": "AL01"
+        "HA01A": "HA1A",  # Rename Wave 1 HA01A to HA1A (used by processing functions)
+        "HA01B": "HA1B",  # Rename Wave 1 HA01B to HA1B (used by processing functions)
+        "FV01": "FV1",    # Rename Wave 1 FV01 to FV1 (used by processing functions)
+        "PE06": "PE6",    # Rename Wave 1 PE06 to PE6 (used by processing functions)
+        "SK01": "SK1",    # Rename Wave 1 SK01 to SK1 (used by processing functions)
+        "AL01": "AL1",    # Rename Wave 1 AL01 to AL1 (used by processing functions)
+        # Note: Wave 1 doesn't have UN1A, UN1B, UN2A, UN2B, UN2C, UN2D, SS1, AC1A columns
+        # These indicators will be NaN for Wave 1 data, which is expected
     }
 
     # Loop through wave folders
     for i in range(1, 4):
+        print(f"\n--- Processing EHIS Wave {i} ---")
+        
         if i == 1:
             # For wave 1, files are in 'Data EHIS' subfolder
             wave_folder = os.path.join(full_path, f"EHIS wave {i}", "Data EHIS")
             file_path = os.path.join(wave_folder, f"EHIS{i}.csv")
             if os.path.exists(file_path):
                 df = pd.read_csv(file_path, sep=',')  # Comma separator for wave 1
-                df.rename(columns=wave1_rename_map, inplace=True)  # Rename columns
+                print(f"Wave {i} columns: {list(df.columns)}")
+                
+                # Extract year properly for wave 1
+                df = extract_year_from_ehis_data(df, i)
+                
+                # Validate years
+                df = validate_ehis_years(df, i)
+                
+                # Rename other columns (but not YEAR, since we already handled it)
+                df.rename(columns=wave1_rename_map, inplace=True)
                 df["wave"] = i  # Add a column to indicate the wave
                 dfs.append(df)
             else:
@@ -84,20 +189,37 @@ def combine_ehis_waves(dirs):
             # For waves 2 and 3, files are directly in 'EHIS wave {i}' folder
             wave_folder = os.path.join(full_path, f"EHIS wave {i}")
             if os.path.exists(wave_folder):
-                for file_name in os.listdir(wave_folder):
-                    if file_name.endswith("_Anonymisation.csv"):
-                        file_path = os.path.join(wave_folder, file_name)
-                        df = pd.read_csv(file_path, sep=';')  # Semicolon separator for waves 2 and 3
-                        df["wave"] = i  # Add a column to indicate the wave
-                        df["country"] = file_name.split("_")[0]  # Extract country code
-                        dfs.append(df)
+                wave_files = [f for f in os.listdir(wave_folder) if f.endswith("_Anonymisation.csv")]
+                print(f"Wave {i} files found: {len(wave_files)}")
+                
+                for file_name in wave_files:
+                    file_path = os.path.join(wave_folder, file_name)
+                    df = pd.read_csv(file_path, sep=';')  # Semicolon separator for waves 2 and 3
+                    print(f"Wave {i} ({file_name}) columns: {list(df.columns)}")
+                    
+                    # Extract year properly for this wave
+                    df = extract_year_from_ehis_data(df, i)
+                    
+                    # Validate years
+                    df = validate_ehis_years(df, i)
+                    
+                    df["wave"] = i  # Add a column to indicate the wave
+                    df["country"] = file_name.split("_")[0]  # Extract country code
+                    dfs.append(df)
             else:
                 print(f"Folder not found: {wave_folder}")
 
     # Concatenate all dataframes
     if dfs:
         stacked_df = pd.concat(dfs, ignore_index=True)
+        print(f"\n--- Final Combined Dataset ---")
         print(f"Stacked dataframe shape: {stacked_df.shape}")
+        
+        # Final year summary
+        if "REFYEAR" in stacked_df.columns:
+            year_summary = stacked_df.groupby(['wave', 'REFYEAR']).size().unstack(fill_value=0)
+            print(f"Final year distribution by wave:\n{year_summary}")
+        
         return stacked_df
     else:
         print("No dataframes were loaded.")

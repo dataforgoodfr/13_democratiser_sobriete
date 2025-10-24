@@ -136,7 +136,6 @@ try:
 
     # Create EU priority options - PCA VERSION: These are the only aggregation levels available
     EU_PRIORITIES = [
-        'Agriculture and Food',
         'Energy and Housing', 
         'Equality',
         'Health and Animal Welfare',
@@ -160,6 +159,32 @@ except FileNotFoundError as e:
 # Initialize the Dash app
 app = dash.Dash(__name__)
 server = app.server
+
+# Set global font for all components
+app.index_string = '''
+<!DOCTYPE html>
+<html>
+    <head>
+        {%metas%}
+        <title>{%title%}</title>
+        {%favicon%}
+        {%css%}
+        <style>
+            * {
+                font-family: Arial, sans-serif;
+            }
+        </style>
+    </head>
+    <body>
+        {%app_entry%}
+        <footer>
+            {%config%}
+            {%scripts%}
+            {%renderer%}
+        </footer>
+    </body>
+</html>
+'''
 
 # App layout - PCA VERSION
 app.layout = html.Div([
@@ -221,22 +246,58 @@ app.layout = html.Div([
     html.Div([
         # Grid Item 1: European Map
         html.Div([
-            dcc.Graph(id='european-map-chart', config={'responsive': True})
+            dcc.Graph(id='european-map-chart', config={
+                'responsive': True,
+                'toImageButtonOptions': {
+                    'format': 'png',
+                    'filename': 'ewbi_european_map',
+                    'height': 500,
+                    'width': 700,
+                    'scale': 1.5
+                }
+            })
         ], className="grid-item"),
         
         # Grid Item 2: Time Series Chart
         html.Div([
-            dcc.Graph(id='time-series-chart', config={'responsive': True})
+            dcc.Graph(id='time-series-chart', config={
+                'responsive': True,
+                'toImageButtonOptions': {
+                    'format': 'png',
+                    'filename': 'ewbi_time_series',
+                    'height': 400,
+                    'width': 600,
+                    'scale': 1.5
+                }
+            })
         ], className="grid-item"),
         
         # Grid Item 3: Decile Analysis Chart
         html.Div([
-            dcc.Graph(id='decile-analysis-chart', config={'responsive': True})
+            dcc.Graph(id='decile-analysis-chart', config={
+                'responsive': True,
+                'toImageButtonOptions': {
+                    'format': 'png',
+                    'filename': 'ewbi_decile_analysis',
+                    'height': 400,
+                    'width': 600,
+                    'scale': 1.5
+                }
+            })
         ], className="grid-item"),
         
         # Grid Item 4: Radar Chart / Country Comparison
         html.Div([
-            dcc.Graph(id='radar-chart', config={'responsive': True})
+            dcc.Graph(id='radar-chart', config={
+                'responsive': True,
+                'toImageButtonOptions': {
+                    'format': 'png',
+                    'filename': 'ewbi_radar_comparison',
+                    'height': 400,
+                    'width': 600,
+                    'scale': 1.5
+                }
+            })
         ], className="grid-item"),
     ], className="visualization-grid"),
 
@@ -407,10 +468,11 @@ def create_map_chart_pca(level_filters):
             text=f"No data available for {level_filters['level_name']}",
             xref="paper", yref="paper",
             x=0.5, y=0.5, showarrow=False,
-            font=dict(size=16)
+            font=dict(size=16, family="Arial, sans-serif")
         )
         fig.update_layout(
-            title=dict(text=title, font=dict(size=16, color="#f4d03f", weight="bold"), x=0.5)
+            title=dict(text=title, font=dict(size=16, color="#f4d03f", weight="bold", family="Arial, sans-serif"), x=0.5),
+            font=dict(family="Arial, sans-serif")
         )
         return fig
     
@@ -427,10 +489,11 @@ def create_map_chart_pca(level_filters):
             text="No mappable countries found",
             xref="paper", yref="paper",
             x=0.5, y=0.5, showarrow=False,
-            font=dict(size=16)
+            font=dict(size=16, family="Arial, sans-serif")
         )
         fig.update_layout(
-            title=dict(text=title, font=dict(size=16, color="#f4d03f", weight="bold"), x=0.5)
+            title=dict(text=title, font=dict(size=16, color="#f4d03f", weight="bold", family="Arial, sans-serif"), x=0.5),
+            font=dict(family="Arial, sans-serif")
         )
         return fig
     
@@ -458,7 +521,7 @@ def create_map_chart_pca(level_filters):
     ))
     
     fig.update_layout(
-        title=dict(text=title, font=dict(size=16, color="#f4d03f", weight="bold"), x=0.5),
+        title=dict(text=title, font=dict(size=16, color="#f4d03f", weight="bold", family="Arial, sans-serif"), x=0.5),
         geo=dict(
             scope='europe',
             showland=True,
@@ -468,7 +531,8 @@ def create_map_chart_pca(level_filters):
             oceancolor='white'
         ),
         autosize=True,
-        margin=dict(t=60, b=10, l=10, r=10)
+        margin=dict(t=60, b=10, l=10, r=10),
+        font=dict(family="Arial, sans-serif")
     )
     
     return fig
@@ -554,7 +618,7 @@ def create_time_series_chart_pca(level_filters, selected_countries):
             text=f"No time series data available for {level_filters['level_name']}",
             xref="paper", yref="paper",
             x=0.5, y=0.5, showarrow=False,
-            font=dict(size=16)
+            font=dict(size=16, family="Arial, sans-serif")
         )
     else:
         # Add traces for each country
@@ -592,11 +656,12 @@ def create_time_series_chart_pca(level_filters, selected_countries):
         y_axis_title = 'Score'
     
     fig.update_layout(
-        title=dict(text=title, font=dict(size=16, color="#f4d03f", weight="bold"), x=0.5),
+        title=dict(text=title, font=dict(size=16, color="#f4d03f", weight="bold", family="Arial, sans-serif"), x=0.5),
         autosize=True,
         margin=dict(t=60, b=50, l=50, r=50),
         yaxis=dict(title=y_axis_title),
-        xaxis=dict(title='Year')
+        xaxis=dict(title='Year'),
+        font=dict(family="Arial, sans-serif")
     )
     
     return fig
@@ -689,7 +754,7 @@ def create_decile_chart_pca(level_filters, selected_countries):
             text=f"No {data_type} data available for {level_filters['level_name']}",
             xref="paper", yref="paper",
             x=0.5, y=0.5, showarrow=False,
-            font=dict(size=16)
+            font=dict(size=16, family="Arial, sans-serif")
         )
     else:
         # Add "All" decile/quintile values for comparison
@@ -804,12 +869,13 @@ def create_decile_chart_pca(level_filters, selected_countries):
         y_axis_title = 'Score'
     
     fig.update_layout(
-        title=dict(text=title, font=dict(size=16, color="#f4d03f", weight="bold"), x=0.5),
+        title=dict(text=title, font=dict(size=16, color="#f4d03f", weight="bold", family="Arial, sans-serif"), x=0.5),
         autosize=True,
         margin=dict(t=60, b=50, l=50, r=50),
         barmode='group',
         xaxis=dict(title=x_axis_title),
-        yaxis=dict(title=y_axis_title)
+        yaxis=dict(title=y_axis_title),
+        font=dict(family="Arial, sans-serif")
     )
     
     return fig
@@ -854,7 +920,7 @@ def create_radar_chart_pca(level_filters, selected_countries):
                 text="No EU Priority data available for radar chart",
                 xref="paper", yref="paper",
                 x=0.5, y=0.5, showarrow=False,
-                font=dict(size=16)
+                font=dict(size=16, family="Arial, sans-serif")
             )
         else:
             eu_priorities = radar_data['EU priority'].unique()
@@ -889,7 +955,8 @@ def create_radar_chart_pca(level_filters, selected_countries):
         fig.update_layout(
             polar=dict(radialaxis=dict(visible=True, range=[0, 1])),
             title=dict(text=f'EU Priorities Comparison ({int(latest_year)}) - PCA Weighted', 
-                      font=dict(size=16, color="#f4d03f", weight="bold"), x=0.5)
+                      font=dict(size=16, color="#f4d03f", weight="bold", family="Arial, sans-serif"), x=0.5),
+            font=dict(family="Arial, sans-serif")
         )
         
     else:
@@ -937,38 +1004,96 @@ def create_radar_chart_pca(level_filters, selected_countries):
                 text=f"No country data available for {level_filters['level_name']}",
                 xref="paper", yref="paper",
                 x=0.5, y=0.5, showarrow=False,
-                font=dict(size=16)
+                font=dict(size=16, family="Arial, sans-serif")
             )
         else:
-            # Sort countries by value
-            chart_data = chart_data.sort_values('Value', ascending=False)
-            country_names = [ISO2_TO_FULL_NAME.get(c, c) for c in chart_data['Country']]
-            
-            # Adjust values and text for level 5 data
-            if level_filters['current_level'] == 5:
-                y_values = chart_data['Value']  # Data is already in percentage format
-                text_values = [f'{v:.1f}%' for v in y_values]
-            else:
-                y_values = chart_data['Value']
-                text_values = [f'{v:.2f}' for v in y_values]
-            
-            # Create colors for each country - this is the bottom right chart
-            # Use EU-27 color for all countries, except selected ones get their assigned colors
-            colors = []
-            for country in chart_data['Country']:
-                if selected_countries and country in selected_countries:
-                    # Selected countries get their assigned palette color
-                    colors.append(get_country_color(country, selected_countries))
+            # Get EU-27 aggregate data for the same level and filters
+            if level_filters['current_level'] == 2:
+                # For EU Priority level
+                eu_data = unified_df[
+                    (unified_df['Level'] == 2) & 
+                    (unified_df['Year'] == latest_year) &
+                    (unified_df['Decile'] == 'All') &
+                    (unified_df['EU priority'] == level_filters['eu_priority']) &
+                    (unified_df['Country'] == 'All Countries') &
+                    (unified_df['Aggregation'] == 'Population-weighted geometric mean')
+                ].copy()
+            else:  # Level 5
+                primary_indicator = level_filters['primary_indicator']
+                is_ehis_indicator_flag = is_ehis_indicator(primary_indicator)
+                
+                if is_ehis_indicator_flag:
+                    # For EHIS data, filter by Quintile == 'All'
+                    eu_data = unified_df[
+                        (unified_df['Level'] == 5) & 
+                        (unified_df['Year'] == latest_year) &
+                        (unified_df['Quintile'] == 'All') &
+                        (unified_df['Primary and raw data'] == primary_indicator) &
+                        (unified_df['Country'] == 'All Countries') &
+                        (unified_df['Aggregation'].isin(['Median across countries', 'Population-weighted average']))
+                    ].copy()
                 else:
-                    # All other countries remain in EU-27 blue
-                    colors.append(EU_27_COLOR)
+                    # For other data sources, filter by Decile == 'All'
+                    eu_data = unified_df[
+                        (unified_df['Level'] == 5) & 
+                        (unified_df['Year'] == latest_year) &
+                        (unified_df['Decile'] == 'All') &
+                        (unified_df['Primary and raw data'] == primary_indicator) &
+                        (unified_df['Country'] == 'All Countries') &
+                        (unified_df['Aggregation'].isin(['Median across countries', 'Population-weighted average']))
+                    ].copy()
+            
+            # Combine EU-27 data with country data
+            all_data = chart_data.copy()
+            if not eu_data.empty:
+                # Add EU-27 data
+                eu_row = eu_data.iloc[0].copy()
+                eu_row['Country'] = 'EU-27'
+                all_data = pd.concat([all_data, pd.DataFrame([eu_row])], ignore_index=True)
+            
+            # Sort all data by value
+            all_data = all_data.sort_values('Value', ascending=False)
+            
+            # Create display names and prepare data
+            country_names = []
+            y_values = []
+            text_values = []
+            colors = []
+            
+            for _, row in all_data.iterrows():
+                country = row['Country']
+                value = row['Value']
+                
+                # Set display name
+                if country == 'EU-27':
+                    display_name = 'EU-27'
+                else:
+                    display_name = ISO2_TO_FULL_NAME.get(country, country)
+                
+                country_names.append(display_name)
+                y_values.append(value)
+                
+                # Format text based on level
+                if level_filters['current_level'] == 5:
+                    text_values.append(f'{value:.1f}%')
+                else:
+                    text_values.append(f'{value:.2f}')
+                
+                # Set colors: EU-27 in blue, selected countries in their colors, others in light grey
+                if country == 'EU-27':
+                    colors.append(EU_27_COLOR)  # EU-27 blue
+                elif selected_countries and country in selected_countries:
+                    colors.append(get_country_color(country, selected_countries))  # Selected country color
+                else:
+                    colors.append('#d3d3d3')  # Light grey for unselected countries
             
             fig.add_trace(go.Bar(
                 x=country_names,
                 y=y_values,
                 text=text_values,
                 textposition='auto',
-                marker=dict(color=colors)
+                marker=dict(color=colors),
+                showlegend=False
             ))
         
         # Set y-axis title based on level
@@ -978,14 +1103,16 @@ def create_radar_chart_pca(level_filters, selected_countries):
             y_axis_title = 'Score'
         
         fig.update_layout(
-            title=dict(text=title, font=dict(size=16, color="#f4d03f", weight="bold"), x=0.5),
+            title=dict(text=title, font=dict(size=16, color="#f4d03f", weight="bold", family="Arial, sans-serif"), x=0.5),
             xaxis=dict(tickangle=45),
-            yaxis=dict(title=y_axis_title)
+            yaxis=dict(title=y_axis_title),
+            font=dict(family="Arial, sans-serif")
         )
     
     fig.update_layout(
         autosize=True,
-        margin=dict(t=60, b=50, l=50, r=50)
+        margin=dict(t=60, b=50, l=50, r=50),
+        font=dict(family="Arial, sans-serif")
     )
     
     return fig

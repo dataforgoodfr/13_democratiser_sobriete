@@ -1,42 +1,6 @@
 {
   "EWBI": [
     {
-      "name": "Agriculture and Food",
-      "components": [
-        {
-          "name": "Nutrition",
-          "weight": 1,
-          "indicators": [
-            {
-              "code": "AN-SILC-1",
-              "description": "Share of nth decile households in capacity to afford a meal with meat, chicken, fish or vegetarian equivalent every second day",
-              "weight": 1
-            },
-            {
-              "code": "AN-EHIS-1",
-              "description": "Struggling to Prepare Meals (AN-EHIS-1)",
-              "weight": 2
-            },
-            {
-              "code": "AE-HBS-1",
-              "description": "Percentage of households of the nth decile whose share of equivalised food and nonalcoholic beverages expenditure in equivalised disposable income is above twice the national median share",
-              "weight": 1
-            },
-            {
-              "code": "AE-HBS-2",
-              "description": "Percentage of households of the nth decile whose share of equivalised food and nonalcoholic beverages expenditure in equivalised disposable income is bellow half the national median share",
-              "weight": 1
-            },
-            {
-              "code": "AE-EHIS-1",
-              "description": "Rarely Eating Fruit (AE-EHIS-1)",
-              "weight": 2
-            }
-          ]
-        }
-      ]
-    },
-    {
       "name": "Energy and Housing",
       "components": [
         {
@@ -221,8 +185,24 @@
       "name": "Health and Animal Welfare",
       "components": [
         {
+          "name": "Nutrition",
+          "weight": "1/5",
+          "indicators": [
+            {
+              "code": "AN-EHIS-1",
+              "description": "Struggling to Prepare Meals (AN-EHIS-1)",
+              "weight": 2
+            },
+            {
+              "code": "AE-EHIS-1",
+              "description": "Rarely Eating Fruit (AE-EHIS-1)",
+              "weight": 2
+            }
+          ]
+        },
+        {
           "name": "Health condition",
-          "weight": "1/4",
+          "weight": "1/5",
           "indicators": [
             {
               "code": "AH-SILC-1",
@@ -248,7 +228,7 @@
         },
         {
           "name": "Health impact",
-          "weight": "1/4",
+          "weight": "1/5",
           "indicators": [
             {
               "code": "AH-SILC-3",
@@ -264,7 +244,7 @@
         },
         {
           "name": "Accidents and addictive behaviour",
-          "weight": "1/4",
+          "weight": "1/5",
           "indicators": [
             {
               "code": "AB-EHIS-1",
@@ -285,7 +265,7 @@
         },
         {
           "name": "Access to care",
-          "weight": "1/4",
+          "weight": "1/5",
           "indicators": [
             {
               "code": "AC-SILC-3",

@@ -122,19 +122,17 @@ Well-being/
 - **EWBI**: Composite score across all EU Priorities
 
 #### Level 2: EU Priorities (6 major policy areas)
-1. **Agriculture and Food**
-2. **Energy and Housing**
-3. **Equality**
-4. **Health and Animal Welfare**
-5. **Intergenerational Fairness, Youth, Culture and Sport**
-6. **Social Rights and Skills, Quality Jobs and Preparedness**
-7. **Sustainable Transport and Tourism**
+1. **Energy and Housing**
+2. **Equality**
+3. **Health and Animal Welfare**
+4. **Intergenerational Fairness, Youth, Culture and Sport**
+5. **Social Rights and Skills, Quality Jobs and Preparedness**
+6. **Sustainable Transport and Tourism**
 
 #### Level 3: Secondary Indicators (18 dimensions)
-- **Agriculture and Food**: Nutrition need, Nutrition expense
 - **Energy and Housing**: Housing quality, Energy, Housing expense
 - **Equality**: Life satisfaction, Security, Community
-- **Health and Animal Welfare**: Health condition and impact, Accidents and addictive behaviour
+- **Health and Animal Welfare**: Nutrition, Health condition and impact, Accidents and addictive behaviour
 - **Intergenerational Fairness, Youth, Culture and Sport**: Education, Education expense, Leisure and culture
 - **Social Rights and Skills, Quality Jobs and Preparedness**: Type of job and market participation, Unemployment
 - **Sustainable Transport and Tourism**: Transport, Tourism
@@ -155,7 +153,7 @@ Well-being/
 2. Dashboard shows EWBI overview with all countries
 
 ### Analyzing Specific Policy Areas
-1. Select an EU Priority (e.g., "Agriculture and Food")
+1. Select an EU Priority (e.g., "Health and Animal Welfare")
 2. View secondary indicators within that priority
 3. Drill down to specific primary indicators
 

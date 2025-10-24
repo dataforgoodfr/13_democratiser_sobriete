@@ -1,5 +1,10 @@
 /* Responsive CSS Grid Layout for EWBI Dashboard */
 
+/* Global font family for all elements */
+* {
+    font-family: Arial, sans-serif;
+}
+
 /* Main container for the dashboard */
 .dashboard-container {
     width: 100vw;
@@ -7,6 +12,7 @@
     display: flex;
     flex-direction: column;
     overflow-x: hidden;
+    font-family: Arial, sans-serif;
 }
 
 /* Header section styling */
@@ -133,6 +139,17 @@
     color: #2c3e50;
     margin-bottom: 4px;
     font-size: clamp(0.8rem, 1.5vw, 1rem);
+    font-family: Arial, sans-serif;
+}
+
+/* Dropdown and input styling */
+.Select-control, .Select-menu-outer, .Select-option {
+    font-family: Arial, sans-serif !important;
+}
+
+/* Ensure Dash core components use Arial */
+._dash-undo-redo, .dash-table-container, .dash-spreadsheet-container {
+    font-family: Arial, sans-serif !important;
 }
 
 /* Sources section styling */
@@ -156,6 +173,7 @@
     font-weight: bold;
     margin-bottom: 1.5vw;
     text-align: center;
+    font-family: Arial, sans-serif;
 }
 
 .sources-subtitle {
@@ -163,12 +181,14 @@
     font-size: clamp(1rem, 2vw, 1.2rem);
     font-weight: bold;
     margin-bottom: 0.8vw;
+    font-family: Arial, sans-serif;
 }
 
 .sources-text {
     margin-bottom: 0.8vw;
     line-height: 1.6;
     font-size: clamp(0.85rem, 1.5vw, 1rem);
+    font-family: Arial, sans-serif;
 }
 
 /* Media queries for different screen sizes */
