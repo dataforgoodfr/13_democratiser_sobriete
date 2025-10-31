@@ -29,12 +29,13 @@ class Config:
     text_col: str = "policy"
     model_name: str = "all-MiniLM-L6-v2"             # or "paraphrase-multilingual-MiniLM-L12-v2"
     use_multilingual: bool = False                   # set True to override model_name
-    batch_size: int = 32                             # Reduced batch size to avoid memory issues
-    max_neighbors: int = 10                          # Reduced k for k-NN to avoid memory issues
+    batch_size: int = 62                             # Reduced batch size to avoid memory issues
+    max_neighbors: int = 50                          # Reduced k for k-NN to avoid memory issues
     sim_threshold: float = 0.78                      # merge threshold (cosine). Try 0.75–0.85
     normalize_text_flag: bool = True
     random_seed: int = 42
     medoid_exact_max_cluster: int = 100              # Reduced max cluster size
+    kmeans_clusters: int = 500
 
 CFG = Config()
 if CFG.use_multilingual:
@@ -206,7 +207,8 @@ def merge_policies_semantic_medoid(df: pd.DataFrame,
                                    max_neighbors: int = None,
                                    sim_threshold: float = None,
                                    batch_size: int = None,
-                                   normalize_text_flag: bool = None) -> pd.DataFrame:
+                                   normalize_text_flag: bool = None,
+                                   kmeans_clusters: int = None) -> pd.DataFrame:
     """
     Adds 'cluster_id' and 'policy_canonical' to df and returns it.
     Canonical selection = medoid per cluster.
@@ -232,6 +234,10 @@ def merge_policies_semantic_medoid(df: pd.DataFrame,
             texts = df["_policy_norm"].tolist()
         else:
             texts = df[text_col].astype(str).fillna("").tolist()
+        
+        filtered_indices = [i for i, text in enumerate(texts) if len(text.split()) > 3]
+        df = df.iloc[filtered_indices].copy().reset_index(drop=True)
+        texts = df[text_col].astype(str).fillna("").tolist()
 
         # Embed
         print(f"Embedding {len(texts)} texts with '{model_name}'...")
@@ -241,19 +247,25 @@ def merge_policies_semantic_medoid(df: pd.DataFrame,
         k = min(max_neighbors, max(2, len(texts)))
         print(f"Building FAISS k-NN (k={k}) and clustering with threshold={sim_threshold:.2f}...")
         knn_idx, knn_sims = build_knn_index(embs, k=k)
+        print("Neighbor similarity distribution (excluding self):")
+        print(pd.Series(knn_sims[:, 1:].flatten()).describe())
 
         # Graph clustering
         labels = cluster_from_knn(knn_idx, knn_sims, threshold=sim_threshold)
         df["cluster_id"] = labels
 
-        # Medoid per cluster
+        # Medoid per cluster (uniquement pour les clusters valides)
         print("Selecting canonical medoid per cluster...")
         canonical_map: Dict[int, str] = {}
         for cid, grp in df.groupby("cluster_id", sort=False):
-            idx = grp.index.to_numpy()                   # these are 0..N-1 after reset_index
-            medoid_row = choose_medoid_indices(idx, embs)
-            canonical_map[int(cid)] = df.loc[medoid_row, text_col]
+            grp_emb_indices = grp.index.to_numpy()  # Indices in the filtered df/embs
+            if len(grp_emb_indices) == 1:
+                medoid_original_idx = grp_emb_indices[0]  # The only index
+            else:
+                medoid_original_idx = choose_medoid_indices(grp_emb_indices, embs)  # Already an index in grp.index
+            canonical_map[int(cid)] = df.loc[medoid_original_idx, text_col]
 
+            
         df["policy_canonical"] = df["cluster_id"].map(canonical_map)
 
         # Cleanup
@@ -277,6 +289,10 @@ def merge_policies_semantic_medoid(df: pd.DataFrame,
             print("Model cache cleaned up")
         except:
             pass
+
+
+
+
 
 # -------- Example / CLI --------
 if __name__ == "__main__":
