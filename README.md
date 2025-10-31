@@ -70,6 +70,5 @@ Plus d'informations : [documentation officielle de uv](https://astral.sh/uv)
     tox -vv
 
 
-> [!IMPORTANT] 
-
+> [!IMPORTANT]
 > Projet en développement actif, pas de garantie de fonctionnement, notamment pour les tests.
