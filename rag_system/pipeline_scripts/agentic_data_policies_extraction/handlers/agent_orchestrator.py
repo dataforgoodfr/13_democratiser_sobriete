@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any
 from .main_handler import get_client, get_response
 from ..prompts.agent_prompts import (
     get_geographic_agent_prompt,

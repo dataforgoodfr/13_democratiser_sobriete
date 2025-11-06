@@ -4,7 +4,6 @@ Complete pipeline: Database extraction → Flattening → Taxonomy → Clusterin
 """
 
 import sys
-import pandas as pd
 import logging
 from pathlib import Path
 

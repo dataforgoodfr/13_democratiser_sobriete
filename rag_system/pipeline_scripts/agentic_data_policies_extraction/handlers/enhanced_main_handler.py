@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 from .main_handler import get_client, get_response
 from .agent_orchestrator import get_agent_orchestrator
 from ..prompts.text_analyzer import get_prompt_extraction
