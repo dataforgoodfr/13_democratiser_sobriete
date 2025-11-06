@@ -219,19 +219,23 @@ def apply_population_weighting():
             return np.nan
         
         try:
-            country_list = countries.tolist()
-            weights_dict = get_population_weights(country_list, year, population_data)
+            # Convert to numpy arrays to avoid pandas indexing issues
+            values_array = np.array(values)
+            countries_array = np.array(countries)
             
-            # Create weights series aligned with values
-            weights = pd.Series([weights_dict.get(country, 0.0) for country in countries])
+            # Get population weights
+            weights_dict = get_population_weights(countries_array.tolist(), year, population_data)
+            
+            # Create weights array aligned with values
+            weights_array = np.array([weights_dict.get(country, 0.0) for country in countries_array])
             
             # Remove entries with zero weights
-            valid_mask = weights > 0
+            valid_mask = weights_array > 0
             if not valid_mask.any():
-                return values.mean()  # Fallback to simple mean
+                return values_array.mean()  # Fallback to simple mean
             
-            valid_values = values[valid_mask]
-            valid_weights = weights[valid_mask]
+            valid_values = values_array[valid_mask]
+            valid_weights = weights_array[valid_mask]
             
             # Normalize weights to sum to 1
             normalized_weights = valid_weights / valid_weights.sum()
@@ -241,7 +245,7 @@ def apply_population_weighting():
         
         except Exception as e:
             print(f"⚠️  Error computing population-weighted average for year {year}: {e}")
-            return values.mean()  # Fallback to simple mean
+            return np.array(values).mean()  # Fallback to simple mean
     
     # Create a copy of the dataframe
     df_modified = df.copy()
@@ -261,83 +265,79 @@ def apply_population_weighting():
     
     if len(median_agg_rows) == 0:
         print("⚠️  No Level 1 & 2 median aggregations found for 'All Countries'")
-        print("� Computing population-weighted geometric means for Level 1 & 2...")
+    else:
+        print(f"🔄 Computing population-weighted averages for {len(median_agg_rows)} median aggregations...")
         
-        # Add population-weighted geometric means
-        df_modified = compute_population_weighted_geometric_means(df_modified, population_data, eu_countries)
+        # Group the data we need to re-aggregate
+        updates_made = 0
         
-        # Save the modified data as the weighted version
-        df_modified.to_csv(output_path, index=False)
-        
-        # Show summary
-        pop_weighted_count = len(df_modified[df_modified['Aggregation'] == 'Population-weighted geometric mean'])
-        geometric_count = len(df_modified[df_modified['Aggregation'] == 'Geometric mean inter-decile'])
-        print(f"✅ Saved {len(df_modified):,} rows to weighted file")
-        print(f"📊 Population-weighted geometric means: {pop_weighted_count:,}")
-        print(f"📊 Geometric mean inter-decile: {geometric_count:,}")
-        return
-    
-    # Group the data we need to re-aggregate
-    print("🔄 Computing population-weighted averages...")
-    
-    # Get the source data (individual countries) for these aggregations
-    updates_made = 0
-    
-    for idx, row in median_agg_rows.iterrows():
-        year = row['Year']
-        level = row['Level']
-        decile = row['Decile']
-        eu_priority = row['EU priority']
-        
-        # Find the individual country data that was used to create this aggregation
-        source_condition = (
-            (df_modified['Year'] == year) &
-            (df_modified['Level'] == level) &
-            (df_modified['Decile'] == decile) &
-            (df_modified['Country'].isin(eu_countries)) &
-            (df_modified['Country'] != 'All Countries')
-        )
-        
-        # For Level 2, also match EU priority
-        if level == 2 and pd.notna(eu_priority):
-            source_condition &= (df_modified['EU priority'] == eu_priority)
-        
-        source_data = df_modified[source_condition]
-        
-        if len(source_data) > 0:
-            values = source_data['Value'].dropna()
-            countries = source_data['Country']
+        for idx, row in median_agg_rows.iterrows():
+            year = row['Year']
+            level = row['Level']
+            decile = row['Decile']
+            eu_priority = row['EU priority']
             
-            if len(values) > 0:
-                # Compute population-weighted average
-                weighted_avg = population_weighted_average(values, countries, year)
+            # Find the individual country data that was used to create this aggregation
+            source_condition = (
+                (df_modified['Year'] == year) &
+                (df_modified['Level'] == level) &
+                (df_modified['Decile'] == decile) &
+                (df_modified['Country'].isin(eu_countries)) &
+                (df_modified['Country'] != 'All Countries')
+            )
+            
+            # For Level 2, also match EU priority
+            if level == 2 and pd.notna(eu_priority):
+                source_condition &= (df_modified['EU priority'] == eu_priority)
+            
+            source_data = df_modified[source_condition]
+            
+            if len(source_data) > 0:
+                values = source_data['Value'].dropna()
+                countries = source_data['Country']
                 
-                if not np.isnan(weighted_avg):
-                    # Update the row
-                    df_modified.loc[idx, 'Value'] = weighted_avg
-                    df_modified.loc[idx, 'Aggregation'] = 'Population-weighted average'
-                    updates_made += 1
+                if len(values) > 0:
+                    # Compute population-weighted average
+                    weighted_avg = population_weighted_average(values, countries, year)
+                    
+                    if not np.isnan(weighted_avg):
+                        # Update the row
+                        df_modified.loc[idx, 'Value'] = weighted_avg
+                        df_modified.loc[idx, 'Aggregation'] = 'Population-weighted average'
+                        updates_made += 1
+        
+        print(f"✅ Updated {updates_made} aggregations to use population weighting")
     
-    print(f"✅ Updated {updates_made} aggregations to use population weighting")
+    # Always compute population-weighted geometric means for Level 1 & 2
+    print("🔄 Computing population-weighted geometric means for Level 1 & 2...")
+    df_modified = compute_population_weighted_geometric_means(df_modified, population_data, eu_countries)
     
     # Save the modified dataframe
     print(f"💾 Saving modified data to {output_path}")
     df_modified.to_csv(output_path, index=False)
     
     # Show summary of changes
-    pop_weighted_count = len(df_modified[df_modified['Aggregation'] == 'Population-weighted average'])
+    pop_weighted_avg_count = len(df_modified[df_modified['Aggregation'] == 'Population-weighted average'])
+    pop_weighted_geom_count = len(df_modified[df_modified['Aggregation'] == 'Population-weighted geometric mean'])
     median_count = len(df_modified[df_modified['Aggregation'] == 'Median across countries'])
     
     print(f"\n📊 Final counts:")
-    print(f"  Population-weighted aggregations: {pop_weighted_count:,}")
+    print(f"  Population-weighted averages: {pop_weighted_avg_count:,}")
+    print(f"  Population-weighted geometric means: {pop_weighted_geom_count:,}")
     print(f"  Median aggregations: {median_count:,}")
     
     # Show some examples
-    if pop_weighted_count > 0:
-        print(f"\n📋 Sample population-weighted aggregations:")
-        sample_pop = df_modified[df_modified['Aggregation'] == 'Population-weighted average'].head(5)
+    if pop_weighted_geom_count > 0:
+        print(f"\n📋 Sample population-weighted geometric means:")
+        sample_geom = df_modified[df_modified['Aggregation'] == 'Population-weighted geometric mean'].head(5)
         cols_to_show = ['Year', 'Country', 'Level', 'EU priority', 'Decile', 'Value', 'Aggregation']
-        print(sample_pop[cols_to_show].to_string(index=False))
+        print(sample_geom[cols_to_show].to_string(index=False))
+    
+    if pop_weighted_avg_count > 0:
+        print(f"\n📋 Sample population-weighted averages:")
+        sample_avg = df_modified[df_modified['Aggregation'] == 'Population-weighted average'].head(5)
+        cols_to_show = ['Year', 'Country', 'Level', 'EU priority', 'Decile', 'Value', 'Aggregation']
+        print(sample_avg[cols_to_show].to_string(index=False))
 
 if __name__ == "__main__":
     print("🚀 Applying Population-Weighted Aggregations to PCA Output")

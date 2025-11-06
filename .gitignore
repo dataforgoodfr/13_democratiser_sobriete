@@ -232,6 +232,7 @@ stream3_visualization/Well-being/output/0_raw_data_EUROSTAT/
 stream3_visualization/Well-being/output/1_data_app/
 stream3_visualization/Well-being/output/2_data_validation/
 stream3_visualization/Well-being/output/Archive/
+stream3_visualization/Well-being/output/Graphs/
 
 # Other output files not needed for production
 stream3_visualization/Well-being/output/*.html

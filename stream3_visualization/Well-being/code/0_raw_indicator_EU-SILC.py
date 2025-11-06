@@ -42,6 +42,108 @@ def setup_directories():
     return dirs
 
 
+def robust_read_csv(file_path, file_name, cols_needed, **kwargs):
+    """
+    Robust CSV reading with multiple encoding attempts and comprehensive error handling.
+    
+    Args:
+        file_path (str): Path to the CSV file
+        file_name (str): Name of the file for logging
+        cols_needed (list): List of required columns
+        **kwargs: Additional arguments for pd.read_csv
+    
+    Returns:
+        pd.DataFrame or None: DataFrame if successful, None if failed
+    """
+    try:
+        # Try reading with default encoding first
+        sample_df = pd.read_csv(file_path, sep=",", nrows=5, **kwargs)
+        available_cols = sample_df.columns.tolist()
+
+        # Determine which needed columns exist in this file
+        cols_present = [col for col in cols_needed if col in available_cols]
+
+        if not cols_present:
+            print(f"⚠️ No needed columns found in {file_name}, skipping.")
+            return None
+
+        # Read the full file using only available columns
+        df = pd.read_csv(file_path, sep=",", usecols=cols_present, **kwargs)
+
+        # Add missing columns as NaNs
+        for col in cols_needed:
+            if col not in df.columns:
+                df[col] = pd.NA
+
+        print(f"✅ Successfully processed {file_name} ({len(df):,} records)")
+        return df
+
+    except UnicodeDecodeError as e:
+        print(f"⚠️ Encoding error in {file_name}, trying different encodings: {e}")
+        # Try alternative encodings
+        for encoding in ['utf-8', 'latin-1', 'cp1252', 'iso-8859-1']:
+            try:
+                sample_df = pd.read_csv(file_path, sep=",", nrows=5, encoding=encoding, **kwargs)
+                available_cols = sample_df.columns.tolist()
+                cols_present = [col for col in cols_needed if col in available_cols]
+                
+                if not cols_present:
+                    continue
+                    
+                df = pd.read_csv(file_path, sep=",", usecols=cols_present, encoding=encoding, **kwargs)
+                
+                for col in cols_needed:
+                    if col not in df.columns:
+                        df[col] = pd.NA
+                
+                print(f"✅ Successfully processed {file_name} with {encoding} encoding ({len(df):,} records)")
+                return df
+            except:
+                continue
+        
+        print(f"❌ Could not read {file_name} with any encoding, skipping.")
+        return None
+        
+    except PermissionError as e:
+        print(f"❌ Permission error reading {file_name}: {e}")
+        print("   File might be locked or in use. Skipping.")
+        return None
+        
+    except Exception as e:
+        print(f"❌ Error reading {file_name}: {e}")
+        print(f"   File path: {file_path}")
+        print("   Skipping this file and continuing with others.")
+        return None
+
+
+def setup_directories():
+    """Set up directories for data processing using portable paths."""
+    # Get the absolute path to the project output directory
+    OUTPUT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'output'))
+    
+    # External data directory (modify this path according to your external data location)
+    EXTERNAL_DATA_DIR = r"C:/Users/valentin.stuhlfauth/OneDrive - univ-lyon2.fr/1_WSL/1_EWBI"
+    
+    dirs = {
+        'external_data': EXTERNAL_DATA_DIR,
+        'output_base': OUTPUT_DIR,
+        'silc_output': os.path.join(OUTPUT_DIR, '0_raw_data_EUROSTAT', '0_EU-SILC'),
+        'merged_init_dir': os.path.join(OUTPUT_DIR, '0_raw_data_EUROSTAT', '0_EU-SILC', '0_merged_init'),
+        'merged_dir': os.path.join(OUTPUT_DIR, '0_raw_data_EUROSTAT', '0_EU-SILC', '0_merged'),
+        'decile_dir': os.path.join(OUTPUT_DIR, '0_raw_data_EUROSTAT', '0_EU-SILC', '1_income_decile'),
+        'overcrowd_dir': os.path.join(OUTPUT_DIR, '0_raw_data_EUROSTAT', '0_EU-SILC', '2_overcrowding'),
+        'final_merged_dir': os.path.join(OUTPUT_DIR, '0_raw_data_EUROSTAT', '0_EU-SILC', '3_final_merged_df'),
+        'final_dir': os.path.join(OUTPUT_DIR, '0_raw_data_EUROSTAT', '0_EU-SILC')
+    }
+    
+    # Create output directories if they don't exist
+    for key, dir_path in dirs.items():
+        if key not in ['external_data', 'output_base']:
+            os.makedirs(dir_path, exist_ok=True)
+    
+    return dirs
+
+
 def combine_household_data(dirs):
     """
     Combine EU-SILC household data (H-files) from all countries and years.
@@ -79,39 +181,20 @@ def combine_household_data(dirs):
             file_path = os.path.join(year_path, file_name)
 
             if os.path.exists(file_path):
-                try:
-                    # Read only header first to see what columns exist
-                    sample_df = pd.read_csv(file_path, sep=",", nrows=5)
-                    available_cols = sample_df.columns.tolist()
-
-                    # Determine which needed columns exist in this file
-                    cols_present = [col for col in cols_needed_household if col in available_cols]
-
-                    if not cols_present:
-                        print(f"⚠️ No needed columns found in {file_name}, skipping.")
-                        continue
-
-                    # Read again using only available columns
-                    df = pd.read_csv(file_path, sep=",", usecols=cols_present)
-
-                    # Add missing cols as NaNs
-                    for col in cols_needed_household:
-                        if col not in df.columns:
-                            df[col] = pd.NA
-
+                df = robust_read_csv(file_path, file_name, cols_needed_household)
+                if df is not None:
                     df["Country"] = country
                     df["Year"] = f"20{year}"
                     dfs.append(df)
-
-                except Exception as e:
-                    print(f"❌ Error reading {file_name}: {e}")
+            else:
+                print(f"⚠️ File not found: {file_name}")
 
     # Merge all data
     if dfs:
         final_df = pd.concat(dfs, ignore_index=True)
         output_path = os.path.join(dirs['merged_dir'], "EU_SILC_combined_household_data.csv")
         final_df.to_csv(output_path, index=False)
-        print(f"Household data combined: {final_df.shape}")
+        print(f"✅ Household data combined: {final_df.shape} from {len(dfs)} files")
         return final_df
     else:
         print("❗No valid household dataframes were collected.")
@@ -154,27 +237,13 @@ def combine_household_register(dirs):
             file_path = os.path.join(year_path, file_name)
 
             if os.path.exists(file_path):
-                try:
-                    sample_df = pd.read_csv(file_path, sep=",", nrows=5)
-                    available_cols = sample_df.columns.tolist()
-                    cols_present = [col for col in cols_needed_household if col in available_cols]
-
-                    if not cols_present:
-                        print(f"⚠️ No needed columns found in {file_name}, skipping.")
-                        continue
-
-                    df = pd.read_csv(file_path, sep=",", usecols=cols_present)
-
-                    for col in cols_needed_household:
-                        if col not in df.columns:
-                            df[col] = pd.NA
-
+                df = robust_read_csv(file_path, file_name, cols_needed_household)
+                if df is not None:
                     df["Country"] = country
                     df["Year"] = f"20{year}"
                     dfs.append(df)
-
-                except Exception as e:
-                    print(f"❌ Error reading {file_name}: {e}")
+            else:
+                print(f"⚠️ File not found: {file_name}")
 
     if dfs:
         final_df = pd.concat(dfs, ignore_index=True)
@@ -228,27 +297,13 @@ def combine_personal_register(dirs):
             file_path = os.path.join(year_path, file_name)
 
             if os.path.exists(file_path):
-                try:
-                    sample_df = pd.read_csv(file_path, sep=",", nrows=5)
-                    available_cols = sample_df.columns.tolist()
-                    cols_present = [col for col in cols_needed_personal if col in available_cols]
-
-                    if not cols_present:
-                        print(f"⚠️ No needed columns found in {file_name}, skipping.")
-                        continue
-
-                    df = pd.read_csv(file_path, sep=",", usecols=cols_present)
-
-                    for col in cols_needed_personal:
-                        if col not in df.columns:
-                            df[col] = pd.NA
-
+                df = robust_read_csv(file_path, file_name, cols_needed_personal)
+                if df is not None:
                     df["Country"] = country
                     df["Year"] = f"20{year}"
                     dfs.append(df)
-
-                except Exception as e:
-                    print(f"❌ Error reading {file_name}: {e}")
+            else:
+                print(f"⚠️ File not found: {file_name}")
 
     if dfs:
         final_df = pd.concat(dfs, ignore_index=True)
@@ -295,27 +350,13 @@ def combine_personal_data(dirs):
             file_path = os.path.join(year_path, file_name)
 
             if os.path.exists(file_path):
-                try:
-                    sample_df = pd.read_csv(file_path, sep=",", nrows=5)
-                    available_cols = sample_df.columns.tolist()
-                    cols_present = [col for col in cols_needed_personal if col in available_cols]
-
-                    if not cols_present:
-                        print(f"⚠️ No needed columns found in {file_name}, skipping.")
-                        continue
-
-                    df = pd.read_csv(file_path, sep=",", usecols=cols_present)
-
-                    for col in cols_needed_personal:
-                        if col not in df.columns:
-                            df[col] = pd.NA
-
+                df = robust_read_csv(file_path, file_name, cols_needed_personal)
+                if df is not None:
                     df["Country"] = country
                     df["Year"] = f"20{year}"
                     dfs.append(df)
-
-                except Exception as e:
-                    print(f"❌ Error reading {file_name}: {e}")
+            else:
+                print(f"⚠️ File not found: {file_name}")
 
     if dfs:
         final_df = pd.concat(dfs, ignore_index=True)
@@ -523,9 +564,9 @@ def calculate_overcrowding(dirs):
         usecols=cols_needed_personal
     )
 
-    # Convert both merge keys to string
-    pp['PB030'] = pp['PB030'].fillna(0).astype('int32').astype(str)
-    hh['HB030'] = hh['HB030'].fillna(0).astype('int32').astype(str)
+    # Convert both merge keys to string (use int64 to avoid overflow with large IDs)
+    pp['PB030'] = pp['PB030'].fillna(0).astype('int64').astype(str)
+    hh['HB030'] = hh['HB030'].fillna(0).astype('int64').astype(str)
 
     # Extract household ID from personal ID (first part of the string)
     pp['household_id'] = pp['PB030'].str[:-2]
@@ -596,6 +637,81 @@ def calculate_overcrowding(dirs):
     return rooms_df
 
 
+def calculate_household_size(dirs):
+    """
+    Calculate household size and identify persons living alone for the "Persons living alone" indicator.
+    Uses the SAME APPROACH as overcrowding calculation to ensure IDENTICAL coverage.
+    
+    This function calculates the share of POPULATION living in single-person households.
+    Each single-person household represents 1 person living alone.
+    When weighted by household weights, this gives the population share living alone.
+    
+    Args:
+        dirs (dict): Dictionary containing directory paths
+    
+    Returns:
+        pd.DataFrame: Dataset with household size and living alone indicator
+    """
+    print("Calculating household size and living alone indicator...")
+    print("Computing SHARE OF POPULATION living in 1-person households...")
+    print("Using IDENTICAL approach to overcrowding calculation for same coverage...")
+    
+    # Use EXACT SAME data loading as overcrowding
+    cols_needed_household = ["HB010", "HB020", "HB030"]
+    cols_needed_personal = ["PB030", "PB010", "PB020"]
+
+    print("Loading household data...")
+    hh = pd.read_csv(
+        os.path.join(dirs['merged_dir'], "EU_SILC_combined_household_data.csv"),
+        usecols=cols_needed_household
+    )
+
+    print("Loading personal data...")
+    pp = pd.read_csv(
+        os.path.join(dirs['merged_dir'], "EU_SILC_combined_personal_data.csv"),
+        usecols=cols_needed_personal
+    )
+
+    # EXACT SAME data type conversions as overcrowding
+    pp['PB030'] = pp['PB030'].fillna(0).astype('int64').astype(str)
+    hh['HB030'] = hh['HB030'].fillna(0).astype('int64').astype(str)
+
+    # EXACT SAME household ID extraction as overcrowding (str[:-2])
+    pp['household_id'] = pp['PB030'].str[:-2]
+
+    # EXACT SAME merge approach as overcrowding
+    data = pp.merge(hh, left_on=['PB010', 'PB020', 'household_id'],
+                        right_on=['HB010', 'HB020', 'HB030'])
+
+    print(f"Merged data shape: {data.shape}")
+    print(f"Years available: {sorted(data['HB010'].unique())}")
+    print(f"Countries available: {sorted(data['HB020'].unique())}")
+    
+    # Count household sizes using the merged data (same as overcrowding approach)
+    household_size_df = data.groupby(['HB010', 'HB020', 'HB030']).size().reset_index(name='household_size')
+    
+    # Create "living alone" indicator (1 if household size = 1, 0 otherwise)
+    # When weighted by household weights, this represents the population share living alone
+    household_size_df['living_alone'] = (household_size_df['household_size'] == 1).astype(int)
+    
+    # Save the results
+    household_size_df.to_csv(os.path.join(dirs['final_merged_dir'], "EU_SILC_household_size.csv"), index=False)
+    
+    print(f"Household size calculation completed! Results saved for {len(household_size_df):,} households.")
+    print(f"Single-person households: {household_size_df['living_alone'].sum():,} ({household_size_df['living_alone'].mean()*100:.1f}%)")
+    print(f"Years range: {household_size_df['HB010'].min()}-{household_size_df['HB010'].max()}")
+    print(f"Countries: {len(household_size_df['HB020'].unique())} unique countries")
+    
+    # Show some sample statistics by year
+    year_stats = household_size_df.groupby('HB010').agg({
+        'living_alone': ['count', 'sum', 'mean']
+    }).round(3)
+    print(f"\nSample statistics by year:")
+    print(year_stats.head(10))
+    
+    return household_size_df
+
+
 def process_household_indicators(dirs):
     """
     Process and calculate household-level indicators from EU-SILC data.
@@ -632,12 +748,18 @@ def process_household_indicators(dirs):
     overpop_df = pd.read_csv(
         os.path.join(dirs['overcrowd_dir'], "EU_SILC_household_data_with_overcrowding.csv")
     )
+    
+    household_size_df = pd.read_csv(
+        os.path.join(dirs['final_merged_dir'], "EU_SILC_household_size.csv")
+    )
 
-    # Convert merge keys to string
-    household_df['HB030'] = household_df['HB030'].fillna(0).astype('int32').astype(str)
-    decile_df['HB030'] = decile_df['HB030'].fillna(0).astype('int32').astype(str)
-    overpop_df['HB030'] = overpop_df['HB030'].fillna(0).astype('int32').astype(str)
-    household_df_weight['DB030'] = household_df_weight['DB030'].fillna(0).astype('int32').astype(str)
+    # Convert merge keys to string (use int64 to avoid overflow with large IDs)
+    household_df['HB030'] = household_df['HB030'].fillna(0).astype('int64').astype(str)
+    decile_df['HB030'] = decile_df['HB030'].fillna(0).astype('int64').astype(str)
+    overpop_df['HB030'] = overpop_df['HB030'].fillna(0).astype('int64').astype(str)
+    # household_size_df['HB030'] is already string from calculate_household_size function
+    household_size_df['HB030'] = household_size_df['HB030'].fillna('0').astype(str)
+    household_df_weight['DB030'] = household_df_weight['DB030'].fillna(0).astype('int64').astype(str)
 
     # Merge all datasets
     merged_df = household_df.merge(
@@ -653,6 +775,12 @@ def process_household_indicators(dirs):
 
     merged_df = merged_df.merge(
         overpop_df[["HB010", "HB020", "HB030", "overcrowded"]], 
+        left_on=['HB010', 'HB020', 'HB030'], 
+        right_on=['HB010', 'HB020', 'HB030'], how='left'
+    )
+    
+    merged_df = merged_df.merge(
+        household_size_df[["HB010", "HB020", "HB030", "living_alone"]], 
         left_on=['HB010', 'HB020', 'HB030'], 
         right_on=['HB010', 'HB020', 'HB030'], how='left'
     )
@@ -681,6 +809,7 @@ def process_household_indicators(dirs):
         "HH040": [1],                          # HQ-SILC-6 - Leaking roof / damp / rot
         "HS180": [1],                          # HQ-SILC-7 - Pollution or crime
         "HC003": [4, 99],                     # HQ-SILC-8 - No renovation measures
+        "living_alone": [1],                   # EC-SILC-4 - Persons living alone
     }
 
     # Precompute masks per row
@@ -777,7 +906,8 @@ def process_household_indicators(dirs):
         "HS170": "HQ-SILC-5",    # Noise from street
         "HH040": "HQ-SILC-6",    # Leaking roof / damp / rot
         "HS180": "HQ-SILC-7",    # Pollution or crime
-        "HC003": "HQ-SILC-8"     # No renovation measures
+        "HC003": "HQ-SILC-8",    # No renovation measures
+        "living_alone": "EC-SILC-4"  # Persons living alone
     }
 
     new_column_names = {}
@@ -798,7 +928,9 @@ def process_household_indicators(dirs):
         "ES-SILC-1", "ES-SILC-2", "TS-SILC-1", "HQ-SILC-1",
         # New Energy and Housing indicators
         "HQ-SILC-2", "HQ-SILC-3", "HQ-SILC-4", "HQ-SILC-5", 
-        "HQ-SILC-6", "HQ-SILC-7", "HQ-SILC-8"
+        "HQ-SILC-6", "HQ-SILC-7", "HQ-SILC-8",
+        # New Social indicator
+        "EC-SILC-4"
     ]
 
     df_melted = summary_df2.melt(
@@ -855,10 +987,10 @@ def process_personal_indicators(dirs):
         os.path.join(dirs['decile_dir'], "EU_SILC_household_data_with_decile.csv")
     )[["HB010", "HB020", "HB030", "equi_disp_inc", "decile"]]
 
-    # Convert merge keys to string
-    pop_df['PB030'] = pop_df['PB030'].fillna(0).astype('int32').astype(str)
-    decile_df['HB030'] = decile_df['HB030'].fillna(0).astype('int32').astype(str)
-    register_df['RB030'] = register_df['RB030'].fillna(0).astype('int32').astype(str)
+    # Convert merge keys to string (use int64 to avoid overflow with large IDs)
+    pop_df['PB030'] = pop_df['PB030'].fillna(0).astype('int64').astype(str)
+    decile_df['HB030'] = decile_df['HB030'].fillna(0).astype('int64').astype(str)
+    register_df['RB030'] = register_df['RB030'].fillna(0).astype('int64').astype(str)
 
     # Extract household IDs
     pop_df["HB030"] = pop_df["PB030"].str[:-2]
@@ -1177,6 +1309,9 @@ def main():
     
     # Calculate overcrowding indicators
     calculate_overcrowding(dirs)
+    
+    # Calculate household size and living alone indicator
+    calculate_household_size(dirs)
     
     # Process household indicators
     household_df = process_household_indicators(dirs)

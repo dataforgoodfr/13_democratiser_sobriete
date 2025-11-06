@@ -70,7 +70,8 @@ VARIABLE_NAME_MAPPING = {
     "IS-SILC-5": "No secondary education",
     "AC-SILC-3": "Unmet need for medical care",
     "AC-SILC-4": "Unmet need for dental examination and treatment",
-    "EC-SILC-3": "Cannot get together with friends or family"
+    "EC-SILC-3": "Cannot get together with friends or family",
+    "EC-SILC-4": "Persons living alone"
 }
 
 def get_display_name(acronym):

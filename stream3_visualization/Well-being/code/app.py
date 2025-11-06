@@ -994,7 +994,7 @@ def create_radar_chart_pca(level_filters, selected_countries):
 if __name__ == '__main__':
     import os
     port = int(os.environ.get('PORT', 8051))  # Use different port for PCA version
-    debug = os.environ.get('DEBUG', 'true').lower() == 'true'
+    debug = False  # Disable debug mode to avoid pkgutil compatibility issue
     
     print("🚀 Starting European Well-Being Index Dashboard - PCA Version...")
     print(f"📊 Dashboard will be available at: http://localhost:{port}")

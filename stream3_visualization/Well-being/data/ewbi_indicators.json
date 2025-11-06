@@ -155,6 +155,11 @@
               "code": "EC-SILC-3",
               "description": "Cannot get together with friends or family (EC-SILC-3)",
               "weight": 2
+            },
+            {
+              "code": "EC-SILC-4",
+              "description": "Persons living alone (EC-SILC-4)",
+              "weight": 2
             }
           ]
         },
