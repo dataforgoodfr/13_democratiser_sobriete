@@ -9,6 +9,7 @@ def get_prompt_selection_conclusion(full_text):
     paper: {full_text}
     """
 
+
 def get_prompt_extraction(response):
     return f"""
     Define the following key variables for the extraction process:
