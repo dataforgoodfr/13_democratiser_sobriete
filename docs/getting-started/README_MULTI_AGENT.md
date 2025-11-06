@@ -33,7 +33,7 @@ The system consists of 8 specialized agents:
 ### Basic Usage
 
 ```python
-from AI.handlers.enhanced_main_handler import get_enhanced_handler
+from .handlers.enhanced_main_handler import get_enhanced_handler
 
 # Initialize with multi-agent support
 handler = get_enhanced_handler(use_agents=True)
@@ -54,7 +54,7 @@ print(comparison)
 ### Step-by-Step Process
 
 ```python
-from AI.handlers.agent_orchestrator import get_agent_orchestrator
+from .handlers.agent_orchestrator import get_agent_orchestrator
 
 orchestrator = get_agent_orchestrator()
 
@@ -119,13 +119,14 @@ The system maintains the same JSON output format as the original prompt:
 ### Test with Sample Data
 
 ```bash
-python example_usage.py
+cd rag_system/pipeline_scripts
+uv run python -m  agentic_data_policies_extraction.example_usage
 ```
 
 ### Test with PDF Files
 
 ```bash
-python main.py
+uv run python -m  agentic_data_policies_extraction.main
 ```
 
 ### Production Mode
@@ -200,15 +201,15 @@ The system is designed to be a drop-in replacement for the original single promp
 
 ```python
 # Old way
-from AI.prompts.text_analyzer import get_prompt_extraction
-from AI.handlers.main_handler import get_client, get_response
+from .prompts.text_analyzer import get_prompt_extraction
+from .handlers.main_handler import get_client, get_response
 
 client = get_client()
 prompt = get_prompt_extraction(conclusion_text)
 response = get_response(client, prompt)
 
 # New way
-from AI.handlers.enhanced_main_handler import get_enhanced_handler
+from .handlers.enhanced_main_handler import get_enhanced_handler
 
 handler = get_enhanced_handler(use_agents=True)
 result = handler.extract_data(conclusion_text, method="agents")

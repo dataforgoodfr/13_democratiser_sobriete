@@ -91,7 +91,7 @@ def demonstrate_step_by_step():
     """Demonstrate the step-by-step multi-agent process"""
     print("=== Step-by-Step Multi-Agent Process ===")
 
-    from AI.handlers.agent_orchestrator import get_agent_orchestrator
+    from .handlers.agent_orchestrator import get_agent_orchestrator
 
     orchestrator = get_agent_orchestrator()
     conclusion = example_conclusion()

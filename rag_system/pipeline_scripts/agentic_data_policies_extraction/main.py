@@ -85,6 +85,7 @@ def test_multi_agent_extraction():
     """Test the new multi-agent extraction system"""
     try:
         logger.info("=== Testing Multi-Agent Extraction System ===")
+        #FIXME: what is "test_files"?
         files = os.listdir("test_files")
 
         # Initialize enhanced handler with multi-agent support
