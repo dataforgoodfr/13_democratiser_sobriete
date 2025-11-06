@@ -3,7 +3,7 @@ import os
 from typing import Any, Dict, List, Tuple, Union
 
 from sqlalchemy import text
-from sqlmodel import Session, SQLModel, create_engine
+from sqlmodel import Session, create_engine
 
 # Configure logging
 logger = logging.getLogger(__name__)

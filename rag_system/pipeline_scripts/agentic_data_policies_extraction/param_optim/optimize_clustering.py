@@ -8,9 +8,9 @@ import traceback
 
 # optuna_optimization/optimize_clustering.py
 import optuna
-from merge_policies_kmean_2 import (CFG_Kmean, merge_policies_kmeans_2,
+from ..policies_transformation_to_matrices.merge_policies_kmean_2 import (merge_policies_kmeans_2,
                                     prepare_evaluation_features)
-from merge_policies_knn import CFG, Config, merge_policies_semantic_medoid
+from ..policies_transformation_to_matrices.merge_policies_knn import CFG, merge_policies_semantic_medoid
 from optuna.samplers import RandomSampler
 from sklearn.metrics import silhouette_score
 

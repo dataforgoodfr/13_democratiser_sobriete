@@ -3,15 +3,13 @@ import logging
 import sys
 from pathlib import Path
 
-import pandas as pd
-
 logger = logging.getLogger(__name__)
 
 # Add the parent directory to the path
 current_dir = Path(__file__).parent.parent
 sys.path.append(str(current_dir))
 
-from db_to_csv import (assign_factor_to_related_taxonomies,
+from ..policies_transformation_to_matrices.db_to_csv import (assign_factor_to_related_taxonomies,
                        assign_policy_to_related_taxonomies,
                        flatten_extracted_data, get_dataframe_with_filters)
 

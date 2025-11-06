@@ -5,9 +5,9 @@ import os
 import sys
 from pathlib import Path
 
-from optimize_clustering import run_optuna_study
-from preprocess import preprocess_data
-from utils import save_optuna_plots
+from .optimize_clustering import run_optuna_study
+from .preprocess import preprocess_data
+from .utils import save_optuna_plots
 
 # Configure logging
 logging.basicConfig(
