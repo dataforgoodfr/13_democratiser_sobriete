@@ -1,8 +1,7 @@
 # optuna_optimization/preprocess_for_optuna.py
-import pandas as pd
 import logging
-from pathlib import Path
 import sys
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -10,12 +9,10 @@ logger = logging.getLogger(__name__)
 current_dir = Path(__file__).parent.parent
 sys.path.append(str(current_dir))
 
-from db_to_csv import (
-    get_dataframe_with_filters,
-    flatten_extracted_data,
-    assign_factor_to_related_taxonomies,
-    assign_policy_to_related_taxonomies
-)
+from ..policies_transformation_to_matrices.db_to_csv import (assign_factor_to_related_taxonomies,
+                       assign_policy_to_related_taxonomies,
+                       flatten_extracted_data, get_dataframe_with_filters)
+
 
 def preprocess_data(limit: int = 10):
     print("preprocess_data")
@@ -52,46 +49,54 @@ def preprocess_data(limit: int = 10):
             total_rows = len(flattened_df)
 
             # Initialize columns
-            flattened_df['related_studied_policy_area'] = "Unknown"
-            flattened_df['related_studied_sector'] = "Unknown"
+            flattened_df["related_studied_policy_area"] = "Unknown"
+            flattened_df["related_studied_sector"] = "Unknown"
 
             for start_idx in range(0, total_rows, batch_size):
                 end_idx = min(start_idx + batch_size, total_rows)
 
-                logger.info(f"Processing taxonomy batch {start_idx//batch_size + 1}/{(total_rows + batch_size - 1)//batch_size}")
+                logger.info(
+                    f"Processing taxonomy batch {start_idx // batch_size + 1}/{(total_rows + batch_size - 1) // batch_size}"
+                )
 
                 # Process factors
                 for idx in range(start_idx, end_idx):
                     if idx < len(flattened_df):
-                        factor = flattened_df.loc[idx, 'factor']
-                        policy = flattened_df.loc[idx, 'policy']
+                        factor = flattened_df.loc[idx, "factor"]
+                        policy = flattened_df.loc[idx, "policy"]
 
                         try:
-                            flattened_df.loc[idx, 'related_studied_policy_area'] = assign_factor_to_related_taxonomies(factor)
-                            flattened_df.loc[idx, 'related_studied_sector'] = assign_policy_to_related_taxonomies(policy)
+                            flattened_df.loc[idx, "related_studied_policy_area"] = (
+                                assign_factor_to_related_taxonomies(factor)
+                            )
+                            flattened_df.loc[idx, "related_studied_sector"] = (
+                                assign_policy_to_related_taxonomies(policy)
+                            )
                         except Exception as e:
                             logger.warning(f"Error processing row {idx}: {e}")
                             continue
         except Exception as e:
             logger.error(f"Error during taxonomy assignment: {e}")
             # Fallback: assign all to "Unknown"
-            flattened_df['related_studied_policy_area'] = "Unknown"
-            flattened_df['related_studied_sector'] = "Unknown"
+            flattened_df["related_studied_policy_area"] = "Unknown"
+            flattened_df["related_studied_sector"] = "Unknown"
 
         # Step 4: Transform correlation values
         logger.info("Step 4: Transforming correlation values...")
-        correlation_mapping = {'decreasing': -1, 'increasing': 1}
-        flattened_df['correlation_numeric'] = flattened_df['correlation'].map(correlation_mapping)
-        flattened_df['correlation_numeric'] = flattened_df['correlation_numeric'].fillna(0)
+        correlation_mapping = {"decreasing": -1, "increasing": 1}
+        flattened_df["correlation_numeric"] = flattened_df["correlation"].map(
+            correlation_mapping
+        )
+        flattened_df["correlation_numeric"] = flattened_df["correlation_numeric"].fillna(0)
 
         # Step 5: Create pivot table
         logger.info("Step 5: Creating policy-sector correlation matrix...")
         pivot_df = flattened_df.pivot_table(
-            index='related_studied_policy_area',
-            columns='related_studied_sector',
-            values='correlation_numeric',
-            aggfunc='mean',
-            fill_value=0
+            index="related_studied_policy_area",
+            columns="related_studied_sector",
+            values="correlation_numeric",
+            aggfunc="mean",
+            fill_value=0,
         )
 
         logger.info("=== Data Preprocessing Completed ===")
@@ -101,5 +106,6 @@ def preprocess_data(limit: int = 10):
     except Exception as e:
         logger.error(f"Data preprocessing failed: {e}")
         import traceback
+
         traceback.print_exc()
         return None, None

@@ -1,12 +1,13 @@
 import typing as t
-from sentence_transformers import SentenceTransformer
-from umap import UMAP
+
 import hdbscan
 from bertopic import BERTopic
-from bertopic.representation import KeyBERTInspired, BaseRepresentation
+from bertopic.representation import BaseRepresentation, KeyBERTInspired
+from sentence_transformers import SentenceTransformer
+from umap import UMAP
 
 
-class BERTopicModelTrainer():
+class BERTopicModelTrainer:
     def __init__(
         self,
         embedding_model: t.Any = SentenceTransformer(

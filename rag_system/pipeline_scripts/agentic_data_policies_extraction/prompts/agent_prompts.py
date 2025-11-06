@@ -25,6 +25,7 @@ def get_geographic_agent_prompt(conclusion_text):
     **Geographical scope:**
     """
 
+
 def get_item_extraction_agent_prompt(conclusion_text):
     """Agent specialized in extracting policies from conclusions"""
     return f"""
@@ -58,6 +59,7 @@ def get_item_extraction_agent_prompt(conclusion_text):
     {conclusion_text}
     """
 
+
 def get_factor_extraction_agent_prompt(conclusion_text, item):
     """Agent specialized in extracting FACTORs for a specific ITEM"""
     return f"""
@@ -90,6 +92,7 @@ def get_factor_extraction_agent_prompt(conclusion_text, item):
     Your output should be a JSON array of ITEMs with their variations, nothing else.
     """
 
+
 def get_correlation_agent_prompt(conclusion_text, item, factor):
     """Agent specialized in determining the correlation between an ITEM and FACTOR"""
     return f"""
@@ -116,6 +119,7 @@ def get_correlation_agent_prompt(conclusion_text, item, factor):
 
     **Correlation between "{item}" and "{factor}"**
     """
+
 
 def get_population_agent_prompt(conclusion_text, item, factor):
     """Agent specialized in identifying affected populations"""
@@ -144,6 +148,7 @@ def get_population_agent_prompt(conclusion_text, item, factor):
     **Affected population for "{item}" → "{factor}":**
     """
 
+
 def get_mode_agent_prompt(conclusion_text, item):
     """Agent specialized in identifying transportation modes"""
     return f"""
@@ -171,6 +176,7 @@ def get_mode_agent_prompt(conclusion_text, item):
     **Transportation mode for "{item}":**
     """
 
+
 def get_actor_agent_prompt(conclusion_text, item):
     """Agent specialized in identifying actors or institutions"""
     return f"""
@@ -195,6 +201,7 @@ def get_actor_agent_prompt(conclusion_text, item):
 
     **Actor for "{item}":**
     """
+
 
 def get_coordinator_agent_prompt(conclusion_text, extracted_data):
     """Agent specialized in coordinating and validating the final output"""
@@ -230,4 +237,4 @@ def get_coordinator_agent_prompt(conclusion_text, extracted_data):
     {conclusion_text}
 
     **Final validated JSON:**
-    """ 
+    """

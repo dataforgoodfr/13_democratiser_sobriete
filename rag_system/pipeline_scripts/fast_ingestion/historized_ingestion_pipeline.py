@@ -1,25 +1,23 @@
-import os
 import json
-from argparse import ArgumentParser
+import os
 import time
+from argparse import ArgumentParser
 from pathlib import Path
 
 import logfire
-
 from kotaemon.base import Param, lazy
-from pydantic import ValidationError
-
 from kotaemon.embeddings import OpenAIEmbeddings
 from kotaemon.indices import VectorIndexing
 from kotaemon.llms import ChatOpenAI
-from kotaemon.storages import QdrantVectorStore
-from kotaemon.storages import LanceDBDocumentStore
+from kotaemon.storages import LanceDBDocumentStore, QdrantVectorStore
+from persist_taxonomy import (get_open_alex_article, persist_article_metadata,
+                              reconcile_metadata)
 from pipelineblocks.extraction.pdfextractionblock.pdf_to_markdown import \
     PdfExtractionToMarkdownBlock
-from pipelineblocks.llm.ingestionblock.openai import OpenAIMetadatasLLMInference
-from persist_taxonomy import get_open_alex_article, persist_article_metadata, reconcile_metadata
+from pipelineblocks.llm.ingestionblock.openai import \
+    OpenAIMetadatasLLMInference
+from pydantic import ValidationError
 from taxonomy.paper_taxonomy import PaperTaxonomy
-
 
 PDF_FOLDER = os.getenv("PDF_FOLDER", "./pipeline_scripts/pdf_test/")
 with open("secret.json") as f:
@@ -31,6 +29,7 @@ api_key = os.getenv("p", config["api_key"])
 
 ollama_host = "localhost"
 qdrant_host = "116919ed-8e07-47f6-8f24-a22527d5d520.europe-west3-0.gcp.cloud.qdrant.io"
+
 
 class HistorizedIndexingPipeline(VectorIndexing):
     pdf_extraction_block: PdfExtractionToMarkdownBlock = Param(
@@ -99,7 +98,10 @@ class HistorizedIndexingPipeline(VectorIndexing):
 
         try:
             llm_metadatas = self.metadatas_llm_inference_block.run(
-                text_md, doc_type="entire_doc", inference_type="scientific", openalex_metadata=article_metadata
+                text_md,
+                doc_type="entire_doc",
+                inference_type="scientific",
+                openalex_metadata=article_metadata,
             )
 
             # Reconcile OpenAlex metadata with LLM output
@@ -134,8 +136,8 @@ class HistorizedIndexingPipeline(VectorIndexing):
 
 def main():
     logfire.configure(token="pylf_v1_us_qTtmbDFpkfhFwzTfZyZrTJcl4C4lC7FhmZ65BgJ7dLDV")
-    parser = ArgumentParser(description='Run pdf ingestion')
-    parser.add_argument('--file-path', required=True, help='Path to the file')
+    parser = ArgumentParser(description="Run pdf ingestion")
+    parser.add_argument("--file-path", required=True, help="Path to the file")
 
     args = parser.parse_args()
     file_path = args.file_path
