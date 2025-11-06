@@ -12,14 +12,14 @@ import pandas as pd
 current_dir = Path(__file__).parent
 sys.path.append(str(current_dir))
 
-from merge_policies_knn import merge_policies_semantic_medoid
+from agentic_data_policies_extraction.policies_transformation_to_matrices.merge_policies_knn import merge_policies_semantic_medoid
 
 
 def test_with_database_data():
     """Test the clustering with actual data from the flattened policies CSV"""
     try:
         # Load the flattened data we created earlier
-        input_file = "flattened_policies.csv"
+        input_file = "./data/flattened_policies.csv"
 
         if not Path(input_file).exists():
             print(f"Error: {input_file} not found. Please run db_to_csv.py first.")

@@ -78,7 +78,7 @@ def test_error_handling():
     print("\nTesting error handling...")
 
     try:
-        from AI.handlers.enhanced_main_handler import get_enhanced_handler
+        from agentic_data_policies_extraction.handlers.enhanced_main_handler import get_enhanced_handler
 
         handler = get_enhanced_handler(use_agents=True)
 
@@ -107,7 +107,8 @@ def test_comparison_mode():
     """
 
     try:
-        from AI.handlers.enhanced_main_handler import get_enhanced_handler
+
+        from agentic_data_policies_extraction.handlers.enhanced_main_handler import get_enhanced_handler
 
         handler = get_enhanced_handler(use_agents=True)
         comparison = handler.compare_approaches(sample_conclusion)
@@ -135,7 +136,7 @@ def test_individual_agents():
     """
 
     try:
-        from AI.handlers.agent_orchestrator import get_agent_orchestrator
+        from agentic_data_policies_extraction.handlers.agent_orchestrator import get_agent_orchestrator
 
         orchestrator = get_agent_orchestrator()
 

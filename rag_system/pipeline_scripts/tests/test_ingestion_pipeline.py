@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
 from pathlib import Path
 
-from fast_ingestion_pipeline import IndexingPipeline
+from fast_ingestion.fast_ingestion_pipeline import IndexingPipeline
 
 
 def main():
