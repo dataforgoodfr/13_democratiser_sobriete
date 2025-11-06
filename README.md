@@ -1,61 +1,63 @@
-# Template DataForGood
+# Democratiser la sobriété
 
-This file will become your README and also the index of your
-documentation.
 
-# Contributing
+Un projet visant à démocratiser les approches de sobriété numérique et énergétique grâce à un système RAG (Retrieval-Augmented Generation) et des outils d'analyse automatisée.
 
-## Installer Poetry
 
-Plusieurs [méthodes d'installation](https://python-poetry.org/docs/#installation) sont décrites dans la documentation de poetry dont:
+## Structure du projet
 
-- avec pipx
-- avec l'installateur officiel
+Le projet est structuré en plusieurs sous-projets :
 
-Chaque méthode a ses avantages et inconvénients. Par exemple, la méthode pipx nécessite d'installer pipx au préable, l'installateur officiel utilise curl pour télécharger un script qui doit ensuite être exécuté et comporte des instructions spécifiques pour la completion des commandes poetry selon le shell utilisé (bash, zsh, etc...).
 
-L'avantage de pipx est que l'installation de pipx est documentée pour linux, windows et macos. D'autre part, les outils installées avec pipx bénéficient d'un environment d'exécution isolé, ce qui est permet de fiabiliser leur fonctionnement. Finalement, l'installation de poetry, voire d'autres outils est relativement simple avec pipx.
+- `rag_system` : Système RAG (Retrieval-Augmented Generation) pour l'extraction et l'analyse de politiques de sobriété
+- `src` : Scripts pour la librairie `WSL` (World Sufficiency Lab)
 
-Cependant, libre à toi d'utiliser la méthode qui te convient le mieux ! Quelque soit la méthode choisie, il est important de ne pas installer poetry dans l'environnement virtuel qui sera créé un peu plus tard dans ce README pour les dépendances de la base de code de ce repo git.
 
-### Installation de Poetry avec pipx
+Le dossier principal contient les fichiers suivants :
 
-Suivre les instructions pour [installer pipx](https://pipx.pypa.io/stable/#install-pipx) selon ta plateforme (linux, windows, etc...)
+```
+.
+├── Dockerfile
+├── docs  
+├── env_cluster.txt
+├── failed_files.txt
+├── LICENSE
+├── notebooks
+├── poetry.lock
+├── pyproject.toml
+├── rag_system
+├── README.md
+├── src
+├── tests
+├── tox.ini
+└── uv.lock
+```
 
-Par exemple pour Ubuntu 23.04+:
 
-    sudo apt update
-    sudo apt install pipx
-    pipx ensurepath
+## 🚀 Quick Start
 
-[Installer Poetry avec pipx](https://python-poetry.org/docs/#installing-with-pipx):
 
-    pipx install poetry
+### 1. Installer les dépendances `uv` et `pip`
 
-### Installation de Poetry avec l'installateur officiel
 
-L'installation avec l'installateur officiel nécessitant quelques étapes supplémentaires,
-se référer à la [documentation officielle](https://python-poetry.org/docs/#installing-with-the-official-installer).
+```bash
+# macOS et Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
-## Utiliser un venv python
 
-    python3 -m venv .venv
+# Windows
+powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
 
-    source .venv/bin/activate
 
-## Utiliser Poetry
+# Alternative : via pip
+pip install uv
+```
 
-Installer les dépendances:
 
-    poetry install
+Plus d'informations : [documentation officielle de uv](https://astral.sh/uv)
 
-Ajouter une dépendance:
 
-    poetry add pandas
-
-Mettre à jour les dépendances:
-
-    poetry update
+### 2. Lancer les precommit-hooks localement
 
 ## Lancer les precommit-hook localement
 
@@ -66,3 +68,7 @@ Mettre à jour les dépendances:
 ## Utiliser Tox pour tester votre code
 
     tox -vv
+
+
+> [!IMPORTANT]
+> Projet en développement actif, pas de garantie de fonctionnement, notamment pour les tests.

@@ -37,7 +37,6 @@ class Studied_sector(str, Enum):
     )
     extraterritorial_organizations = "Extraterritorial organizations"
 
-
 class Studied_policy_area(str, Enum):
     jobs = "Jobs"
     social_rights = "Social Rights"
@@ -56,7 +55,8 @@ class Studied_policy_area(str, Enum):
     culture = "Culture"
     education_and_youth = "Education and Youth"
     climate_action = "Climate Action"
-
+    biodiversity = "Biodiversity"
+    transport = "Transport"
 
 class Natural_ressource(str, Enum):
     freshwater = "Freshwater"
