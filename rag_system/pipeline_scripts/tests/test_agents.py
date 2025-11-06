@@ -5,9 +5,7 @@ Test script for the multi-agent extraction system
 
 import json
 import logging
-from typing import Any, Dict
 
-# Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -30,7 +28,7 @@ def test_sample_conclusion():
     print("Testing multi-agent system with sample conclusion...")
 
     try:
-        from AI.handlers.enhanced_main_handler import get_enhanced_handler
+        from agentic_data_policies_extraction.handlers.enhanced_main_handler import get_enhanced_handler
 
         handler = get_enhanced_handler(use_agents=True)
         result = handler.extract_data(sample_conclusion, method="agents")

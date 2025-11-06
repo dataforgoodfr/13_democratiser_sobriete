@@ -6,7 +6,7 @@ Example usage of the multi-agent extraction system
 import json
 import logging
 
-from AI.handlers.enhanced_main_handler import get_enhanced_handler
+from .handlers.enhanced_main_handler import get_enhanced_handler
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

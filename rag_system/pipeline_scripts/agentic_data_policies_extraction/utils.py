@@ -3,8 +3,8 @@ import os
 from typing import Any, Dict, List
 
 import pymupdf4llm
-from clients.database_client import DatabaseClient
-from clients.qdrant_client import QdrantClient
+from .clients.database_client import DatabaseClient
+from .clients.qdrant_client import QdrantClient
 
 logger = logging.getLogger(__name__)
 

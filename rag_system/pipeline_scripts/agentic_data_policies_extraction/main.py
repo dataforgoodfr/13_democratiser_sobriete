@@ -1,17 +1,15 @@
 import json
 import logging
 import os
-from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple, Union
 
-import pymupdf4llm
-from AI.handlers.enhanced_main_handler import get_enhanced_handler
-from AI.handlers.main_handler import get_client, get_response
-from AI.prompts.text_analyzer import get_prompt_selection_conclusion
+from typing import Any, Dict
+from .handlers.enhanced_main_handler import get_enhanced_handler
+from .handlers.main_handler import get_client, get_response
+from .prompts.text_analyzer import get_prompt_selection_conclusion
 # Import clients from separate files
-from clients.database_client import DatabaseClient
-from clients.qdrant_client import QdrantClient
-from utils import get_policy_text, get_pymupdf4llm
+from .clients.database_client import DatabaseClient
+from .clients.qdrant_client import QdrantClient
+from .utils import get_policy_text, get_pymupdf4llm
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

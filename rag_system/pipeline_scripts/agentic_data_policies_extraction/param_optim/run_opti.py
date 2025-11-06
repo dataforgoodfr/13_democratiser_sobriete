@@ -5,9 +5,7 @@ import os
 import sys
 from pathlib import Path
 
-import pandas as pd
 from optimize_clustering import run_optuna_study
-from plotly.io import write_image
 from preprocess import preprocess_data
 from utils import save_optuna_plots
 
