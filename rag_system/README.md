@@ -166,7 +166,16 @@ Read and follow the point 2 of the README inside the 'kotaemon_install_guide' (F
 
 ### Running the 'Fast' ingestion pipeline scripts
 
+The 'fast_ingestion_good_version.py' script calls the shortcut_indexing_pipeline.py that describes all the ingestion steps, build througth the Kotaemon API.
+This script launch an ingestion with the documents taht are not ingested on the Data4Good metadata database.
+To force a re-index, you could set the option to true and/or increment the version.
 
+This pipeline uses also the 'pipelineblocks' modules (inside the folder kotaemon) which is a 'plugin' package build side-to-side with kotaemon.
+
+To run the pipeline for a new ingestion, launch the script inside the container :
+```bash
+python3 pipeline_scripts/fast_ingestion_pipeline_good_version.py
+```
 
 
 ## Kotaemon Subtree Setup
