@@ -5,9 +5,23 @@ from typing import List, Optional, Union
 from kotaemon.base import Document
 
 from .base import BaseDocumentStore
+
+""" # Data4Good config - removed for dev setup
 CELLAR_ADDON_KEY_ID = os.getenv("CELLAR_ADDON_KEY_ID", "")
 CELLAR_ADDON_KEY_SECRET = os.getenv("CELLAR_ADDON_KEY_SECRET", "")
 CELLAR_ADDON_HOST = os.getenv("CELLAR_ADDON_HOST", "cellar-c2.services.clever-cloud.com")
+
+# And add this in the __init__ method:
+        self.db_connection = lancedb.connect(
+            "s3://wsl-docstore-prod",
+            storage_options={
+                "region": "us-east-1",
+                "aws_access_key_id": CELLAR_ADDON_KEY_ID,
+                "aws_secret_access_key": CELLAR_ADDON_KEY_SECRET,
+                "endpoint": f"http://{CELLAR_ADDON_HOST}",
+                "allow_http": "true"
+            }
+"""
 
 MAX_DOCS_TO_GET = 10**4
 
@@ -25,16 +39,7 @@ class LanceDBDocumentStore(BaseDocumentStore):
 
         self.db_uri = path
         self.collection_name = collection_name
-        self.db_connection = lancedb.connect(
-            "s3://wsl-docstore-prod",
-            storage_options={
-                "region": "us-east-1",
-                "aws_access_key_id": CELLAR_ADDON_KEY_ID,
-                "aws_secret_access_key": CELLAR_ADDON_KEY_SECRET,
-                "endpoint": f"http://{CELLAR_ADDON_HOST}",
-                "allow_http": "true"
-            }
-        )
+        self.db_connection = lancedb.connect(self.db_uri)  # type: ignore
 
     def add(
         self,
@@ -51,7 +56,7 @@ class LanceDBDocumentStore(BaseDocumentStore):
                 "text": doc.text,
                 "attributes": json.dumps(doc.metadata),
             }
-            for doc_id, doc in zip(doc_ids, docs, strict=False)
+            for doc_id, doc in zip(doc_ids, docs)
         ]
 
         if self.collection_name not in self.db_connection.table_names():
@@ -126,14 +131,18 @@ class LanceDBDocumentStore(BaseDocumentStore):
             )
         except (ValueError, FileNotFoundError):
             docs = []
-        return [
-            Document(
+
+        # return the documents using the order of original
+        # ids (which were ordered by score)
+        doc_dict = {
+            doc["id"]: Document(
                 id_=doc["id"],
                 text=doc["text"] if doc["text"] else "<empty>",
                 metadata=json.loads(doc["attributes"]),
             )
             for doc in docs
-        ]
+        }
+        return [doc_dict[_id] for _id in ids if _id in doc_dict]
 
     def delete(self, ids: Union[List[str], str], refresh_indices: bool = True):
         """Delete document by id"""

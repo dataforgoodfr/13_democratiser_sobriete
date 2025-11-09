@@ -154,7 +154,7 @@ class DocumentRetrievalPipeline(BaseFileIndexRetriever):
         # do first round top_k extension
         retrieval_kwargs["do_extend"] = True
         retrieval_kwargs["scope"] = chunk_ids
-        retrieval_kwargs["filters"] = MetadataFilters(
+        """retrieval_kwargs["filters"] = MetadataFilters(
             filters=[
                 MetadataFilter(
                     key="file_id",
@@ -163,7 +163,7 @@ class DocumentRetrievalPipeline(BaseFileIndexRetriever):
                 )
             ],
             condition=FilterCondition.OR,
-        )
+        )"""
 
         if self.mmr:
             # TODO: double check that llama-index MMR works correctly
@@ -173,6 +173,10 @@ class DocumentRetrievalPipeline(BaseFileIndexRetriever):
         # rerank
         s_time = time.time()
         print(f"retrieval_kwargs: {retrieval_kwargs.keys()}")
+
+        import pdb
+        pdb.set_trace()
+
         docs = self.vector_retrieval(text=text, top_k=self.top_k, **retrieval_kwargs)
         print("retrieval step took", time.time() - s_time)
 

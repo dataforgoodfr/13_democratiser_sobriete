@@ -1,10 +1,18 @@
-import os
 from typing import Any, List, Optional, cast
 
 from .base import LlamaIndexVectorStore
 
+""" Data4Good config - removed for dev setup - please, try to add this on your settings and not here...
 VECTORSTORE_URL = os.getenv("VECTOSTORE_URL", "")
 default_api_key = os.getenv("API_KEY", "")
+
+#And add this in the __init__ method: (but please, try to add this on your settings and not here...)
+
+        self._url = VECTORSTORE_URL
+        self._api_key = default_api_key
+
+"""
+
 
 class QdrantVectorStore(LlamaIndexVectorStore):
     _li_class = None
@@ -31,16 +39,15 @@ class QdrantVectorStore(LlamaIndexVectorStore):
         **kwargs: Any,
     ):
         self._collection_name = collection_name
-        self._url = VECTORSTORE_URL
-        self._api_key = default_api_key
+        self._url = url
+        self._api_key = api_key
         self._client_kwargs = client_kwargs
         self._kwargs = kwargs
-        print(f"url: {self._url}")
 
         super().__init__(
             collection_name=collection_name,
-            url=VECTORSTORE_URL,
-            api_key=default_api_key,
+            url=url,
+            api_key=api_key,
             client_kwargs=client_kwargs,
             **kwargs,
         )
