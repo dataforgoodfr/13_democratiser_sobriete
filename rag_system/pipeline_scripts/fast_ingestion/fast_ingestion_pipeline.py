@@ -12,25 +12,26 @@ from kotaemon.indices.vectorindex import VectorRetrieval
 from kotaemon.llms.chats.openai import ChatOpenAI
 from kotaemon.storages import LanceDBDocumentStore
 from kotaemon.storages.vectorstores.qdrant import QdrantVectorStore
-from pipelineblocks.extraction.pdfextractionblock.pdf_to_markdown import (
-    PdfExtractionToMarkdownBlock,
-)
-from pipelineblocks.llm.ingestionblock.openai import OpenAIMetadatasLLMInference
+from persist_taxonomy import persist_article_metadata
+from pipelineblocks.extraction.pdfextractionblock.pdf_to_markdown import \
+    PdfExtractionToMarkdownBlock
+from pipelineblocks.llm.ingestionblock.openai import \
+    OpenAIMetadatasLLMInference
 from pydantic_core._pydantic_core import ValidationError
 from taxonomy.paper_taxonomy import PaperTaxonomy
-from persist_taxonomy import persist_article_metadata
 
 OLLAMA_DEPLOYMENT = os.getenv("OLLAMA_DEPLOYMENT", "localhost")
 VECTOR_STORE_DEPLOYMENT = os.getenv("VECTOR_STORE_DEPLOYMENT", "docker")
 
 PDF_FOLDER = os.getenv("PDF_FOLDER", "./pipeline_scripts/pdf_test/")
-config = {"api_key":"1"}
+config = {"api_key": "1"}
 api_key = os.getenv("VECTOR_STORE_API", config["api_key"])
 
 # ---- Do not touch (temporary) ------------- #
 
 ollama_host = "172.17.0.1" if OLLAMA_DEPLOYMENT == "docker" else "localhost"
-qdrant_host = "https://a0423e9b-e256-44fe-bb62-57a66f613850.eu-central-1-0.aws.cloud.qdrant.io" # if VECTOR_STORE_DEPLOYMENT == "docker" else "localhost"
+qdrant_host = "https://a0423e9b-e256-44fe-bb62-57a66f613850.eu-central-1-0.aws.cloud.qdrant.io"  # if VECTOR_STORE_DEPLOYMENT == "docker" else "localhost"
+
 
 class IndexingPipeline(VectorIndexing):
     # --- Different blocks (pipeline blocks library) ---
@@ -111,7 +112,7 @@ class IndexingPipeline(VectorIndexing):
             print("Error happening during the metadata ingestion")
             print(e)
             return (False, str(pdf_path))
-        
+
         metadatas_json = metadatas.model_dump()
         try:
             super().run(text=[text_md], metadatas=[metadatas_json])

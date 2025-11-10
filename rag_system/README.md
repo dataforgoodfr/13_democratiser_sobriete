@@ -33,6 +33,16 @@ uv sync
 You can find a detailed guide here: [📄](../rag_system/pipeline_scripts/agentic_data_policies_extraction/policies_transformation_to_matrices/README.md)
 
 
+## Running the RAG System
+
+We recommend running as a Python module, or using the Docker Compose file:
+
+```bash
+cd rag_system/pipeline_scripts
+uv run python -m  agentic_data_policies_extraction.main
+```
+
+
 ## Kotaemon Subtree Setup
 
 The Kotaemon folder is a shared Data4Good subtree, synchronized with the common project:

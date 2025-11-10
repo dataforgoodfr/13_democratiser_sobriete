@@ -70,5 +70,15 @@ Plus d'informations : [documentation officielle de uv](https://astral.sh/uv)
     tox -vv
 
 
+## Roadmap
+
+- [ ] Réduire les requirements dans `rag_system`
+- [ ] Fusionner `rag_system` et `src` dans un seul dossier
+- [ ] Ajouter des tests unitaires
+- [ ] Ajouter des tests d'intégration
+- [ ] Améliorer la documentation
+- [ ] Améliorer l'extraction de politiques de sobriété
+
+
 > [!IMPORTANT]
 > Projet en développement actif, pas de garantie de fonctionnement, notamment pour les tests.

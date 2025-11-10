@@ -5,7 +5,7 @@ description = "Define the fast_ingestion utilitaries functions and objects for p
 requires-python = ">=3.10"
 dependencies = [
     "pydantic>=2.10.6",
-    "SQLAlchemy>=2.0.29,<3",
+    "sqlalchemy>=2.0.29,<3",
     "sqlmodel>=0.0.16,<0.1",
     "psycopg2-binary>=2.8.1,<2.9.10",
     "pandas>=2.3.3",
@@ -13,6 +13,15 @@ dependencies = [
     "nltk>=3.9.2",
     "matplotlib>=3.10.7",
     "wordcloud>=1.9.4",
+    "python-dotenv>=1.2.1",
+    "qdrant-client>=1.15.1",
+    "optuna>=4.5.0",
+    "kaleido>=1.2.0",
+    "faiss-cpu>=1.12.0",
+    "together>=1.5.30",
+    "scikit-learn>=1.7.2",
+    "pymupdf4llm>=0.1.8",
+    "plotly>=6.3.1",
 ]
 
 [build-system]
