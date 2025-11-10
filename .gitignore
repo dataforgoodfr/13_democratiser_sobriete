@@ -172,3 +172,4 @@ kotaemon-custom/kotaemon/ktem_app_data
 
 # secret files
 secret*
+outputs/
