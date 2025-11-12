@@ -68,10 +68,7 @@ uv run python -m  agentic_data_policies_extraction.main
 
 ## KOTAEMON Pipeline Scripts Instructions
 
-This framework is build according to Kotaemon to allow a new custom built 'fast' ingestion script (multi-threading ingestion for hundred and hundred document ate the same time), side-to-side to the standard 'drag-and-drop' Kotaemon ingestion from the UI.
-
-Shell scripts call ...
-
+This framework is build according to Kotaemon to allow a new custom built 'fast' ingestion script (multi-threading ingestion for hundred and hundred document with one batch), side-to-side with the standard 'drag-and-drop' Kotaemon ingestion from the UI.
 
 
 ### DEV set-up deployment
@@ -87,23 +84,30 @@ where are declared (among other things but the main declared components...):
 
 - ```KH_OLLAMA_URL``` : the uri used to connect to the Ollama service inference (LLM models inference service)
 - ```KH_APP_DATA_DIR``` : The main app data root directory where Kotaemon store all the internal data
-- ```KH_DOCSTORE``` : The Kotaemon Docstore used and the path for it. Local Lancedb by default, but you could choose a remote LanceDB here.
+- ```KH_DOCSTORE``` : The Kotaemon Docstore used and the path for it. Local Lancedb by default, but you could choose a remote LanceDB database
 - ```KH_VECTORSTORE``` : The Kotaemon VectorStore used and the url for it. Qdrant by default for the dev team.
+- ```KH_DATABASE``` : The Kotaemon internal SQL database. Could be sqllite (defaut) or any sql backend.
+- ```KH_FILESTORAGE_PATH``` : The Kotaemon path storage fo all the raw documents (pdf images for each page, etc.)
 - ...
 
-You should not touch all these config for now... (for a dev setup)
+You should not touch all these config for now... (during your dev setup)
 
 
 #### - an additionnal .env to set inside the 'kotaemon_pipeline_scripts' folder :
 
 This file lives inside 'kotaemon_pipeline_scripts'.
 
-You have to generate your own .env from the .env.example template.
+First : you have to generate your own .env from the .env.example template :
 
-All these config parameters are needed for the automatic fast ingestion pipeline.
+```bash
+cd kotaemon_pipeline_scripts
+cp .env.example .env 
+```
 
-- ```PG_DATABASE_URL```  = The URL of the Data4Good database that maintains the OpenAlex articles metadata 
-- ```LLM_INFERENCE_URL```  = The URL for the LLM inference stack (Ollama for local dev)
+And now check all the .env values :
+
+- ```PG_DATABASE_URL```  = The URL of the Data4Good database that maintains the OpenAlex articles metadata (ask to the team)
+- ```LLM_INFERENCE_URL```  = The URL for the LLM inference stack (your Ollama service for local dev)
 - ```LLM_INFERENCE_MODEL```  = The model used for the chunk inference on metadatas
 - ```LLM_INFERENCE_API_KEY```  = The API Key for the LLM inference stack
 - ```EMBEDDING_MODEL_URL```  = The URL for the LLM embedding model stack (Ollama for local dev)
@@ -126,7 +130,7 @@ Nothing to do — everything’s already set up: the Docker Compose file was cre
 
 You only need to pay attention, if necessary, to the volume mappings.
 
-And if you don't have anny GPU on your lcal machine and you don't have set-up cuda with docker, remove these line for the Ollama service ;
+And if you don't have anny GPU on your local device and you don't have set-up cuda with docker, remove these line for the Ollama service ;
 
 ```yaml
 deploy:
@@ -152,10 +156,15 @@ From the rag_system folder where the Docker Compose file is located:
 docker compose exec -it kotaemon bash
 ```
 
-IMPORTANT: After launching the Kotaemon App, go on a random page... see the logs to retrieve the USER ID !
-Shut-down the kotaemon app from inside the container. (or shut-down all the containers if you want)
-Replace the good USER ID within your .env.
-Re-launch the Kotaemon app. Your 'fast' ingestion pipeline scripts should be consistents.
+And launch the Kotaemon app :
+```bash
+./launch.sh
+```
+
+IMPORTANT: After launching the Kotaemon app, open any page and check the logs to retrieve the USER ID.
+Then, shut down the Kotaemon app from inside the container (or stop the container if you prefer).
+Update your .env file with the correct USER ID.
+Finally, restart the Kotaemon app — your fast ingestion pipeline scripts should now be consistent with the correct user collection.
 
 
 2) You also need to pull the different models with the Ollama service.
@@ -167,8 +176,8 @@ Read and follow the point 2 of the README inside the 'kotaemon_install_guide' (F
 ### Running the 'Fast' ingestion pipeline scripts
 
 The 'fast_ingestion_good_version.py' script calls the shortcut_indexing_pipeline.py that describes all the ingestion steps, build througth the Kotaemon API.
-This script launch an ingestion with the documents taht are not ingested on the Data4Good metadata database.
-To force a re-index, you could set the option to true and/or increment the version.
+This script launchs an ingestion with the documents that are not ingested on the Data4Good metadata database.
+To force a re-index, you could add a '-fr' argument do an incrementation of the version.
 
 This pipeline uses also the 'pipelineblocks' modules (inside the folder kotaemon) which is a 'plugin' package build side-to-side with kotaemon.
 
@@ -176,6 +185,13 @@ To run the pipeline for a new ingestion, launch the script inside the container 
 ```bash
 python3 pipeline_scripts/fast_ingestion_pipeline_good_version.py
 ```
+You can update the ingestion version (for example : 2) from two ways:
+- by changing the ```INGESTION_VERSION=version_2``` env variable within your .env
+- by providing an '--ingestion_version=version_2' argument directly to the fast ingestion python script. 
+
+The second choice will override the environment variable.
+
+If you provide a new version for the first time, all the documents, without any exception, will be ingested again for the first time.
 
 
 ## Kotaemon Subtree Setup

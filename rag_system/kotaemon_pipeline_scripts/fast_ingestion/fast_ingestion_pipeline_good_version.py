@@ -8,7 +8,7 @@ from fast_ingestion.persist_taxonomy import (
     add_ingestion_column, get_open_alex_articles,
     get_open_alex_articles_not_ingested, update_article_ingestion_by_title)
 from fast_ingestion.shortcut_indexing_pipeline import (
-    DEFAULT_INGESTION_VERSION, IndexingPipelineShortCut)
+    INGESTION_VERSION, IndexingPipelineShortCut)
 from pydantic import BaseModel
 
 # import logfire
@@ -37,7 +37,7 @@ class ExtractionError(Exception):
 
 
 def process_one_article(
-    article, force_reindex: bool = False, ingestion_version: str = DEFAULT_INGESTION_VERSION
+    article, force_reindex: bool = False, ingestion_version: str = INGESTION_VERSION
 ):
     title = article.title
     doi = article.doi
@@ -74,7 +74,7 @@ def main():
     parser.add_argument(
         "-iv",
         "--ingestion_version",
-        default=DEFAULT_INGESTION_VERSION,
+        default=INGESTION_VERSION,
         help="Force the ingestion version",
     )
     parser.add_argument(
