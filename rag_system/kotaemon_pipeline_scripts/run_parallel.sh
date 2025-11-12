@@ -12,7 +12,7 @@
 source /home/ec2-user/13_democratiser_sobriete/.venv/bin/activate
 
 # Name of the Python program to be executed. Change it as needed.
-PYTHON_SCRIPT="/home/ec2-user/13_democratiser_sobriete/rag_system/pipeline_scripts/historized_ingestion_pipeline.py"
+PYTHON_SCRIPT="/home/ec2-user/13_democratiser_sobriete/rag_system/pipeline_scripts/fast_ingestion_pipeline_good_version.py"
 
 # Log file for failed Python script invocations.
 FAILED_LOG="/home/ec2-user/13_democratiser_sobriete/failed_files.txt"

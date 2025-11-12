@@ -107,9 +107,10 @@ KH_VECTORSTORE = {
     # "__type__": "kotaemon.storages.ChromaVectorStore",
     # "__type__": "kotaemon.storages.MilvusVectorStore",
     "__type__": "kotaemon.storages.QdrantVectorStore",
-    "url": "116919ed-8e07-47f6-8f24-a22527d5d520.europe-west3-0.gcp.cloud.qdrant.io",
+    "url": "http://172.17.0.1:6333", # DEV LOCAL
+    #"url": "**********************.europe-west3-0.gcp.cloud.qdrant.io", # DATA4GOOD
     "api_key": "None"
-    # "path": str(KH_USER_DATA_DIR / "vectorstore"),
+    #"path": str(KH_USER_DATA_DIR / "vectorstore"),
 }
 KH_LLMS = {}
 KH_EMBEDDINGS = {}

@@ -30,9 +30,10 @@ RUN bash scripts/download_pdfjs.sh $PDFJS_PREBUILT_DIR
 # Copy project files
 COPY kotaemon/libs /app/libs
 COPY kotaemon/launch.sh /app/launch.sh
-COPY kotaemon/.env.example /app/.env
-COPY flowsettings.py /app/flowsettings.py
-COPY pipeline_scripts /app/pipeline_scripts
+COPY kotaemon/app.py /app/app.py
+COPY kotaemon_pipeline_scripts/.env /app/.env
+COPY kotaemon_pipeline_scripts/flowsettings.py /app/flowsettings.py
+COPY kotaemon_pipeline_scripts /app/pipeline_scripts
 COPY taxonomy /app/taxonomy
 
 
