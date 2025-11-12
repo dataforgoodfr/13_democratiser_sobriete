@@ -174,9 +174,6 @@ class DocumentRetrievalPipeline(BaseFileIndexRetriever):
         s_time = time.time()
         print(f"retrieval_kwargs: {retrieval_kwargs.keys()}")
 
-        import pdb
-        pdb.set_trace()
-
         docs = self.vector_retrieval(text=text, top_k=self.top_k, **retrieval_kwargs)
         print("retrieval step took", time.time() - s_time)
 
