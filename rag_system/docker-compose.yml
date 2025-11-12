@@ -26,7 +26,7 @@ services:
 
 
   ollama:
-    image : ollama/ollama
+    image : ollama/ollama:0.6.3
     container_name: ollama
     volumes:
       - './ollama/:/root/.ollama'
