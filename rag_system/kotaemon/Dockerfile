@@ -12,6 +12,7 @@ RUN apt-get update -qqy && \
         libpoppler-dev \
         unzip \
         curl \
+        make \
         cargo
 
 # Setup args
@@ -39,6 +40,10 @@ COPY launch.sh /app/launch.sh
 COPY .env.example /app/.env
 
 # Install pip packages
+RUN --mount=type=ssh  \
+    --mount=type=cache,target=/root/.cache/pip  \
+    pip install pymupdf
+
 RUN --mount=type=ssh  \
     --mount=type=cache,target=/root/.cache/pip  \
     pip install -e "libs/kotaemon" \

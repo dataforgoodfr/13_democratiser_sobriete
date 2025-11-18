@@ -1,4 +1,4 @@
-name: main
+name: Build and Push Kotaemon Service Docker Image
 
 on:
   push:
