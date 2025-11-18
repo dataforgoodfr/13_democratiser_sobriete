@@ -14,7 +14,7 @@ rag_system
 ├── kotaemon
 ├── kotaemon_install_guide
 ├── kotaemon_pipeline_scripts
-├── new_pipeline_scripts
+├── policy_analysis
 ├── README.md
 └── taxonomy
 ```
@@ -36,32 +36,32 @@ The first one (with Kotaemon) use these folders :
 The second one (currently without Kotaemon ?) use these folders:
 
 ```bash
-├── new_pipeline_scripts
+├── policy_analysis
 ├── README.md
 └── taxonomy
 ```
 
-## NEW Pipeline Scripts Instructions
+## Policy Analysis Instructions
 
-The pipeline scripts folder contains script to make extraction and analysis of documents.
+The policy_analysis folder contains script to extract and analyse policies from documents.
 
-To setup the pipeline scripts, run the following command:
+To setup the policy analysis pipeline, run the following command:
 
 
 ```bash
-cd rag_system/new_pipeline_scripts
+cd rag_system/policy_analysis
 uv sync
 ```
 
-You can find a detailed guide here: [📄](../rag_system/pipeline_scripts/agentic_data_policies_extraction/policies_transformation_to_matrices/README.md)
+You can find a detailed guide here: [📄](../rag_system/policy_analysis/agentic_data_policies_extraction/policies_transformation_to_matrices/README.md)
 
 
-### Running the RAG System
+### Running the policy analysis pipeline
 
 We recommend running as a Python module, or using the Docker Compose file:
 
 ```bash
-cd rag_system/new_pipeline_scripts
+cd rag_system/policy_analysis
 uv run python -m  agentic_data_policies_extraction.main
 ```
 
