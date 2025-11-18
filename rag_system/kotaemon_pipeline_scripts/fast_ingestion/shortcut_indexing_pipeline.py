@@ -27,7 +27,7 @@ logger = configure_logging()
 CHUNK_SIZE = 1024
 CHUNK_OVERLAP = 256
 
-DEFAULT_INGESTION_VERSION = "version_1"
+INGESTION_VERSION = config("INGESTION_VERSION", "version_1")
 
 
 class IndexingPipelineShortCut(IndexPipeline):
@@ -168,7 +168,7 @@ class IndexingPipelineShortCut(IndexPipeline):
         docs,
         file_id,
         article_metadata: dict | None = None,
-        ingestion_version: str = DEFAULT_INGESTION_VERSION,
+        ingestion_version: str = INGESTION_VERSION,
     ) -> int:
         s_time = time.time()
 
@@ -350,7 +350,7 @@ class IndexingPipelineShortCut(IndexPipeline):
         file_path: str | Path,
         reindex: bool = False,
         article_metadatas: dict = None,
-        ingestion_version: str = DEFAULT_INGESTION_VERSION,
+        ingestion_version: str = INGESTION_VERSION,
         **kwargs,
     ) -> str:
         tic = time.time()

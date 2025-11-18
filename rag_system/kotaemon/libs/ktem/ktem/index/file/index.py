@@ -6,7 +6,7 @@ import boto3
 from ktem.components import filestorage_path, get_docstore, get_vectorstore
 from ktem.db.engine import engine
 from ktem.index.base import BaseIndex
-from sqlalchemy import JSON, Column, DateTime, Integer, String
+from sqlalchemy import JSON, Column, DateTime, Integer, String, UniqueConstraint
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.mutable import MutableDict
 from theflow.settings import settings as flowsettings
