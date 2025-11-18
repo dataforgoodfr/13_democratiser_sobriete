@@ -9,10 +9,7 @@ from sqlmodel import Session, create_engine
 logger = logging.getLogger(__name__)
 
 # Database configuration - same as persist_taxonomy.py
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql://u4axloluqibskgvdikuy:g2rXgpHSbztokCbFxSyR@bk8htvifqendwt1wlzat-postgresql.services.clever-cloud.com:7327/bk8htvifqendwt1wlzat",
-)
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 # Create database engine - same pattern as persist_taxonomy.py
 db_engine = create_engine(DATABASE_URL, pool_pre_ping=True)
