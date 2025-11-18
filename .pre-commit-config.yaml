@@ -10,4 +10,7 @@ repos:
     hooks:
       - id: check-merge-conflict
       - id: mixed-line-ending
-exclude: 'rag_system/kotaemon/libs/kotaemon/.*|rag_system/kotaemon/libs/ktem/.*'
+exclude: |
+  rag_system/kotaemon/libs/kotaemon/.*
+  rag_system/kotaemon/libs/ktem/.*
+  .*\.ipynb$

@@ -50,7 +50,7 @@ jobs:
           docker buildx build \
           --push \
           --platform=linux/amd64,linux/arm64,linux/armhf \
-          -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.tag.outputs.tag }} -f rag_system/kotaemon/Dockerfile ./
+          -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.tag.outputs.tag }} -f rag_system/kotaemon/Dockerfile rag_system/kotaemon
       - name: Also create tagged image if tag exists on main branch
         if: startsWith(github.ref, 'refs/tags/')
         run: |
