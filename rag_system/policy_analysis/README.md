@@ -25,17 +25,24 @@ Certains tests ne disposent pas de tous les fichiers nécessaires à l’exécut
 
 Le pipeline prend toutes les politiques extraites, les facteurs associés et leurs corrélations, et génère un fichier contenant, pour chaque cluster de politique identifié un indice de correlation moyen d'impact sur le secteur.  
 
+## Identification des secteurs
 Les secteurs liés au politiques sont identifiés par mesure de similarité vectorielle entre : 
-facteur ↔ secteur
-policy ↔ secteur
+facteur ↔ secteur et policy ↔ secteur
 
-On lie ensuite les politiques avec les secteurs impactés, avec la corrélation des facteurs ±1
-Clustering des politiques avec knn et on choisit comme nom de pollitique la plus proche centrale de chaque cluster 
-- Une autre version du code appelé optimisé fait un kmeans et essaye d'améliorer le clustering
-On sauvegarde le résultat en tant que complete_flattened_policies.csv - et - on sauvegarde la pivot table avec toutes les pollitiques 
-Genère un fichier policy_clusters.csv avec les clusters trouvés et leur politques associées 
-Fait ensuite un rapport d'analyse de ce qui a été fait
+On ajoute une valeur de corrélation pour chaque secteur pour chaque politique basé sur la valeur "increasing" ou "decreasing" de chaque factor et de ses secteurs associés
 
+## Clustering
+Le clustering des politiques utilisé dans la pipeline est avec knn. Une fois les clusters identifiés, on choisit comme nom de pollitique la plus centrale de chaque cluster identifié
+ 
+Il y a deux autre manière de réaliser le clustering qui ont été dévelopé mais ne sont pas appelés dans la pipeline du code : Un clustering avec Kmeans et un clustering avec HDBscan.
+
+Les pollitiques clusterisés avec chaque secteur impacté sont sauvegardés en tant que complete_flattened_policies.csv 
+
+A des fins d'analyse le code génere aussi deux fichiers : 
+- Les pollitiques non clusterisés avec chaque secteur impacté sont sauvegardés en tant que complete_policy_sector_matrix.csv
+- Les clusters identifiés avec leur pollitiques associées
+
+Le code présente ensuite les résultats de la pipeline
 
 # À faire
 Dans un premier temps : 
