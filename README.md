@@ -53,6 +53,9 @@ Il a donc été décidé d'en sortir et de réimplémenter les fonctionnalités 
 
 [README ChatSufficiency](rag_system\README.md)
 
+## Ressources cloud
+![Schéma des ressources cloud](docs/architecture/cloud_resources.png)
+
 
 ## Roadmap
 
