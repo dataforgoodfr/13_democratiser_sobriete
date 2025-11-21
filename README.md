@@ -1,4 +1,4 @@
-# Democratiser la sobriété (refonte du README en cours)
+# Democratiser la sobriété
 
 Un projet visant à démocratiser les approches de sobriété grâce à un système RAG (Retrieval-Augmented Generation) et des outils d'analyse automatisée.
 
@@ -54,8 +54,24 @@ Il a donc été décidé d'en sortir et de réimplémenter les fonctionnalités 
 [README ChatSufficiency](rag_system\README.md)
 
 
-## 🚀 Quick Start
+## Roadmap
 
+Voici dans les grosses mailles les étapes prévues:
+
+- [ ] Nettoyage du repo et de la base de données postgres
+- [ ] Refactoring pour mieux isoler les sous-projets
+- [ ] Web app moteur de recherche par mot-clés sur les abstracts des articles de la library
+- [ ] Refaire tourner l'extraction du full-text pour les articles open access et essayer de l'obtenir par les abonnements du WSL pour les autres
+- [ ] Adaptation du moteur de recherche au full text
+- [ ] Chunking et embedding pour ingestion en base vectorielle
+- [ ] Adaptation du moteur de recherche à la recherche sémantique
+- [ ] V1 du chatbot : génération par LLM + adaptation de la web app
+- [ ] Finalisation du pipeline de policy analysis
+- [ ] Intégration de la policy analysis au chatbot
+- [ ] V2 du chatbot
+
+
+## 🚀 Quick Start
 
 ### 1. Installer les dépendances `uv` et `pip`
 
@@ -82,16 +98,6 @@ Plus d'informations : [documentation officielle de uv](https://astral.sh/uv)
 ### 3. Utiliser Tox pour tester votre code
 
     tox -vv
-
-
-## Roadmap
-
-- [ ] Réduire les requirements dans `rag_system`
-- [ ] Fusionner `rag_system` et `src` dans un seul dossier
-- [ ] Ajouter des tests unitaires
-- [ ] Ajouter des tests d'intégration
-- [ ] Améliorer la documentation
-- [ ] Améliorer l'extraction de politiques de sobriété
 
 
 > [!IMPORTANT]
