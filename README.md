@@ -58,8 +58,17 @@ Du code est d'ailleurs disponible pour ce faire dans `src/wsl_library/pdfextract
 Le traitement des chunks pour cette étape reste à clarifier (métadonnées en propre ou copie de celles du document original).
 
 ### Policy analysis
-A COMPLETER (EDOUARD)
+Deux étapes dévelopées dans ce sous projet :
 
+- Extraction des données des abstract puis des full text ( pas testé ?) pour strucutrer les metadonnées des policies 
+    - Le full text va récuperer les données des pollitiques basé sur l'id open alex sur la base Qdrant
+- Pipeline d'analyse des secteurs des pollitiques et de leur facteurs puis clustering des pollitiques avec des test avec Knn, Kmeans et HDbscan
+    - Plusieur scripts d'optimisations ont été fait 
+
+Les fichiers sont sauvegardés en csv et il faudra intégrer les résultats pour etre disponibles pour le chat sufficiency 
+Le projet semble avoir été un repo à part ajouté au monorepo et il semble y avoir des incohérences dans les dépendences 
+
+[Readme du sous projet](rag_system\policy_analysis\README.md)
 
 ### ChatSufficiency
 A COMPLETER (François)
