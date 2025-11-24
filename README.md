@@ -14,13 +14,16 @@ Le projet est structuré en plusieurs sous-projets :
     - [Carbon budget](https://app-d066b92e-20ba-4dbf-af25-73c7e5657091.cleverapps.io/) : budget carbone restant par pays pour rester sour les 2°C de réchauffement
     - Décomposition [monde](https://app-e1c3f118-5441-449a-99f3-fa4036bb2ad4.cleverapps.io/) et [UE](https://app-ac31ad44-d32f-4998-87c6-b9b699c29c63.cleverapps.io/) de scénarios de décarbonation en Population - Décarbonation - Efficacité énergétique - Sobriété
     - [Indicateurs de bien-être](https://app-aa62786e-21f6-42ab-b0ff-ddca6575e4f8.cleverapps.io/) (EWBI)
-- **Library** : base d'articles sur la sobriété dans `src`
-- **Policy analysis** (dans `rag_system/policy_analysis`) : pipeline d'extraction et d'analyse de politiques de sobriété et de leurs impacts dont les résultats ont vocation à être inclus dans le RAG
-- **ChatSufficiency** (dans `rag_system`) : chatbot destiné aux experts des politiques publiques, branchés en RAG sur la library et les résultats de la policy analysis
+- **Library** : base d'articles sur la sobriété dans `src`.
+- **Policy analysis** (dans `rag_system/policy_analysis`) : pipeline d'extraction et d'analyse de politiques de sobriété et de leurs impacts dont les résultats ont vocation à être inclus dans le RAG.
+- **ChatSufficiency** (dans `rag_system`) : chatbot destiné aux experts des politiques publiques, branchés en RAG sur la library et les résultats de la policy analysis.
 
 Le projet se fonde également sur une **taxonomie** développée en amont, avec l'objectif d'enrichir les articles de la library de métadonnées "métier" (en plus des métadonnées issues d'OpenAlex) via un traitement par LLM. Celle-ci est présente en double dans le code, dans `rag_system/taxonomy` et `src/wsl_library_domain`.
 
 Un refactoring est prévu pour éliminer ce doublon, mieux séparer les sous-projet et remplacer la librairie de RAG Kotaemon par du code custom.
+
+Voici un schéma d'architecture du projet (à mettre à jour) :
+![Schéma du projet](docs/assets/architecture.png)
 
 
 ## Library
