@@ -2,6 +2,9 @@
 
 Un projet visant à démocratiser les approches de sobriété grâce à un système RAG (Retrieval-Augmented Generation) et des outils d'analyse automatisée.
 
+> [!IMPORTANT]
+> Il est interdit de pusher de la documentation générée par IA. De même, pour les issues et la description des PR. En faisant cela, vous gagnez du temps mais en faites perdre aux autres. De même, soyez prudent avec le code généré par IA car, outre sa fiabilité qu'il faut vérifier, il est excessivement verbeux. Le code et la doc sont aussi bien des actifs que des passifs donc il faut viser une certaine efficience : assez mais pas trop.
+
 
 ## Présentation du projet
 
