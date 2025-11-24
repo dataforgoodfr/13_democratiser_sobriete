@@ -49,29 +49,7 @@ The second one (currently without Kotaemon ?) use these folders:
 └── taxonomy
 ```
 
-## Policy Analysis Instructions
-
-The policy_analysis folder contains script to extract and analyse policies from documents.
-
-To setup the policy analysis pipeline, run the following command:
-
-
-```bash
-cd rag_system/policy_analysis
-uv sync
-```
-
-You can find a detailed guide here: [📄](../rag_system/policy_analysis/agentic_data_policies_extraction/policies_transformation_to_matrices/README.md)
-
-
-### Running the policy analysis pipeline
-
-We recommend running as a Python module, or using the Docker Compose file:
-
-```bash
-cd rag_system/policy_analysis
-uv run python -m  agentic_data_policies_extraction.main
-```
+[README policy analysis](policy_analysis/README.md)
 
 
 ## KOTAEMON Pipeline Scripts Instructions

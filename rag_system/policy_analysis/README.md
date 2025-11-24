@@ -3,6 +3,16 @@
 Ce sous-projet vise à extraire les politiques à partir de documents, à les analyser, à les regrouper en clusters, puis à générer une matrice de consensus liant chaque politique aux facteurs concernés, en tenant compte de la taxonomie.
 Les données produites seront ensuite mises à disposition dans le contexte du générateur.
 
+## Quick start
+
+```bash
+uv sync
+uv run python -m  agentic_data_policies_extraction.main
+```
+
+[Voir ici pour plus d'infos](agentic_data_policies_extraction/policies_transformation_to_matrices/README.md)
+
+
 ## Extraction des données
 
 L’extraction fonctionne actuellement sur les abstracts, mais le code et les prompts nécessaires pour traiter le full text existent déjà.
