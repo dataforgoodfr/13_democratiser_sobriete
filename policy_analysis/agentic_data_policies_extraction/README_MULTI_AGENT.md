@@ -1,5 +1,8 @@
 # Multi-Agent Data Extraction System
 
+> [!Warning]
+> AI-generated doc. Its content is probably correct but some slop-cleaning would be appreciated.
+
 This document describes the enhanced multi-agent system for extracting structured data from scientific paper conclusions.
 
 ## Overview
