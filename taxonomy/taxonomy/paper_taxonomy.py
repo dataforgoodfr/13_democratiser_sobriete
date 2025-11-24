@@ -60,9 +60,14 @@ class PaperTaxonomy(BaseModel):
 
 
 class OpenAlexPaper(BaseModel):
-    pass
+    paper_name: str
+    metadata_path: str
+    pdf_path: str | None
+    metadata: dict | None = None
 
 
 class PaperWithText(BaseModel):
+    openalex_paper: OpenAlexPaper
     extract_text: str
-    embeddings: Optional[Any]
+    extrated_object: list | None = None
+    embeddings: Any | None = None

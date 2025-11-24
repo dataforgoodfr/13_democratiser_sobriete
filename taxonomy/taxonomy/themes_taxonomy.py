@@ -10,6 +10,7 @@ class Human_needs(str, Enum):
     communication_and_information = "Communication and information"
     mobility = "Mobility"
 
+
 class Studied_sector(str, Enum):
     agriculture_forestry_fishing = "Agriculture, forestry, fishing"
     mining_and_quarrying = "Mining and quarrying"
@@ -56,6 +57,8 @@ class Studied_policy_area(str, Enum):
     culture = "Culture"
     education_and_youth = "Education and Youth"
     climate_action = "Climate Action"
+    biodiversity = "Biodiversity"
+    transport = "Transport"
 
 
 class Natural_ressource(str, Enum):
