@@ -23,7 +23,7 @@ Le projet se fonde également sur une **taxonomie** développée en amont, avec 
 Un refactoring est prévu pour éliminer ce doublon, mieux séparer les sous-projet et remplacer la librairie de RAG Kotaemon par du code custom.
 
 Voici un schéma d'architecture du projet (à mettre à jour) :
-![Schéma du projet](docs/assets/architecture.png)
+![Schéma du projet](assets/architecture.png)
 
 
 ## Library
@@ -60,7 +60,7 @@ Il a donc été décidé d'en sortir et de réimplémenter les fonctionnalités 
 [README ChatSufficiency](rag_system/README.md)
 
 ## Ressources cloud
-![Schéma des ressources cloud](docs/architecture/cloud_resources.png)
+![Schéma des ressources cloud](assets/cloud_resources.png)
 
 
 ## Roadmap

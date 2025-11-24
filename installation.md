@@ -1,10 +1,13 @@
 # Installation Guide
 
+> [!Warning]
+> Needs updating after refactoring. Possibly, delete this document and split its content between general and sub-projects READMEs.
+
 ## Prerequisites
 
 Before you begin, ensure you have:
 - Python 3.12 or higher
-- Git
+- git
 - 4GB+ RAM recommended
 
 ## 🚀 Quick Start
@@ -142,16 +145,3 @@ uv cache clean
 rm -rf .venv
 uv sync
 ```
-
-## Next Steps
-
-- 📖 Read the [Quick Start Guide](../getting-started/quick-start.md)
-- 🏗️ Learn about the [Architecture](../architecture/overview.md)
-- 🔧 Set up your [Development Environment](../development/setup.md)
-
-## Getting Help
-
-If you encounter any issues:
-1. Check the [Troubleshooting Guide](../reference/troubleshooting.md)
-2. Search existing [GitHub Issues](https://github.com/dataforgoodfr/13_democratiser_sobriete/issues)
-3. Create a new issue with details about your problem
