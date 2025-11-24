@@ -43,7 +43,7 @@ Deux étapes dévelopées dans ce sous projet:
 Les fichiers sont sauvegardés en csv et il faudra intégrer les résultats pour etre disponibles pour le chat sufficiency 
 Le projet semble avoir été un repo à part ajouté au monorepo et il semble y avoir des incohérences dans les dépendences 
 
-[README Policy Analysis](rag_system\policy_analysis\README.md)
+[README Policy Analysis](rag_system/policy_analysis/README.md)
 
 
 ## ChatSufficiency
@@ -54,7 +54,7 @@ Il s'agit de brancher un un système de Retrieval Augmented Generation (RAG) sur
 Le travail initial s'est fondé sur la librairie open source Kotaemon, qui s'est avérée amener plus de complications qu'elle n'en évitait.
 Il a donc été décidé d'en sortir et de réimplémenter les fonctionnalités nécessaires avec du code custom.
 
-[README ChatSufficiency](rag_system\README.md)
+[README ChatSufficiency](rag_system/README.md)
 
 ## Ressources cloud
 ![Schéma des ressources cloud](docs/architecture/cloud_resources.png)
