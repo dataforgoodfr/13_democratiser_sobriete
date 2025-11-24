@@ -1,4 +1,12 @@
-# RAG System
+# ChatSufficiency
+
+Ce README est composé de deux parties :
+1. Quick start technique en anglais
+2. Explications du travail effectué et roadmap en français.
+
+Il est prévu de bouger le sous-dossier `policy_analysis` dans un dossier frère car il s'agit d'un axe de travail à part entière, en bonne partie indépendant du RAG.
+
+# Quick start
 
 The RAG System is a collection of tools for RAG-based document QA.
 
@@ -41,29 +49,7 @@ The second one (currently without Kotaemon ?) use these folders:
 └── taxonomy
 ```
 
-## Policy Analysis Instructions
-
-The policy_analysis folder contains script to extract and analyse policies from documents.
-
-To setup the policy analysis pipeline, run the following command:
-
-
-```bash
-cd rag_system/policy_analysis
-uv sync
-```
-
-You can find a detailed guide here: [📄](../rag_system/policy_analysis/agentic_data_policies_extraction/policies_transformation_to_matrices/README.md)
-
-
-### Running the policy analysis pipeline
-
-We recommend running as a Python module, or using the Docker Compose file:
-
-```bash
-cd rag_system/policy_analysis
-uv run python -m  agentic_data_policies_extraction.main
-```
+[README policy analysis](policy_analysis/README.md)
 
 
 ## KOTAEMON Pipeline Scripts Instructions
@@ -202,3 +188,43 @@ The Kotaemon folder is a shared Data4Good subtree, synchronized with the common 
 
 For setup, synchronization, and contribution instructions, please see the detailed guide here:
 [📄](../docs/development/setup-kotaemon.md)
+
+
+# Etat du projet et roadmap
+
+## Choix d'utiliser puis de sortir de Kotaemon
+L'option retenue initialement pour le chatbot était [Kotaemon](https://github.com/Cinnamon/kotaemon), un projet open source implémentant une interface de chatbot RAG en local, censément facilement customisable.
+Il apportait notamment les fonctionnalités suivantes déjà codées :
+- interface graphique avec affichage des sources PDF ;
+- nombreux algorithmes de RAG disponibles ;
+- pipeline d'ingestion de documents.
+
+Il "suffisait" donc de connecter Kotaemon à la library pour avoir une v1 du chatbot.
+
+Mais Kotaemon imposait des contraintes fortes sur l'ingestion de documents : il est conçu pour ajouter des documents en local mais pas pour utiliser une base séparée déjà traitée avec un pipeline d'ingestion en propre, ce que nous voulions pour la library. Il fallait donc pour le faire marcher passer par le code de Kotaemon pour certaines étapes de la création de la library. Cela a imposé un couplage entre les deux sous-projets qui a compliqué le développement et la coordination, et obligé à multiplier les bases de données. Bref, cela a ajouté une complexité énorme qui a finalement nuit au projet.
+
+Les autres facteurs plaidant pour une sortie de Kotaemon sont les suivants :
+- le projet n'est plus maintenu ;
+- son interface est celle d'un outil personnel ou interne, pas d'un site web grand public ;
+- il contient une gestion des utilisateurs inutile pour le projet mais qui impose des contraintes qui n'ont pas été clarifiées ;
+- les possibilités d'améliorations et de customisation futures sont restreintes.
+
+## Travail effectué
+En conséquence du choix d'utiliser Kotaemon, le travail s'est concentré sur l'intégration de Kotaemon au reste du projet via :
+- une customisation du code internet de Kotaemon (`rag_system/kotaemon/libs/pipelineblocks`) ;
+- de nombreux fichiers de config (`rag_system/kotaemon_pipeline_scripts/fast_ingestion/`) ;
+- un pipeline d'ingestion de documents adapté au projet (`rag_system/kotaemon_pipeline_scripts/fast_ingestion/`), incluant notamment l'extraction de la taxonomie.
+
+Malheureusement, une grosse partie de ce travail est propre à Kotaemon et n'est pas réutilisable si nous en sortons. Seul le dernier point peut être réutilisé pour l'enrichissement des métadonnées de la library.
+
+En revanche, un travail d'évaluation a été fait sur la branche `retrieval_evaluation` que nous pourrons réemployer pour l'optimisation du retrieval et de la génération.
+
+## Roadmap
+En remplacement de Kotaemon, la solution proposée est de simplement recoder les fonctionnalités dont nous avons besoins. Des projets alternatifs comme OpenWebUI ont été considérés mais exposent aux mêmes écueils que Kotaemon.
+
+- [ ] Retrieval = moteur de recherche sur la library (abstract puis full text, recherche par mot clé puis par similarité sémantique)
+- [ ] Interface web pour ce moteur de recherche (API FastAPI, app SvelteKit)
+- [ ] Ingestion de la library en base vectorielle : chunking et embedding (nécessaire à la recherche sémantique)
+- [ ] Génération avec citation des sources
+- [ ] Interface web pour le chatbot = extension de celle du moteur de recherche utilisant [Svelte AI Elements](https://svelte-ai-elements.vercel.app/)
+- [ ] Complexification progressive (affichage des PDF, des graphiques...)
