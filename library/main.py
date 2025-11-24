@@ -1,8 +1,11 @@
 import argparse
 
-from src.container import Container
+from dependency_injector.containers import DeclarativeContainer
 
-container = Container()
+
+class Container(DeclarativeContainer):
+    pass
+
 
 def get_args_parser():
     parser = argparse.ArgumentParser(description="Extract text from a PDF file.")
@@ -17,6 +20,7 @@ def get_args_parser():
 
 
 def main():
+    container = Container()
     ingestion_usecase = container.ingestion_usecase()
     ingestion_usecase.ingest_mobility_papers()
 
