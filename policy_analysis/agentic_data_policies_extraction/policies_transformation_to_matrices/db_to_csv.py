@@ -13,7 +13,7 @@ current_dir = Path(__file__).parent.resolve()
 rag_system_dir = current_dir.parent.parent.parent
 sys.path.append(str(rag_system_dir))
 
-from taxonomy.taxonomy.themes_taxonomy import (Studied_policy_area,
+from taxonomy.themes_taxonomy import (Studied_policy_area,
                                                Studied_sector)
 
 # Global model variable - will be initialized when needed

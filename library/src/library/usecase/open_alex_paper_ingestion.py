@@ -2,7 +2,7 @@ import os
 from typing import List, Optional
 
 from icecream import ic
-from wsl_library.domain.paper_taxonomy import OpenAlexPaper, PaperWithText, PaperTaxonomy
+from taxonomy.paper_taxonomy import OpenAlexPaper, PaperWithText, PaperTaxonomy
 
 
 class OpenAlexPaperIngestionUseCase:

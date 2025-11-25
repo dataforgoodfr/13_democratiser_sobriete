@@ -9,7 +9,7 @@ from wsl_library.pdfextraction import TAXS, OLLAMA_MODELS
 from wsl_library.pdfextraction.llm.utils import open_file, ollama_available
 from wsl_library.pdfextraction.llm.prompts import basic_prompt, main_parts_prompt
 
-from wsl_library.domain.paper_taxonomy import PaperWithText, PaperTaxonomy
+from taxonomy.paper_taxonomy import PaperWithText, PaperTaxonomy
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Extract OLLAMA from a paper")

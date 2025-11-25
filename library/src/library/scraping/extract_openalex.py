@@ -5,7 +5,7 @@ import requests
 import time
 from typing import List, Optional
 from pathlib import Path
-from wsl_library.domain.paper_taxonomy import OpenAlexPaper
+from taxonomy.paper_taxonomy import OpenAlexPaper
 
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException

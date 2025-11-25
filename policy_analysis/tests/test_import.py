@@ -9,7 +9,7 @@ sys.path.append(str(rag_system_dir))
 print(f"Added to sys.path: {rag_system_dir}")
 
 try:
-    from taxonomy.taxonomy.themes_taxonomy import Studied_sector
+    from taxonomy.themes_taxonomy import Studied_sector
 
     print("✅ Successfully imported Studied_sector!")
     print(f"Number of sectors: {len(Studied_sector)}")

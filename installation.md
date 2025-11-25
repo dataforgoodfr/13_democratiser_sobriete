@@ -102,7 +102,7 @@ uv run python tests/pdfextraction/pdf/test_pymu.py
 ### Taxonomy System
 
 ```bash
-cd rag_system/taxonomy
+cd taxonomy
 
 # The taxonomy module is automatically available after main installation
 # Test it with:
