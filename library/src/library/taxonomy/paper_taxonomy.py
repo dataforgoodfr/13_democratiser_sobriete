@@ -1,20 +1,20 @@
 from typing import Optional, Any
 from pydantic import BaseModel
 
-from taxonomy.publication_taxonomy import (
+from library.taxonomy.publication_taxonomy import (
     Author,
     # Author_gender,
     Publication_type,
     Science_type,
     Scientif_discipline,
 )
-from taxonomy.geographical_taxonomy import (
+from library.taxonomy.geographical_taxonomy import (
     Regional_group,
     Geographical_scope,
 )
 
-from taxonomy.geographical_taxonomy import Studied_country
-from taxonomy.themes_taxonomy import Human_needs, Studied_sector, Studied_policy_area, Natural_ressource, \
+from library.taxonomy.geographical_taxonomy import Studied_country
+from library.taxonomy.themes_taxonomy import Human_needs, Studied_sector, Studied_policy_area, Natural_ressource, \
     Wellbeing, Justice_consideration, Planetary_boundaries
 
 

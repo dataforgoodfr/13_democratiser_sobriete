@@ -1,6 +1,6 @@
 import ollama
 
-from taxonomy import paper_taxonomy
+from library.taxonomy import paper_taxonomy
 
 
 # get the installed ollama models
@@ -12,5 +12,5 @@ TAXS = {
     for n, o in {
         name: obj for name, obj in paper_taxonomy.__dict__.items() if callable(obj)
     }.items()
-    if o.__module__ == "taxonomy.paper_taxonomy"
+    if o.__module__ == "library.taxonomy.paper_taxonomy"
 }

@@ -1,5 +1,5 @@
 [project]
-name = "wsl_library"
+name = "library"
 version = "0.0.1"
 description = "An application for the library data ingestion"
 requires-python = ">=3.10"
@@ -14,7 +14,6 @@ dependencies = [
     "requests>=2.32.3",
     "selenium>=4.29.0",
     "webdriver-manager>=4.0.2",
-    "taxonomy = {path = \"../taxonomy\"}",
 ]
 
 

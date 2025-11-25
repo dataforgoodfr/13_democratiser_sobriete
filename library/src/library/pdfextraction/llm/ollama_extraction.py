@@ -3,13 +3,13 @@ import argparse
 from ollama import chat
 from pydantic import BaseModel
 
-from wsl_library.pdfextraction.pdf import extract_pdf_content
+from library.pdfextraction.pdf import extract_pdf_content
 
-from wsl_library.pdfextraction import TAXS, OLLAMA_MODELS
-from wsl_library.pdfextraction.llm.utils import open_file, ollama_available
-from wsl_library.pdfextraction.llm.prompts import basic_prompt, main_parts_prompt
+from library.pdfextraction import TAXS, OLLAMA_MODELS
+from library.pdfextraction.llm.utils import open_file, ollama_available
+from library.pdfextraction.llm.prompts import basic_prompt, main_parts_prompt
 
-from taxonomy.paper_taxonomy import PaperWithText, PaperTaxonomy
+from library.taxonomy.paper_taxonomy import PaperWithText, PaperTaxonomy
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Extract OLLAMA from a paper")

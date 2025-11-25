@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pymupdf4llm
 
-from taxonomy.paper_taxonomy import OpenAlexPaper, PaperWithText
+from library.taxonomy.paper_taxonomy import OpenAlexPaper, PaperWithText
 
 def get_args_parser():
     parser = argparse.ArgumentParser(description="Extract text from a PDF file.")

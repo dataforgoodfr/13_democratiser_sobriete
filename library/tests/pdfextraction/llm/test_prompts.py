@@ -3,8 +3,8 @@
 
 from pathlib import Path
 
-from wsl_library.pdfextraction.llm.utils import open_file
-from wsl_library.pdfextraction.llm.prompts import main_parts_prompt
+from library.pdfextraction.llm.utils import open_file
+from library.pdfextraction.llm.prompts import main_parts_prompt
 
 
 txt_path =  Path(__file__).parent / "1-s2.0-S0094119008001095-main.md"

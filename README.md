@@ -29,7 +29,7 @@ La library est constituée en trois grandes étapes :
 2. Extraction full-text : récupération des textes complets pour autant d'articles que possible
 3. Extraction de la taxonomie : les métadonnées des articles sont enrichis par une taxonomie extraite des articles par traitement NLP.
 
-[README Library](src/wsl_library/README.md)
+[README Library](library/README.md)
 
 
 ## Policy analysis

@@ -5,19 +5,20 @@ import requests
 import time
 from typing import List, Optional
 from pathlib import Path
-from taxonomy.paper_taxonomy import OpenAlexPaper
 
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 
-from wsl_library.scraping.parse_metadata import (
+from library.infra import PDF_STORAGE_FOLDER, PROJECT_DIR
+from library.scraping.parse_metadata import (
     # get_all_results,
     # remove_unnecessary_fields,
     clean_result_fields,
 )
-from wsl_library.infra import PDF_STORAGE_FOLDER, PROJECT_DIR
+from library.taxonomy.paper_taxonomy import OpenAlexPaper
+
 # Set directory where PDFs are saved
 # !!! SPECIFY DIRECTORY PATH FROM ROOT !!!
 
