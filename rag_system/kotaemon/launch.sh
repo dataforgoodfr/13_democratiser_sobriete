@@ -1,10 +1,11 @@
 #!/bin/bash
+source .venv/bin/activate
 
 if [ -z "$GRADIO_SERVER_NAME" ]; then
     export GRADIO_SERVER_NAME="0.0.0.0"
 fi
 if [ -z "$GRADIO_SERVER_PORT" ]; then
-    export GRADIO_SERVER_PORT="7860"
+    export GRADIO_SERVER_PORT="8080"
 fi
 
 # Check if environment variable KH_DEMO_MODE is set to true
@@ -17,7 +18,6 @@ else
         echo "KH_SSO_ENABLED is true. Launching in SSO mode..."
         GR_FILE_ROOT_PATH="/app" KH_SSO_ENABLED=true uvicorn sso_app:app --host "$GRADIO_SERVER_NAME" --port "$GRADIO_SERVER_PORT"
     else
-        ollama serve &
         python app.py
     fi
 fi

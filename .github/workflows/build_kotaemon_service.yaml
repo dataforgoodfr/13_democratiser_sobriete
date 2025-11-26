@@ -47,10 +47,12 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
       - name: Build and push Docker image
         run: |
+          cd rag_system 
           docker buildx build \
+          --platform=linux/amd64 \
           --push \
-          --platform=linux/amd64,linux/arm64,linux/armhf \
-          -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.tag.outputs.tag }} -f rag_system/kotaemon/Dockerfile rag_system/kotaemon
+          -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest \
+          -f Dockerfile ./
       - name: Also create tagged image if tag exists on main branch
         if: startsWith(github.ref, 'refs/tags/')
         run: |

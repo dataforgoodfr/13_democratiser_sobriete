@@ -103,8 +103,8 @@ KH_DOCSTORE = {
 }
 KH_VECTORSTORE = {
     "__type__": "kotaemon.storages.QdrantVectorStore",
-    "url": os.getenv("VECTOSTORE_URL", ""),
-    "api_key": os.getenv("API_KEY", "")
+    "url": os.getenv("VECTORSTORE_URL", ""),
+    "api_key": os.getenv("VECTOR_STORE_API_KEY", "")
 }
 KH_LLMS = {}
 KH_EMBEDDINGS = {}

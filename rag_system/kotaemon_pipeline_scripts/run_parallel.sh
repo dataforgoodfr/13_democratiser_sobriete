@@ -12,10 +12,10 @@
 source /home/ec2-user/13_democratiser_sobriete/.venv/bin/activate
 
 # Name of the Python program to be executed. Change it as needed.
-PYTHON_SCRIPT="/home/ec2-user/13_democratiser_sobriete/rag_system/pipeline_scripts/fast_ingestion_pipeline_good_version.py"
+PYTHON_SCRIPT="/app/pipeline_scripts/fast_ingestion_pipeline_good_version.py"
 
 # Log file for failed Python script invocations.
-FAILED_LOG="/home/ec2-user/13_democratiser_sobriete/failed_files.txt"
+FAILED_LOG="/app/failed_files.txt"
 
 # Create 'done' directory if it doesn't exist
 DONE_DIR="test_pdf/done"
@@ -27,7 +27,7 @@ mkdir -p "$DONE_DIR"
 pwd
 
 # List of folders to process. Modify these folder names as required.
-FOLDERS=("test_pdf/folder1") # "test_pdf/folder2" "test_pdf/folder3" "test_pdf/folder4")
+FOLDERS=("test_pdf/folder1" "test_pdf/folder2" "test_pdf/folder3" "test_pdf/folder4")
 
 # Function to process all files in a given folder.
 process_folder() {
