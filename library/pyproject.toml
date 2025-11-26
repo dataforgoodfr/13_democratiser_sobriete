@@ -1,0 +1,26 @@
+[project]
+name = "library"
+version = "0.0.1"
+description = "An application for the library data ingestion"
+requires-python = ">=3.10"
+dependencies = [
+    "dependency-injector>=4.46.0",
+    "icecream>=2.1.4",
+    "logfire>=3.14.0",
+    "ollama>=0.4.7",
+    "pandas>=2.2.3",
+    "pydantic>=2.10.6",
+    "pymupdf4llm>=0.0.17",
+    "requests>=2.32.3",
+    "selenium>=4.29.0",
+    "webdriver-manager>=4.0.2",
+]
+
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/library"]
