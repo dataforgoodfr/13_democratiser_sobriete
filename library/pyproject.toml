@@ -9,10 +9,12 @@ dependencies = [
     "logfire>=3.14.0",
     "ollama>=0.4.7",
     "pandas>=2.2.3",
+    "pyalex>=0.19",
     "pydantic>=2.10.6",
     "pymupdf4llm>=0.0.17",
     "requests>=2.32.3",
     "selenium>=4.29.0",
+    "tqdm>=4.67.1",
     "webdriver-manager>=4.0.2",
 ]
 
@@ -24,3 +26,8 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/library"]
+
+[dependency-groups]
+dev = [
+    "ipykernel>=7.1.0",
+]
