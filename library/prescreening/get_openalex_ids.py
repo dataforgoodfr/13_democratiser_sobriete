@@ -17,6 +17,8 @@ from library.connectors.openalex.openalex_connector import OpenAlexConnector
 KEYWORDS_CSV_PATH = "sufficiency_keywords_regrouped.csv"
 DB_PATH = "openalex_works_v2.db"
 
+MAX_WORKS_PER_THEME = 2_500_000
+
 
 class Theme(BaseModel):
     sector: str
@@ -78,7 +80,7 @@ def fetch_ids_for_theme(connector: OpenAlexConnector, theme: Theme):
     try:
         total_works = connector.count_works(query)
         print(f"  Total works found: {total_works}")
-        if total_works > 500e3:
+        if total_works > MAX_WORKS_PER_THEME:
             print(f'Too many articles found {total_works}, skipping.')
             conn.close()
             return

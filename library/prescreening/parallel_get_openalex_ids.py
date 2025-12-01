@@ -14,9 +14,10 @@ from tqdm import tqdm
 
 from library.connectors.openalex.openalex_connector import OpenAlexConnector
 
-KEYWORDS_CSV_PATH = "sufficiency_keywords_regrouped.csv"
+KEYWORDS_CSV_PATH = "sufficiency_keywords_regrouped_count.csv"
 DB_PATH = "openalex_works_v2.db"
-MAX_WORKERS = 2
+MAX_WORKERS = 2  # more than 2 workers may lead to rate limiting
+MAX_WORKS_PER_THEME = 2_500_000
 
 DB_LOCK = threading.Lock()
 BAR_POSITION_QUEUE = queue.Queue()
@@ -92,7 +93,7 @@ def fetch_ids_for_theme(connector: OpenAlexConnector, theme: Theme, pbar: tqdm):
     try:
         total_works = connector.count_works(theme.query)
         
-        if total_works > 500e3:
+        if total_works > MAX_WORKS_PER_THEME:
             pbar.write(f"Too many ({total_works}) for {desc}. Skipping.")
             return
 
@@ -101,7 +102,7 @@ def fetch_ids_for_theme(connector: OpenAlexConnector, theme: Theme, pbar: tqdm):
         pbar.refresh()
 
         for work_id in id_iterator:
-            buffer.append((work_id,)) # The comma is important to make it a tuple
+            buffer.append((work_id,))
             count += 1
             pbar.update(1)
             
