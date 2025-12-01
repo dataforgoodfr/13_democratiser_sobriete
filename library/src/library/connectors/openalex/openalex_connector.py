@@ -2,6 +2,14 @@ from itertools import chain
 import pyalex
 
 
+DESIRED_FIELDS = ['id', 'doi', 'title', 'abstract_inverted_index', 'language', 'publication_date',
+                  'type', 'open_access', 'best_oa_location', 'has_fulltext', 'fwci']
+BASE_FILTERS = {
+    "is_paratext": False,
+    "is_retracted": False,
+}
+
+
 class OpenAlexConnector:
     """Connector for OpenAlex API using pyalex library."""
     
@@ -9,15 +17,15 @@ class OpenAlexConnector:
         self.email = email
         pyalex.config.email = email
     
-    def count_works(self, query: str) -> int:
+    def count_works(self, query: str, filters: dict = BASE_FILTERS) -> int:
         """Get the count of works matching the query."""
         query = self._sanitize_query(query)
-        return pyalex.Works().search(query).count()
+        return pyalex.Works().search(query).filter(**filters).count()
     
-    def fetch_works(self, query: str, per_page: int = 200) -> tuple:
+    def fetch_works(self, query: str, per_page: int = 200, filters: dict = BASE_FILTERS, fields: list[str] = DESIRED_FIELDS) -> tuple:
         """Fetch works matching the query. Returns an iterator and the total count."""
         query = self._sanitize_query(query)
-        works_pager = pyalex.Works().search(query)
+        works_pager = pyalex.Works().search(query).filter(**filters).select(fields)
         total_count = works_pager.count()
 
         def work_generator():
@@ -28,10 +36,10 @@ class OpenAlexConnector:
         work_iterator = work_generator()
         return work_iterator, total_count
         
-    def fetch_work_ids(self, query: str, per_page: int = 200) -> tuple:
+    def fetch_work_ids(self, query: str, per_page: int = 200, filters: dict = BASE_FILTERS) -> tuple:
         """Fetch only the IDs of works matching the query. Returns an iterator and the total count."""
         query = self._sanitize_query(query)
-        works_pager = pyalex.Works().search(query).select(['id'])
+        works_pager = pyalex.Works().search(query).filter(**filters).select(['id'])
         total_count = works_pager.count()
 
         def id_generator():
@@ -42,11 +50,11 @@ class OpenAlexConnector:
         id_iterator = id_generator()
         return id_iterator, total_count
 
-    def get_works_from_ids(self, ids: list, per_page: int = 200):
+    def get_works_from_ids(self, ids: list, per_page: int = 100, filters: dict = None, fields: list[str] = DESIRED_FIELDS):
         """Fetch works given a list of OpenAlex IDs."""
         for i in range(0, len(ids), per_page):
             batch_ids = ids[i:i + per_page]
-            works = pyalex.Works().filter(id='|'.join(batch_ids))
+            works = pyalex.Works().filter(openalex_id='|'.join(batch_ids)).filter(**filters).select(fields)
             for work in chain(*works.paginate(per_page=per_page, n_max=None)):
                 yield work
 
