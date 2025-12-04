@@ -3,6 +3,7 @@ Parallel version of get_openalex_ids.py.
 Adapted with AI assistance.
 """
 
+import json
 import sqlite3
 import threading
 import queue
@@ -12,9 +13,8 @@ from tqdm import tqdm
 
 from library.connectors.openalex.openalex_connector import OpenAlexConnector, BASE_FILTERS, DESIRED_FIELDS
 
-#IDS_PATH = "openalex_work_ids_tmp_251201-1046.csv"
-DB_PATH = "openalex_works_v2.db"
-MAX_WORKERS = 2  # more than 2 workers may lead to rate limiting
+DB_PATH = "openalex_works.db"
+MAX_WORKERS = 1  # more than 2 workers may lead to rate limiting
 CHUNK_SIZE = 100
 
 DB_LOCK = threading.Lock()
@@ -23,10 +23,29 @@ BAR_POSITION_QUEUE = queue.Queue()
 desired_fields = [f if f != "abstract_inverted_index" else "abstract" for f in DESIRED_FIELDS]
 
 
-def init_db():
+def init_db(ids: list[str] | None = None):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
+    # add cols for desired fields if not exist
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS works (
+            id TEXT PRIMARY KEY,
+            doi TEXT,
+            title TEXT,
+            abstract TEXT,
+            language TEXT,
+            publication_date TEXT,
+            type TEXT,
+            open_access TEXT,
+            best_oa_location TEXT,
+            has_fulltext INTEGER,
+            fwci TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    """ 
    # Add new columns if they don't exist
     for col in desired_fields:
         try:
@@ -36,8 +55,8 @@ def init_db():
                 cursor.execute(f"ALTER TABLE works ADD COLUMN {col} TEXT")
         except sqlite3.OperationalError as e:
             if "duplicate column name" not in str(e):
-                raise e
-
+                raise e """
+    
     conn.commit()
     conn.close()
 
@@ -57,27 +76,35 @@ def fetch_works_for_ids(connector: OpenAlexConnector, pool_nb: int, ids: list[st
         pbar.refresh()
 
         for work in connector.get_works_from_ids(ids, filters=BASE_FILTERS):
-            buffer.append((connector.get_entity_id_from_url(work['id']), *[work[field] for field in desired_fields if field != 'id']))
-            count += 1
-            pbar.update(1)
-            
-            # Batch Insert
-            if len(buffer) >= 1000:
-                with DB_LOCK:
-                    cursor.executemany(f"""
-                        INSERT OR REPLACE INTO works
-                        ({', '.join(desired_fields)}) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    """, buffer)
-                    conn.commit()
-                buffer = []
+            try:
+                buffer.append((connector.get_entity_id_from_url(work['id']), *[work[field] if not isinstance(work[field], dict) else json.dumps(work[field]) for field in desired_fields if field != 'id']))
+                count += 1
+                pbar.update(1)
+
+                # Batch Insert
+                if len(buffer) >= 1000:
+                    try:
+                        with DB_LOCK:
+                            cursor.executemany(f"""
+                                INSERT OR REPLACE INTO works
+                                ({', '.join(desired_fields)})
+                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            """, buffer)
+                            conn.commit()
+                        buffer = []
+                    except Exception as e:
+                        pbar.write(f"Error during batch insert: {e}")
+                        continue
+            except Exception as e:
+                pbar.write(f"Error processing work {work['id']}: {e}")
+                continue
 
         # Insert remaining items
         if buffer:
             with DB_LOCK:
                 cursor.executemany(f"""
                         INSERT OR REPLACE INTO works
-                        ({', '.join(desired_fields)}) 
+                        ({', '.join(desired_fields)})
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """, buffer)
                 conn.commit()
@@ -134,13 +161,22 @@ def fetch_works_for_all_ids(connector: OpenAlexConnector, ids: list[str]):
 
 
 def get_ids() -> list[str]:
-    #df = pd.read_csv(IDS_PATH)
-    #return df['id'].tolist()
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("SELECT id FROM works where title is NULL")
     ids = cursor.fetchall()
     ids = [id_tuple[0] for id_tuple in ids]
+    if len(ids) == 0:
+        with open('openalex_ids.txt', 'r') as f:
+            ids = [line.strip() for line in f.readlines()]
+
+        # bulk insert by chunks of 1000
+        for i in range(0, len(ids), 1000):
+            chunk = ids[i:i + 1000]
+            cursor.executemany("""
+                INSERT OR IGNORE INTO works (id) VALUES (?)
+            """, [(id_,) for id_ in chunk])
+            conn.commit()
     conn.close()
     print(f"Total ids to process: {len(ids)}")
     return ids

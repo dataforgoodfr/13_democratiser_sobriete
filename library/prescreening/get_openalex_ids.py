@@ -14,8 +14,8 @@ from tqdm import tqdm
 
 from library.connectors.openalex.openalex_connector import OpenAlexConnector
 
-KEYWORDS_CSV_PATH = "sufficiency_keywords_regrouped.csv"
-DB_PATH = "openalex_works_v2.db"
+KEYWORDS_CSV_PATH = "sufficiency_keywords_regrouped_count.csv"
+DB_PATH = "openalex_ids.db"
 
 MAX_WORKS_PER_THEME = 2_500_000
 
@@ -87,12 +87,16 @@ def fetch_ids_for_theme(connector: OpenAlexConnector, theme: Theme):
 
         id_iterator, total_count = connector.fetch_work_ids(query, per_page=200)
         for work_id in tqdm(id_iterator, total=total_count, desc=f"Fetching IDs for {desc}"):
-            buffer.append((work_id,))
-            count += 1
-            if len(buffer) >= 1000:
-                cursor.executemany("INSERT OR IGNORE INTO works (id) VALUES (?)", buffer)
-                conn.commit()
-                buffer = []
+            try:
+                buffer.append((work_id,))
+                count += 1
+                if len(buffer) >= 1000:
+                    cursor.executemany("INSERT OR IGNORE INTO works (id) VALUES (?)", buffer)
+                    conn.commit()
+                    buffer = []
+            except Exception as e:
+                print(f"Error while processing batch, skipping. '{desc}': {e}")
+                continue
         
         # Insert remaining items in the buffer
         if buffer:
