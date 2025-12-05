@@ -53,7 +53,7 @@ def get_preds(df, model, batch_size=100):
     labelnames = ["other","planetary_boundaries","well_being","resources","justice"]
     cols = ["proba_"+x for x in labelnames]
     preds_df = pd.DataFrame(preds[:,:,1].numpy(), columns=cols)
-    return pd.concat((df, preds_df), axis=1)
+    return pd.concat((df.reset_index(drop=True), preds_df), axis=1)
 
 
 def save_to_s3(df, i, s3):
