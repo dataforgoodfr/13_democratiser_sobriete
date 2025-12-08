@@ -56,6 +56,25 @@ def get_preds(df, model, batch_size=100):
     return pd.concat((df.reset_index(drop=True), preds_df), axis=1)
 
 
+def add_screen_class(df):
+    preds_df = df[['proba_other', 'proba_planetary_boundaries', 'proba_well_being', 'proba_resources', 'proba_justice']]
+    prescreening_high = (preds_df.idxmax(axis = 1) != "proba_other")
+    pred_class = preds_df.idxmax(axis = 1).map(lambda x : x.replace("proba_",""))
+
+    prescreening_medium = prescreening_high.copy()
+    prescreening_medium.loc[preds_df.max(axis = 1) < 0.5] = False
+
+    prescreening_low = prescreening_high.copy()
+    prescreening_low.loc[preds_df.max(axis = 1) < 0.8] = False
+
+    df["prescreening_high"] = prescreening_high
+    df["prescreening_medium"] = prescreening_medium
+    df["prescreening_low"] = prescreening_low
+    df["pred_class"] = pred_class
+
+    return df
+
+
 def save_to_s3(df, i, s3):
     df.to_parquet(f"/tmp/chunk_{i}.parquet")
     s3.upload_file(
@@ -75,6 +94,7 @@ def run_inference(start_idx: int, end_idx: int, chunk_size: int, batch_size: int
         df = prepare_chunk(i)
         if chunk_size >= len(df):
             preds = get_preds(df, model, batch_size)
+            preds = add_screen_class(preds)
             save_to_s3(preds, i, s3)
         else:
             start = 0
