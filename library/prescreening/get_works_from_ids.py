@@ -11,7 +11,11 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from tqdm import tqdm
 
-from library.connectors.openalex.openalex_connector import OpenAlexConnector, BASE_FILTERS, DESIRED_FIELDS
+from library.connectors.openalex.openalex_connector import (
+    OpenAlexConnector,
+    BASE_FILTERS,
+    DESIRED_FIELDS,
+)
 
 DB_PATH = "openalex_works.db"
 MAX_WORKERS = 1  # more than 2 workers may lead to rate limiting
@@ -56,7 +60,7 @@ def init_db(ids: list[str] | None = None):
         except sqlite3.OperationalError as e:
             if "duplicate column name" not in str(e):
                 raise e """
-    
+
     conn.commit()
     conn.close()
 
@@ -64,20 +68,32 @@ def init_db(ids: list[str] | None = None):
 def fetch_works_for_ids(connector: OpenAlexConnector, pool_nb: int, ids: list[str], pbar: tqdm):
     pbar.set_description(f"Processing pool: {pool_nb}")
     pbar.reset()
-    
+
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    
+
     count = 0
     buffer = []
-    
+
     try:
         pbar.total = len(ids)
         pbar.refresh()
 
         for work in connector.get_works_from_ids(ids, filters=BASE_FILTERS):
             try:
-                buffer.append((connector.get_entity_id_from_url(work['id']), *[work[field] if not isinstance(work[field], dict) else json.dumps(work[field]) for field in desired_fields if field != 'id']))
+                buffer.append(
+                    (
+                        connector.get_entity_id_from_url(work["id"]),
+                        *[
+                            work.get(field)
+                            if not isinstance(work[field], dict)
+                            else json.dumps(work[field])
+                            for field in desired_fields
+                            if field != "id"
+                        ],
+                    )
+                )
+
                 count += 1
                 pbar.update(1)
 
@@ -85,11 +101,14 @@ def fetch_works_for_ids(connector: OpenAlexConnector, pool_nb: int, ids: list[st
                 if len(buffer) >= 1000:
                     try:
                         with DB_LOCK:
-                            cursor.executemany(f"""
+                            cursor.executemany(
+                                f"""
                                 INSERT OR REPLACE INTO works
                                 ({', '.join(desired_fields)})
                                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                            """, buffer)
+                            """,
+                                buffer,
+                            )
                             conn.commit()
                         buffer = []
                     except Exception as e:
@@ -102,13 +121,16 @@ def fetch_works_for_ids(connector: OpenAlexConnector, pool_nb: int, ids: list[st
         # Insert remaining items
         if buffer:
             with DB_LOCK:
-                cursor.executemany(f"""
+                cursor.executemany(
+                    f"""
                         INSERT OR REPLACE INTO works
                         ({', '.join(desired_fields)})
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    """, buffer)
+                    """,
+                    buffer,
+                )
                 conn.commit()
-               
+
     except Exception as e:
         pbar.write(f"Error in pool {pool_nb}: {e}")
         # Don't raise, just log, so other threads continue
@@ -119,15 +141,17 @@ def fetch_works_for_ids(connector: OpenAlexConnector, pool_nb: int, ids: list[st
 def worker_wrapper(connector: OpenAlexConnector, pool_nb: int, ids: list[str]):
     """
     Wraps the logic to handle the progress bar position.
-    (AI-generated.) 
+    (AI-generated.)
     """
     # 1. Get a free slot ID (e.g., line 1, 2, 3 or 4)
     position = BAR_POSITION_QUEUE.get()
-    
+
     try:
         # 2. Create the bar at that specific line
         # leave=True keeps the bar visible after completion (optional)
-        with tqdm(position=position, leave=True, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt}") as pbar:
+        with tqdm(
+            position=position, leave=True, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt}"
+        ) as pbar:
             fetch_works_for_ids(connector, pool_nb, ids, pbar)
     finally:
         # 3. Give the slot back so the next task can use this line
@@ -144,17 +168,16 @@ def fetch_works_for_all_ids(connector: OpenAlexConnector, ids: list[str]):
         else:
             end_index = (i + 1) * pool_size
         pools.append(ids[start_index:end_index])
-    
+
     # position progress bars
     for i in range(0, MAX_WORKERS):
         BAR_POSITION_QUEUE.put(i)
 
     print("\nStarting concurrent fetch...")
-    
+
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
         futures = [
-            executor.submit(worker_wrapper, connector, i, pool) 
-            for i, pool in enumerate(pools)
+            executor.submit(worker_wrapper, connector, i, pool) for i, pool in enumerate(pools)
         ]
         for _ in as_completed(futures):
             pass
@@ -167,15 +190,18 @@ def get_ids() -> list[str]:
     ids = cursor.fetchall()
     ids = [id_tuple[0] for id_tuple in ids]
     if len(ids) == 0:
-        with open('openalex_ids.txt', 'r') as f:
+        with open("openalex_ids.txt", "r") as f:
             ids = [line.strip() for line in f.readlines()]
 
         # bulk insert by chunks of 1000
         for i in range(0, len(ids), 1000):
-            chunk = ids[i:i + 1000]
-            cursor.executemany("""
+            chunk = ids[i : i + 1000]
+            cursor.executemany(
+                """
                 INSERT OR IGNORE INTO works (id) VALUES (?)
-            """, [(id_,) for id_ in chunk])
+            """,
+                [(id_,) for id_ in chunk],
+            )
             conn.commit()
     conn.close()
     print(f"Total ids to process: {len(ids)}")
@@ -200,7 +226,7 @@ def main():
     all_ids = get_ids()
     fetch_works_for_all_ids(connector, all_ids)
     count_fetched_works()
-    print('DONE!')
+    print("DONE!")
 
 
 if __name__ == "__main__":

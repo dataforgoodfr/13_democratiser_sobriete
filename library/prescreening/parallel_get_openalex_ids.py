@@ -32,7 +32,7 @@ class Theme(BaseModel):
 def init_db():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-      
+
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS works (
             id TEXT PRIMARY KEY,
@@ -40,7 +40,7 @@ def init_db():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
-    
+
     # Fixed table name to match usage
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS processed_themes (
@@ -64,8 +64,8 @@ def is_theme_processed(theme: Theme) -> bool:
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT 1 FROM processed_themes WHERE sector = ? AND theme = ?", 
-            (theme.sector, theme.theme)
+            "SELECT 1 FROM processed_themes WHERE sector = ? AND theme = ?",
+            (theme.sector, theme.theme),
         )
         result = cursor.fetchone()
         conn.close()
@@ -79,20 +79,20 @@ def fetch_ids_for_theme(connector: OpenAlexConnector, theme: Theme, pbar: tqdm):
     desc = f"{theme.sector} | {theme.theme}"
     pbar.set_description(f"Processing: {desc}")
     pbar.reset()
-    
+
     if is_theme_processed(theme):
         pbar.write(f"Already processed: {theme.sector} - {theme.theme}")
         return
 
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    
+
     count = 0
     buffer = []
-    
+
     try:
         total_works = connector.count_works(theme.query)
-        
+
         if total_works > MAX_WORKS_PER_THEME:
             pbar.write(f"Too many ({total_works}) for {desc}. Skipping.")
             return
@@ -105,7 +105,7 @@ def fetch_ids_for_theme(connector: OpenAlexConnector, theme: Theme, pbar: tqdm):
             buffer.append((work_id,))
             count += 1
             pbar.update(1)
-            
+
             # Batch Insert
             if len(buffer) >= 1000:
                 with DB_LOCK:
@@ -118,7 +118,7 @@ def fetch_ids_for_theme(connector: OpenAlexConnector, theme: Theme, pbar: tqdm):
             with DB_LOCK:
                 cursor.executemany("INSERT OR IGNORE INTO works (id) VALUES (?)", buffer)
                 conn.commit()
-        
+
         # Mark as processed
         with DB_LOCK:
             cursor.execute(
@@ -126,10 +126,10 @@ def fetch_ids_for_theme(connector: OpenAlexConnector, theme: Theme, pbar: tqdm):
                 INSERT OR REPLACE INTO processed_themes 
                 (sector, theme, query, count) VALUES (?, ?, ?, ?)
                 """,
-                (theme.sector, theme.theme, theme.query, count)
+                (theme.sector, theme.theme, theme.query, count),
             )
             conn.commit()
-        
+
     except Exception as e:
         pbar.write(f"Error in {desc}: {e}")
         # Don't raise, just log, so other threads continue
@@ -144,11 +144,13 @@ def worker_wrapper(connector, theme):
     """
     # 1. Get a free slot ID (e.g., line 1, 2, 3 or 4)
     position = BAR_POSITION_QUEUE.get()
-    
+
     try:
         # 2. Create the bar at that specific line
         # leave=True keeps the bar visible after completion (optional)
-        with tqdm(position=position, leave=True, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt}") as pbar:
+        with tqdm(
+            position=position, leave=True, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt}"
+        ) as pbar:
             fetch_ids_for_theme(connector, theme, pbar)
     finally:
         # 3. Give the slot back so the next task can use this line
@@ -162,16 +164,14 @@ def fetch_ids_for_all_themes(connector: OpenAlexConnector, themes: list[Theme]):
         BAR_POSITION_QUEUE.put(i)
 
     print("\nStarting concurrent fetch...")
-    
+
     # Main progress bar (position 0)
-    with tqdm(total=len(themes), position=0, desc="Total Themes", bar_format="{l_bar}{bar}") as main_pbar:
-        
+    with tqdm(
+        total=len(themes), position=0, desc="Total Themes", bar_format="{l_bar}{bar}"
+    ) as main_pbar:
         with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-            futures = [
-                executor.submit(worker_wrapper, connector, theme) 
-                for theme in themes
-            ]
-            
+            futures = [executor.submit(worker_wrapper, connector, theme) for theme in themes]
+
             for _ in as_completed(futures):
                 main_pbar.update(1)
 

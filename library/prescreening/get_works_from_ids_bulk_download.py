@@ -1,4 +1,5 @@
 """
+NOT USED IN THE END!
 Script to download works from OpenAlex snapshot and keep only those in a given list of IDs.
 Should allow to bypass OpenAlex API rate limits.
 AI-generated.
