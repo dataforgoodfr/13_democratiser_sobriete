@@ -5,9 +5,9 @@ Takes ids from sqlite db and save them to a txt file.
 import sqlite3
 
 
-DB_PATH = "openalex_works_v2.db"
+DB_PATH = "openalex_ids.db"
 BATCH_SIZE = 1_000_000
-OUTPUT_FILE = 'openalex_ids_0312.txt'
+OUTPUT_FILE = 'openalex_ids_0812_final_24M.txt'
 
 
 def main():
