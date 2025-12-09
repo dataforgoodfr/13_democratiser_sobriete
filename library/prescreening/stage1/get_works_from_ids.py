@@ -1,6 +1,7 @@
 """
-Parallel version of get_openalex_ids.py.
-Adapted with AI assistance.
+Get OpenAlex works data from OpenAlex IDs.
+IDs are defined in IDS_PATH, on the first run they fill the db at DB_PATH, and then only DB_PATH is used.
+This script is not entirely error-resilient but is designed to be easily resumable.
 """
 
 import json
@@ -18,6 +19,7 @@ from library.connectors.openalex.openalex_connector import (
 )
 
 DB_PATH = "openalex_works.db"
+IDS_PATH = "openalex_ids.txt"
 MAX_WORKERS = 1  # more than 2 workers may lead to rate limiting
 CHUNK_SIZE = 100
 
@@ -190,7 +192,7 @@ def get_ids() -> list[str]:
     ids = cursor.fetchall()
     ids = [id_tuple[0] for id_tuple in ids]
     if len(ids) == 0:
-        with open("openalex_ids.txt", "r") as f:
+        with open(IDS_PATH, "r") as f:
             ids = [line.strip() for line in f.readlines()]
 
         # bulk insert by chunks of 1000

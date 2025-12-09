@@ -17,7 +17,7 @@ Comme la quantité de donnée récupérée influe sur la vitesse des requêtes, 
 
 Il est toutefois possible que fusionner ces deux étapes eut été plus court.
 
-Les scripts pour cette étape sont dans le dossier `stage1` et utilsent la librairie [pyalex](https://github.com/J535D165/pyalex) via le connecteur [OpenAlexConnector](../src/library/connectors/openalex/openalex_connector.py) défini dans le package local `library`.
+Les scripts pour cette étape sont dans le dossier `stage1` et utilsent la librairie [pyalex](https://github.com/J535D165/pyalex) via le connecteur [OpenAlexConnector](../src/library/connectors/openalex/openalex_connector.py) défini dans le package local `library`. Ils ne sont pas complètement résilients aux erreurs, ils peuvent s'arrêter, mais peuvent être relancés sans (trop) perdre de travail.
 
 L'ancien code de `scraping/extract_openalex.py` n'a pas été utilisé car il ne reflétait pas bien la succession d'étapes (on ne va pas directement chercher le full text après avoir requêté OpenAlex) ou n'apportait pas de valeur ajoutée par rapport à pyalex.
 
