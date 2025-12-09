@@ -1,23 +1,7 @@
 # Library
 
 ### 1. Pré-screening
-La source de départ est OpenAlex.
-L'intégration de sources alternatives est laissée à de futurs travaux.
-Le pré-screening à partir d'OpenAlex es fait en deux étapes :
-1. Ensemble de requêtes par mots-clés (choisis par des experts) à l'API OpenAlex -> 1.6M d'articles
-2. Filtrage des articles par une classification `about sufficiency / not about sufficiency` fondée sur leur abstract.
-
-L'étape 2 a été effectuée et [documentée](https://theolvs.notion.site/Documentation-et-m-thodo-Pr-screening-1f8819109fa4807b842ecd568785004c) par Théo Alves avec un modèle BERT entraîné avec SetFit sur un dataset annoté à la main, ce qui a conduit à garder 250k articles.
-Ce code n'est pas (encore) sur le repo GitHub mais il est disponible [sur Collab](https://colab.research.google.com/drive/1onirKPHdBxHTqcQKGOTgupNVpbgCJQgz?usp=sharing), le modèle entraîné [sur HuggingFace](https://huggingface.co/TheoLvs/wsl-prescreening-multi-v0.0/tree/main) et les jeu de données [sur Drive](https://drive.google.com/drive/folders/1EQkQQaUN11jvZAeP8Uf5YFC9yjLCs2Kx).
-Théo rapporte une accuracy sur le dataset de test (20% du dataset annoté) de 100%, mais le recall réel (métrique la plus importante) est inconnu.
-Les articles sélectionnés sont stockés dans la table `policies_abstracts_all` de la base postgres (ID OpenAlex, DOI et abstract, étrangement sans leur titre).
-
-Des tentatives d'amélioration de l'étape 2 ont été effectuées sans être utilisées :
-- dans la branche `feature/pre-screening` avec des API d'IA générative (Mistral, OpenAI) ;
-- dans la branche `prescreening-experimentation` avec un entraînement de modèles BERT (dont SciBERT) par pytorch-lightning.
-
-La fonction `search_openalex` de `scraping/extract_openalex.py` permet quant à elle de reproduire l'étape 1.
-L'ensemble de mots-clés à utiliser ne semble toutefois pas documenté.
+[Voir la doc dédiée](prescreening/README.md).
 
 
 ### 2. Extraction full-text
