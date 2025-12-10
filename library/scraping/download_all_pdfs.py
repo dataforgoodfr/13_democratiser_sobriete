@@ -21,6 +21,7 @@ from tqdm import tqdm
 
 OUTPUT_DIR = "outputs"
 LIMIT = None  # Max number of papers to process in one run
+EXTRACT_MD = False
 
 
 def process_paper(paper: ScrapingQueue, output_dir: str, webdriver: webdriver.Chrome | None) -> tuple[bool, str]:
@@ -44,9 +45,10 @@ def process_paper(paper: ScrapingQueue, output_dir: str, webdriver: webdriver.Ch
         if download_path:
             mark_paper_scraped(paper.openalex_id, download_path, used_selenium)
 
-            md_text = get_markdown_pymupdf(download_path)
-            with open(f"{output_dir}/md/{paper.openalex_id}.md", "w") as f:
-                f.write(md_text)
+            if EXTRACT_MD:
+                md_text = get_markdown_pymupdf(download_path)
+                with open(f"{output_dir}/md/{paper.openalex_id}.md", "w") as f:
+                    f.write(md_text)
 
             return True, f"Successfully downloaded {paper.openalex_id}"
         else:
