@@ -1,0 +1,79 @@
+from datetime import datetime, UTC
+from library.database import get_session
+from library.database.models import ScrapingQueue
+import logging
+from sqlmodel import select
+
+
+def get_papers_to_scrape(limit: int | None = None):
+    with get_session() as session:
+        stmt = (
+            select(ScrapingQueue).where(ScrapingQueue.scraping_attempted == False).limit(limit)
+        )
+        papers_to_scrape = session.exec(stmt).all()
+        return papers_to_scrape
+
+
+def mark_paper_scraped(openalex_id: str, download_path: str, used_selenium: bool):
+    with get_session() as session:
+        try:
+            stmt = select(ScrapingQueue).where(ScrapingQueue.openalex_id == openalex_id)
+            paper = session.exec(stmt).first()
+
+            if paper:
+                paper.scraping_attempted = True
+                paper.scraping_successful = True
+                paper.download_path = download_path
+                paper.required_selenium = used_selenium
+                paper.scraped_at = datetime.now(UTC)
+                paper.error_message = None  # Clear any previous error
+                session.add(paper)
+
+            session.commit()
+            logging.info(f"Marked {openalex_id} as scraped")
+
+        except Exception as e:
+            session.rollback()
+            logging.error(f"Failed to mark paper as scraped: {e}")
+
+def mark_paper_failed(openalex_id: str, error_message: str, used_selenium: bool):
+    with get_session() as session:
+        try:
+            stmt = select(ScrapingQueue).where(ScrapingQueue.openalex_id == openalex_id)
+            paper = session.exec(stmt).first()
+
+            if paper:
+                paper.scraping_attempted = True
+                paper.scraping_successful = False
+                paper.required_selenium = used_selenium
+                paper.scraped_at = datetime.now(UTC)
+                paper.error_message = error_message
+                session.add(paper)
+
+            session.commit()
+            logging.info(f"Marked {openalex_id} as failed: {error_message}")
+
+        except Exception as e:
+            session.rollback()
+            logging.error(f"Failed to mark paper as failed: {e}")
+
+
+def get_scraping_stats():
+    with get_session() as session:
+        stmt = select(ScrapingQueue.id)
+        total = len(session.exec(stmt).all())
+
+        scraped_stmt = select(ScrapingQueue.id).where(
+            ScrapingQueue.scraping_successful == True
+        )
+        scraped = len(session.exec(scraped_stmt).all())
+
+        failed_stmt = select(ScrapingQueue.id).where(
+            ScrapingQueue.scraping_successful == False
+        )
+        failed = len(session.exec(failed_stmt).all())
+
+        # Pending = total papers - successfully scraped papers
+        pending = total - scraped
+
+        return {"total": total, "scraped": scraped, "failed": failed, "pending": pending}
