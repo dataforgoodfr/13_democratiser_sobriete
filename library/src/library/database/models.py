@@ -7,11 +7,8 @@ from datetime import datetime
 from sqlmodel import SQLModel, Field
 
 
+""" Commented out as we decided putting the full library on Postgres wasn't useful
 class OpenAlexWorks(SQLModel, table=True):
-    """
-    Model for the main library table containing Open Alex works.
-    """
-
     __tablename__ = "openalex_works"
 
     # in SQLModel, primary_key must be optional to allow autoincrement
@@ -28,19 +25,16 @@ class OpenAlexWorks(SQLModel, table=True):
     oa_status: str
     landing_page_url: str | None = None
     pdf_url: str | None = None
+"""
 
 
 class ScrapingQueue(SQLModel, table=True):
-    """
-    Queue tracking works to scrape.
-    """
-
     __tablename__ = "scraping_queue"
 
     id: int | None = Field(default=None, primary_key=True)
 
     # basic info from Open Alex
-    openalex_id: str = Field(foreign_key="openalex_works.openalex_id")
+    openalex_id: str
     landing_page_url: str | None = None
     pdf_url: str | None = None
 
@@ -48,5 +42,6 @@ class ScrapingQueue(SQLModel, table=True):
     scraping_attempted: bool = False
     scraping_successful: bool | None = None
     download_path: str | None = None
+    required_selenium: bool | None = None
     scraped_at: datetime | None = None
     error_message: str | None = None
