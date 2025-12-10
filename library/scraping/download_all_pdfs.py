@@ -7,6 +7,7 @@ Script to download all PDFs from the database scraping queue.
 4. Get text with pymupdf and save alongside PDF
 """
 
+import argparse
 import os
 import logging
 import concurrent.futures
@@ -110,4 +111,15 @@ def main(max_workers: int = 10):
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(
+        description="Download all PDFs from the database scraping queue."
+    )
+    parser.add_argument(
+        "--max-workers",
+        type=int,
+        default=10,
+        help="Maximum number of parallel workers for downloading PDFs (default: 10)"
+    )
+    args = parser.parse_args()
+
+    main(max_workers=args.max_workers)
