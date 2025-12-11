@@ -1,32 +1,26 @@
-import os
+import pathlib
+
+# do not remove this import, it improves the results of pymupdf4llm
+import pymupdf.layout  # noqa
 import pymupdf4llm
 
 
-def get_markdown_pymupdf(
-    pdf_path: str,
-    bool_write_images: bool = False,
-    bool_embed_images: bool = False,
-) -> str:
-    """
-    Extract the content from a PDF file using pymupdf4llm.
-    Args:
-        pdf_path (str): The path to the PDF file.
-        bool_write_images (bool): Whether to write images to disk.
-        bool_embed_images (bool): Whether to embed images in the markdown.
-    Returns:
-        list[dict]: The extracted content.
-    """
-    # Get the name of the file from the path, without the extension
-    file_name = os.path.splitext(os.path.basename(pdf_path))[0]
-
-    # Extract the content from the PDF
+def get_markdown_pymupdf(path: str,) -> str:
     md_text = pymupdf4llm.to_markdown(
-        doc=pdf_path,
-        page_chunks=True,
-        write_images=bool_write_images,
-        embed_images=bool_embed_images,
-        image_path=os.path.join("images_pdf", file_name),
-        show_progress=False,
+        doc=path,
+        header=False,
+        footer=False,
     )
-    
     return md_text
+
+
+def save_markdown(text: str, output_path: str) -> None:
+    pathlib.Path(output_path).write_bytes(text.encode())
+
+
+def convert_pdf_to_markdown(
+    pdf_path: str,
+    output_md_path: str,
+) -> None:
+    md_text = get_markdown_pymupdf(pdf_path)
+    save_markdown(md_text, output_md_path)
