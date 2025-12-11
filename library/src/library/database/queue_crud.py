@@ -2,14 +2,26 @@ from datetime import datetime, UTC
 from library.database import get_session
 from library.database.models import ScrapingQueue
 import logging
-from sqlmodel import select
+from sqlmodel import select, or_
 
 
-def get_papers_to_scrape(limit: int | None = None):
+def get_papers_to_scrape(
+    limit: int | None = None, resume_from: datetime | None = None
+) -> list[ScrapingQueue]:
     with get_session() as session:
-        stmt = (
-            select(ScrapingQueue).where(ScrapingQueue.scraping_attempted == False).limit(limit)
-        )
+        if resume_from:
+            # sometimes the script enters an error mode where all downloads fail
+            # this mode is to retry all papers that were scraped after a certain datetime
+            stmt = select(ScrapingQueue).where(
+                or_(
+                    ScrapingQueue.scraped_at >= resume_from,
+                    ScrapingQueue.scraping_attempted == False,
+                )
+            )
+        else:
+            stmt = select(ScrapingQueue).where(ScrapingQueue.scraping_attempted == False)
+
+        stmt = stmt.limit(limit)
         papers_to_scrape = session.exec(stmt).all()
         return papers_to_scrape
 
@@ -35,6 +47,7 @@ def mark_paper_scraped(openalex_id: str, download_path: str, used_selenium: bool
         except Exception as e:
             session.rollback()
             logging.error(f"Failed to mark paper as scraped: {e}")
+
 
 def mark_paper_failed(openalex_id: str, error_message: str, used_selenium: bool):
     with get_session() as session:
@@ -63,14 +76,10 @@ def get_scraping_stats():
         stmt = select(ScrapingQueue.id)
         total = len(session.exec(stmt).all())
 
-        scraped_stmt = select(ScrapingQueue.id).where(
-            ScrapingQueue.scraping_successful == True
-        )
+        scraped_stmt = select(ScrapingQueue.id).where(ScrapingQueue.scraping_successful == True)
         scraped = len(session.exec(scraped_stmt).all())
 
-        failed_stmt = select(ScrapingQueue.id).where(
-            ScrapingQueue.scraping_successful == False
-        )
+        failed_stmt = select(ScrapingQueue.id).where(ScrapingQueue.scraping_successful == False)
         failed = len(session.exec(failed_stmt).all())
 
         # Pending = total papers - successfully scraped papers

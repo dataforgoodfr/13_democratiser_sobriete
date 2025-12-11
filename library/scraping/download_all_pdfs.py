@@ -8,6 +8,7 @@ Script to download all PDFs from the database scraping queue.
 """
 
 import argparse
+from datetime import datetime
 import os
 import logging
 import concurrent.futures
@@ -61,11 +62,11 @@ def process_paper(paper: ScrapingQueue, output_dir: str, webdriver: webdriver.Ch
         return False, f"Error downloading {paper.openalex_id}: {str(e)}"
 
 
-def main(max_workers: int = 10):
+def main(max_workers: int = 10, resume_from: datetime | None = None):
     """
     Download all PDFs in parallel.
     """
-    papers_to_scrape = get_papers_to_scrape(limit=LIMIT)
+    papers_to_scrape = get_papers_to_scrape(limit=LIMIT, resume_from=resume_from)
     os.makedirs(f"{OUTPUT_DIR}/pdf", exist_ok=True)
     os.makedirs(f"{OUTPUT_DIR}/md", exist_ok=True)
 
@@ -120,6 +121,13 @@ if __name__ == "__main__":
         default=10,
         help="Maximum number of parallel workers for downloading PDFs (default: 10)"
     )
+    parser.add_argument(
+        "--resume-from",
+        type=str,
+        default=None,
+        help="Resume downloading papers scraped after this datetime (ISO format)"
+    )
     args = parser.parse_args()
 
-    main(max_workers=args.max_workers)
+    resume_from = datetime.fromisoformat(args.resume_from) if args.resume_from else None
+    main(max_workers=args.max_workers, resume_from=resume_from)
