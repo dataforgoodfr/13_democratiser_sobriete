@@ -10,6 +10,8 @@ def get_markdown_pymupdf(path: str,) -> str:
         doc=path,
         header=False,
         footer=False,
+        use_ocr=True,
+        force_text=False
     )
     return md_text
 
