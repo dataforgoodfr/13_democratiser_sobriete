@@ -8,6 +8,7 @@ import argparse
 from concurrent.futures import ProcessPoolExecutor, as_completed
 import logging
 import os
+import sys
 
 import pandas as pd
 from tqdm import tqdm
@@ -78,13 +79,20 @@ def main(s3_folder: str, num_workers: int = 1):
 
     records = []
     with ProcessPoolExecutor(max_workers=num_workers) as executor:
-        futures = []
-        for document_id in ids:
-            futures.append(executor.submit(process_pdf, s3_folder, document_id))
+        try:
+            futures = []
+            for document_id in ids:
+                futures.append(executor.submit(process_pdf, s3_folder, document_id))
 
-        for future in tqdm(as_completed(futures), total=len(futures)):
-            record = future.result()
-            records.append(record)
+            for future in tqdm(as_completed(futures), total=len(futures)):
+                record = future.result()
+                records.append(record)
+        except KeyboardInterrupt:
+            print("\nInterrupted! Cancelling remaining tasks...")
+            for future in futures:
+                future.cancel()
+            executor.shutdown(wait=False, cancel_futures=True)
+            sys.exit(0)
 
     df = pd.DataFrame(records)
     parquet_filename = "extracted_texts.parquet"
