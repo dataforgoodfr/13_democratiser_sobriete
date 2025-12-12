@@ -8,7 +8,6 @@ import argparse
 from concurrent.futures import ProcessPoolExecutor
 import logging
 import os
-import tempfile
 
 import pandas as pd
 from tqdm import tqdm
@@ -31,17 +30,24 @@ s3 = get_s3_client()
 def process_pdf(s3_folder: str, document_id: str) -> dict:
     """Extract text from a single PDF, save it as md to S3 and return the record."""
     try:
-        with tempfile.NamedTemporaryFile(suffix=".pdf") as temp_pdf:
+        pdf_filename = f"{document_id}.pdf"
+        md_filename = f"{document_id}.md"
+        
+        try:
             pdf_url = f"{s3_folder}/pdf/{document_id}.pdf"
-            os.system(f"wget -q {pdf_url} -O {temp_pdf.name}")
-            md_text = get_markdown_pymupdf(temp_pdf.name)
-
-        with tempfile.NamedTemporaryFile(suffix=".md", delete=False) as temp_md:
-            temp_md.write(md_text.encode())
-            temp_md.flush() 
-            temp_md_path = temp_md.name
+            os.system(f"wget -q {pdf_url} -O {pdf_filename}")
+            md_text = get_markdown_pymupdf(pdf_filename)
+            
+            with open(md_filename, 'w') as f:
+                f.write(md_text)
+            
             s3_md_key = f"{s3_folder}/md/{document_id}.md"
-            upload_to_s3(temp_md_path, s3_md_key, s3_client=s3)
+            upload_to_s3(md_filename, s3_md_key, s3_client=s3)
+        finally:
+            if os.path.exists(pdf_filename):
+                os.remove(pdf_filename)
+            if os.path.exists(md_filename):
+                os.remove(md_filename)
 
         mark_paper_processed(document_id, s3_folder)
         logging.info(f"Success {document_id}")
@@ -78,10 +84,11 @@ def main(s3_folder: str, num_workers: int = 1):
             records.append(record)
 
     df = pd.DataFrame(records)
-    with tempfile.NamedTemporaryFile(suffix=".parquet", delete=False) as temp_parquet:
-        df.to_parquet(temp_parquet.name, index=False)
-        temp_parquet.flush()
-        upload_to_s3(temp_parquet.name, f"{s3_folder}/extracted_texts.parquet", s3_client=s3)
+    parquet_filename = "extracted_texts.parquet"
+    df.to_parquet(parquet_filename, index=False)
+    upload_to_s3(parquet_filename, f"{s3_folder}/extracted_texts.parquet", s3_client=s3)
+    if os.path.exists(parquet_filename):
+        os.remove(parquet_filename)
 
 
 if __name__ == "__main__":
