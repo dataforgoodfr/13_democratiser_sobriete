@@ -18,15 +18,13 @@ from library.database.text_extraction_queue_crud import (
     mark_paper_processed,
     mark_paper_failed,
 )
-from library.connectors.s3 import get_s3_client, upload_to_s3
+from library.connectors.s3 import upload_to_s3
 from library.scraping.extract_pdf_content import get_markdown_pymupdf
 
 
 S3_HOST = "https://sufficiency-library.s3.fr-par.scw.cloud"
 S3_PREFIX = "documents"
 S3_BASE_URL = f"{S3_HOST}/{S3_PREFIX}"
-
-s3 = get_s3_client()
 
 
 def process_pdf(s3_folder: str, document_id: str) -> dict:
@@ -47,7 +45,7 @@ def process_pdf(s3_folder: str, document_id: str) -> dict:
                 f.write(md_text)
 
             s3_md_key = f"{s3_prefix}/md/{document_id}.md"
-            upload_to_s3(md_filename, s3_md_key, s3_client=s3)
+            upload_to_s3(md_filename, s3_md_key)
         finally:
             if os.path.exists(pdf_filename):
                 os.remove(pdf_filename)
@@ -91,7 +89,7 @@ def main(s3_folder: str, num_workers: int = 1):
     df = pd.DataFrame(records)
     parquet_filename = "extracted_texts.parquet"
     df.to_parquet(parquet_filename, index=False)
-    upload_to_s3(parquet_filename, f"{s3_folder}/extracted_texts.parquet", s3_client=s3)
+    upload_to_s3(parquet_filename, f"{s3_folder}/extracted_texts.parquet")
     if os.path.exists(parquet_filename):
         os.remove(parquet_filename)
 
