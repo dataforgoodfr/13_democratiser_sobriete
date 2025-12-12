@@ -8,9 +8,7 @@ from library.database.models import TextExtractionQueue
 
 def get_already_processed_ids() -> set[str]:
     with get_session() as session:
-        stmt = select(TextExtractionQueue.openalex_id).where(
-            TextExtractionQueue.attempted == False  # noqa
-        )
+        stmt = select(TextExtractionQueue.openalex_id) # no filtering, as records as added as processed
         results = session.exec(stmt).all()
         return set(results)
 
