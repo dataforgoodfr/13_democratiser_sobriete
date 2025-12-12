@@ -6,6 +6,7 @@ Avoids local storage as much as possible by using temporary files and S3.
 
 import argparse
 from concurrent.futures import ProcessPoolExecutor
+import logging
 import os
 import tempfile
 
@@ -43,10 +44,12 @@ def process_pdf(s3_folder: str, document_id: str) -> dict:
             upload_to_s3(temp_md_path, s3_md_key, s3_client=s3)
 
         mark_paper_processed(document_id, s3_folder)
+        logging.info(f"Success {document_id}")
         return {"id": document_id, "text": md_text}
 
     except Exception as e:
         mark_paper_failed(document_id, s3_folder, str(e))
+        logging.info(f"Failed {document_id}: {str(e)}")
         return {"id": document_id, "text": ""}
 
 
