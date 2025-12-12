@@ -37,6 +37,7 @@ def process_pdf(s3_folder: str, document_id: str) -> dict:
 
         with tempfile.NamedTemporaryFile(suffix=".md", delete=False) as temp_md:
             temp_md.write(md_text.encode())
+            temp_md.flush() 
             temp_md_path = temp_md.name
             s3_md_key = f"{s3_folder}/md/{document_id}.md"
             upload_to_s3(temp_md_path, s3_md_key, s3_client=s3)
@@ -76,6 +77,7 @@ def main(s3_folder: str, num_workers: int = 1):
     df = pd.DataFrame(records)
     with tempfile.NamedTemporaryFile(suffix=".parquet", delete=False) as temp_parquet:
         df.to_parquet(temp_parquet.name, index=False)
+        temp_parquet.flush()
         upload_to_s3(temp_parquet.name, f"{s3_folder}/extracted_texts.parquet", s3_client=s3)
 
 
