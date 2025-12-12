@@ -1,55 +1,97 @@
 """
-Converts all pdf documents from a folder to markdown files saved in another folder.
+Converts all pdf documents from a s3 folder to markdown files saved in another folder.
 Additionally, saves the extracted text along with the document names (normally OpenAlex IDs) into a parquet file.
+Avoids local storage as much as possible by using temporary files and S3.
 """
 
+import argparse
 from concurrent.futures import ProcessPoolExecutor
 import os
-import sys
+import tempfile
+
 import pandas as pd
 from tqdm import tqdm
-from library.scraping.extract_pdf_content import get_markdown_pymupdf, save_markdown
+
+from library.database.database import create_tables
+from library.database.text_extraction_queue_crud import (
+    get_already_processed_ids,
+    mark_paper_processed,
+    mark_paper_failed,
+)
+from library.connectors.s3 import get_s3_client, upload_to_s3
+from library.scraping.extract_pdf_content import get_markdown_pymupdf
 
 
-def process_pdf(pdf_folder: str, filename: str) -> dict:
-    """Process a single PDF file and return the record."""
-    pdf_path = os.path.join(pdf_folder, filename)
-    md_text = get_markdown_pymupdf(pdf_path)
-    document_id = os.path.splitext(filename)[0]
-    output_md_path = os.path.join(pdf_folder, "markdowns", f"{document_id}.md")
-    save_markdown(md_text, output_md_path)
-    return {"id": document_id, "extracted_text": md_text}
+S3_BASE_PATH = "https://sufficiency-library.s3.fr-par.scw.cloud/documents"
+
+s3 = get_s3_client()
 
 
-def main(pdf_folder: str, num_workers: int = 1):
-    markdown_folder = os.path.join(pdf_folder, "markdowns")
-    parquet_path = os.path.join(pdf_folder, "texts.parquet")
-    os.makedirs(markdown_folder, exist_ok=True)
+def process_pdf(s3_folder: str, document_id: str) -> dict:
+    """Extract text from a single PDF, save it as md to S3 and return the record."""
+    try:
+        with tempfile.NamedTemporaryFile(suffix=".pdf") as temp_pdf:
+            pdf_url = f"{s3_folder}/pdf/{document_id}.pdf"
+            os.system(f"wget -q {pdf_url} -O {temp_pdf.name}")
+            md_text = get_markdown_pymupdf(temp_pdf.name)
 
-    pdf_files = [f for f in os.listdir(pdf_folder) if f.endswith(".pdf")]
+        with tempfile.NamedTemporaryFile(suffix=".md", delete=False) as temp_md:
+            temp_md.write(md_text.encode())
+            temp_md_path = temp_md.name
+            s3_md_key = f"{s3_folder}/md/{document_id}.md"
+            upload_to_s3(temp_md_path, s3_md_key, s3_client=s3)
+
+        mark_paper_processed(document_id, s3_folder)
+        return {"id": document_id, "text": md_text}
+
+    except Exception as e:
+        mark_paper_failed(document_id, s3_folder, str(e))
+        return {"id": document_id, "text": ""}
+
+
+def main(s3_folder: str, num_workers: int = 1):
+    create_tables()
+
+    ids_url = f"{s3_folder}/ids.txt"
+    ids_path = "ids.txt"
+    os.system(f"wget -q {ids_url} -O {ids_path}")
+    with open(ids_path, "r") as f:
+        ids = [line.strip() for line in f.readlines()]
+
+    print("Total documents to process:", len(ids))
+    already_processed = get_already_processed_ids()
+    ids = [doc_id for doc_id in ids if doc_id not in already_processed]
+    print("Documents to process after filtering already processed:", len(ids))
 
     records = []
     with ProcessPoolExecutor(max_workers=num_workers) as executor:
         futures = []
-        for filename in pdf_files:
-            futures.append(executor.submit(process_pdf, pdf_folder, filename))
+        for document_id in ids:
+            futures.append(executor.submit(process_pdf, s3_folder, document_id))
 
         for future in tqdm(futures, total=len(futures)):
             record = future.result()
             records.append(record)
 
     df = pd.DataFrame(records)
-    df.to_parquet(parquet_path, index=False)
+    with tempfile.NamedTemporaryFile(suffix=".parquet", delete=False) as temp_parquet:
+        df.to_parquet(temp_parquet.name, index=False)
+        upload_to_s3(temp_parquet.name, f"{s3_folder}/extracted_texts.parquet", s3_client=s3)
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: python extract_text_from_pdfs.py <pdf_folder> [num_workers]")
-        print("  pdf_folder: Path to the folder containing PDF files")
-        print("  num_workers: Number of parallel workers (default: 1)")
-        sys.exit(1)
+    parser = argparse.ArgumentParser(
+        description="Extract text from all PDFs in a S3 folder and save as markdown and parquet."
+    )
+    parser.add_argument(
+        "--s3-folder", type=str, help="S3 sub-folder under documents/ containing the PDFs"
+    )
+    parser.add_argument(
+        "--num-workers",
+        type=int,
+        default=10,
+        help="Number of parallel workers for extracting text from PDFs (default: 10)",
+    )
 
-    pdf_folder = sys.argv[1]
-    num_workers = int(sys.argv[2]) if len(sys.argv) > 2 else 1
-
-    main(pdf_folder, num_workers)
+    args = parser.parse_args()
+    main(s3_folder=f"{S3_BASE_PATH}/{args.s3_folder}", num_workers=args.num_workers)

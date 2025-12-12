@@ -1,8 +1,9 @@
 from datetime import datetime, UTC
-from library.database import get_session
-from library.database.models import ScrapingQueue
 import logging
 from sqlmodel import select, or_
+
+from library.database import get_session
+from library.database.models import ScrapingQueue
 
 
 def get_papers_to_scrape(

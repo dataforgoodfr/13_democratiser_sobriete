@@ -27,7 +27,7 @@ class OpenAlexWorks(SQLModel, table=True):
     pdf_url: str | None = None
 """
 
-
+# actually more of a download queue
 class ScrapingQueue(SQLModel, table=True):
     __tablename__ = "scraping_queue"
 
@@ -44,4 +44,20 @@ class ScrapingQueue(SQLModel, table=True):
     download_path: str | None = None
     required_selenium: bool | None = None
     scraped_at: datetime | None = None
+    error_message: str | None = None
+
+
+class TextExtractionQueue(SQLModel, table=True):
+    __tablename__ = "text_extraction_queue"
+
+    id: int | None = Field(default=None, primary_key=True)
+
+    # basic info from Open Alex
+    openalex_id: str
+    s3_folder: str
+
+    # scraping status
+    attempted: bool = False
+    successful: bool | None = None
+    processed_at: datetime | None = None
     error_message: str | None = None
