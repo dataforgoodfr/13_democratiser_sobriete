@@ -22,13 +22,18 @@ from library.connectors.s3 import get_s3_client, upload_to_s3
 from library.scraping.extract_pdf_content import get_markdown_pymupdf
 
 
-S3_BASE_PATH = "https://sufficiency-library.s3.fr-par.scw.cloud/documents"
+S3_HOST = "https://sufficiency-library.s3.fr-par.scw.cloud"
+S3_PREFIX = "documents"
+S3_BASE_URL = f"{S3_HOST}/{S3_PREFIX}"
 
 s3 = get_s3_client()
 
 
 def process_pdf(s3_folder: str, document_id: str) -> dict:
     """Extract text from a single PDF, save it as md to S3 and return the record."""
+
+    s3_prefix = s3_folder.replace(S3_HOST + "/", "")
+
     try:
         pdf_filename = f"{document_id}.pdf"
         md_filename = f"{document_id}.md"
@@ -41,7 +46,7 @@ def process_pdf(s3_folder: str, document_id: str) -> dict:
             with open(md_filename, 'w') as f:
                 f.write(md_text)
             
-            s3_md_key = f"{s3_folder}/md/{document_id}.md"
+            s3_md_key = f"{s3_prefix}/md/{document_id}.md"
             upload_to_s3(md_filename, s3_md_key, s3_client=s3)
         finally:
             if os.path.exists(pdf_filename):
@@ -106,4 +111,4 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-    main(s3_folder=f"{S3_BASE_PATH}/{args.s3_folder}", num_workers=args.num_workers)
+    main(s3_folder=f"{S3_BASE_URL}/{args.s3_folder}", num_workers=args.num_workers)
