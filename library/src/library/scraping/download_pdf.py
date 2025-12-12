@@ -2,6 +2,7 @@
 Utilities to download PDF files with standard HTTP request, with fallback to Selenium.
 """
 
+from contextlib import contextmanager
 import time
 import logging
 import requests
@@ -14,6 +15,16 @@ from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
+
+
+@contextmanager
+def get_session(max_retries=3):
+    """Context manager for requests session with proper cleanup."""
+    session = make_session(max_retries)
+    try:
+        yield session
+    finally:
+        session.close()
 
 
 # Shared session with retries
@@ -97,18 +108,18 @@ def download_pdf(
 
     Return output path (or None) and bool indicating if Selenium was used.
     """
-    session = make_session()
-    info = probe_url_headers(url, session, timeout=min(10, timeout))
+    with get_session() as session:
+        info = probe_url_headers(url, session, timeout=min(10, timeout))
 
-    # Heuristics
-    if looks_like_pdf_from_headers(info) or looks_like_pdf_from_bytes(
-        info.get("first_chunk", b"")
-    ):
-        return download_pdf_with_request(session, url, output_path, info, timeout), False
-    elif webdriver:
-        return download_pdf_with_webdriver(webdriver, url, output_path, timeout), True
-    else:
-        return None, False
+        # Heuristics
+        if looks_like_pdf_from_headers(info) or looks_like_pdf_from_bytes(
+            info.get("first_chunk", b"")
+        ):
+            return download_pdf_with_request(session, url, output_path, info, timeout), False
+        elif webdriver:
+            return download_pdf_with_webdriver(webdriver, url, output_path, timeout), True
+        else:
+            return None, False
 
 
 def download_pdf_with_request(

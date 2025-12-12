@@ -13,7 +13,7 @@ import os
 import logging
 import concurrent.futures
 
-from library.database.queue_crud import get_papers_to_scrape, mark_paper_failed, mark_paper_scraped
+from library.database.download_queue_crud import get_papers_to_scrape, mark_paper_failed, mark_paper_scraped
 from library.database.models import ScrapingQueue
 from library.scraping.download_pdf import download_pdf, start_webdriver
 from library.scraping.extract_pdf_content import get_markdown_pymupdf
