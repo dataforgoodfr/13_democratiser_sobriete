@@ -42,7 +42,7 @@ Deux étapes dévelopées dans ce sous projet:
 Les fichiers sont sauvegardés en csv et il faudra intégrer les résultats pour etre disponibles pour le chat sufficiency 
 Le projet semble avoir été un repo à part ajouté au monorepo et il semble y avoir des incohérences dans les dépendences 
 
-[README Policy Analysis](rag_system/policy_analysis/README.md)
+[README Policy Analysis](policy_analysis/README.md)
 
 
 ## ChatSufficiency
