@@ -5,7 +5,7 @@ Avoids local storage as much as possible by using temporary files and S3.
 """
 
 import argparse
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ProcessPoolExecutor, as_completed
 import logging
 import os
 
@@ -37,15 +37,15 @@ def process_pdf(s3_folder: str, document_id: str) -> dict:
     try:
         pdf_filename = f"{document_id}.pdf"
         md_filename = f"{document_id}.md"
-        
+
         try:
             pdf_url = f"{s3_folder}/pdf/{document_id}.pdf"
             os.system(f"wget -q {pdf_url} -O {pdf_filename}")
             md_text = get_markdown_pymupdf(pdf_filename)
-            
-            with open(md_filename, 'w') as f:
+
+            with open(md_filename, "w") as f:
                 f.write(md_text)
-            
+
             s3_md_key = f"{s3_prefix}/md/{document_id}.md"
             upload_to_s3(md_filename, s3_md_key, s3_client=s3)
         finally:
@@ -84,7 +84,7 @@ def main(s3_folder: str, num_workers: int = 1):
         for document_id in ids:
             futures.append(executor.submit(process_pdf, s3_folder, document_id))
 
-        for future in tqdm(futures, total=len(futures)):
+        for future in tqdm(as_completed(futures), total=len(futures)):
             record = future.result()
             records.append(record)
 
