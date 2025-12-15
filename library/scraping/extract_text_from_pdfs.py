@@ -37,7 +37,7 @@ def process_pdf(s3_folder: str, document_id: str) -> None:
         try:
             pdf_url = f"{s3_folder}/pdf/{document_id}.pdf"
             os.system(f"wget -q {pdf_url} -O {pdf_filename}")
-            md_text = get_markdown_pymupdf(pdf_filename)
+            md_text, used_ocr = get_markdown_pymupdf(pdf_filename)
 
             with open(md_filename, "w") as f:
                 f.write(md_text)
@@ -51,7 +51,7 @@ def process_pdf(s3_folder: str, document_id: str) -> None:
                 os.remove(md_filename)
 
         mark_paper_processed(document_id, s3_folder)
-        return True, document_id
+        return True, f"{document_id} (OCR used: {used_ocr})"
 
     except Exception as e:
         mark_paper_failed(document_id, s3_folder, str(e))
