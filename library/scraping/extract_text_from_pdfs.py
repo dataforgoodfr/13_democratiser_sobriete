@@ -82,7 +82,7 @@ def main(num_workers: int = 10):
 
     num_futures_at_once = num_workers * 3
 
-    with ProcessPoolExecutor(max_workers=num_workers) as executor:
+    with ProcessPoolExecutor(max_workers=num_workers, max_tasks_per_child=50) as executor:
         with tqdm(total=len(all_tasks)) as pbar:
             for task_index in range(0, len(all_tasks), num_futures_at_once):
                 batch_tasks = all_tasks[task_index : task_index + num_futures_at_once]
