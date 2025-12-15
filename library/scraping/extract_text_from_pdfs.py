@@ -51,30 +51,38 @@ def process_pdf(s3_folder: str, document_id: str) -> None:
                 os.remove(md_filename)
 
         mark_paper_processed(document_id, s3_folder)
-        return True, f"{document_id} (OCR used: {used_ocr})"
+        return True, f"{document_id} in {s3_prefix} (OCR used: {used_ocr})"
 
     except Exception as e:
         mark_paper_failed(document_id, s3_folder, str(e))
-        return False, document_id
+        return False, f"{document_id} in {s3_prefix} - Error: {str(e)}"
 
 
-def main(s3_folder: str, num_workers: int = 1):
-    create_tables()
-
+def get_ids_for_folder(s3_folder: str) -> list[str]:
     ids_url = f"{s3_folder}/ids.txt"
     ids_path = "ids.txt"
     os.system(f"wget -q {ids_url} -O {ids_path}")
     with open(ids_path, "r") as f:
         ids = [line.strip() for line in f.readlines()]
+    return ids
 
-    print("Total documents to process:", len(ids))
+
+def main(num_workers: int = 10):
+    create_tables()
     already_processed = get_already_processed_ids()
-    ids = [doc_id for doc_id in ids if doc_id not in already_processed]
-    print("Documents to process after filtering already processed:", len(ids))
+    
+    s3_folders = [f'{S3_BASE_URL}/batch_{i}' for i in range(1, 7)]
+
+    all_tasks = []
+    for s3_folder in s3_folders:
+        ids = get_ids_for_folder(s3_folder)
+        ids_to_process = [doc_id for doc_id in ids if doc_id not in already_processed]
+        print(f"Documents to process for folder {s3_folder}:", len(ids_to_process))
+        all_tasks.extend([(s3_folder, doc_id) for doc_id in ids_to_process])
 
     with ProcessPoolExecutor(max_workers=num_workers) as executor:
         try:
-            futures = {executor.submit(process_pdf, s3_folder, doc_id) for doc_id in ids}
+            futures = {executor.submit(process_pdf, s3_folder, doc_id) for s3_folder, doc_id in all_tasks}
             for future in tqdm(as_completed(futures), total=len(futures)):
                 try:
                     success, message = future.result()
@@ -101,9 +109,6 @@ if __name__ == "__main__":
         description="Extract text from all PDFs in a S3 folder and save as markdown."
     )
     parser.add_argument(
-        "--s3-folder", type=str, help="S3 sub-folder under documents/ containing the PDFs"
-    )
-    parser.add_argument(
         "--num-workers",
         type=int,
         default=10,
@@ -111,4 +116,4 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-    main(s3_folder=f"{S3_BASE_URL}/{args.s3_folder}", num_workers=args.num_workers)
+    main(args.num_workers)
