@@ -1,0 +1,38 @@
+# Output data files
+Output/*.csv
+Output/*.html
+Output/*.png
+
+# Generated visuals and reports (outputs)
+Output/Visuals/
+Output/*/outputs/
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+env/
+ENV/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Jupyter notebooks
+*.ipynb_checkpoints/
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp

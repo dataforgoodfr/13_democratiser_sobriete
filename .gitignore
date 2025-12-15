@@ -295,6 +295,12 @@ id_rsa*
 # Ngrok config
 ngrok_config/
 
+# Generated visuals and reports (outputs)
+stream3_visualization/Well-being/reports/*/outputs/
+stream3_visualization/Well-being/output/Graphs/
+stream3_visualization/Budget/Output/Sensitivity\ check/
+stream3_visualization/Decomposition/Output/Visuals/
+
 # Temporary files
 *.tmp
 *.temp
