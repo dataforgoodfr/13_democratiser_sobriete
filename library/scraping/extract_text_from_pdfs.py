@@ -6,6 +6,7 @@ Doesn't accumulate results in memory to avoid OOM errors.
 
 import argparse
 from concurrent.futures import ProcessPoolExecutor, as_completed
+import gc
 import os
 import sys
 from tqdm import tqdm
@@ -80,32 +81,55 @@ def main(num_workers: int = 10):
         print(f"Documents to process for folder {s3_folder}:", len(ids_to_process))
         all_tasks.extend([(s3_folder, doc_id) for doc_id in ids_to_process])
 
-    num_futures_at_once = num_workers * 3
+    num_futures_at_once = num_workers * 2
 
     with ProcessPoolExecutor(max_workers=num_workers, max_tasks_per_child=50) as executor:
         with tqdm(total=len(all_tasks)) as pbar:
-            for task_index in range(0, len(all_tasks), num_futures_at_once):
-                batch_tasks = all_tasks[task_index : task_index + num_futures_at_once]
+            pending = set()
+            task_iter = iter(all_tasks)
+
+            # fill initial batch
+            for _ in range(min(num_futures_at_once, len(all_tasks))):
                 try:
-                    futures = [
-                        executor.submit(process_pdf, s3_folder, doc_id)
-                        for s3_folder, doc_id in batch_tasks
-                    ]
-                    for future in as_completed(futures):
-                        try:
-                            success, message = future.result()
-                            if success:
-                                print(f"✓ Success {message}")
-                            else:
-                                print(f"✗ Failed {message}")
-                        except Exception as e:
-                            print(f"✗ Exception: {e}")
-                        finally:
-                            pbar.update(1)
+                    s3_folder, doc_id = next(task_iter)
+                    future = executor.submit(process_pdf, s3_folder, doc_id)
+                    pending.add(future)
+                except StopIteration:
+                    break
+
+            # main loop while there are tasks in pending
+            while pending:
+                try:
+                    done = next(as_completed(pending))
+                    pending.remove(done)
+
+                    try:
+                        success, message = done.result()
+                        if success:
+                            print(f"✓ Success {message}")
+                        else:
+                            print(f"✗ Failed {message}")
+                    except Exception as e:
+                        print(f"✗ Exception: {e}")
+                    finally:
+                        del done
+                        pbar.update(1)
+
+                    # submit next task to keep the pipeline full
+                    try:
+                        s3_folder, doc_id = next(task_iter)
+                        future = executor.submit(process_pdf, s3_folder, doc_id)
+                        pending.add(future)
+                    except StopIteration:
+                        pass
+
+                    # Periodic clean up
+                    if pbar.n % 100 == 0:
+                        gc.collect()
 
                 except KeyboardInterrupt:
                     print("\nInterrupted! Cancelling remaining tasks...")
-                    for future in futures:
+                    for future in pending:
                         future.cancel()
                     executor.shutdown(wait=False, cancel_futures=True)
                     sys.exit(0)
