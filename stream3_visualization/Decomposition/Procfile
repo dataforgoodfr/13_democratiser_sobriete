@@ -1,0 +1,1 @@
+web: gunicorn --chdir stream3_visualization/Decomposition/code app:server --bind 0.0.0.0:$PORT
