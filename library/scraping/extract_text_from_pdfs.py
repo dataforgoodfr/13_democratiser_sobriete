@@ -8,6 +8,7 @@ import argparse
 from concurrent.futures import ProcessPoolExecutor, as_completed
 import gc
 import os
+import resource
 import sys
 from tqdm import tqdm
 
@@ -26,8 +27,24 @@ S3_PREFIX = "documents"
 S3_BASE_URL = f"{S3_HOST}/{S3_PREFIX}"
 
 
+def set_max_memory_per_worker(max_mem_gb=2):
+    rsrc = resource.RLIMIT_AS
+    soft, hard = resource.getrlimit(rsrc)
+    # Convert MB to bytes
+    max_mem_bytes = max_mem_gb * 1024 * 1024 * 1024
+    
+    # Don't try to exceed the hard limit
+    if hard != resource.RLIM_INFINITY:
+        max_mem_bytes = min(max_mem_bytes, hard)
+        
+    resource.setrlimit(rsrc, (max_mem_bytes, hard))
+
+
+
 def process_pdf(s3_folder: str, document_id: str) -> None:
     """Extract text from a single PDF and save it as md to S3."""
+
+    set_max_memory_per_worker(4)
 
     s3_prefix = s3_folder.replace(S3_HOST + "/", "")
 
@@ -53,6 +70,10 @@ def process_pdf(s3_folder: str, document_id: str) -> None:
 
         mark_paper_processed(document_id, s3_folder)
         return True, f"{document_id} in {s3_prefix} (OCR used: {used_ocr})"
+
+    except MemoryError:
+        mark_paper_failed(document_id, s3_folder, "MemoryError processing PDF")
+        return False, f"{document_id} in {s3_prefix} - MemoryError"
 
     except Exception as e:
         mark_paper_failed(document_id, s3_folder, str(e))
@@ -83,7 +104,7 @@ def main(num_workers: int = 10):
 
     num_futures_at_once = num_workers * 2
 
-    with ProcessPoolExecutor(max_workers=num_workers, max_tasks_per_child=50) as executor:
+    with ProcessPoolExecutor(max_workers=num_workers, max_tasks_per_child=5) as executor:
         with tqdm(total=len(all_tasks)) as pbar:
             pending = set()
             task_iter = iter(all_tasks)
