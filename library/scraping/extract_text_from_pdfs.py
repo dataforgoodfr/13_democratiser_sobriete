@@ -70,8 +70,8 @@ def get_ids_for_folder(s3_folder: str) -> list[str]:
 def main(num_workers: int = 10):
     create_tables()
     already_processed = get_already_processed_ids()
-    
-    s3_folders = [f'{S3_BASE_URL}/batch_{i}' for i in range(1, 7)]
+
+    s3_folders = [f"{S3_BASE_URL}/batch_{i}" for i in range(1, 7)]
 
     all_tasks = []
     for s3_folder in s3_folders:
@@ -80,28 +80,35 @@ def main(num_workers: int = 10):
         print(f"Documents to process for folder {s3_folder}:", len(ids_to_process))
         all_tasks.extend([(s3_folder, doc_id) for doc_id in ids_to_process])
 
-    with ProcessPoolExecutor(max_workers=num_workers) as executor:
-        try:
-            futures = {executor.submit(process_pdf, s3_folder, doc_id) for s3_folder, doc_id in all_tasks}
-            for future in tqdm(as_completed(futures), total=len(futures)):
-                try:
-                    success, message = future.result()
-                    if success:
-                        print(f"✓ Success {message}")
-                    else:
-                        print(f"✗ Failed {message}")
-                except Exception as e:
-                    print(f"✗ Exception: {e}")
-                finally:
-                    # Explicitly remove the future from the set to free memory
-                    futures.discard(future)
+    num_futures_at_once = num_workers * 3
 
-        except KeyboardInterrupt:
-            print("\nInterrupted! Cancelling remaining tasks...")
-            for future in futures:
-                future.cancel()
-            executor.shutdown(wait=False, cancel_futures=True)
-            sys.exit(0)
+    with ProcessPoolExecutor(max_workers=num_workers) as executor:
+        with tqdm(total=len(all_tasks)) as pbar:
+            for task_index in range(0, len(all_tasks), num_futures_at_once):
+                batch_tasks = all_tasks[task_index : task_index + num_futures_at_once]
+                try:
+                    futures = [
+                        executor.submit(process_pdf, s3_folder, doc_id)
+                        for s3_folder, doc_id in batch_tasks
+                    ]
+                    for future in as_completed(futures):
+                        try:
+                            success, message = future.result()
+                            if success:
+                                print(f"✓ Success {message}")
+                            else:
+                                print(f"✗ Failed {message}")
+                        except Exception as e:
+                            print(f"✗ Exception: {e}")
+                        finally:
+                            pbar.update(1)
+
+                except KeyboardInterrupt:
+                    print("\nInterrupted! Cancelling remaining tasks...")
+                    for future in futures:
+                        future.cancel()
+                    executor.shutdown(wait=False, cancel_futures=True)
+                    sys.exit(0)
 
 
 if __name__ == "__main__":
