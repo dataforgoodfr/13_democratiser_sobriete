@@ -630,6 +630,47 @@ def calculate_overcrowding(dirs):
     overcrowded_condition = rooms_df['HH030'] < rooms_df['required_rooms']
     rooms_df['overcrowded'] = overcrowded_condition.where(rooms_df['HH030'].notna(), np.nan).astype('float')
 
+    # Calculate person-level overcrowding indicator for accurate population shares
+    print("Calculating person-level overcrowding indicator...")
+    
+    # Load personal register for weights
+    cols_needed_register = ["RB010", "RB020", "RB030", "RB050"]
+    pr = pd.read_csv(
+        os.path.join(dirs['merged_dir'], "EU_SILC_combined_personal_register.csv"),
+        usecols=cols_needed_register
+    )
+    
+    # Extract household IDs (convert to string first in case they're numeric)
+    pr['household_id'] = pr['RB030'].astype(str).str[:-2]
+    
+    # Calculate population weight (sum of personal weights) for each household
+    household_population_weights = pr.groupby(['RB010', 'RB020', 'household_id'])['RB050'].sum().reset_index()
+    household_population_weights.rename(columns={'RB050': 'population_weight'}, inplace=True)
+    
+    # Merge population weights with overcrowding data
+    rooms_df = rooms_df.merge(household_population_weights,
+                             left_on=['HB010', 'HB020', rooms_df['HB030'].astype(str).str[:-2]],
+                             right_on=['RB010', 'RB020', 'household_id'], how='left')
+    
+    # Merge personal register with household overcrowding data for validation
+    person_overcrowd = pr.merge(rooms_df, 
+                               left_on=['RB010', 'RB020', 'household_id'],
+                               right_on=['RB010', 'RB020', 'household_id'], 
+                               how='left')
+    
+    # Calculate weighted person-level overcrowding for validation
+    if not person_overcrowd.empty and 'RB050' in person_overcrowd.columns:
+        valid_data = person_overcrowd.dropna(subset=['RB050', 'overcrowded'])
+        if not valid_data.empty:
+            total_weight = valid_data['RB050'].sum()
+            overcrowded_weight = (valid_data['overcrowded'] * valid_data['RB050']).sum()
+            person_overcrowd_pct = (overcrowded_weight / total_weight) * 100
+            
+            print(f"📊 Person-level overcrowding validation:")
+            print(f"   Total persons: {len(valid_data):,}")
+            print(f"   Persons in overcrowded households: {valid_data['overcrowded'].sum():,}")
+            print(f"   Person-level overcrowding rate: {person_overcrowd_pct:.1f}%")
+
     print("Saving overcrowding results...")
     rooms_df.to_csv(os.path.join(dirs['overcrowd_dir'], "EU_SILC_household_data_with_overcrowding.csv"), index=False)
     print(f"Overcrowding calculation completed! Results saved for {len(rooms_df):,} households.")
@@ -640,25 +681,24 @@ def calculate_overcrowding(dirs):
 def calculate_household_size(dirs):
     """
     Calculate household size and identify persons living alone for the "Persons living alone" indicator.
-    Uses the SAME APPROACH as overcrowding calculation to ensure IDENTICAL coverage.
+    Uses a PERSON-LEVEL approach with personal weights to get accurate population shares.
     
-    This function calculates the share of POPULATION living in single-person households.
-    Each single-person household represents 1 person living alone.
-    When weighted by household weights, this gives the population share living alone.
+    This function calculates the share of POPULATION living in single-person households
+    by counting individual persons in single-person households and weighting by personal weights.
     
     Args:
         dirs (dict): Dictionary containing directory paths
     
     Returns:
-        pd.DataFrame: Dataset with household size and living alone indicator
+        pd.DataFrame: Dataset with household size and living alone indicator at household level
     """
     print("Calculating household size and living alone indicator...")
-    print("Computing SHARE OF POPULATION living in 1-person households...")
-    print("Using IDENTICAL approach to overcrowding calculation for same coverage...")
+    print("Using PERSON-LEVEL approach with personal weights for accurate population shares...")
     
-    # Use EXACT SAME data loading as overcrowding
+    # Load both household and personal data
     cols_needed_household = ["HB010", "HB020", "HB030"]
     cols_needed_personal = ["PB030", "PB010", "PB020"]
+    cols_needed_register = ["RB010", "RB020", "RB030", "RB050"]  # Include personal weights
 
     print("Loading household data...")
     hh = pd.read_csv(
@@ -671,45 +711,84 @@ def calculate_household_size(dirs):
         os.path.join(dirs['merged_dir'], "EU_SILC_combined_personal_data.csv"),
         usecols=cols_needed_personal
     )
+    
+    print("Loading personal register for weights...")
+    pr = pd.read_csv(
+        os.path.join(dirs['merged_dir'], "EU_SILC_combined_personal_register.csv"),
+        usecols=cols_needed_register
+    )
 
-    # EXACT SAME data type conversions as overcrowding
+    # Data type conversions
     pp['PB030'] = pp['PB030'].fillna(0).astype('int64').astype(str)
+    pr['RB030'] = pr['RB030'].fillna(0).astype('int64').astype(str)
     hh['HB030'] = hh['HB030'].fillna(0).astype('int64').astype(str)
 
-    # EXACT SAME household ID extraction as overcrowding (str[:-2])
-    pp['household_id'] = pp['PB030'].str[:-2]
+    # Extract household IDs (convert to string first in case they're numeric)
+    pp['household_id'] = pp['PB030'].astype(str).str[:-2]
+    pr['household_id'] = pr['RB030'].astype(str).str[:-2]
+    
+    # Merge personal data with register to get weights
+    print("Merging personal data with register for weights...")
+    personal_merged = pp.merge(pr, left_on=['PB010', 'PB020', 'PB030'], 
+                               right_on=['RB010', 'RB020', 'RB030'], how='left')
+    
+    # Ensure household_id is preserved from the left side (pp)
+    if 'household_id_x' in personal_merged.columns:
+        personal_merged['household_id'] = personal_merged['household_id_x']
+    elif 'household_id' not in personal_merged.columns:
+        personal_merged['household_id'] = personal_merged['PB030'].astype(str).str[:-2]
 
-    # EXACT SAME merge approach as overcrowding
-    data = pp.merge(hh, left_on=['PB010', 'PB020', 'household_id'],
+    # Merge with household data
+    data = personal_merged.merge(hh, left_on=['PB010', 'PB020', 'household_id'],
                         right_on=['HB010', 'HB020', 'HB030'])
 
     print(f"Merged data shape: {data.shape}")
     print(f"Years available: {sorted(data['HB010'].unique())}")
     print(f"Countries available: {sorted(data['HB020'].unique())}")
     
-    # Count household sizes using the merged data (same as overcrowding approach)
-    household_size_df = data.groupby(['HB010', 'HB020', 'HB030']).size().reset_index(name='household_size')
+    # Count household sizes (persons per household)
+    household_sizes = data.groupby(['HB010', 'HB020', 'HB030']).size().reset_index(name='household_size')
     
-    # Create "living alone" indicator (1 if household size = 1, 0 otherwise)
-    # When weighted by household weights, this represents the population share living alone
-    household_size_df['living_alone'] = (household_size_df['household_size'] == 1).astype(int)
+    # Merge household size back to person-level data
+    data = data.merge(household_sizes, on=['HB010', 'HB020', 'HB030'])
+    
+    # Create living alone indicator at person level
+    data['living_alone'] = (data['household_size'] == 1).astype(int)
+    
+    print(f"Total persons in data: {len(data):,}")
+    print(f"Persons in single-person households: {data['living_alone'].sum():,}")
+    
+    # Calculate population-weighted shares by country/year for validation
+    print("\n📊 Sample validation - France 2022 person-level calculation:")
+    france_2022 = data[(data['HB020'] == 'FR') & (data['HB010'] == 2022) & (data['RB050'].notna())]
+    if len(france_2022) > 0:
+        total_weight = france_2022['RB050'].sum()
+        living_alone_weight = (france_2022['living_alone'] * france_2022['RB050']).sum()
+        france_share = (living_alone_weight / total_weight) * 100
+        print(f"   France 2022: {france_share:.1f}% (using person weights)")
+        print(f"   INSEE reference: 21.7%")
+        print(f"   Difference: {abs(france_share - 21.7):.1f} percentage points")
+    
+    # Create household-level summary for consistency with other indicators
+    # This aggregates to household level for the indicator processing pipeline
+    household_summary = data.groupby(['HB010', 'HB020', 'HB030']).agg({
+        'household_size': 'first',
+        'living_alone': 'first',
+        'RB050': 'sum'  # Sum personal weights = household population weight
+    }).reset_index()
+    
+    # Rename for consistency
+    household_summary.rename(columns={'RB050': 'population_weight'}, inplace=True)
     
     # Save the results
-    household_size_df.to_csv(os.path.join(dirs['final_merged_dir'], "EU_SILC_household_size.csv"), index=False)
+    household_summary.to_csv(os.path.join(dirs['final_merged_dir'], "EU_SILC_household_size.csv"), index=False)
     
-    print(f"Household size calculation completed! Results saved for {len(household_size_df):,} households.")
-    print(f"Single-person households: {household_size_df['living_alone'].sum():,} ({household_size_df['living_alone'].mean()*100:.1f}%)")
-    print(f"Years range: {household_size_df['HB010'].min()}-{household_size_df['HB010'].max()}")
-    print(f"Countries: {len(household_size_df['HB020'].unique())} unique countries")
+    print(f"Household size calculation completed! Results saved for {len(household_summary):,} households.")
+    print(f"Single-person households: {household_summary['living_alone'].sum():,} ({household_summary['living_alone'].mean()*100:.1f}%)")
+    print(f"Years range: {household_summary['HB010'].min()}-{household_summary['HB010'].max()}")
+    print(f"Countries: {len(household_summary['HB020'].unique())} unique countries")
     
-    # Show some sample statistics by year
-    year_stats = household_size_df.groupby('HB010').agg({
-        'living_alone': ['count', 'sum', 'mean']
-    }).round(3)
-    print(f"\nSample statistics by year:")
-    print(year_stats.head(10))
-    
-    return household_size_df
+    return household_summary
 
 
 def process_household_indicators(dirs):
@@ -774,15 +853,15 @@ def process_household_indicators(dirs):
     )
 
     merged_df = merged_df.merge(
-        overpop_df[["HB010", "HB020", "HB030", "overcrowded"]], 
+        overpop_df[["HB010", "HB020", "HB030", "overcrowded", "population_weight"]], 
         left_on=['HB010', 'HB020', 'HB030'], 
-        right_on=['HB010', 'HB020', 'HB030'], how='left'
+        right_on=['HB010', 'HB020', 'HB030'], how='left', suffixes=('', '_overcrowd')
     )
     
     merged_df = merged_df.merge(
-        household_size_df[["HB010", "HB020", "HB030", "living_alone"]], 
+        household_size_df[["HB010", "HB020", "HB030", "living_alone", "population_weight"]], 
         left_on=['HB010', 'HB020', 'HB030'], 
-        right_on=['HB010', 'HB020', 'HB030'], how='left'
+        right_on=['HB010', 'HB020', 'HB030'], how='left', suffixes=('', '_living_alone')
     )
 
     # Save merged dataset
@@ -826,6 +905,51 @@ def process_household_indicators(dirs):
     print(f"📋 Countries with complete decile coverage (10 deciles): {(country_decile_coverage == 10).sum()}")
     print(f"📋 Countries with partial decile coverage: {(country_decile_coverage < 10).sum()}")
     
+    def calculate_overcrowding_percentage(group, min_population_weight_coverage=0.5):
+        """
+        Calculate overcrowding percentage with fallback to household weights when population weights are insufficient.
+        
+        Args:
+            group: DataFrame group (by country/year/decile or country/year for total)
+            min_population_weight_coverage: Minimum coverage threshold for using population weights
+            
+        Returns:
+            float: Overcrowding percentage or NaN if overcrowding data is missing
+        """
+        # Check if overcrowding data is available at all for this group
+        overcrowded_available = group['overcrowded'].notna().sum()
+        total_households = len(group)
+        
+        # If no overcrowding data is available, return NaN (missing data)
+        if overcrowded_available == 0:
+            return np.nan
+        
+        mask = group[f"_valid_overcrowded"]
+        overcrowded_households = group.loc[mask]
+        
+        # If we have overcrowding data but no households are overcrowded, return 0.0
+        if len(overcrowded_households) == 0:
+            return 0.0
+        
+        # Check population weight coverage (non-zero values)
+        total_households = len(group)
+        households_with_pop_weights = (group['population_weight'] > 0).sum()
+        pop_weight_coverage = households_with_pop_weights / total_households if total_households > 0 else 0
+        
+        if pop_weight_coverage >= min_population_weight_coverage:
+            # Use population weights (person-level calculation)
+            population_weight_col = 'population_weight'
+            overcrowded_population = overcrowded_households[population_weight_col].sum()
+            total_population = group[population_weight_col].sum()
+            percentage = (overcrowded_population / total_population * 100) if total_population > 0 else 0.0
+        else:
+            # Fall back to household weights (household-level calculation)
+            overcrowded_weight = overcrowded_households['DB090'].sum()
+            total_weight = group['DB090'].sum()
+            percentage = (overcrowded_weight / total_weight * 100) if total_weight > 0 else 0.0
+        
+        return percentage
+    
     # Group by Year, Country, Decile and calculate indicators
     group_cols = ["HB010", "HB020", "decile"]
     results = []
@@ -846,10 +970,41 @@ def process_household_indicators(dirs):
                 # If all values are NaN, the indicator should be NaN
                 share = np.nan
             else:
-                # Normal calculation
-                mask = group[f"_valid_{var}"]
-                weighted_sum = group.loc[mask, "DB090"].sum()
-                share = (weighted_sum / total_weight * 100) if total_weight > 0 else np.nan
+                # SPECIAL HANDLING FOR EC-SILC-4 (living_alone)
+                # This should use person-level weights for accurate population representation
+                if var == "living_alone":
+                    # Use population_weight (sum of personal weights) instead of household weights
+                    mask = group[f"_valid_{var}"]
+                    single_person_households = group.loc[mask]
+                    
+                    if len(single_person_households) == 0:
+                        share = 0.0
+                    else:
+                        # For single-person households, population_weight = personal weight of that person
+                        # Use the correct population weight column (may have suffix from living alone merge)
+                        if 'population_weight_living_alone' in group.columns:
+                            population_weight_col = 'population_weight_living_alone'
+                        elif 'population_weight' in group.columns:
+                            population_weight_col = 'population_weight'
+                        else:
+                            print(f"⚠️ Warning: No population weight column found for living alone")
+                            share = np.nan
+                            continue
+                            
+                        living_alone_population = single_person_households[population_weight_col].sum()
+                        # Total population is sum of all population weights
+                        total_population = group[population_weight_col].sum()
+                        share = (living_alone_population / total_population * 100) if total_population > 0 else np.nan
+                
+                elif var == "overcrowded":
+                    # SPECIAL HANDLING FOR HQ-SILC-1 (overcrowded) - Fixed version with fallback
+                    share = calculate_overcrowding_percentage(group)
+                
+                else:
+                    # Normal calculation for other indicators using household weights
+                    mask = group[f"_valid_{var}"]
+                    weighted_sum = group.loc[mask, "DB090"].sum()
+                    share = (weighted_sum / total_weight * 100) if total_weight > 0 else np.nan
             
             group_result[f"{var}_share"] = share
 
@@ -876,14 +1031,45 @@ def process_household_indicators(dirs):
             # Set minimum coverage threshold for reliable indicators (10%)
             min_coverage_threshold = 10.0
             
-            if all_nan or coverage_pct < min_coverage_threshold:
-                # If all values are NaN or coverage is too low, the indicator should be NaN
-                share = np.nan
-            else:
-                # Normal calculation when we have sufficient data coverage
+            # SPECIAL HANDLING FOR EC-SILC-4 (living_alone)
+            # This should use person-level weights for accurate population representation
+            if var == "living_alone":
+                # Use population_weight (sum of personal weights) instead of household weights
                 mask = group[f"_valid_{var}"]
-                weighted_sum = group.loc[mask, "DB090"].sum()
-                share = (weighted_sum / total_weight * 100) if total_weight > 0 else np.nan
+                single_person_households = group.loc[mask]
+                
+                if len(single_person_households) == 0:
+                    share = 0.0
+                else:
+                    # For single-person households, population_weight = personal weight of that person
+                    # Use the correct population weight column (may have suffix)
+                    if 'population_weight_living_alone' in group.columns:
+                        population_weight_col = 'population_weight_living_alone'
+                    elif 'population_weight' in group.columns:
+                        population_weight_col = 'population_weight'
+                    else:
+                        print(f"⚠️ Warning: No population weight column found for living alone in total calculation")
+                        share = np.nan
+                        continue
+                        
+                    living_alone_population = single_person_households[population_weight_col].sum()
+                    # Total population is sum of all population weights
+                    total_population = group[population_weight_col].sum()
+                    share = (living_alone_population / total_population * 100) if total_population > 0 else np.nan
+                
+            elif var == "overcrowded":
+                # SPECIAL HANDLING FOR HQ-SILC-1 (overcrowded) - Fixed version with fallback
+                share = calculate_overcrowding_percentage(group)
+            else:
+                # Normal calculation for other indicators
+                if all_nan or coverage_pct < min_coverage_threshold:
+                    # If all values are NaN or coverage is too low, the indicator should be NaN
+                    share = np.nan
+                else:
+                    # Normal calculation when we have sufficient data coverage
+                    mask = group[f"_valid_{var}"]
+                    weighted_sum = group.loc[mask, "DB090"].sum()
+                    share = (weighted_sum / total_weight * 100) if total_weight > 0 else np.nan
             
             group_result[f"{var}_share"] = share
 

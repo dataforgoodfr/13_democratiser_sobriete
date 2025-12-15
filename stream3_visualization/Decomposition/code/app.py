@@ -228,11 +228,12 @@ def update_bar_chart(zone, sector):
     if not all([zone, sector]):
         return go.Figure()
     
-    # Get data for the selected zone and sector, all scenarios
+    # Get data for the selected zone and sector, all scenarios (excluding World Sufficiency Lab)
     chart_data = data[
         (data['Zone'] == zone) &
         (data['Sector'] == sector) &
-        (data['Lever'] != 'Total')
+        (data['Lever'] != 'Total') &
+        (data['Scenario'] != 'World Sufficiency Lab - Consumption or Production per capita at 2015 Levels')
     ].copy()
     
     if chart_data.empty:
@@ -487,8 +488,7 @@ def update_scenario_options(selected_zone):
             {'label': 'Base Scenario', 'value': 'Base Scenario'},
             {'label': 'Scenario Zer0 A', 'value': 'Scenario Zer0 A'},
             {'label': 'Scenario Zer0 B', 'value': 'Scenario Zer0 B'},
-            {'label': 'Scenario Zer0 C', 'value': 'Scenario Zer0 C'},
-            {'label': 'World Sufficiency Lab - Consumption or Production per capita at 2015 Levels', 'value': 'World Sufficiency Lab - Consumption or Production per capita at 2015 Levels'}
+            {'label': 'Scenario Zer0 C', 'value': 'Scenario Zer0 C'}
         ]
         value = 'Base Scenario'
     else:
@@ -497,8 +497,7 @@ def update_scenario_options(selected_zone):
             {'label': 'EU Commission Fit-for-55', 'value': 'EU Commission Fit-for-55'},
             {'label': 'EU Commission >85% Decrease by 2040', 'value': 'EU Commission >85% Decrease by 2040'},
             {'label': 'EU Commission >90% Decrease by 2040', 'value': 'EU Commission >90% Decrease by 2040'},
-            {'label': 'EU Commission LIFE Scenario', 'value': 'EU Commission LIFE Scenario'},
-            {'label': 'World Sufficiency Lab - Consumption or Production per capita at 2015 Levels', 'value': 'World Sufficiency Lab - Consumption or Production per capita at 2015 Levels'}
+            {'label': 'EU Commission LIFE Scenario', 'value': 'EU Commission LIFE Scenario'}
         ]
         value = 'EU Commission Fit-for-55'
     
@@ -540,4 +539,4 @@ def update_sector_options(selected_zone):
 if __name__ == '__main__':
     print("Starting CO2 Decomposition Dashboard...")
     print(f"Dashboard will be available at: http://localhost:8051")
-    app.run_server(debug=True, host='0.0.0.0', port=8051) 
+    app.run(debug=True, host='0.0.0.0', port=8051) 

@@ -516,7 +516,7 @@ def create_time_series_chart_pca(level_filters, selected_countries):
     # Filter data based on level - same logic as map chart but across all years
     if level_filters['current_level'] == 1:
         # Level 1: EWBI overall
-        # Use Population-weighted geometric mean for 'All Countries' with Decile='All' 
+        # Use Geometric mean inter-decile for 'All Countries' with Decile='All' to match decile chart
         ts_data = unified_df[
             (unified_df['Level'] == 1) & 
             (unified_df['Decile'] == 'All') &
@@ -524,14 +524,14 @@ def create_time_series_chart_pca(level_filters, selected_countries):
             (
                 (unified_df['Country'] != 'All Countries') |
                 ((unified_df['Country'] == 'All Countries') & 
-                 (unified_df['Aggregation'] == 'Population-weighted geometric mean'))
+                 (unified_df['Aggregation'] == 'Geometric mean inter-decile'))
             )
         ].copy()
-        title = 'EWBI Overall Well-being Evolution Over Time - PCA Version (Population-Weighted)'
+        title = 'EWBI Overall Well-being Evolution Over Time - PCA Version (Inter-Decile Geometric Mean)'
         
     elif level_filters['current_level'] == 2:
         # Level 2: EU priority
-        # Use Population-weighted geometric mean for 'All Countries' with Decile='All'
+        # Use Geometric mean inter-decile for 'All Countries' with Decile='All' to match decile chart
         ts_data = unified_df[
             (unified_df['Level'] == 2) & 
             (unified_df['Decile'] == 'All') &
@@ -540,10 +540,10 @@ def create_time_series_chart_pca(level_filters, selected_countries):
             (
                 (unified_df['Country'] != 'All Countries') |
                 ((unified_df['Country'] == 'All Countries') & 
-                 (unified_df['Aggregation'] == 'Population-weighted geometric mean'))
+                 (unified_df['Aggregation'] == 'Geometric mean inter-decile'))
             )
         ].copy()
-        title = f'{level_filters["eu_priority"]} Evolution Over Time - Population-Weighted'
+        title = f'{level_filters["eu_priority"]} Evolution Over Time - Inter-Decile Geometric Mean'
         
     else:  # Level 5
         # Level 5: Raw data
@@ -688,6 +688,13 @@ def create_decile_chart_pca(level_filters, selected_countries):
             font=dict(size=16, family="Arial, sans-serif")
         )
     else:
+        # Check for data quality issues at Level 5 and add warnings to title if needed
+        if level_filters['current_level'] == 5:
+            eu_data = decile_data[decile_data['Country'] == 'All Countries']
+            if len(eu_data) > 0 and eu_data['Value'].max() == 0:
+                # EU-27 decile data appears to be all zeros - add warning but still show it
+                title = f'{get_display_name(level_filters["primary_indicator"])} - Population Share by Decile ({int(latest_year)}) [Note: EU-27 decile aggregation may be incomplete]'
+        
         # Add "All" decile values for comparison
         all_aggregate_data = unified_df[
             (unified_df['Level'] == level_filters['current_level']) & 
@@ -699,7 +706,10 @@ def create_decile_chart_pca(level_filters, selected_countries):
         if level_filters['current_level'] == 1:
             all_aggregate_data = all_aggregate_data[all_aggregate_data['Aggregation'] == 'Geometric mean inter-decile']
         elif level_filters['current_level'] == 2:
-            all_aggregate_data = all_aggregate_data[all_aggregate_data['EU priority'] == level_filters['eu_priority']]
+            all_aggregate_data = all_aggregate_data[
+                (all_aggregate_data['EU priority'] == level_filters['eu_priority']) &
+                (all_aggregate_data['Aggregation'] == 'Geometric mean inter-decile')
+            ]
         elif level_filters['current_level'] == 5:
             all_aggregate_data = all_aggregate_data[all_aggregate_data['Primary and raw data'] == level_filters['primary_indicator']]
         

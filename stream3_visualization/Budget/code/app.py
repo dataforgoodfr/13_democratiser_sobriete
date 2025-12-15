@@ -1103,4 +1103,5 @@ server = app.server
 
 # Local development server
 if __name__ == '__main__':
-    app.run_server(debug=True, host='0.0.0.0', port=8050)
+    # Disable debug mode for Python 3.14+ compatibility (pkgutil.find_loader removed)
+    app.run_server(debug=False, host='0.0.0.0', port=8050)
