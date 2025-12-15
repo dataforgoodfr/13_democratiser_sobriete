@@ -11,24 +11,25 @@ def get_markdown_pymupdf(path: str,) -> tuple[str, bool]:
     Returns tuple (markdown_text: str, used_ocr: bool)
     """
 
-    md_text = pymupdf4llm.to_markdown(
-        doc=path,
-        header=False,
-        footer=False,
-        use_ocr=False,
-        force_text=False
-    )
-
-    if needs_ocr(md_text):
+    with pymupdf.open(path) as doc:
         md_text = pymupdf4llm.to_markdown(
-            doc=path,
+            doc=doc,
             header=False,
             footer=False,
-            use_ocr=True,
+            use_ocr=False,
             force_text=False
         )
-        return md_text, True
-    else:
+
+        if needs_ocr(md_text):
+            md_text = pymupdf4llm.to_markdown(
+                doc=doc,
+                header=False,
+                footer=False,
+                use_ocr=True,
+                force_text=False
+            )
+            return md_text, True
+
         return md_text, False
 
 
