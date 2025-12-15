@@ -1,16 +1,13 @@
 """
 Converts all pdf documents from a s3 folder to markdown files saved in another folder.
-Additionally, saves the extracted text along with the document names (normally OpenAlex IDs) into a parquet file.
-Avoids local storage as much as possible by using temporary files and S3.
+Delete files from local storage after processing to avoid disk full errors.
+Doesn't accumulate results in memory to avoid OOM errors.
 """
 
 import argparse
 from concurrent.futures import ProcessPoolExecutor, as_completed
-import logging
 import os
 import sys
-
-import pandas as pd
 from tqdm import tqdm
 
 from library.database.database import create_tables
@@ -28,8 +25,8 @@ S3_PREFIX = "documents"
 S3_BASE_URL = f"{S3_HOST}/{S3_PREFIX}"
 
 
-def process_pdf(s3_folder: str, document_id: str) -> dict:
-    """Extract text from a single PDF, save it as md to S3 and return the record."""
+def process_pdf(s3_folder: str, document_id: str) -> None:
+    """Extract text from a single PDF and save it as md to S3."""
 
     s3_prefix = s3_folder.replace(S3_HOST + "/", "")
 
@@ -54,13 +51,11 @@ def process_pdf(s3_folder: str, document_id: str) -> dict:
                 os.remove(md_filename)
 
         mark_paper_processed(document_id, s3_folder)
-        logging.info(f"Success {document_id}")
-        return {"id": document_id, "text": md_text}
+        return True, document_id
 
     except Exception as e:
         mark_paper_failed(document_id, s3_folder, str(e))
-        logging.info(f"Failed {document_id}: {str(e)}")
-        return {"id": document_id, "text": ""}
+        return False, document_id
 
 
 def main(s3_folder: str, num_workers: int = 1):
@@ -77,7 +72,6 @@ def main(s3_folder: str, num_workers: int = 1):
     ids = [doc_id for doc_id in ids if doc_id not in already_processed]
     print("Documents to process after filtering already processed:", len(ids))
 
-    records = []
     with ProcessPoolExecutor(max_workers=num_workers) as executor:
         try:
             futures = []
@@ -85,8 +79,12 @@ def main(s3_folder: str, num_workers: int = 1):
                 futures.append(executor.submit(process_pdf, s3_folder, document_id))
 
             for future in tqdm(as_completed(futures), total=len(futures)):
-                record = future.result()
-                records.append(record)
+                success, message = future.result()
+                if success:
+                    print(f"✓ Success {message}")
+                else:
+                    print(f"✗ Failed {message}")
+
         except KeyboardInterrupt:
             print("\nInterrupted! Cancelling remaining tasks...")
             for future in futures:
@@ -94,17 +92,10 @@ def main(s3_folder: str, num_workers: int = 1):
             executor.shutdown(wait=False, cancel_futures=True)
             sys.exit(0)
 
-    df = pd.DataFrame(records)
-    parquet_filename = "extracted_texts.parquet"
-    df.to_parquet(parquet_filename, index=False)
-    upload_to_s3(parquet_filename, f"{s3_folder}/extracted_texts.parquet")
-    if os.path.exists(parquet_filename):
-        os.remove(parquet_filename)
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Extract text from all PDFs in a S3 folder and save as markdown and parquet."
+        description="Extract text from all PDFs in a S3 folder and save as markdown."
     )
     parser.add_argument(
         "--s3-folder", type=str, help="S3 sub-folder under documents/ containing the PDFs"
