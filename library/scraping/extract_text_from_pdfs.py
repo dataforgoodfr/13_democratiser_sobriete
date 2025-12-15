@@ -74,16 +74,19 @@ def main(s3_folder: str, num_workers: int = 1):
 
     with ProcessPoolExecutor(max_workers=num_workers) as executor:
         try:
-            futures = []
-            for document_id in ids:
-                futures.append(executor.submit(process_pdf, s3_folder, document_id))
-
+            futures = {executor.submit(process_pdf, s3_folder, doc_id) for doc_id in ids}
             for future in tqdm(as_completed(futures), total=len(futures)):
-                success, message = future.result()
-                if success:
-                    print(f"✓ Success {message}")
-                else:
-                    print(f"✗ Failed {message}")
+                try:
+                    success, message = future.result()
+                    if success:
+                        print(f"✓ Success {message}")
+                    else:
+                        print(f"✗ Failed {message}")
+                except Exception as e:
+                    print(f"✗ Exception: {e}")
+                finally:
+                    # Explicitly remove the future from the set to free memory
+                    futures.discard(future)
 
         except KeyboardInterrupt:
             print("\nInterrupted! Cancelling remaining tasks...")
