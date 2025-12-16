@@ -2058,6 +2058,7 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "faiss-cpu" },
+    { name = "matplotlib" },
     { name = "pandas" },
     { name = "pydantic" },
     { name = "python-dotenv" },
@@ -2100,6 +2101,11 @@ all = [
     { name = "together" },
     { name = "wordcloud" },
 ]
+clustering = [
+    { name = "hdbscan" },
+    { name = "scikit-learn" },
+    { name = "umap-learn" },
+]
 dspy = [
     { name = "datetime" },
     { name = "dspy" },
@@ -2111,7 +2117,9 @@ requires-dist = [
     { name = "datetime", marker = "extra == 'dspy'", specifier = ">=6.0" },
     { name = "dspy", marker = "extra == 'dspy'", specifier = ">=3.0.4" },
     { name = "faiss-cpu", specifier = ">=1.13.0" },
+    { name = "hdbscan", marker = "extra == 'clustering'", specifier = ">=0.8.40" },
     { name = "kaleido", marker = "extra == 'agentic'", specifier = ">=1.2.0" },
+    { name = "matplotlib", specifier = ">=3.10.7" },
     { name = "matplotlib", marker = "extra == 'agentic'", specifier = ">=3.10.7" },
     { name = "nltk", marker = "extra == 'agentic'", specifier = ">=3.9.2" },
     { name = "optuna", marker = "extra == 'agentic'", specifier = ">=4.5.0" },
@@ -2124,14 +2132,16 @@ requires-dist = [
     { name = "python-dotenv", specifier = ">=1.2.1" },
     { name = "qdrant-client", marker = "extra == 'agentic'", specifier = ">=1.15.1" },
     { name = "scikit-learn", marker = "extra == 'agentic'", specifier = ">=1.7.2" },
+    { name = "scikit-learn", marker = "extra == 'clustering'", specifier = ">=1.7.2" },
     { name = "sentence-transformers", specifier = ">=5.1.2" },
     { name = "sqlalchemy", marker = "extra == 'agentic'", specifier = ">=2.0.29,<3" },
     { name = "sqlmodel", marker = "extra == 'agentic'", specifier = ">=0.0.16,<0.1" },
     { name = "together", marker = "extra == 'agentic'", specifier = ">=1.5.30" },
     { name = "torch", specifier = ">=2.9.1" },
+    { name = "umap-learn", marker = "extra == 'clustering'", specifier = ">=0.5.9.post2" },
     { name = "wordcloud", marker = "extra == 'agentic'", specifier = ">=1.9.4" },
 ]
-provides-extras = ["dspy", "agentic", "all"]
+provides-extras = ["dspy", "agentic", "all", "clustering"]
 
 [[package]]
 name = "portalocker"

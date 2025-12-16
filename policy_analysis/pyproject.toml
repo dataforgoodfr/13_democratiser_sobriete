@@ -12,6 +12,7 @@ dependencies = [
     "python-dotenv>=1.2.1",
     "sentence-transformers>=5.1.2",
     "torch>=2.9.1",
+    "matplotlib>=3.10.7",
 ]
 
 [project.optional-dependencies]
@@ -40,6 +41,11 @@ agentic = [
 
 all = [
     "policy-analysis[dspy,agentic]"
+]
+clustering = [
+    "hdbscan>=0.8.40",
+    "scikit-learn>=1.7.2",
+    "umap-learn>=0.5.9.post2",
 ]
 
 [build-system]
