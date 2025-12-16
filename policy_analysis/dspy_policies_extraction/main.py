@@ -3,16 +3,14 @@ from dspy.teleprompt import MIPROv2
 
 import json
 import os
+from pathlib import Path
 from dotenv import load_dotenv
-import pandas as pd
 from sentence_transformers import CrossEncoder
 import torch
 from datetime import datetime
 from dspy.adapters import JSONAdapter
 
 
-import math 
-# Load environment variables
 load_dotenv()
 
 # 1. Configuration
@@ -47,25 +45,29 @@ dspy.configure(lm=lm)
 model_used = lm.model.replace("/","_")
 # 2. Data Loading
 golden_dataset = []
+root = Path(__file__).parent
 
-if os.path.exists('data/conclusions&pollitiques_gold.jsonl'):
-    with open('data/conclusions&pollitiques_gold.jsonl', 'r', encoding='utf-8') as f:
+gold_conclusion_fp = root/"data/conclusions&pollitiques_gold.jsonl"
+if gold_conclusion_fp.exists():
+    with gold_conclusion_fp.open('r', encoding='utf-8') as f:
         for line in f:
             data = json.loads(line)
             example = dspy.Example(question=data['question'], response=data['response'])
             golden_dataset.append(example.with_inputs('question'))
 else:
-    exit ("Data file 'data/conclusions&pollitiques_gold.jsonl' not found.")
+    exit (f"Data file {str(gold_conclusion_fp)} not found.")
 
 syntetic_dataset = []
-if os.path.exists('data/conclusions&pollitiques_synthetiques_diversifies.jsonl'):
-    with open('data/conclusions&pollitiques_synthetiques_diversifies.jsonl', 'r', encoding='utf-8') as f:
+syntetic_dataset_fp = root/"data/conclusions&pollitiques_synthetiques_diversifies.jsonl"
+
+if syntetic_dataset_fp.exists():
+    with syntetic_dataset_fp.open('r', encoding='utf-8') as f:
         for line in f:
             data = json.loads(line)
             example = dspy.Example(question=data['question'], response=data['response'])
             syntetic_dataset.append(example.with_inputs('question'))
 else:
-    exit ("Data file 'data/conclusions&pollitiques_synthetiques_diversifies.jsonl' not found.")
+    exit (f"Data file {str(syntetic_dataset_fp)} not found.")
 
 # Meilleur score avec dataset synthetique petit  
 trainset = syntetic_dataset
@@ -138,8 +140,8 @@ optimized_evaluator = dspy.Evaluate(
 )
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-
-optimized_score = optimized_evaluator(compiled_program,save_as_json=f"saved_dspy_model/{model_used}{timestamp}.json")
+saved_dspy_path = root/"saved_dspy_model"
+optimized_score = optimized_evaluator(compiled_program,save_as_json=str(saved_dspy_path/f"{model_used}{timestamp}.json"))
 print(optimized_score)
 
 score_str = f"{round(optimized_score.score,2)}".replace(".", "_") 
@@ -152,6 +154,6 @@ optimized_evaluator(
 print(f"Final Score on Validation Set (optimized): {optimized_score}%")
 
 # --- Saving the optimized model ---
-model_path = f"saved_dspy_model/{score_str}"
-compiled_program.save(model_path,save_program=True)
+model_path = saved_dspy_path/f"{score_str}"
+compiled_program.save(str(model_path),save_program=True)
 print(f"Optimized model saved to {model_path}")

@@ -2,6 +2,7 @@ from openai import OpenAI
 import json
 import time
 import os
+from pathlib import Path
 import re
 from dotenv import load_dotenv
 import random
@@ -56,8 +57,10 @@ def generate_synthetic_qa(existing_qa, n_samples=5, max_retries=3):
 
 # ---- EXAMPLE USAGE ----
 # Read JSONL
+root = Path(__file__).parent
 original = []
-with open("extracted_politics_examples.jsonl", "r", encoding="utf-8") as f:
+extracted_politics_examples_fp = root / "extracted_politics_examples.jsonl"
+with extracted_politics_examples_fp.open("r", encoding="utf-8") as f:
     for line in f:
         original.append(json.loads(line))
 
@@ -66,8 +69,9 @@ guidance_examples = original[:32]  # On utiliser tous les exemples gold que l'on
 synthetic = generate_synthetic_qa(guidance_examples, n_samples=100)
 
 # Write to JSONL
-with open("synthetic_qa2.jsonl", "w", encoding="utf-8") as f:
+synthetic_qa_fp = root / "synthetic_qa2.jsonl"
+with synthetic_qa_fp.open( "w", encoding="utf-8") as f:
     for item in synthetic:
         f.write(json.dumps(item, ensure_ascii=False) + "\n")
 
-print("Synthetic dataset saved to synthetic_qa.jsonl")
+print(f"Synthetic dataset saved to {synthetic_qa_fp}")
