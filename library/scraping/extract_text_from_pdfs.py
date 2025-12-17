@@ -20,7 +20,7 @@ from library.connectors.s3 import upload_to_s3
 from library.scraping.extract_pdf_content import get_markdown_pymupdf
 
 
-S3_HOST = "https://sufficiency-library.s3.fr-par.scw.cloud" # TODO env variable
+S3_HOST = "https://sufficiency-library.s3.fr-par.scw.cloud"  # TODO env variable
 S3_PREFIX = "documents"
 S3_BASE_URL = f"{S3_HOST}/{S3_PREFIX}"
 
@@ -71,7 +71,7 @@ def get_ids_for_folder(s3_folder: str) -> list[str]:
     return ids
 
 
-def main(num_workers: int = 10, max_pages: int = 20):
+def main(num_workers: int = 10, max_pages: int = 20, limit: int | None = None):
     create_tables()
     already_processed = get_already_processed_ids()
     s3_folders = [f"{S3_BASE_URL}/batch_{i}" for i in range(1, 7)]
@@ -83,6 +83,8 @@ def main(num_workers: int = 10, max_pages: int = 20):
             if doc_id not in already_processed:
                 all_tasks.append((s3_folder, doc_id))
 
+    if limit is not None:
+        all_tasks = all_tasks[:limit]
 
     task_iter = iter(all_tasks)
 
@@ -93,7 +95,7 @@ def main(num_workers: int = 10, max_pages: int = 20):
             pending = set()
 
             # fill initial batch
-            while(len(pending)) < num_futures_at_once:
+            while (len(pending)) < num_futures_at_once:
                 try:
                     s3_folder, doc_id = next(task_iter)
                     future = executor.submit(process_pdf, s3_folder, doc_id, max_pages)
@@ -147,9 +149,15 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--max-pages",
-        type=int,
+        type=int | None,
         default=20,
-        help="Maximum number of pages to process at once in a single PDF (default: 20)",
+        help="Maximum number of pages to process at once in a single PDF (default: 20). None means all pages.",
+    )
+    parser.add_argument(
+        "--limit",
+        type=int | None,
+        default=None,
+        help="Max number of PDFs to process (default: all)",
     )
     parser.add_argument(
         "--ocr",
@@ -158,4 +166,4 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-    main(args.num_workers, args.max_pages)
+    main(args.num_workers, num_workers=args.max_pages, limit=args.limit)
