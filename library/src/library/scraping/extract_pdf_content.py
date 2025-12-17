@@ -6,7 +6,7 @@ import pymupdf.layout  # noqa
 import pymupdf4llm
 
 
-def get_markdown_pymupdf(path: str, max_pages_at_once: int = 20) -> tuple[str, bool]:
+def get_markdown_pymupdf(path: str, ocr: bool = False, max_pages_at_once: int = 20) -> tuple[str, bool]:
     """
     Extract markdown text from a PDF using pymupdf4llm, with OCR fallback.
     Returns tuple (markdown_text: str, used_ocr: bool)
@@ -31,7 +31,7 @@ def get_markdown_pymupdf(path: str, max_pages_at_once: int = 20) -> tuple[str, b
                 force_text=False
             )
 
-            if needs_ocr(text):
+            if ocr and needs_ocr(text):
                 text = pymupdf4llm.to_markdown(
                     doc=doc,
                     pages=page_range,

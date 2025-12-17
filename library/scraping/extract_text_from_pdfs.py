@@ -145,12 +145,16 @@ if __name__ == "__main__":
         default=10,
         help="Number of parallel workers for extracting text from PDFs (default: 10)",
     )
-    # max pages
     parser.add_argument(
         "--max-pages",
         type=int,
         default=20,
         help="Maximum number of pages to process at once in a single PDF (default: 20)",
+    )
+    parser.add_argument(
+        "--ocr",
+        action="store_true",
+        help="Use OCR fallback when extracting text from PDFs (default: False)",
     )
 
     args = parser.parse_args()
