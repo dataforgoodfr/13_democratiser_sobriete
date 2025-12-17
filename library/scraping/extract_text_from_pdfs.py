@@ -25,7 +25,7 @@ S3_PREFIX = "documents"
 S3_BASE_URL = f"{S3_HOST}/{S3_PREFIX}"
 
 
-def process_pdf(s3_folder: str, document_id: str) -> None:
+def process_pdf(s3_folder: str, document_id: str, max_pages: int) -> None:
     """Extract text from a single PDF and save it as md to S3."""
 
     s3_prefix = s3_folder.replace(S3_HOST + "/", "")
@@ -37,7 +37,7 @@ def process_pdf(s3_folder: str, document_id: str) -> None:
         try:
             pdf_url = f"{s3_folder}/pdf/{document_id}.pdf"
             os.system(f"wget -q {pdf_url} -O {pdf_filename}")
-            md_text, used_ocr = get_markdown_pymupdf(pdf_filename)
+            md_text, used_ocr = get_markdown_pymupdf(pdf_filename, max_pages_at_once=max_pages)
 
             with open(md_filename, "w") as f:
                 f.write(md_text)
@@ -71,7 +71,7 @@ def get_ids_for_folder(s3_folder: str) -> list[str]:
     return ids
 
 
-def main(num_workers: int = 10):
+def main(num_workers: int = 10, max_pages: int = 20):
     create_tables()
     already_processed = get_already_processed_ids()
     s3_folders = [f"{S3_BASE_URL}/batch_{i}" for i in range(1, 7)]
@@ -96,7 +96,7 @@ def main(num_workers: int = 10):
             while(len(pending)) < num_futures_at_once:
                 try:
                     s3_folder, doc_id = next(task_iter)
-                    future = executor.submit(process_pdf, s3_folder, doc_id)
+                    future = executor.submit(process_pdf, s3_folder, doc_id, max_pages)
                     pending.add(future)
                 except StopIteration:
                     break
@@ -122,7 +122,7 @@ def main(num_workers: int = 10):
                     # submit next task to keep the pipeline full
                     try:
                         s3_folder, doc_id = next(task_iter)
-                        future = executor.submit(process_pdf, s3_folder, doc_id)
+                        future = executor.submit(process_pdf, s3_folder, doc_id, max_pages)
                         pending.add(future)
                     except StopIteration:
                         pass
@@ -145,6 +145,13 @@ if __name__ == "__main__":
         default=10,
         help="Number of parallel workers for extracting text from PDFs (default: 10)",
     )
+    # max pages
+    parser.add_argument(
+        "--max-pages",
+        type=int,
+        default=20,
+        help="Maximum number of pages to process at once in a single PDF (default: 20)",
+    )
 
     args = parser.parse_args()
-    main(args.num_workers)
+    main(args.num_workers, args.max_pages)
