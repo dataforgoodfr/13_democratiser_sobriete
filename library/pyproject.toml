@@ -2,7 +2,7 @@
 name = "library"
 version = "0.0.1"
 description = "An application for the library data ingestion"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 dependencies = [
     "boto3>=1.42.0",
     "botocore>=1.41.6",
