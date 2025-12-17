@@ -166,4 +166,4 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-    main(args.num_workers, num_workers=args.max_pages, limit=args.limit)
+    main(num_workers=args.num_workers, max_pages=args.max_pages, limit=args.limit)
