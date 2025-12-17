@@ -1,36 +1,52 @@
 import pathlib
+import gc
 
 # do not remove this import, it improves the results of pymupdf4llm
 import pymupdf.layout  # noqa
 import pymupdf4llm
 
 
-def get_markdown_pymupdf(path: str,) -> tuple[str, bool]:
+def get_markdown_pymupdf(path: str, max_pages_at_once: int = 20) -> tuple[str, bool]:
     """
     Extract markdown text from a PDF using pymupdf4llm, with OCR fallback.
     Returns tuple (markdown_text: str, used_ocr: bool)
     """
 
     with pymupdf.open(path) as doc:
-        md_text = pymupdf4llm.to_markdown(
-            doc=doc,
-            header=False,
-            footer=False,
-            use_ocr=False,
-            force_text=False
-        )
+        total_pages = len(doc)
+        used_ocr = False
+        all_texts = []
+        chunk_size = max_pages_at_once or total_pages
 
-        if needs_ocr(md_text):
-            md_text = pymupdf4llm.to_markdown(
+        for start in range(0, total_pages, chunk_size):
+            end = min(start + chunk_size, total_pages)
+            page_range = list(range(start, end))
+            
+            text = pymupdf4llm.to_markdown(
                 doc=doc,
+                pages=page_range,
                 header=False,
                 footer=False,
-                use_ocr=True,
+                use_ocr=False,
                 force_text=False
             )
-            return md_text, True
 
-        return md_text, False
+            if needs_ocr(text):
+                text = pymupdf4llm.to_markdown(
+                    doc=doc,
+                    pages=page_range,
+                    header=False,
+                    footer=False,
+                    use_ocr=True,
+                    force_text=False
+                )
+                used_ocr = True
+
+            all_texts.append(text)
+
+        md_text = "\n\n".join(all_texts)
+        gc.collect()
+        return md_text, used_ocr
 
 
 def save_markdown(text: str, output_path: str) -> None:

@@ -6,9 +6,7 @@ Doesn't accumulate results in memory to avoid OOM errors.
 
 import argparse
 from concurrent.futures import ProcessPoolExecutor, as_completed
-import gc
 import os
-import resource
 import sys
 from tqdm import tqdm
 
@@ -22,29 +20,13 @@ from library.connectors.s3 import upload_to_s3
 from library.scraping.extract_pdf_content import get_markdown_pymupdf
 
 
-S3_HOST = "https://sufficiency-library.s3.fr-par.scw.cloud"
+S3_HOST = "https://sufficiency-library.s3.fr-par.scw.cloud" # TODO env variable
 S3_PREFIX = "documents"
 S3_BASE_URL = f"{S3_HOST}/{S3_PREFIX}"
 
 
-def set_max_memory_per_worker(max_mem_gb=2):
-    rsrc = resource.RLIMIT_AS
-    soft, hard = resource.getrlimit(rsrc)
-    # Convert MB to bytes
-    max_mem_bytes = max_mem_gb * 1024 * 1024 * 1024
-    
-    # Don't try to exceed the hard limit
-    if hard != resource.RLIM_INFINITY:
-        max_mem_bytes = min(max_mem_bytes, hard)
-        
-    resource.setrlimit(rsrc, (max_mem_bytes, hard))
-
-
-
 def process_pdf(s3_folder: str, document_id: str) -> None:
     """Extract text from a single PDF and save it as md to S3."""
-
-    set_max_memory_per_worker(4)
 
     s3_prefix = s3_folder.replace(S3_HOST + "/", "")
 
@@ -92,25 +74,26 @@ def get_ids_for_folder(s3_folder: str) -> list[str]:
 def main(num_workers: int = 10):
     create_tables()
     already_processed = get_already_processed_ids()
-
     s3_folders = [f"{S3_BASE_URL}/batch_{i}" for i in range(1, 7)]
 
     all_tasks = []
     for s3_folder in s3_folders:
         ids = get_ids_for_folder(s3_folder)
-        ids_to_process = [doc_id for doc_id in ids if doc_id not in already_processed]
-        print(f"Documents to process for folder {s3_folder}:", len(ids_to_process))
-        all_tasks.extend([(s3_folder, doc_id) for doc_id in ids_to_process])
+        for doc_id in ids:
+            if doc_id not in already_processed:
+                all_tasks.append((s3_folder, doc_id))
+
+
+    task_iter = iter(all_tasks)
 
     num_futures_at_once = num_workers * 2
 
     with ProcessPoolExecutor(max_workers=num_workers, max_tasks_per_child=5) as executor:
         with tqdm(total=len(all_tasks)) as pbar:
             pending = set()
-            task_iter = iter(all_tasks)
 
             # fill initial batch
-            for _ in range(min(num_futures_at_once, len(all_tasks))):
+            while(len(pending)) < num_futures_at_once:
                 try:
                     s3_folder, doc_id = next(task_iter)
                     future = executor.submit(process_pdf, s3_folder, doc_id)
@@ -143,10 +126,6 @@ def main(num_workers: int = 10):
                         pending.add(future)
                     except StopIteration:
                         pass
-
-                    # Periodic clean up
-                    if pbar.n % 100 == 0:
-                        gc.collect()
 
                 except KeyboardInterrupt:
                     print("\nInterrupted! Cancelling remaining tasks...")
