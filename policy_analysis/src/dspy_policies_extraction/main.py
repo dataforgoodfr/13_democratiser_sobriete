@@ -45,9 +45,10 @@ dspy.configure(lm=lm)
 model_used = lm.model.replace("/","_")
 # 2. Data Loading
 golden_dataset = []
-root = Path(__file__).parent
+root = Path().cwd()
 
-gold_conclusion_fp = root/"data/conclusions&pollitiques_gold.jsonl"
+gold_conclusion_fp = root / "data/conclusions&pollitiques_gold.jsonl"
+
 if gold_conclusion_fp.exists():
     with gold_conclusion_fp.open('r', encoding='utf-8') as f:
         for line in f:
@@ -140,7 +141,9 @@ optimized_evaluator = dspy.Evaluate(
 )
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-saved_dspy_path = root/"saved_dspy_model"
+file_root = Path(__file__).parent
+saved_dspy_path = file_root / "saved_dspy_model"
+
 optimized_score = optimized_evaluator(compiled_program,save_as_json=str(saved_dspy_path/f"{model_used}{timestamp}.json"))
 print(optimized_score)
 

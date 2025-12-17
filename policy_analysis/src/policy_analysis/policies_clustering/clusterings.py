@@ -5,6 +5,10 @@ from sklearn.preprocessing import Normalizer
 
 import hdbscan
 
+from policy_analysis.policies_clustering.embeddings import TfidfEmbedder, SentenceBERTEmbedder
+from policy_analysis.policies_clustering.reduction import UMAPReducer
+from policy_analysis.policies_clustering.report import plot_clusters_2d
+
 
 class HDBSCANClusterer(BaseEstimator):
     def __init__(self, min_cluster_size=50, min_samples=None, metric="euclidean"):
@@ -55,18 +59,16 @@ def build_hdbscan_pipeline(
 
 
 if __name__ == "__main__":
-    texts = [
-        "machine learning clustering",
-        "density based clustering hdbscan",
-        "transformers and sentence embeddings",
-        "football sports match",
-        "basketball playoffs",
-        "deep learning nlp"
-    ]
+    import pandas as pd
+    from pathlib import Path
+    root = Path().cwd()
+    fp = root / "data/conclusions&pollitiques_synthetiques.jsonl"
+    df = pd.read_json(fp, lines=True)
+    texts = df["response"].tolist()
 
     pipe = build_hdbscan_pipeline(
         embedding="sbert",
-        n_components=2,
+        n_components=5,
         min_cluster_size=2
     )
 
