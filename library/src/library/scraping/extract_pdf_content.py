@@ -6,10 +6,11 @@ import pymupdf.layout  # noqa
 import pymupdf4llm
 
 
-def get_markdown_pymupdf(path: str, ocr: bool = False, max_pages_at_once: int = 20) -> tuple[str, bool]:
+def get_markdown_pymupdf(path: str, ocr: bool = False, max_pages_at_once: int = None) -> tuple[str, bool]:
     """
     Extract markdown text from a PDF using pymupdf4llm, with OCR fallback.
     Returns tuple (markdown_text: str, used_ocr: bool)
+    We use pymupdf because it's significantly faster than alternatives like docling or marker.
     """
 
     with pymupdf.open(path) as doc:

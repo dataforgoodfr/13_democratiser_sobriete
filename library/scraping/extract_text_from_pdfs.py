@@ -71,7 +71,7 @@ def get_ids_for_folder(s3_folder: str) -> list[str]:
     return ids
 
 
-def main(num_workers: int = 10, max_pages: int = 20, limit: int | None = None):
+def main(num_workers: int, max_pages: int | None, limit: int | None):
     create_tables()
     already_processed = get_already_processed_ids()
     s3_folders = [f"{S3_BASE_URL}/batch_{i}" for i in range(1, 7)]
@@ -149,13 +149,13 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--max-pages",
-        type=int | None,
-        default=20,
-        help="Maximum number of pages to process at once in a single PDF (default: 20). None means all pages.",
+        type=int,
+        default=None,
+        help="Maximum number of pages to process at once in a single PDF (default: None).",
     )
     parser.add_argument(
         "--limit",
-        type=int | None,
+        type=int,
         default=None,
         help="Max number of PDFs to process (default: all)",
     )
