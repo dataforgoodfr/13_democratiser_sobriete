@@ -1,3 +1,4 @@
+from loguru import logger
 from sklearn.base import BaseEstimator
 from sklearn.pipeline import Pipeline
 from sklearn.decomposition import TruncatedSVD
@@ -61,10 +62,16 @@ def build_hdbscan_pipeline(
 if __name__ == "__main__":
     import pandas as pd
     from pathlib import Path
+    from sentence_transformers import SentenceTransformer
+    from umap import UMAP
     root = Path().cwd()
     fp = root / "data/conclusions&pollitiques_synthetiques.jsonl"
+    model_name = "all-MiniLM-L6-v2"
+    model = SentenceTransformer(model_name)
     df = pd.read_json(fp, lines=True)
     texts = df["response"].tolist()
+    embeddings = model.encode(texts, show_progress_bar=True)
+    logger.info(f"Embeddings shape: {embeddings.shape}")
 
     pipe = build_hdbscan_pipeline(
         embedding="sbert",
@@ -72,11 +79,11 @@ if __name__ == "__main__":
         min_cluster_size=2
     )
 
-    pipe.fit(texts)
+    pipe.fit(embeddings)
 
+    umap_model = UMAP(n_components=2, n_neighbors=15, random_state=42,
+                    metric="cosine", verbose=True)
     labels = pipe.named_steps["cluster"].labels_
-    X_2d = pipe.named_steps["umap"].transform(
-        pipe.named_steps["embed"].transform(texts)
-    )
+    reduced_embeddings_2d = umap_model.fit_transform(embeddings)
 
-    plot_clusters_2d(X_2d, labels)
+    plot_clusters_2d(reduced_embeddings_2d, labels)

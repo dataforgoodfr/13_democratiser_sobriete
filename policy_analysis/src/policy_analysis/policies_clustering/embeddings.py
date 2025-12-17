@@ -40,6 +40,8 @@ class SentenceBERTEmbedder(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X):
+        if isinstance(X, np.ndarray):
+            return X
         embeddings = self.model.encode(
             X,
             batch_size=self.batch_size,
