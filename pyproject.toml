@@ -1,7 +1,20 @@
+[project]
+name = "policy-analysis-workspace"
+version = "0.1.0"
+description = "Agentic RAG + policy analysis pipelines"
+readme = "README.md"
+requires-python = ">=3.12"
+
+[tool.uv.workspace]
+members = [
+    "policy_analysis",
+    "library",
+]
+
 [tool.ruff]
 # Same as Black.
 line-length = 96
-target-version = "py310"
+target-version = "py312"
 
 # Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.
 # Unlike Flake8, Ruff doesn't enable pycodestyle warnings (`W`) or
