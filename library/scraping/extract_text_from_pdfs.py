@@ -104,7 +104,7 @@ def main(markdown: bool, num_workers: int, max_pages: int | None, limit: int | N
     clean_tmp()
     create_tables()
     already_processed = get_already_processed_ids(mode="md" if markdown else "txt")
-    s3_folders = [f"{S3_BASE_URL}/batch_{i}" for i in range(1, 7)]
+    s3_folders = [f"{S3_BASE_URL}/batch_{i}" for i in range(1, 8)]
 
     all_tasks = []
     for s3_folder in s3_folders:
