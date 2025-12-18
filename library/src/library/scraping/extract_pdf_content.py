@@ -89,5 +89,4 @@ def get_raw_text_pymupdf(path: str) -> str:
     with pymupdf.open(path) as doc:
         all_texts = [page.get_text() for page in doc]
         text = chr(12).join(all_texts)
-        gc.collect()
         return text

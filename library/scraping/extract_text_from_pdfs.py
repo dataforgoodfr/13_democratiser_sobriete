@@ -5,8 +5,11 @@ Doesn't accumulate results in memory to avoid OOM errors.
 """
 
 import argparse
-from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
+from concurrent.futures import ProcessPoolExecutor, as_completed
+import multiprocessing
 import os
+import random
+import shutil
 import sys
 from tqdm import tqdm
 
@@ -28,7 +31,8 @@ S3_HOST = "https://sufficiency-library.s3.fr-par.scw.cloud"  # TODO env variable
 S3_PREFIX = "documents"
 S3_BASE_URL = f"{S3_HOST}/{S3_PREFIX}"
 
-PROCESS_TIMEOUT = None  # seconds
+TXT_TIMEOUT = 30  # seconds
+MD_TIMEOUT = 600  # seconds
 
 s3 = get_s3_client()
 
@@ -72,6 +76,7 @@ def process_pdf(
         return True, msg
     except Exception as e:
         mark_paper_failed(document_id, s3_folder, str(e), mode)
+        print("Faulty", document_id)
         return False, f"{document_id} in {s3_prefix} - Error: {str(e)}"
     finally:
         if os.path.exists(pdf_filename):
@@ -89,7 +94,14 @@ def get_ids_for_folder(s3_folder: str) -> list[str]:
     return ids
 
 
+def clean_tmp():
+    if os.path.exists("tmp"):
+        shutil.rmtree("tmp")
+    os.makedirs("tmp", exist_ok=True)
+
+
 def main(markdown: bool, num_workers: int, max_pages: int | None, limit: int | None, ocr: bool):
+    clean_tmp()
     create_tables()
     already_processed = get_already_processed_ids(mode="md" if markdown else "txt")
     s3_folders = [f"{S3_BASE_URL}/batch_{i}" for i in range(1, 7)]
@@ -101,44 +113,52 @@ def main(markdown: bool, num_workers: int, max_pages: int | None, limit: int | N
             if doc_id not in already_processed:
                 all_tasks.append((s3_folder, doc_id))
 
+    random.shuffle(all_tasks)  # avoids getting stuck on a corrupted PDF that generates errors
+
     if limit is not None:
         all_tasks = all_tasks[:limit]
 
-    # use ThreadPoolExecutor in IO-bound raw-text mode, ProcessPoolExecutor in CPU-bound markdown mode
-    executor_class = ProcessPoolExecutor if markdown else ThreadPoolExecutor
-    executor_kwargs = {"max_workers": num_workers}
-    if markdown:
-        executor_kwargs["max_tasks_per_child"] = 5
+    # Process in batches to ensure workers are refreshed and prevent a single segfault from killing the entire run.
+    # this replaces max_tasks_per_child of ProcessPoolExecutor, which doesn't work properly
+    batch_size = num_workers * 10
 
-    with executor_class(**executor_kwargs) as executor:
-        with tqdm(total=len(all_tasks)) as pbar:
-            try:
-                futures = {
-                    executor.submit(process_pdf, s3_folder, doc_id, markdown, max_pages, ocr)
-                    for s3_folder, doc_id in all_tasks
-                }
+    with tqdm(total=len(all_tasks)) as pbar:
+        for i in range(0, len(all_tasks), batch_size):
+            batch = all_tasks[i : i + batch_size]
+            with ProcessPoolExecutor(max_workers=num_workers) as executor:
+                try:
+                    futures = {
+                        executor.submit(
+                            process_pdf, s3_folder, doc_id, markdown, max_pages, ocr
+                        )
+                        for s3_folder, doc_id in batch
+                    }
 
-                for future in as_completed(futures):
-                    try:
-                        success, message = future.result(timeout=PROCESS_TIMEOUT)
-                        if success:
-                            print(f"✓ Success {message}")
-                        else:
-                            print(f"✗ Failed {message}")
-                    except Exception as e:
-                        print(f"✗ Exception: {e}")
-                    finally:
-                        pbar.update(1)
+                    for future in as_completed(futures):
+                        try:
+                            success, message = future.result(
+                                timeout=MD_TIMEOUT if markdown else TXT_TIMEOUT
+                            )
+                            if success:
+                                print(f"✓ Success {message}")
+                            else:
+                                print(f"✗ Failed {message}")
+                        except Exception as e:
+                            print(f"✗ Exception: {e}")
+                        finally:
+                            pbar.update(1)
 
-            except KeyboardInterrupt:
-                print("\nInterrupted! Cancelling remaining tasks...")
-                for future in futures:
-                    future.cancel()
-                executor.shutdown(wait=False, cancel_futures=True)
-                sys.exit(0)
+                except KeyboardInterrupt:
+                    print("\nInterrupted! Cancelling remaining tasks...")
+                    for future in futures:
+                        future.cancel()
+                    executor.shutdown(wait=False, cancel_futures=True)
+                    sys.exit(0)
 
 
 if __name__ == "__main__":
+    multiprocessing.set_start_method("spawn")  # avoids memory issues vs fork
+
     parser = argparse.ArgumentParser(
         description="Extract text from all PDFs in a S3 folder and save as markdown."
     )
