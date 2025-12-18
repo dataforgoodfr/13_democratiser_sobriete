@@ -42,8 +42,9 @@ def process_pdf(
     mode = "md" if markdown else "txt"
 
     try:
-        pdf_filename = f"{document_id}.pdf"
-        output_filename = f"{document_id}.md"
+        os.makedirs("tmp", exist_ok=True)
+        pdf_filename = f"tmp/{document_id}.pdf"
+        output_filename = f"tmp/{document_id}.{mode}"
 
         try:
             pdf_url = f"{s3_folder}/pdf/{document_id}.pdf"
@@ -57,8 +58,8 @@ def process_pdf(
 
             save_text(text, output_filename)
 
-            s3_md_key = f"{s3_prefix}/{mode}/{document_id}.{mode}"
-            upload_to_s3(output_filename, s3_md_key)
+            s3_key = f"{s3_prefix}/{mode}/{document_id}.{mode}"
+            upload_to_s3(output_filename, s3_key)
 
             mark_paper_processed(document_id, s3_folder, mode)
 
