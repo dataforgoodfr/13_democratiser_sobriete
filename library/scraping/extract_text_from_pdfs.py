@@ -17,7 +17,11 @@ from library.database.text_extraction_queue_crud import (
     mark_paper_failed,
 )
 from library.connectors.s3 import upload_to_s3
-from library.scraping.extract_pdf_content import get_markdown_pymupdf
+from library.scraping.extract_pdf_content import (
+    get_markdown_pymupdf,
+    get_raw_text_pymupdf,
+    save_text,
+)
 
 
 S3_HOST = "https://sufficiency-library.s3.fr-par.scw.cloud"  # TODO env variable
@@ -25,37 +29,45 @@ S3_PREFIX = "documents"
 S3_BASE_URL = f"{S3_HOST}/{S3_PREFIX}"
 
 
-def process_pdf(s3_folder: str, document_id: str, max_pages: int) -> None:
+def process_pdf(
+    s3_folder: str,
+    document_id: str,
+    markdown: bool = False,
+    max_pages: int = 20,
+    ocr: bool = False,
+) -> None:
     """Extract text from a single PDF and save it as md to S3."""
 
     s3_prefix = s3_folder.replace(S3_HOST + "/", "")
 
     try:
         pdf_filename = f"{document_id}.pdf"
-        md_filename = f"{document_id}.md"
+        output_filename = f"{document_id}.md"
 
         try:
             pdf_url = f"{s3_folder}/pdf/{document_id}.pdf"
             os.system(f"wget -q {pdf_url} -O {pdf_filename}")
-            md_text, used_ocr = get_markdown_pymupdf(pdf_filename, max_pages_at_once=max_pages)
+            if markdown:
+                text, used_ocr = get_markdown_pymupdf(
+                    pdf_filename, max_pages_at_once=max_pages, ocr=ocr
+                )
+            else:
+                text = get_raw_text_pymupdf(pdf_filename)
 
-            with open(md_filename, "w") as f:
-                f.write(md_text)
+            save_text(text, output_filename)
 
-            s3_md_key = f"{s3_prefix}/md/{document_id}.md"
-            upload_to_s3(md_filename, s3_md_key)
+            ext = "md" if markdown else "txt"
+            s3_md_key = f"{s3_prefix}/{ext}/{document_id}.{ext}"
+            upload_to_s3(output_filename, s3_md_key)
         finally:
             if os.path.exists(pdf_filename):
                 os.remove(pdf_filename)
-            if os.path.exists(md_filename):
-                os.remove(md_filename)
+            if os.path.exists(output_filename):
+                os.remove(output_filename)
 
         mark_paper_processed(document_id, s3_folder)
-        return True, f"{document_id} in {s3_prefix} (OCR used: {used_ocr})"
-
-    except MemoryError:
-        mark_paper_failed(document_id, s3_folder, "MemoryError processing PDF")
-        return False, f"{document_id} in {s3_prefix} - MemoryError"
+        msg = f"{document_id} in {s3_prefix}" + (f" (OCR used: {used_ocr})" if markdown else "")
+        return True, msg
 
     except Exception as e:
         mark_paper_failed(document_id, s3_folder, str(e))
@@ -71,7 +83,7 @@ def get_ids_for_folder(s3_folder: str) -> list[str]:
     return ids
 
 
-def main(num_workers: int, max_pages: int | None, limit: int | None):
+def main(markdown: bool, num_workers: int, max_pages: int | None, limit: int | None, ocr: bool):
     create_tables()
     already_processed = get_already_processed_ids()
     s3_folders = [f"{S3_BASE_URL}/batch_{i}" for i in range(1, 7)]
@@ -86,31 +98,23 @@ def main(num_workers: int, max_pages: int | None, limit: int | None):
     if limit is not None:
         all_tasks = all_tasks[:limit]
 
-    task_iter = iter(all_tasks)
+    # use ThreadPoolExecutor in IO-bound raw-text mode, ProcessPoolExecutor in CPU-bound markdown mode
+    executor_class = ProcessPoolExecutor if markdown else ProcessPoolExecutor
+    executor_kwargs = {"max_workers": num_workers}
+    if markdown:
+        executor_kwargs["max_tasks_per_child"] = 5
 
-    num_futures_at_once = num_workers * 2
-
-    with ProcessPoolExecutor(max_workers=num_workers, max_tasks_per_child=5) as executor:
+    with executor_class(**executor_kwargs) as executor:
         with tqdm(total=len(all_tasks)) as pbar:
-            pending = set()
+            try:
+                futures = {
+                    executor.submit(process_pdf, s3_folder, doc_id, markdown, max_pages, ocr)
+                    for s3_folder, doc_id in all_tasks
+                }
 
-            # fill initial batch
-            while (len(pending)) < num_futures_at_once:
-                try:
-                    s3_folder, doc_id = next(task_iter)
-                    future = executor.submit(process_pdf, s3_folder, doc_id, max_pages)
-                    pending.add(future)
-                except StopIteration:
-                    break
-
-            # main loop while there are tasks in pending
-            while pending:
-                try:
-                    done = next(as_completed(pending))
-                    pending.remove(done)
-
+                for future in as_completed(futures):
                     try:
-                        success, message = done.result()
+                        success, message = future.result()
                         if success:
                             print(f"✓ Success {message}")
                         else:
@@ -118,28 +122,24 @@ def main(num_workers: int, max_pages: int | None, limit: int | None):
                     except Exception as e:
                         print(f"✗ Exception: {e}")
                     finally:
-                        del done
                         pbar.update(1)
 
-                    # submit next task to keep the pipeline full
-                    try:
-                        s3_folder, doc_id = next(task_iter)
-                        future = executor.submit(process_pdf, s3_folder, doc_id, max_pages)
-                        pending.add(future)
-                    except StopIteration:
-                        pass
-
-                except KeyboardInterrupt:
-                    print("\nInterrupted! Cancelling remaining tasks...")
-                    for future in pending:
-                        future.cancel()
-                    executor.shutdown(wait=False, cancel_futures=True)
-                    sys.exit(0)
+            except KeyboardInterrupt:
+                print("\nInterrupted! Cancelling remaining tasks...")
+                for future in futures:
+                    future.cancel()
+                executor.shutdown(wait=False, cancel_futures=True)
+                sys.exit(0)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Extract text from all PDFs in a S3 folder and save as markdown."
+    )
+    parser.add_argument(
+        "--md",
+        action="store_true",
+        help="Convert to markdown instead of raw text (default: False)",
     )
     parser.add_argument(
         "--num-workers",
@@ -151,7 +151,7 @@ if __name__ == "__main__":
         "--max-pages",
         type=int,
         default=None,
-        help="Maximum number of pages to process at once in a single PDF (default: None).",
+        help="Maximum number of pages to process at once in a single PDF (default: None). Only used in markdown mode.",
     )
     parser.add_argument(
         "--limit",
@@ -162,8 +162,14 @@ if __name__ == "__main__":
     parser.add_argument(
         "--ocr",
         action="store_true",
-        help="Use OCR fallback when extracting text from PDFs (default: False)",
+        help="Use OCR fallback when extracting markdown from PDFs (default: False)",
     )
 
     args = parser.parse_args()
-    main(num_workers=args.num_workers, max_pages=args.max_pages, limit=args.limit)
+    main(
+        markdown=args.md,
+        num_workers=args.num_workers,
+        max_pages=args.max_pages,
+        limit=args.limit,
+        ocr=args.ocr,
+    )
