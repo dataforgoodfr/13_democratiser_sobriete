@@ -84,9 +84,10 @@ def needs_ocr(extracted_text: str) -> bool:
 def get_raw_text_pymupdf(path: str) -> str:
     """
     Extract raw text from a PDF using pymupdf.
-    Much faster processing, lower-quality output compared to markdown.
+    Much faster processing but lower-quality output compared to markdown.
     """
     with pymupdf.open(path) as doc:
         all_texts = [page.get_text() for page in doc]
         text = chr(12).join(all_texts)
+        gc.collect()
         return text

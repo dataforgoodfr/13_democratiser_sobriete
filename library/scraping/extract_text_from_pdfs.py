@@ -5,7 +5,7 @@ Doesn't accumulate results in memory to avoid OOM errors.
 """
 
 import argparse
-from concurrent.futures import ProcessPoolExecutor, as_completed
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
 import os
 import sys
 from tqdm import tqdm
@@ -27,6 +27,8 @@ from library.scraping.extract_pdf_content import (
 S3_HOST = "https://sufficiency-library.s3.fr-par.scw.cloud"  # TODO env variable
 S3_PREFIX = "documents"
 S3_BASE_URL = f"{S3_HOST}/{S3_PREFIX}"
+
+PROCESS_TIMEOUT = 300  # seconds
 
 
 def process_pdf(
@@ -103,7 +105,7 @@ def main(markdown: bool, num_workers: int, max_pages: int | None, limit: int | N
         all_tasks = all_tasks[:limit]
 
     # use ThreadPoolExecutor in IO-bound raw-text mode, ProcessPoolExecutor in CPU-bound markdown mode
-    executor_class = ProcessPoolExecutor if markdown else ProcessPoolExecutor
+    executor_class = ProcessPoolExecutor if markdown else ThreadPoolExecutor
     executor_kwargs = {"max_workers": num_workers}
     if markdown:
         executor_kwargs["max_tasks_per_child"] = 5
@@ -118,7 +120,7 @@ def main(markdown: bool, num_workers: int, max_pages: int | None, limit: int | N
 
                 for future in as_completed(futures):
                     try:
-                        success, message = future.result()
+                        success, message = future.result(timeout=PROCESS_TIMEOUT)
                         if success:
                             print(f"✓ Success {message}")
                         else:
