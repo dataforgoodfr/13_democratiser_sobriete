@@ -58,6 +58,7 @@ class TextExtractionQueue(SQLModel, table=True):
 
     # scraping status
     attempted: bool = False
-    successful: bool | None = None
+    raw_text: bool | None  = None
+    markdown: bool | None = None
     processed_at: datetime | None = None
     error_message: str | None = None

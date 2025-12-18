@@ -39,6 +39,7 @@ def process_pdf(
     """Extract text from a single PDF and save it as md to S3."""
 
     s3_prefix = s3_folder.replace(S3_HOST + "/", "")
+    mode = "md" if markdown else "txt"
 
     try:
         pdf_filename = f"{document_id}.pdf"
@@ -56,21 +57,23 @@ def process_pdf(
 
             save_text(text, output_filename)
 
-            ext = "md" if markdown else "txt"
-            s3_md_key = f"{s3_prefix}/{ext}/{document_id}.{ext}"
+            s3_md_key = f"{s3_prefix}/{mode}/{document_id}.{mode}"
             upload_to_s3(output_filename, s3_md_key)
+
+            mark_paper_processed(document_id, s3_folder, mode)
+
+            msg = f"{document_id} in {s3_prefix}"
+            if markdown:
+                msg += f" (OCR used: {used_ocr})"
+            return True, msg
         finally:
             if os.path.exists(pdf_filename):
                 os.remove(pdf_filename)
             if os.path.exists(output_filename):
                 os.remove(output_filename)
 
-        mark_paper_processed(document_id, s3_folder)
-        msg = f"{document_id} in {s3_prefix}" + (f" (OCR used: {used_ocr})" if markdown else "")
-        return True, msg
-
     except Exception as e:
-        mark_paper_failed(document_id, s3_folder, str(e))
+        mark_paper_failed(document_id, s3_folder, str(e), mode)
         return False, f"{document_id} in {s3_prefix} - Error: {str(e)}"
 
 
@@ -85,7 +88,7 @@ def get_ids_for_folder(s3_folder: str) -> list[str]:
 
 def main(markdown: bool, num_workers: int, max_pages: int | None, limit: int | None, ocr: bool):
     create_tables()
-    already_processed = get_already_processed_ids()
+    already_processed = get_already_processed_ids(mode="md" if markdown else "txt")
     s3_folders = [f"{S3_BASE_URL}/batch_{i}" for i in range(1, 7)]
 
     all_tasks = []
