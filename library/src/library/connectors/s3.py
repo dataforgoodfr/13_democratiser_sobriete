@@ -16,7 +16,7 @@ def get_s3_client():
     return s3
 
 
-def upload_to_s3(local_path: str, s3_key: str, s3_client: boto3.client = None):
+def upload_to_s3(local_path: str, s3_key: str, s3_client = None):
     s3 = s3_client or get_s3_client()
     s3.upload_file(
         Filename=local_path,

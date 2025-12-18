@@ -16,7 +16,7 @@ from library.database.text_extraction_queue_crud import (
     mark_paper_processed,
     mark_paper_failed,
 )
-from library.connectors.s3 import upload_to_s3
+from library.connectors.s3 import upload_to_s3, get_s3_client
 from library.scraping.extract_pdf_content import (
     get_markdown_pymupdf,
     get_raw_text_pymupdf,
@@ -28,7 +28,9 @@ S3_HOST = "https://sufficiency-library.s3.fr-par.scw.cloud"  # TODO env variable
 S3_PREFIX = "documents"
 S3_BASE_URL = f"{S3_HOST}/{S3_PREFIX}"
 
-PROCESS_TIMEOUT = 300  # seconds
+PROCESS_TIMEOUT = None  # seconds
+
+s3 = get_s3_client()
 
 
 def process_pdf(
@@ -48,36 +50,34 @@ def process_pdf(
         pdf_filename = f"tmp/{document_id}.pdf"
         output_filename = f"tmp/{document_id}.{mode}"
 
-        try:
-            pdf_url = f"{s3_folder}/pdf/{document_id}.pdf"
-            os.system(f"wget -q {pdf_url} -O {pdf_filename}")
-            if markdown:
-                text, used_ocr = get_markdown_pymupdf(
-                    pdf_filename, max_pages_at_once=max_pages, ocr=ocr
-                )
-            else:
-                text = get_raw_text_pymupdf(pdf_filename)
+        pdf_url = f"{s3_folder}/pdf/{document_id}.pdf"
+        os.system(f"wget -q {pdf_url} -O {pdf_filename}")
+        if markdown:
+            text, used_ocr = get_markdown_pymupdf(
+                pdf_filename, max_pages_at_once=max_pages, ocr=ocr
+            )
+        else:
+            text = get_raw_text_pymupdf(pdf_filename)
 
-            save_text(text, output_filename)
+        save_text(text, output_filename)
 
-            s3_key = f"{s3_prefix}/{mode}/{document_id}.{mode}"
-            upload_to_s3(output_filename, s3_key)
+        s3_key = f"{s3_prefix}/{mode}/{document_id}.{mode}"
+        upload_to_s3(output_filename, s3_key, s3)
 
-            mark_paper_processed(document_id, s3_folder, mode)
+        mark_paper_processed(document_id, s3_folder, mode)
 
-            msg = f"{document_id} in {s3_prefix}"
-            if markdown:
-                msg += f" (OCR used: {used_ocr})"
-            return True, msg
-        finally:
-            if os.path.exists(pdf_filename):
-                os.remove(pdf_filename)
-            if os.path.exists(output_filename):
-                os.remove(output_filename)
-
+        msg = f"{document_id} in {s3_prefix}"
+        if markdown:
+            msg += f" (OCR used: {used_ocr})"
+        return True, msg
     except Exception as e:
         mark_paper_failed(document_id, s3_folder, str(e), mode)
         return False, f"{document_id} in {s3_prefix} - Error: {str(e)}"
+    finally:
+        if os.path.exists(pdf_filename):
+            os.remove(pdf_filename)
+        if os.path.exists(output_filename):
+            os.remove(output_filename)
 
 
 def get_ids_for_folder(s3_folder: str) -> list[str]:
