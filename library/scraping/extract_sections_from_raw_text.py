@@ -36,11 +36,29 @@ def process_file(input_file: str, output_file: str, num_workers: int = None):
                 f.write(json.dumps(result) + "\n")
                 del futures[future]
 
+    del df
+
 
 if __name__ == "__main__":
     multiprocessing.set_start_method("spawn")
 
     parser = argparse.ArgumentParser(description="Process raw text from parquet file")
+
+    parser.add_argument(
+        "--start",
+        type=int,
+        default=1,
+        help="Starting batch number (default: 1)",
+    )
+
+    parser.add_argument(
+        "--end",
+        type=int,
+        default=7,
+        help="Ending batch number (default: 7)",
+    )
+
+
     parser.add_argument(
         "--workers",
         type=int,
@@ -50,7 +68,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    for i in range(1, 8):
+    for i in range(args.start, args.end + 1):
         folder = f"outputs/batch_{i}"
         input_file = folder + "/raw_texts.parquet"
         output_file = folder + "/processed_texts.jsonl"
