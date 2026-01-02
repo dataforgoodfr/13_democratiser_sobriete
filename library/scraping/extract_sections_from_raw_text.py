@@ -6,6 +6,7 @@ import pandas as pd
 import argparse
 from concurrent.futures import ProcessPoolExecutor, as_completed
 import multiprocessing
+import gc
 
 from tqdm import tqdm
 import pyarrow as pa
@@ -28,22 +29,37 @@ def process_file(
 ):
     df = pd.read_parquet(input_file)
 
-    with ProcessPoolExecutor(max_workers=num_workers) as executor:
-        futures = {
-            executor.submit(process_text, text): (idx, oa_id)
-            for idx, (oa_id, text) in enumerate(zip(df.index, df["text"]))
-        }
+    writer = None
+    try:
+        with ProcessPoolExecutor(max_workers=num_workers) as executor:
+            futures = {
+                executor.submit(process_text, text): (idx, oa_id)
+                for idx, (oa_id, text) in enumerate(zip(df.index, df["text"]))
+            }
 
-        buffer = []
-        writer = None
+            buffer = []
 
-        for future in tqdm(as_completed(futures), total=len(df), desc="Processing texts"):
-            result = future.result()
-            idx, oa_id = futures[future]
-            result["openalex_id"] = oa_id
-            buffer.append(result)
+            for future in tqdm(as_completed(futures), total=len(df), desc="Processing texts"):
+                result = future.result()
+                idx, oa_id = futures[future]
+                result["openalex_id"] = oa_id
+                buffer.append(result)
 
-            if len(buffer) >= buffer_size:
+                if len(buffer) >= buffer_size:
+                    buffer_df = pd.DataFrame(buffer)
+                    table = pa.Table.from_pandas(buffer_df)
+
+                    if writer is None:
+                        writer = pq.ParquetWriter(output_file, table.schema)
+
+                    writer.write_table(table)
+                    del buffer_df, table
+                    buffer = []
+
+                del futures[future]
+
+            # Write remaining buffer
+            if buffer:
                 buffer_df = pd.DataFrame(buffer)
                 table = pa.Table.from_pandas(buffer_df)
 
@@ -51,24 +67,13 @@ def process_file(
                     writer = pq.ParquetWriter(output_file, table.schema)
 
                 writer.write_table(table)
-                buffer = []
+                del buffer_df, table
 
-            del futures[future]
-
-        # Write remaining buffer
-        if buffer:
-            buffer_df = pd.DataFrame(buffer)
-            table = pa.Table.from_pandas(buffer_df)
-
-            if writer is None:
-                writer = pq.ParquetWriter(output_file, table.schema)
-
-            writer.write_table(table)
-
+    finally:
         if writer is not None:
             writer.close()
-
-    del df
+        del df
+        gc.collect()
 
 
 if __name__ == "__main__":
@@ -105,5 +110,6 @@ if __name__ == "__main__":
         output_file = folder + "/processed_texts.parquet"
         print(f"Processing file: {input_file}")
         process_file(input_file, output_file, num_workers=args.workers)
+        gc.collect()
 
     print(f"Processed data saved as {output_file}")
