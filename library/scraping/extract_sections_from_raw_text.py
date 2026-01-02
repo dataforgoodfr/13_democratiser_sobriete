@@ -27,12 +27,14 @@ def process_file(input_file: str, output_file: str, num_workers: int = None):
 
     with ProcessPoolExecutor(max_workers=num_workers) as executor:
         futures = {
-            executor.submit(process_text, text): idx for idx, text in enumerate(df["text"])
+            executor.submit(process_text, text): (idx, oa_id) for idx, (oa_id, text) in enumerate(zip(df.index, df["text"]))
         }
 
         with open(output_file, "w") as f:
             for future in tqdm(as_completed(futures), total=len(df), desc="Processing texts"):
                 result = future.result()
+                idx, oa_id = futures[future]
+                result["openalex_id"] = oa_id
                 f.write(json.dumps(result) + "\n")
                 del futures[future]
 
