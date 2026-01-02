@@ -48,7 +48,8 @@ def find_common_prefixes(pages, reverse=False, max_words=50):
 
     cleaned_pages = []
     for page in pages:
-        cp = normalize_whitespaces(page.replace("\n", " ")).split()
+        cp = page.replace("\n", " ").split()
+        
         if reverse:
             cp = cp[::-1]
         cleaned_pages.append(cp[:max_words])
