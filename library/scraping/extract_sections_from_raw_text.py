@@ -6,12 +6,13 @@ import pandas as pd
 import argparse
 from concurrent.futures import ProcessPoolExecutor, as_completed
 import multiprocessing
+
 from tqdm import tqdm
-import json
+import pyarrow as pa
+import pyarrow.parquet as pq
 
 from library.scraping.extract_sections import extract_sections, patterns
 from library.scraping.clean.cleaning_pipeline import cleaning_pipeline
-from library.connectors.s3 import upload_to_s3
 
 
 def process_text(text: str) -> dict[str, str]:
@@ -22,21 +23,50 @@ def process_text(text: str) -> dict[str, str]:
     return sections
 
 
-def process_file(input_file: str, output_file: str, num_workers: int = None):
+def process_file(
+    input_file: str, output_file: str, num_workers: int = None, buffer_size: int = 10_000
+):
     df = pd.read_parquet(input_file)
 
     with ProcessPoolExecutor(max_workers=num_workers) as executor:
         futures = {
-            executor.submit(process_text, text): (idx, oa_id) for idx, (oa_id, text) in enumerate(zip(df.index, df["text"]))
+            executor.submit(process_text, text): (idx, oa_id)
+            for idx, (oa_id, text) in enumerate(zip(df.index, df["text"]))
         }
 
-        with open(output_file, "w") as f:
-            for future in tqdm(as_completed(futures), total=len(df), desc="Processing texts"):
-                result = future.result()
-                idx, oa_id = futures[future]
-                result["openalex_id"] = oa_id
-                f.write(json.dumps(result) + "\n")
-                del futures[future]
+        buffer = []
+        writer = None
+
+        for future in tqdm(as_completed(futures), total=len(df), desc="Processing texts"):
+            result = future.result()
+            idx, oa_id = futures[future]
+            result["openalex_id"] = oa_id
+            buffer.append(result)
+
+            if len(buffer) >= buffer_size:
+                buffer_df = pd.DataFrame(buffer)
+                table = pa.Table.from_pandas(buffer_df)
+
+                if writer is None:
+                    writer = pq.ParquetWriter(output_file, table.schema)
+
+                writer.write_table(table)
+                buffer = []
+
+            del futures[future]
+
+        # Write remaining buffer
+        if buffer:
+            buffer_df = pd.DataFrame(buffer)
+            table = pa.Table.from_pandas(buffer_df)
+
+            if writer is None:
+                writer = pq.ParquetWriter(output_file, table.schema)
+
+            writer.write_table(table)
+
+        if writer is not None:
+            writer.close()
 
     del df
 
@@ -60,7 +90,6 @@ if __name__ == "__main__":
         help="Ending batch number (default: 7)",
     )
 
-
     parser.add_argument(
         "--workers",
         type=int,
@@ -73,7 +102,7 @@ if __name__ == "__main__":
     for i in range(args.start, args.end + 1):
         folder = f"outputs/batch_{i}"
         input_file = folder + "/raw_texts.parquet"
-        output_file = folder + "/processed_texts.jsonl"
+        output_file = folder + "/processed_texts.parquet"
         print(f"Processing file: {input_file}")
         process_file(input_file, output_file, num_workers=args.workers)
 
