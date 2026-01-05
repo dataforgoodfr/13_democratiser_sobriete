@@ -4,14 +4,8 @@
 [Voir la doc dédiée](prescreening/README.md).
 
 
-### 2. Extraction full-text
-Cette étape regroupe à nouveau deux sous-étapes :
-1. Obtention quand disponible (open access) d'un lien pour le texte complet, généralement en PDF.
-2. Téléchargement et lecture du PDF pour obtenir le texte converti en format markdown.
-
-Les PDF téléchargés doivent être stockés pour affichage aux utilisateurs finaux quand ils sont cités.
-
-Le code pour l'étape 1 (à perfectionner car il ne gère pas les cas où il faut cliquer sur une popup avant d'accéder au PDF, la branche `scraping` contient de légères améliorations) est dans `scraping/extract_openalex.py` et celui de l'étape 2 dans `pdfextraction/pdf/`. 
+### 2. Obtention des PDF et extraction des textes complets
+[Voir la doc dédiée](scraping/README.md).
 
 
 ### 3. Extraction de la taxonomie
@@ -24,8 +18,11 @@ Le traitement des chunks pour cette étape reste à clarifier (métadonnées en 
 
 
 ### Roadmap
-- [ ] Nettoyer la base de données Postgres et repartir d'une table propre de 250k articles avec a minima OpenAlex ID, DOI, titre et abstract
-- [ ] Récupérer le texte complet d'autant de ces articles que possible, le stocker en format texte dans Postgres et stocker les PDF dans un object storage sur CleverCloud
-- [ ] Traiter les textes complets par NLP pour extraire la taxonomie, la stocker en métadonnées sur Postgres
+- [x] Mettre au propre le jeu de mots-clés
+- [x] Etape 1 du pré-screening : obtenir les références des articles candidats en par des recherches par mot-clé sur l'API OpenAlex
+- [x] Etape 2 du pré-screning : filtrer les résultats de l'étape 1 en faisant classifier l'abstract à un modèle BERT fine-tuné
+- [x] Récupérer quand c'est possible les PDF des articles et en extraire les textes complets -> textes bruts et non markdown, md serait mieux
+- [x] Extraire les sections Résultats et Conclusion
+- [ ] Extraire la taxonomie
 - [ ] Mettre en place un pipeline pour mettre à jour automatiquement la library de façon régulière
-- [ ] Intégrer d'autres sources qu'OpenAlex 
+- [ ] Intégrer d'autres sources qu'OpenAlex
