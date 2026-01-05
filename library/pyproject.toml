@@ -34,6 +34,7 @@ packages = ["src/library"]
 dev = [
     "ipykernel>=7.1.0",
     "ipywidgets>=8.1.8",
+    "matplotlib>=3.10.8",
 ]
 
 gpu = [
@@ -42,10 +43,13 @@ gpu = [
     "ollama>=0.4.7",
 ]
 
-scraping = [
+pdfscraping = [
     "pymupdf4llm>=0.0.17",
     "pymupdf-layout>=1.26.6",
     "opencv-python-headless>=4.12.0.88",
+]
+
+webscraping = [
     "selenium>=4.29.0",
     "webdriver-manager>=4.0.2",
 ]
