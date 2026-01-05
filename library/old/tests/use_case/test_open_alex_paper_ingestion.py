@@ -2,9 +2,9 @@ from icecream import ic
 from library.usecase.open_alex_paper_ingestion import OpenAlexPaperIngestionUseCase
 # from library.taxonomy.paper_taxonomy import OpenAlexPaper, PaperWithText
 
-from library.scraping import extract_openalex as OpenAlexClient
+from library.scraping import old_scrape_openalex as OpenAlexClient
 from library.pdfextraction.llm import ollama_extraction as LlmClient
-from library.pdfextraction.pdf import extract_pdf_content as PDFExtractor
+from library.scraping import extract_pdf_content as PDFExtractor
 # TODO : Add the JSON_STORAGE_FOLDER to the usecase, to store the extracted taxonomy
 from library.infra import JSON_STORAGE_FOLDER, PDF_STORAGE_FOLDER # noqa: F401
 

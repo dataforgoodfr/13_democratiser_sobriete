@@ -1,0 +1,64 @@
+"""
+Database Models and Operations
+Simple models for paper scraping queue management.
+"""
+
+from datetime import datetime
+from sqlmodel import SQLModel, Field
+
+
+""" Commented out as we decided putting the full library on Postgres wasn't useful
+class OpenAlexWorks(SQLModel, table=True):
+    __tablename__ = "openalex_works"
+
+    # in SQLModel, primary_key must be optional to allow autoincrement
+    id: int | None = Field(default=None, primary_key=True)
+    openalex_id: str = Field(unique=True, index=True)
+    doi: str | None = None
+    title: str
+    abstract: str | None = None
+    language: str
+    publication_date: datetime | None = None
+    publication_type: str
+    fwci: float | None = None
+    is_oa: str
+    oa_status: str
+    landing_page_url: str | None = None
+    pdf_url: str | None = None
+"""
+
+# actually more of a download queue
+class ScrapingQueue(SQLModel, table=True):
+    __tablename__ = "scraping_queue"
+
+    id: int | None = Field(default=None, primary_key=True)
+
+    # basic info from Open Alex
+    openalex_id: str
+    landing_page_url: str | None = None
+    pdf_url: str | None = None
+
+    # scraping status
+    scraping_attempted: bool = False
+    scraping_successful: bool | None = None
+    download_path: str | None = None
+    required_selenium: bool | None = None
+    scraped_at: datetime | None = None
+    error_message: str | None = None
+
+
+class TextExtractionQueue(SQLModel, table=True):
+    __tablename__ = "text_extraction_queue"
+
+    id: int | None = Field(default=None, primary_key=True)
+
+    # basic info from Open Alex
+    openalex_id: str
+    s3_folder: str
+
+    # scraping status
+    attempted: bool = False
+    raw_text: bool | None  = None
+    markdown: bool | None = None
+    processed_at: datetime | None = None
+    error_message: str | None = None

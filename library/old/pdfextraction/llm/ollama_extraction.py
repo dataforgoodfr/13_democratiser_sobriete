@@ -3,7 +3,7 @@ import argparse
 from ollama import chat
 from pydantic import BaseModel
 
-from library.pdfextraction.pdf import extract_pdf_content
+from library.scraping import extract_pdf_content
 
 from library.pdfextraction import TAXS, OLLAMA_MODELS
 from library.pdfextraction.llm.utils import open_file, ollama_available
