@@ -16,11 +16,11 @@ def get_papers_to_scrape(
             stmt = select(ScrapingQueue).where(
                 or_(
                     ScrapingQueue.scraped_at >= resume_from,
-                    ScrapingQueue.scraping_attempted == False,
+                    ScrapingQueue.scraping_attempted == False,  # noqa: E712
                 )
             )
         else:
-            stmt = select(ScrapingQueue).where(ScrapingQueue.scraping_attempted == False)
+            stmt = select(ScrapingQueue).where(ScrapingQueue.scraping_attempted == False)  # noqa: E712
 
         stmt = stmt.limit(limit)
         papers_to_scrape = session.exec(stmt).all()
@@ -77,10 +77,10 @@ def get_scraping_stats():
         stmt = select(ScrapingQueue.id)
         total = len(session.exec(stmt).all())
 
-        scraped_stmt = select(ScrapingQueue.id).where(ScrapingQueue.scraping_successful == True)
+        scraped_stmt = select(ScrapingQueue.id).where(ScrapingQueue.scraping_successful == True)  # noqa: E712
         scraped = len(session.exec(scraped_stmt).all())
 
-        failed_stmt = select(ScrapingQueue.id).where(ScrapingQueue.scraping_successful == False)
+        failed_stmt = select(ScrapingQueue.id).where(ScrapingQueue.scraping_successful == False)  # noqa: E712
         failed = len(session.exec(failed_stmt).all())
 
         # Pending = total papers - successfully scraped papers

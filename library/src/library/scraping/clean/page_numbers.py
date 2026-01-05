@@ -1,12 +1,9 @@
-import os
 import re
-import string
-
-import numpy as np
-import pandas as pd
 
 
-def remove_page_numbers(pages: list[str], page_numbers: list[tuple[int | None, str | None]]) -> list[str]:
+def remove_page_numbers(
+    pages: list[str], page_numbers: list[tuple[int | None, str | None]]
+) -> list[str]:
     """Remove page numbers from pages based on identified page_numbers list."""
     if page_numbers is None:
         return pages
@@ -110,12 +107,12 @@ def keep_consistent(
 
     # If a dominant 'where' is found, set others to None
     if dominant_where is not None:
-        for i, (pn, where) in enumerate(page_numbers):
+        for i, (_, where) in enumerate(page_numbers):
             if where != dominant_where:
                 page_numbers[i] = (None, None)
 
     last_valid = None
-    for i, (pn, where) in enumerate(page_numbers):
+    for i, (pn, _) in enumerate(page_numbers):
         if pn is not None:
             if last_valid is None:
                 last_valid = (i, pn)
