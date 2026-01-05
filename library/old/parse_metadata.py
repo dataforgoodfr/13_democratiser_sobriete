@@ -1,3 +1,8 @@
+"""
+Old utility functions to clean raw results from OpenAlex API.
+"""
+
+
 import os
 import pickle as pkl
 from copy import deepcopy
@@ -122,7 +127,7 @@ def clean_result_fields(raw_result:dict) -> dict:
     trimmed_result["successfully_downloaded"] = successfully_downloaded
     return trimmed_result
 
-def main() -> list:
+def clean_all_results() -> list:
     all_results = get_all_results()
     all_clean_results = []
     for result in all_results :
@@ -130,7 +135,3 @@ def main() -> list:
         clean_result = clean_result_fields(raw_result)
         all_clean_results.append(clean_result)
     return all_clean_results
-
-
-if __name__ == "__main__":
-    main()
