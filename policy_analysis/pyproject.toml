@@ -12,6 +12,8 @@ dependencies = [
     "python-dotenv>=1.2.1",
     "sentence-transformers>=5.1.2",
     "torch>=2.9.1",
+    "matplotlib>=3.10.7",
+    "loguru>=0.7.3",
 ]
 
 [project.optional-dependencies]
@@ -33,7 +35,7 @@ agentic = [
     "optuna>=4.5.0",
     "kaleido>=1.2.0",
     "together>=1.5.30",
-    "scikit-learn>=1.7.2",
+    "scikit-learn>=1.6.1",
     "pymupdf4llm>=0.1.8",
     "plotly>=6.3.1",
 ]
@@ -41,10 +43,15 @@ agentic = [
 all = [
     "policy-analysis[dspy,agentic]"
 ]
+clustering = [
+    "hdbscan>=0.8.40",
+    "scikit-learn>=1.6.1",
+    "umap-learn>=0.5.9.post2",
+]
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["."]
+packages = ["src/policy_analysis"]

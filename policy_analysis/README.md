@@ -9,17 +9,17 @@ Les données produites seront ensuite mises à disposition dans le contexte du g
 
 ```bash
 uv sync --extra agentic
-uv run python -m  agentic_data_policies_extraction.main
+uv run python -m  src.policy_analysis.agentic_data_policies_extraction.main
 ```
 
-[Voir ici pour plus d'infos](agentic_data_policies_extraction/policies_transformation_to_matrices/README.md)
+[Voir ici pour plus d'infos](src/policy_analysis/agentic_data_policies_extraction/policies_transformation_to_matrices/README.md)
 
 
 ### DSPy data policies extraction
 
 ```bash
 uv sync --extra dspy
-uv run python -m  dspy_policies_extraction.main
+uv run python -m  src.dspy_policies_extraction.main
 ```
 
 [Voir ici pour plus d'infos](dspy_policies_extraction/README.md)
@@ -63,7 +63,7 @@ A des fins d'analyse le code génere aussi deux fichiers :
 
 Le code présente ensuite les résultats de la pipeline
 
-## À faire
+## À faire (--> A ACTUALISER)
 Dans un premier temps : 
 - [ ] Clarifier la structure du repository et gestion des dépendences (ex. absence de project.toml ?) 
 - [ ] Identifier où la table agentic_policy_extractions est écrite si ca à déjà été run ? 
