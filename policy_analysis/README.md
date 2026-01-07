@@ -22,7 +22,7 @@ uv sync --extra dspy
 uv run python -m  src.dspy_policies_extraction.main
 ```
 
-[Voir ici pour plus d'infos](src/dspy_policies_extraction/README.md)
+[Voir ici pour plus d'infos](dspy_policies_extraction/README.md)
 
 
 ## Extraction des données
@@ -63,7 +63,7 @@ A des fins d'analyse le code génere aussi deux fichiers :
 
 Le code présente ensuite les résultats de la pipeline
 
-## À faire
+## À faire (--> A ACTUALISER)
 Dans un premier temps : 
 - [ ] Clarifier la structure du repository et gestion des dépendences (ex. absence de project.toml ?) 
 - [ ] Identifier où la table agentic_policy_extractions est écrite si ca à déjà été run ? 
