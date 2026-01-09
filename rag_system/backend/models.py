@@ -1,18 +1,28 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class ChatMessage(BaseModel):
     """A single message in the conversation."""
+
     role: str  # "user" or "assistant"
     content: str
 
 
 class ChatRequest(BaseModel):
     """Request body for chat endpoint."""
+
     messages: list[ChatMessage]
 
 
 class ChatChunk(BaseModel):
     """A chunk of the streaming response."""
+
     content: str
     done: bool = False
+
+
+class QueryRewriteResponse(BaseModel):
+    """Response from the query rewriting LLM."""
+
+    rewritten_query_or_response: str = Field(description="The rewritten query, or a response to the user if no retrieval is needed.")
+    should_retrieve: bool = Field(description="Whether document retrieval should be performed.")

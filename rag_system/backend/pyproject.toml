@@ -5,7 +5,19 @@ description = "Python backend for Chat Sufficiency application"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "dotenv>=0.9.9",
     "fastapi>=0.128.0",
+    "flashrank>=0.2.10",
+    "openai>=2.14.0",
     "pydantic>=2.12.5",
+    "pydantic-settings>=2.12.0",
+    "qdrant-client>=1.16.2",
+    "sentence-transformers>=5.2.0",
     "uvicorn>=0.40.0",
+]
+
+[dependency-groups]
+dev = [
+    "ipykernel>=7.1.0",
+    "ipywidgets>=8.1.8",
 ]
