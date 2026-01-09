@@ -1,10 +1,10 @@
-import asyncio
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 
 from models import ChatRequest
+from rag import generate_dummy_response, simple_rag_pipeline
+
 
 app = FastAPI()
 
@@ -18,29 +18,12 @@ app.add_middleware(
 )
 
 
-async def generate_dummy_response():
-    """Generate a dummy streaming response, simulating an LLM."""
-    dummy_text = (
-        "Sufficiency is a set of policy measures and daily practices "
-        "which avoid the demand for energy, materials, land, water, and other natural resources,"
-        "while delivering wellbeing for all within planetary boundaries."
-    )
-
-    words = dummy_text.split(" ")
-    for i, word in enumerate(words):
-        # Add space before word (except for first word)
-        chunk = word if i == 0 else " " + word
-        yield f"data: {chunk}\n\n"
-        await asyncio.sleep(0.1)  # Simulate LLM generation delay
-
-    yield "data: [DONE]\n\n"
-
-
 @app.post("/api/chat")
 async def chat(request: ChatRequest):
     """Stream a chat response."""
     return StreamingResponse(
-        generate_dummy_response(),
+        #generate_dummy_response(),
+        simple_rag_pipeline(request.messages[-2].content), # last message is empty, take 2nd to last
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",
