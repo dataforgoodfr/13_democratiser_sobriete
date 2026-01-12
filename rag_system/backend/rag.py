@@ -4,28 +4,35 @@ from generation import (
     simulate_stream,
     stream_response,
 )
-from models import QueryRewriteResponse
+from models import ChatMessage, QueryRewriteResponse
 from prompts import BASE_SYSTEM_PROMPT, RAG_PROMPT, QUERY_REWRITE_PROMPT
 from retrieval import retrieve_documents
 
 
-# TODO: handle accumulating messages
-async def simple_rag_pipeline(
-    user_query: str,
-):
+async def simple_rag_pipeline(messages: list[ChatMessage]):
     """A simple RAG pipeline: rewrite query, embed, retrieve, rerank, generate response."""
-    query_rewrite_response = await rewrite_query(user_query)
+    query_rewrite_response = await rewrite_query(messages)
     if query_rewrite_response.should_retrieve is False:
         async for chunk in simulate_stream(query_rewrite_response.rewritten_query_or_response):
             yield chunk
         return
     rewritten_query = query_rewrite_response.rewritten_query_or_response
+    print(rewritten_query)
     retrieved_docs = await retrieve_documents(rewritten_query)
     context = build_context(retrieved_docs)
-    system_prompt = BASE_SYSTEM_PROMPT + "\n\n" + RAG_PROMPT + "\n\n" + context
+    system_prompt = BASE_SYSTEM_PROMPT + "\n\n" + RAG_PROMPT
+    context_instruction = (
+        f"Use the following documents to answer the user's question:\n"
+        f"{context}\n\n"
+        "If the answer is not in the documents, say so."
+    )
+    messages = [
+        ChatMessage(role="system", content=system_prompt),
+        *messages,
+        ChatMessage(role="system", content=context_instruction),
+    ]
     stream = stream_response(
-        rewritten_query,
-        system_prompt,
+        messages,
         max_tokens=settings.answer_max_tokens,
         temperature=settings.answer_temperature,
         top_p=settings.answer_top_p,
@@ -35,12 +42,14 @@ async def simple_rag_pipeline(
     yield "data: [DONE]\n\n"
 
 
-async def rewrite_query(query: str) -> QueryRewriteResponse:
+async def rewrite_query(messages: list[ChatMessage]) -> QueryRewriteResponse:
     """Rewrite the user query to be more effective for retrieval."""
     system_prompt = BASE_SYSTEM_PROMPT + " " + QUERY_REWRITE_PROMPT
+    system_message = ChatMessage(role="system", content=system_prompt)
+    messages = [system_message] + messages
+
     response = await generate_response(
-        query,
-        system_prompt,
+        messages,
         response_format=QueryRewriteResponse,
         temperature=settings.query_rewrite_temperature,
         top_p=settings.query_rewrite_top_p,
