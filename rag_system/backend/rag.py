@@ -1,3 +1,4 @@
+from config import settings
 from generation import (
     generate_response,
     simulate_stream,
@@ -21,8 +22,15 @@ async def simple_rag_pipeline(
     rewritten_query = query_rewrite_response.rewritten_query_or_response
     retrieved_docs = await retrieve_documents(rewritten_query)
     context = build_context(retrieved_docs)
-    system_prompt = BASE_SYSTEM_PROMPT + " " + RAG_PROMPT + f"\n{context}\n"
-    async for chunk in stream_response(rewritten_query, system_prompt):
+    system_prompt = BASE_SYSTEM_PROMPT + "\n\n" + RAG_PROMPT + "\n\n" + context
+    stream = stream_response(
+        rewritten_query,
+        system_prompt,
+        max_tokens=settings.answer_max_tokens,
+        temperature=settings.answer_temperature,
+        top_p=settings.answer_top_p,
+    )
+    async for chunk in stream:
         yield "data: " + chunk + "\n\n"
     yield "data: [DONE]\n\n"
 
@@ -30,7 +38,14 @@ async def simple_rag_pipeline(
 async def rewrite_query(query: str) -> QueryRewriteResponse:
     """Rewrite the user query to be more effective for retrieval."""
     system_prompt = BASE_SYSTEM_PROMPT + " " + QUERY_REWRITE_PROMPT
-    response = await generate_response(query, system_prompt, QueryRewriteResponse)
+    response = await generate_response(
+        query,
+        system_prompt,
+        response_format=QueryRewriteResponse,
+        temperature=settings.query_rewrite_temperature,
+        top_p=settings.query_rewrite_top_p,
+        max_tokens=settings.query_rewrite_max_tokens,
+    )
     return response
 
 

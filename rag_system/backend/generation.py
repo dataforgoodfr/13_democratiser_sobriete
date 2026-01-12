@@ -1,7 +1,6 @@
-import os
 import asyncio
 from openai import AsyncOpenAI
-from typing import Optional, Type
+from typing import Type
 from pydantic import BaseModel
 
 from config import settings
@@ -10,80 +9,96 @@ generation_client = AsyncOpenAI(
     base_url=settings.generation_api_url,
     api_key=settings.scw_secret_key,
 )
-model_name = settings.generation_model_name
-
-# TODO: adjust temperature and top-p
 
 
 async def generate_response(
     user_query: str,
     system_prompt: str,
-    response_format: Optional[Type[BaseModel]] = None,
+    max_tokens: int = 512,
+    temperature: float = 0.15,
+    top_p: float = 0.1,
+    response_format: Type[BaseModel] | None = None,
+    timeout: int = 60,
 ):
-    kwargs = {
-        "model": model_name,
-        "messages": [
-            {
-                "role": "system",
-                "content": system_prompt,
-            },
-            {
-                "role": "user",
-                "content": user_query,
-            },
-        ],
-        "max_tokens": 512,
-        "temperature": 0,
-        "top_p": 0.1,
-    }
-
-    if response_format:
-        kwargs["response_format"] = {
-            "type": "json_schema",
-            "json_schema": {
-                "name": response_format.__name__,
-                "schema": response_format.model_json_schema(),
-            },
+    try:
+        kwargs = {
+            "model": settings.generation_model_name,
+            "messages": [
+                {
+                    "role": "system",
+                    "content": system_prompt,
+                },
+                {
+                    "role": "user",
+                    "content": user_query,
+                },
+            ],
+            "max_tokens": max_tokens,
+            "temperature": temperature,
+            "top_p": top_p,
+            "timeout": timeout,
         }
 
-    response = await generation_client.chat.completions.create(**kwargs)
+        if response_format:
+            kwargs["response_format"] = {
+                "type": "json_schema",
+                "json_schema": {
+                    "name": response_format.__name__,
+                    "schema": response_format.model_json_schema(),
+                },
+            }
 
-    if response_format:
-        return response_format.model_validate_json(response.choices[0].message.content)
+        response = await generation_client.chat.completions.create(**kwargs)
 
-    return response.choices[0].message.content
+        if response_format:
+            return response_format.model_validate_json(response.choices[0].message.content)
 
-
-async def stream_response(user_query: str, system_prompt: str):
-    stream = await generation_client.chat.completions.create(
-        model=model_name,
-        messages=[
-            {
-                "role": "system",
-                "content": system_prompt,
-            },
-            {
-                "role": "user",
-                "content": user_query,
-            },
-        ],
-        stream=True,
-        max_tokens=512,
-        temperature=0.1,
-        top_p=0.1,
-    )
-
-    async for chunk in stream:
-        if chunk.choices and chunk.choices[0].delta.content:
-            yield chunk.choices[0].delta.content
+        return response.choices[0].message.content
+    except asyncio.TimeoutError:
+        return "\n\n[Generation timed out]\n\n"
 
 
-async def simulate_stream(text: str):
+async def stream_response(
+    user_query: str,
+    system_prompt: str,
+    max_tokens: int = 512,
+    temperature: float = 0.15,
+    top_p: float = 0.1,
+    timeout: int = 60,
+):
+    try:
+        stream = await generation_client.chat.completions.create(
+            model=settings.generation_model_name,
+            messages=[
+                {
+                    "role": "system",
+                    "content": system_prompt,
+                },
+                {
+                    "role": "user",
+                    "content": user_query,
+                },
+            ],
+            stream=True,
+            max_tokens=max_tokens,
+            temperature=temperature,
+            top_p=top_p,
+            timeout=timeout,
+        )
+
+        async for chunk in stream:
+            if chunk.choices and chunk.choices[0].delta.content:
+                yield chunk.choices[0].delta.content
+    except asyncio.TimeoutError:
+        yield "\n\n[Generation timed out]\n\n"
+
+
+async def simulate_stream(text: str, delay: float = 0.1):
     words = text.split(" ")
     for i, word in enumerate(words):
         # Add space before word (except for first word)
         chunk = word if i == 0 else " " + word
         yield "data: " + chunk + "\n\n"
-        await asyncio.sleep(0.1)  # Simulate LLM generation delay
+        await asyncio.sleep(delay)  # Simulate LLM generation delay
 
     yield "data: [DONE]\n\n"
