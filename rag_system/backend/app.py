@@ -23,7 +23,7 @@ async def chat(request: ChatRequest):
     """Stream a chat response."""
     return StreamingResponse(
         #generate_dummy_response(),
-        simple_rag_pipeline(request.messages[-2].content), # last message is empty, take 2nd to last
+        simple_rag_pipeline(request.messages),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",

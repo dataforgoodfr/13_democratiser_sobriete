@@ -1,9 +1,11 @@
 import asyncio
-from openai import AsyncOpenAI
 from typing import Type
+
+from openai import AsyncOpenAI
 from pydantic import BaseModel
 
 from config import settings
+from models import ChatMessage
 
 generation_client = AsyncOpenAI(
     base_url=settings.generation_api_url,
@@ -12,8 +14,7 @@ generation_client = AsyncOpenAI(
 
 
 async def generate_response(
-    user_query: str,
-    system_prompt: str,
+    messages: list[ChatMessage],
     max_tokens: int = 512,
     temperature: float = 0.15,
     top_p: float = 0.1,
@@ -23,16 +24,7 @@ async def generate_response(
     try:
         kwargs = {
             "model": settings.generation_model_name,
-            "messages": [
-                {
-                    "role": "system",
-                    "content": system_prompt,
-                },
-                {
-                    "role": "user",
-                    "content": user_query,
-                },
-            ],
+            "messages": [{"role": m.role, "content": m.content} for m in messages],
             "max_tokens": max_tokens,
             "temperature": temperature,
             "top_p": top_p,
@@ -59,8 +51,7 @@ async def generate_response(
 
 
 async def stream_response(
-    user_query: str,
-    system_prompt: str,
+    messages: list[ChatMessage],
     max_tokens: int = 512,
     temperature: float = 0.15,
     top_p: float = 0.1,
@@ -69,16 +60,7 @@ async def stream_response(
     try:
         stream = await generation_client.chat.completions.create(
             model=settings.generation_model_name,
-            messages=[
-                {
-                    "role": "system",
-                    "content": system_prompt,
-                },
-                {
-                    "role": "user",
-                    "content": user_query,
-                },
-            ],
+            messages=[{"role": m.role, "content": m.content} for m in messages],
             stream=True,
             max_tokens=max_tokens,
             temperature=temperature,
