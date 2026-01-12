@@ -1,3 +1,4 @@
+from typing import Literal
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -11,12 +12,16 @@ class Settings(BaseSettings):
     embedding_model: str = "Qwen/Qwen3-Embedding-0.6B"
     max_length_reranker: int = 1024
     k_vector_search: int = 20
-    k_rerank: int = 5
+    
 
     query_rewrite_temperature: float = 0.05
     query_rewrite_top_p: float = 0.1
     query_rewrite_max_tokens: int = 128
     query_rewrite_timeout: int = 15
+
+    k_rerank: int = 5
+    rerank_method : Literal["flashrank", "llm"] = "flashrank"
+    llm_rerank_model: str = "mistral-small-3.2-24b-instruct-2506"
 
     # generation
     generation_api_url: str

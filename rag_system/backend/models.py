@@ -25,5 +25,15 @@ class ChatChunk(BaseModel):
 class QueryRewriteResponse(BaseModel):
     """Response from the query rewriting LLM."""
 
-    rewritten_query_or_response: str = Field(description="The rewritten query, or a response to the user if no retrieval is needed.")
+    rewritten_query_or_response: str = Field(
+        description="The rewritten query, or a response to the user if no retrieval is needed."
+    )
     should_retrieve: bool = Field(description="Whether document retrieval should be performed.")
+
+
+class Document(BaseModel):
+    """A retrieved document."""
+
+    openalex_id: str
+    title: str | None = None
+    text: str

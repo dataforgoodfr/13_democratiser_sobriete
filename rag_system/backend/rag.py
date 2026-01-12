@@ -4,7 +4,7 @@ from generation import (
     simulate_stream,
     stream_response,
 )
-from models import ChatMessage, QueryRewriteResponse
+from models import ChatMessage, Document, QueryRewriteResponse
 from prompts import BASE_SYSTEM_PROMPT, RAG_PROMPT, QUERY_REWRITE_PROMPT
 from retrieval import retrieve_documents
 
@@ -58,12 +58,11 @@ async def rewrite_query(messages: list[ChatMessage]) -> QueryRewriteResponse:
     return response
 
 
-def build_context(documents: list[dict]) -> str:
+def build_context(documents: list[Document]) -> str:
     """Build the context string from retrieved documents."""
     context_parts = []
     for i, doc in enumerate(documents):
-        content = doc.get("text", "")
-        context_parts.append(f"Document {i+1}:\n{content}\n")
+        context_parts.append(f"Document {i+1}:\n{doc.text}\n")
     context = "\n".join(context_parts)
     return f"<context>\n{context}\n</context>"
 
