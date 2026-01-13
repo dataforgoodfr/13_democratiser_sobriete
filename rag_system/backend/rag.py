@@ -1,4 +1,7 @@
+import json
+
 from config import settings
+from dependencies import escape_paragraphs
 from generation import (
     generate_response,
     simulate_stream,
@@ -13,18 +16,25 @@ async def simple_rag_pipeline(messages: list[ChatMessage]):
     """A simple RAG pipeline: rewrite query, embed, retrieve, rerank, generate response."""
     query_rewrite_response = await rewrite_query(messages)
     if query_rewrite_response.should_retrieve is False:
+        # No retrieval needed - send empty documents then stream response
+        yield "event: documents\ndata: " + json.dumps({"documents": []}) + "\n\n"
         async for chunk in simulate_stream(query_rewrite_response.rewritten_query_or_response):
             yield chunk
         return
     rewritten_query = query_rewrite_response.rewritten_query_or_response
     print(rewritten_query)
     retrieved_docs = await retrieve_documents(rewritten_query)
+    print(f"Retrieved {len(retrieved_docs)} documents.")
+    # Send documents first as a special event
+    docs_json = [doc.model_dump() for doc in retrieved_docs]
+    yield "event: documents\ndata: " + json.dumps({"documents": docs_json}) + "\n\n"
+    
     context = build_context(retrieved_docs)
     system_prompt = BASE_SYSTEM_PROMPT + "\n\n" + RAG_PROMPT
     context_instruction = (
         f"Use the following documents to answer the user's question:\n"
         f"{context}\n\n"
-        "If the answer is not in the documents, say so."
+        "If the answer is not in the documents, say so. Remember to cite sources using [Doc N] format."
     )
     messages = [
         ChatMessage(role="system", content=system_prompt),
@@ -38,7 +48,7 @@ async def simple_rag_pipeline(messages: list[ChatMessage]):
         top_p=settings.answer_top_p,
     )
     async for chunk in stream:
-        yield "data: " + chunk + "\n\n"
+        yield "data: " + escape_paragraphs(chunk) + "\n\n"
     yield "data: [DONE]\n\n"
 
 
