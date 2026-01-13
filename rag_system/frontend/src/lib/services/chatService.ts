@@ -53,7 +53,8 @@ export async function streamChatResponse(
 							console.error('Failed to parse documents:', e);
 						}
 					} else {
-						callbacks.onContent(data.replace(/<\|newline\|>/g, '\n\n'));
+						const content = data.replace(/<\|newline\|>/g, '\n');
+						callbacks.onContent(content);
 					}
 					currentEvent = 'message';
 				}

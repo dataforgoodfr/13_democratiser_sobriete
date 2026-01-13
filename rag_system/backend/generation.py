@@ -1,10 +1,10 @@
 import asyncio
 from typing import Type
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 from config import settings
-from dependencies import create_openai_client, escape_paragraphs
+from dependencies import create_openai_client, escape_newlines
 from models import ChatMessage
 
 
@@ -41,11 +41,21 @@ async def generate_response(
         response = await generation_client.chat.completions.create(**kwargs)
 
         if response_format:
-            return response_format.model_validate_json(response.choices[0].message.content)
+            try:
+                return response_format.model_validate_json(response.choices[0].message.content)
+            except ValidationError as e:
+                print("Validation error in query rewrite, retrying...:")
+                kwargs["temperature"] = 0  # Retry with deterministic output
+                response = await generation_client.chat.completions.create(**kwargs)
+                return response_format.model_validate_json(response.choices[0].message.content)
 
         return response.choices[0].message.content
     except asyncio.TimeoutError:
         return "\n\n[Generation timed out]\n\n"
+    except ValidationError as e:
+        print(response.choices[0].message.content)
+        raise e
+        
 
 
 async def stream_response(
@@ -78,7 +88,7 @@ async def simulate_stream(text: str, delay: float = 0.1):
     for i, word in enumerate(words):
         # Add space before word (except for first word)
         chunk = word if i == 0 else " " + word
-        yield "data: " + escape_paragraphs(chunk) + "\n\n"
+        yield "data: " + escape_newlines(chunk) + "\n\n"
         await asyncio.sleep(delay)  # Simulate LLM generation delay
 
     yield "data: [DONE]\n\n"
