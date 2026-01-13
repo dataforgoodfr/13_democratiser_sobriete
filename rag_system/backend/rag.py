@@ -1,7 +1,7 @@
 import json
 
 from config import settings
-from dependencies import escape_paragraphs
+from dependencies import escape_newlines
 from generation import (
     generate_response,
     simulate_stream,
@@ -48,7 +48,7 @@ async def simple_rag_pipeline(messages: list[ChatMessage]):
         top_p=settings.answer_top_p,
     )
     async for chunk in stream:
-        yield "data: " + escape_paragraphs(chunk) + "\n\n"
+        yield "data: " + escape_newlines(chunk) + "\n\n"
     yield "data: [DONE]\n\n"
 
 

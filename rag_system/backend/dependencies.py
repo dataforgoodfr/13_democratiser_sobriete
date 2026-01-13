@@ -9,5 +9,5 @@ def create_openai_client() -> AsyncOpenAI:
     )
 
 
-def escape_paragraphs(text: str) -> str:
-    return text.replace("\n\n", "<|newline|>")
+def escape_newlines(text: str) -> str:
+    return text.replace("\n", "<|newline|>")

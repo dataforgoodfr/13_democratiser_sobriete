@@ -18,8 +18,8 @@ QUERY_REWRITE_PROMPT = (
 RAG_PROMPT = (
     "Provide concise and accurate answers based on the provided documents. "
     "Respond in the same language as the user query. "
-    "When using information from a document, cite it using the format [Doc N] where N is the document number. "
-    "For example: 'Sufficiency policies can reduce energy demand by 20-30% [Doc 1].' "
+    "When using information from a document, cite it using the format (Doc N) where N is the document number, in bold. "
+    "For example: 'Sufficiency policies can reduce energy demand by 20-30% **(Doc 1)**.' "
     "If the answer is not contained within the documents, respond that you couldn't find the answer in the open literature. "
     "Use markdown where appropriate."
 )
