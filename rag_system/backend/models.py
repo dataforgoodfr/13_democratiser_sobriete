@@ -37,3 +37,11 @@ class Document(BaseModel):
     openalex_id: str
     title: str | None = None
     text: str
+    authors: list[str] | None = None
+    publication_year: int | None = None
+
+
+class DocumentResponse(BaseModel):
+    """Response containing retrieved documents."""
+
+    documents: list[Document]

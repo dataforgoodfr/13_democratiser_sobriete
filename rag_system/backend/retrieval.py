@@ -1,12 +1,12 @@
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 
-from openai import AsyncOpenAI
 from sentence_transformers import SentenceTransformer
 from flashrank import Ranker, RerankRequest
 from qdrant_client import QdrantClient
 
 from config import settings
+from dependencies import create_openai_client
 from models import Document
 
 qdrant_client = QdrantClient(
@@ -16,10 +16,7 @@ qdrant_client = QdrantClient(
 embedding_model = SentenceTransformer(settings.embedding_model, device="cpu")
 
 ranker = Ranker(max_length=settings.max_length_reranker)
-reranking_client = AsyncOpenAI(
-    base_url=settings.generation_api_url,
-    api_key=settings.scw_secret_key,
-)
+reranking_client = create_openai_client()
 
 executor = ThreadPoolExecutor(max_workers=2)
 
@@ -54,9 +51,11 @@ async def retrieve_documents(
     )
     documents = [
         Document(
-            openalex_id=d.id,
+            openalex_id=d.payload.get("id"),
             title=d.payload.get("title", ""),
             text=d.payload.get("abstract", ""),
+            authors=d.payload.get("authors", []),
+            publication_year=d.payload.get("publication_year", None),
         )
         for d in hits.points
     ]

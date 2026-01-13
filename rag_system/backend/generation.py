@@ -1,16 +1,14 @@
 import asyncio
 from typing import Type
 
-from openai import AsyncOpenAI
 from pydantic import BaseModel
 
 from config import settings
+from dependencies import create_openai_client, escape_paragraphs
 from models import ChatMessage
 
-generation_client = AsyncOpenAI(
-    base_url=settings.generation_api_url,
-    api_key=settings.scw_secret_key,
-)
+
+generation_client = create_openai_client()
 
 
 async def generate_response(
@@ -80,7 +78,7 @@ async def simulate_stream(text: str, delay: float = 0.1):
     for i, word in enumerate(words):
         # Add space before word (except for first word)
         chunk = word if i == 0 else " " + word
-        yield "data: " + chunk + "\n\n"
+        yield "data: " + escape_paragraphs(chunk) + "\n\n"
         await asyncio.sleep(delay)  # Simulate LLM generation delay
 
     yield "data: [DONE]\n\n"
