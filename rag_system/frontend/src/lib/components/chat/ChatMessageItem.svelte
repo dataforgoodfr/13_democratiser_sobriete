@@ -5,6 +5,8 @@
 		MessageResponse
 	} from '$lib/components/ai-elements/new-message';
 	import type { ChatMessage } from '$lib/types';
+	import { CopyIcon } from 'lucide-svelte';
+	import { Action } from '../ai-elements/action';
 
 	interface Props {
 		message: ChatMessage;
@@ -13,6 +15,10 @@
 	}
 
 	let { message, isSelected, onSelect }: Props = $props();
+
+	async function handleCopy(text: string) {
+		await navigator.clipboard.writeText(text);
+	}
 </script>
 
 <!-- <button
@@ -30,3 +36,8 @@
 		{/if}
 	</MessageContent>
 </Message>
+{#if message.role === 'assistant'}
+	<Action onclick={() => handleCopy(message.content)} label="Copy" tooltip="Copy to clipboard">
+		<CopyIcon class="size-4" />
+	</Action>
+{/if}
