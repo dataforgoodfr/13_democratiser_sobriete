@@ -13,6 +13,7 @@
 	import { MessageSquare } from 'lucide-svelte';
 	import type { ChatMessage, ChatStatus } from '$lib/types';
 	import ChatMessageItem from './ChatMessageItem.svelte';
+	import { Loader } from '../ai-elements/loader';
 
 	interface Props {
 		messages: ChatMessage[];
@@ -51,10 +52,14 @@
 						{#each messages as message, messageIndex}
 							<ChatMessageItem
 								{message}
+								enableCopy={status === 'idle'}
 								isSelected={selectedMessageIndex === messageIndex}
 								onSelect={() => onSelectMessage(messageIndex)}
 							/>
 						{/each}
+						{#if status === 'submitted'}
+							<Loader size={20} class="mx-auto w-full" />
+						{/if}
 					</div>
 				{/if}
 			</ConversationContent>
