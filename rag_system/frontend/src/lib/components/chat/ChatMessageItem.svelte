@@ -22,23 +22,26 @@
 	}
 </script>
 
-<!-- <button
-  type="button"
-  class="w-full text-left {message.role === 'assistant' ? 'cursor-pointer hover:bg-muted/50 rounded-lg transition-colors' : ''} {isSelected ? 'bg-muted/70 rounded-lg' : ''}"
-  onclick={onSelect}
-  disabled={message.role !== 'assistant'}
-> -->
-<Message from={message.role}>
-	<MessageContent>
-		{#if message.role === 'assistant'}
-			<MessageResponse content={message.content || ''} />
-		{:else}
-			{message.content}
-		{/if}
-	</MessageContent>
-</Message>
-{#if message.role === 'assistant' && enableCopy}
-	<Action onclick={() => handleCopy(message.content)} label="Copy" tooltip="Copy to clipboard">
-		<CopyIcon class="size-4" />
-	</Action>
-{/if}
+<button
+	type="button"
+	class="w-full text-left {message.role === 'assistant'
+		? 'cursor-pointer rounded-lg transition-colors hover:bg-muted/50'
+		: ''}"
+	onclick={onSelect}
+	disabled={message.role !== 'assistant'}
+>
+	<Message from={message.role}>
+		<MessageContent>
+			{#if message.role === 'assistant'}
+				<MessageResponse content={message.content || ''} />
+			{:else}
+				{message.content}
+			{/if}
+		</MessageContent>
+	</Message>
+	{#if message.role === 'assistant' && enableCopy}
+		<Action onclick={() => handleCopy(message.content)} label="Copy" tooltip="Copy to clipboard">
+			<CopyIcon class="size-4" />
+		</Action>
+	{/if}
+</button>
