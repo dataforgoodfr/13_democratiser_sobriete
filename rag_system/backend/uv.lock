@@ -188,6 +188,7 @@ dependencies = [
     { name = "fastapi" },
     { name = "flashrank" },
     { name = "openai" },
+    { name = "pyalex" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
     { name = "qdrant-client" },
@@ -207,6 +208,7 @@ requires-dist = [
     { name = "fastapi", specifier = ">=0.128.0" },
     { name = "flashrank", specifier = ">=0.2.10" },
     { name = "openai", specifier = ">=2.14.0" },
+    { name = "pyalex", specifier = ">=0.19" },
     { name = "pydantic", specifier = ">=2.12.5" },
     { name = "pydantic-settings", specifier = ">=2.12.0" },
     { name = "qdrant-client", specifier = ">=1.16.2" },
@@ -1234,6 +1236,19 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/cd/05/0a34433a064256a578f1783a10da6df098ceaa4a57bbeaa96a6c0352786b/pure_eval-0.2.3.tar.gz", hash = "sha256:5f4e983f40564c576c7c8635ae88db5956bb2229d7e9237d03b3c0b0190eaf42", size = 19752 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/8e/37/efad0257dc6e593a18957422533ff0f87ede7c9c6ea010a2177d738fb82f/pure_eval-0.2.3-py3-none-any.whl", hash = "sha256:1db8e35b67b3d218d818ae653e27f06c3aa420901fa7b081ca98cbedc874e0d0", size = 11842 },
+]
+
+[[package]]
+name = "pyalex"
+version = "0.19"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "requests" },
+    { name = "urllib3" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/cd/93/33e42b02326fd8354e61e3a91855e61fed269ec54a1a3ddd2e1ab9ffd246/pyalex-0.19.tar.gz", hash = "sha256:fc4aecc267ffca8483fc9ce676e2c60fdc1890dc962d4582e7b0da417e763cc5", size = 48477 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/6e/4c/d0c8cc79f0ffef88a6f24035f82dce69f878ce5fd342e130568b1618585f/pyalex-0.19-py3-none-any.whl", hash = "sha256:8508289c95326a3b1f88a8e59ce96da123f19c2ce6d7f99854b4b1637a3d44ac", size = 14151 },
 ]
 
 [[package]]

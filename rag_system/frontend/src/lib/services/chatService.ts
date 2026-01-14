@@ -36,7 +36,7 @@ export async function streamChatResponse(
 			if (done) break;
 
 			const chunk = decoder.decode(value, { stream: true });
-			const lines = chunk.split('\n');
+			const lines = chunk.split('\n\n');
 
 			for (const line of lines) {
 				if (line.startsWith('event: ')) {

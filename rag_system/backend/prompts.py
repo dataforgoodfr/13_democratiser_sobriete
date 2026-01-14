@@ -12,7 +12,8 @@ QUERY_REWRITE_PROMPT = (
     "The rewritten query MUST be in English. "
     "If the user query is gibberish (random characters, 'test'), completely off-topic or inappropriate, like 'how are you', asking for a song, or similar, "
     "reflect it in the JSON response by setting 'should_retrieve' to false and responding nicely that you cannot answer this query "
-    "but would be happy to help with questions about sufficiency policies."
+    "but would be happy to help with questions about sufficiency policies. "
+    "DO NOT try to respond directly to a legitimate query in this step; only rewrite it for retrieval. "
 )
 
 RAG_PROMPT = (

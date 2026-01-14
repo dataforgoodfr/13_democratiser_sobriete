@@ -31,17 +31,19 @@ class QueryRewriteResponse(BaseModel):
     should_retrieve: bool = Field(description="Whether document retrieval should be performed.")
 
 
-class Document(BaseModel):
-    """A retrieved document."""
-
+class DocumentChunk(BaseModel):
     openalex_id: str
-    title: str | None = None
+    chunk_idx: int
     text: str
+    retrieved_rank: int
+
+
+class Publication(BaseModel):
+    openalex_id: str
+    doi: str | None = None
+    title: str
+    abstract: str
     authors: list[str] | None = None
     publication_year: int | None = None
-
-
-class DocumentResponse(BaseModel):
-    """Response containing retrieved documents."""
-
-    documents: list[Document]
+    url: str | None = None
+    retrieved_chunks: list[DocumentChunk]

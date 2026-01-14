@@ -9,6 +9,7 @@ dependencies = [
     "fastapi>=0.128.0",
     "flashrank>=0.2.10",
     "openai>=2.14.0",
+    "pyalex>=0.19",
     "pydantic>=2.12.5",
     "pydantic-settings>=2.12.0",
     "qdrant-client>=1.16.2",
