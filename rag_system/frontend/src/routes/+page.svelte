@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { ChatPanel, DocumentsPanel } from '$lib/components/chat';
+	import NavBar from '$lib/components/NavBar.svelte';
 	import { streamChatResponse } from '$lib/services/chatService';
 	import type { ChatMessage, ChatStatus, Document } from '$lib/types';
 
@@ -25,6 +26,12 @@
 		if (messages[index].role === 'assistant') {
 			selectedMessageIndex = selectedMessageIndex === index ? null : index;
 		}
+	}
+
+	function handleReset() {
+		messages = [];
+		selectedMessageIndex = null;
+		status = 'idle';
 	}
 
 	async function handleSubmit(input: string) {
@@ -63,17 +70,20 @@
 	}
 </script>
 
-<div class="flex h-screen w-screen bg-background">
-	<ChatPanel
-		{messages}
-		{status}
-		{selectedMessageIndex}
-		onSelectMessage={handleSelectMessage}
-		onSubmit={handleSubmit}
-	/>
+<div class="flex h-screen w-screen flex-col bg-background">
+	<NavBar onReset={handleReset} />
+	<div class="flex flex-1 overflow-hidden">
+		<ChatPanel
+			{messages}
+			{status}
+			{selectedMessageIndex}
+			onSelectMessage={handleSelectMessage}
+			onSubmit={handleSubmit}
+		/>
 
-	<DocumentsPanel
-		documents={displayedDocuments}
-		isSelectedMessage={selectedMessageIndex !== null}
-	/>
+		<DocumentsPanel
+			documents={displayedDocuments}
+			isSelectedMessage={selectedMessageIndex !== null}
+		/>
+	</div>
 </div>
