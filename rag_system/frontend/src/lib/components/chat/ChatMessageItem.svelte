@@ -1,14 +1,18 @@
 <script lang="ts">
-  import { Message, MessageContent, MessageResponse } from "$lib/components/ai-elements/new-message";
-  import type { ChatMessage } from "$lib/types";
+	import {
+		Message,
+		MessageContent,
+		MessageResponse
+	} from '$lib/components/ai-elements/new-message';
+	import type { ChatMessage } from '$lib/types';
 
-  interface Props {
-    message: ChatMessage;
-    isSelected: boolean;
-    onSelect: () => void;
-  }
+	interface Props {
+		message: ChatMessage;
+		isSelected: boolean;
+		onSelect: () => void;
+	}
 
-  let { message, isSelected, onSelect }: Props = $props();
+	let { message, isSelected, onSelect }: Props = $props();
 </script>
 
 <!-- <button
@@ -17,12 +21,12 @@
   onclick={onSelect}
   disabled={message.role !== 'assistant'}
 > -->
-  <Message from={message.role}>
-    <MessageContent>
-      {#if message.role === "assistant"}
-        <MessageResponse content={message.content || ""} />
-      {:else}
-        {message.content}
-      {/if}
-    </MessageContent>
-  </Message>
+<Message from={message.role}>
+	<MessageContent>
+		{#if message.role === 'assistant'}
+			<MessageResponse content={message.content || ''} />
+		{:else}
+			{message.content}
+		{/if}
+	</MessageContent>
+</Message>
