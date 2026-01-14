@@ -1,5 +1,11 @@
 <script lang="ts">
   import {
+    Conversation,
+    ConversationContent,
+    ConversationEmptyState,
+    ConversationScrollButton,
+  } from "$lib/components/ai-elements/conversation";
+  import {
     PromptInput,
     PromptInputTextarea,
     PromptInputSubmit,
@@ -29,12 +35,17 @@
 
 <div class="flex flex-col w-1/2 border-r h-full">
   <div class="flex-1 overflow-y-auto p-6">
+    <Conversation class="h-full">
+      <ConversationContent>
     {#if messages.length === 0}
-      <div class="flex flex-col items-center justify-center h-full text-muted-foreground">
-        <MessageSquare class="size-12 mb-4" />
-        <h2 class="text-xl font-semibold mb-2">Start a conversation</h2>
-        <p>Ask about sufficiency policies and research</p>
-      </div>
+       <ConversationEmptyState  
+        title="Start a conversation"
+        description="Ask about sufficiency policies and research"
+      >
+        {#snippet icon()}
+          <MessageSquare class="size-12" />
+        {/snippet}
+      </ConversationEmptyState>
     {:else}
       <div class="space-y-4">
         {#each messages as message, messageIndex}
@@ -46,6 +57,9 @@
         {/each}
       </div>
     {/if}
+    </ConversationContent>
+    <ConversationScrollButton />
+    </Conversation>
   </div>
 
   <div class="p-4 border-t">
