@@ -30,7 +30,7 @@
 	async function handleSubmit(input: string) {
 		const userMessage: ChatMessage = { role: 'user', content: input };
 		messages = [...messages, userMessage];
-		status = 'streaming';
+		status = 'submitted';
 
 		// Add placeholder for assistant response
 		const assistantMessage: ChatMessage = { role: 'assistant', content: '', documents: [] };
@@ -44,6 +44,7 @@
 				);
 			},
 			onContent: (content: string) => {
+				status = 'streaming';
 				messages = messages.map((msg, i) =>
 					i === messages.length - 1 ? { ...msg, content: msg.content + content } : msg
 				);

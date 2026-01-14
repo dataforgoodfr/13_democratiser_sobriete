@@ -10,11 +10,12 @@
 
 	interface Props {
 		message: ChatMessage;
+		enableCopy: boolean;
 		isSelected: boolean;
 		onSelect: () => void;
 	}
 
-	let { message, isSelected, onSelect }: Props = $props();
+	let { message, enableCopy, isSelected, onSelect }: Props = $props();
 
 	async function handleCopy(text: string) {
 		await navigator.clipboard.writeText(text);
@@ -36,7 +37,7 @@
 		{/if}
 	</MessageContent>
 </Message>
-{#if message.role === 'assistant'}
+{#if message.role === 'assistant' && enableCopy}
 	<Action onclick={() => handleCopy(message.content)} label="Copy" tooltip="Copy to clipboard">
 		<CopyIcon class="size-4" />
 	</Action>
