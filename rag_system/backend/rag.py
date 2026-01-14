@@ -7,29 +7,41 @@ from generation import (
     simulate_stream,
     stream_response,
 )
-from models import ChatMessage, Document, QueryRewriteResponse
+from models import ChatMessage, DocumentChunk, Publication, QueryRewriteResponse
 from prompts import BASE_SYSTEM_PROMPT, RAG_PROMPT, QUERY_REWRITE_PROMPT
-from retrieval import retrieve_documents
+from retrieval import get_publications_from_chunks, retrieve_chunks
 
 
-async def simple_rag_pipeline(messages: list[ChatMessage]):
+async def simple_rag_pipeline(
+    messages: list[ChatMessage],
+    fetch_pubs: bool = settings.fetch_pubs,
+):
     """A simple RAG pipeline: rewrite query, embed, retrieve, rerank, generate response."""
     query_rewrite_response = await rewrite_query(messages)
     if query_rewrite_response.should_retrieve is False:
         # No retrieval needed - send empty documents then stream response
-        yield "event: documents\ndata: " + json.dumps({"documents": []}) + "\n\n"
+        yield "event: documents\n\ndata: " + json.dumps({"documents": []}) + "\n\n"
         async for chunk in simulate_stream(query_rewrite_response.rewritten_query_or_response):
             yield chunk
         return
     rewritten_query = query_rewrite_response.rewritten_query_or_response
     print(rewritten_query)
-    retrieved_docs = await retrieve_documents(rewritten_query)
-    print(f"Retrieved {len(retrieved_docs)} documents.")
+    retrieved_chunks = await retrieve_chunks(rewritten_query)
+    print(f"Retrieved {len(retrieved_chunks)} documents")
+
+    if fetch_pubs:
+        retrieved_pubs = get_publications_from_chunks(retrieved_chunks)
+        print(f"Fetched {len(retrieved_pubs)} publications.")
+        documents = retrieved_pubs
+        context = build_context_from_pubs(retrieved_pubs)
+    else:
+        documents = retrieved_chunks
+        context = build_context_from_docs(retrieved_chunks)
+
     # Send documents first as a special event
-    docs_json = [doc.model_dump() for doc in retrieved_docs]
-    yield "event: documents\ndata: " + json.dumps({"documents": docs_json}) + "\n\n"
-    
-    context = build_context(retrieved_docs)
+    docs_json = [doc.model_dump() for doc in documents]
+    yield "event: documents\n\ndata: " + json.dumps({"documents": docs_json}) + "\n\n"
+
     system_prompt = BASE_SYSTEM_PROMPT + "\n\n" + RAG_PROMPT
     context_instruction = (
         f"Use the following documents to answer the user's question:\n"
@@ -68,7 +80,23 @@ async def rewrite_query(messages: list[ChatMessage]) -> QueryRewriteResponse:
     return response
 
 
-def build_context(documents: list[Document]) -> str:
+def build_context_from_pubs(publications: list[Publication]) -> str:
+    """Build the context string from retrieved publications."""
+    context_parts = []
+    for i, pub in enumerate(publications):
+        # add abstract + text from each chunk
+        context_parts.append(f"Document {i+1}:\n\n")
+        context_parts.append(f"Title: {pub.title}\n")
+        context_parts.append(f"ABSTRACT\n{pub.abstract}\n")
+        for i, chunk in enumerate(pub.retrieved_chunks):
+            context_parts.append(f"CHUNK {i+1}\n{chunk.text}\n")
+        context_parts.append("\n")
+
+    context = "\n".join(context_parts)
+    return f"<context>\n{context}\n</context>"
+
+
+def build_context_from_docs(documents: list[DocumentChunk]) -> str:
     """Build the context string from retrieved documents."""
     context_parts = []
     for i, doc in enumerate(documents):

@@ -3,6 +3,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    fetch_pubs: bool = True
+
     # retrieval
     qdrant_url: str
     qdrant_api_key: str
@@ -12,7 +14,6 @@ class Settings(BaseSettings):
     embedding_model: str = "Qwen/Qwen3-Embedding-0.6B"
     max_length_reranker: int = 1024
     k_vector_search: int = 20
-    
 
     query_rewrite_temperature: float = 0.05
     query_rewrite_top_p: float = 0.1
