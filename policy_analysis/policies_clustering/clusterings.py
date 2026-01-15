@@ -7,6 +7,9 @@ from sklearn.decomposition import TruncatedSVD
 from sklearn.preprocessing import Normalizer
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
+from sklearn.manifold import MDS
+from sklearn.metrics.pairwise import cosine_similarity
+
 import hdbscan
 
 from policy_analysis.policies_clustering.embeddings import TfidfEmbedder, SentenceBERTEmbedder
@@ -39,7 +42,7 @@ class HDBSCANClusterer(BaseEstimator):
 
 
 class KMeansClusterer(BaseEstimator):
-    def __init__(self, n_clusters: int = 8, random_state: int = 42, max_iter: int = 300):
+    def __init__(self, n_clusters: int = 8, random_state: int = 42, max_iter: int = 1000):
         self.n_clusters = n_clusters
         self.random_state = random_state
         self.max_iter = max_iter
@@ -67,7 +70,7 @@ def evaluate_clustering(X, labels, metric: str = "silhouette") -> float:
     Args:
         X: Feature matrix
         labels: Cluster labels
-        metric: One of 'silhouette', 'calinski_harabasz', 'davies_bouldin', 'coherence'
+        metric: One of 'silhouette', 'coherence'
     
     Returns:
         Score (higher is better for all metrics)
@@ -182,8 +185,8 @@ def build_clustering_pipeline(
         steps.append(("embed", SentenceBERTEmbedder()))
     else:
         raise ValueError("embedding must be 'tfidf' or 'sbert'")
-
-    steps.append(("umap", UMAPReducer(n_components=n_components)))
+    if embedding == "sbert":
+        steps.append(("umap", UMAPReducer(n_components=n_components)))
 
     if clustering == "hdbscan":
         steps.append(("cluster", HDBSCANClusterer(
@@ -191,7 +194,8 @@ def build_clustering_pipeline(
             min_samples=min_samples
         )))
     elif clustering == "kmeans":
-        steps.append(("norm", Normalizer(copy=False)))
+        if embedding == "sbert":
+            steps.append(("norm", Normalizer(copy=False)))
         steps.append(("cluster", KMeansClusterer(
             n_clusters=n_clusters,
             random_state=42
@@ -359,11 +363,17 @@ def run_clustering_experiment(
 
     if visualize:
         logger.info("\n=== Creating visualization ===")
-        umap_2d = UMAP(n_components=2, n_neighbors=15, random_state=42, metric="cosine", verbose=True)
-        reduced_2d = (umap_2d.fit_transform(embeddings if isinstance(embeddings, np.ndarray) else
-        results["pipeline"].transform(embeddings)[:len(embeddings)])
-        )
-        
+        if embedding_type == "sbert":
+            umap_2d = UMAP(n_components=2, n_neighbors=15, random_state=42, metric="cosine", verbose=True)
+            reduced_2d = (umap_2d.fit_transform(embeddings if isinstance(embeddings, np.ndarray) else
+            results["pipeline"].transform(embeddings)[:len(embeddings)])
+            )
+        else:
+            print(type(embeddings))
+            dist = 1 - cosine_similarity(embeddings)
+            ds = MDS(n_components=2, dissimilarity="precomputed", random_state=1)
+            reduced_2d = ds.fit_transform(dist)
+
         title = f"{clustering_method.upper()} Clustering"
         if clustering_method == "kmeans_cv":
             title += f" (optimal n={results['n_clusters']})"
