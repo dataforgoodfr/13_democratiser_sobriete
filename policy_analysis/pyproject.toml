@@ -44,6 +44,7 @@ all = [
     "policy-analysis[dspy,agentic]"
 ]
 clustering = [
+    "datasets>=4.4.2",
     "hdbscan>=0.8.40",
     "scikit-learn>=1.6.1",
     "umap-learn>=0.5.9.post2",
