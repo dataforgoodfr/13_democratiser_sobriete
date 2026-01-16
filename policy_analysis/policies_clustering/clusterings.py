@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from typing import Literal
 from loguru import logger
 import numpy as np
@@ -236,6 +237,7 @@ def build_hdbscan_pipeline(
 def run_clustering_experiment(
     dataset_name: str = "EdouardCallet/wsl-policy-10k",
     dataset_split: str = "train",
+    text_field: str = "text",
     embedding_model: str = "Qwen/Qwen3-Embedding-0.6B",
     embedding_type: Literal["tfidf", "sbert"] = "sbert",
     clustering_method: Literal["hdbscan", "kmeans", "kmeans_cv"] = "kmeans_cv",
@@ -277,9 +279,13 @@ def run_clustering_experiment(
 
     logger.info(f"Loading dataset: {dataset_name}")
     dataset = load_dataset(dataset_name, split=dataset_split)
-    if "text" not in dataset.column_names:
-        dataset = dataset.filter(lambda x: bool(x["policy_list"]))
-        dataset = dataset.map(lambda x: {"text": [" ".join(d) for d in x["policy_list"]]}, batched=True)
+    if text_field not in dataset.column_names:
+        raise ValueError(f"Dataset {dataset_name} does not have field {text_field}")
+    dataset = dataset.filter(lambda x: bool(x[text_field]))
+    if not isinstance(dataset[0][text_field], str) and isinstance(dataset[0][text_field], Iterable):
+        dataset = dataset.map(lambda x: {"text": [" ".join(d) for d in x[text_field]]}, batched=True)
+    else:
+        dataset = dataset.map(lambda x: {"text": x[text_field]}, batched=True)
     texts = dataset["text"]
     logger.info(f"Loaded {len(texts)} texts")
     cluster_range = cluster_range or [50, 100, 150, 200]
@@ -297,7 +303,11 @@ def run_clustering_experiment(
             embeddings = arrays["embedding"]
         else:
             model = SentenceTransformer(embedding_model)
-            embeddings = model.encode(texts, show_progress_bar=True, batch_size=4)
+            if "embedding" in dataset.column_names:
+                dataset.set_format(type="numpy", columns=["embedding"])
+                embeddings = np.array(dataset["embedding"])
+            else:
+                embeddings = model.encode(texts, show_progress_bar=True, batch_size=4)
         logger.info(f"Embeddings shape: {embeddings.shape}")
     else:
         embeddings = texts
@@ -424,6 +434,9 @@ def main():
     parser.add_argument("--split", type=str, default="train",
                        help="Dataset split to use")
     
+    parser.add_argument("--text-field", type=str, default="text",
+                       help="Directory to save results to")
+    
     # Embedding arguments
     parser.add_argument("--embedding-type", type=str, choices=["tfidf", "sbert"], default="sbert",
                        help="Type of embedding to use")
@@ -457,12 +470,14 @@ def main():
                        help="Directory to save results")
     parser.add_argument("--no-visualize", action="store_true",
                        help="Disable visualization")
+
     
     args = parser.parse_args()
 
     results = run_clustering_experiment(
         dataset_name=args.dataset,
         dataset_split=args.split,
+        text_field=args.text_field,
         embedding_model=args.embedding_model,
         embedding_type=args.embedding_type,
         clustering_method=args.clustering,
