@@ -9,7 +9,7 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 from sklearn.manifold import MDS
 from sklearn.metrics.pairwise import cosine_similarity
-
+import safetensors
 import hdbscan
 
 from policy_analysis.policies_clustering.embeddings import TfidfEmbedder, SentenceBERTEmbedder
@@ -277,7 +277,10 @@ def run_clustering_experiment(
 
     logger.info(f"Loading dataset: {dataset_name}")
     dataset = load_dataset(dataset_name, split=dataset_split)
-    texts = dataset["single_policy_item"]
+    if "text" not in dataset.column_names:
+        dataset = dataset.filter(lambda x: bool(x["policy_list"]))
+        dataset = dataset.map(lambda x: {"text": [" ".join(d) for d in x["policy_list"]]}, batched=True)
+    texts = dataset["text"]
     logger.info(f"Loaded {len(texts)} texts")
     cluster_range = cluster_range or [50, 100, 150, 200]
     if embedding_type == "sbert":
@@ -285,9 +288,16 @@ def run_clustering_experiment(
         if dataset_name == "EdouardCallet/wsl-policy-10k":
             dataset.set_format(type="numpy", columns=["embedding"])
             embeddings = np.array(dataset["embedding"])
+        elif dataset_name == "madoss/wsl-taxonomy":
+            arrays = {}
+            with safetensors.safe_open("data/embeddings.safetensors", framework="numpy") as f:
+                for key in f.keys():
+                    arrays[key] = f.get_tensor(key)
+            model = SentenceTransformer(embedding_model)
+            embeddings = arrays["embedding"]
         else:
             model = SentenceTransformer(embedding_model)
-            embeddings = model.encode(texts, show_progress_bar=True)
+            embeddings = model.encode(texts, show_progress_bar=True, batch_size=4)
         logger.info(f"Embeddings shape: {embeddings.shape}")
     else:
         embeddings = texts
@@ -397,7 +407,8 @@ def run_clustering_experiment(
             with open(output_path / "cv_results.pkl", "wb") as f:
                 pickle.dump(results["cv_results"], f)
             logger.info(f"Saved CV results to {output_path / 'cv_results.pkl'}")
-    
+    results["labels"] = labels
+    results["dataset"] = dataset
     return results
 
 
@@ -474,4 +485,9 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    res = main()
+    dataset = res["dataset"]
+    labels = res["labels"]
+    dataset = dataset.add_column("cluster", labels.tolist())
+    # dataset.push_to_hub("madoss/wsl_library_filtered_clustered")
+
