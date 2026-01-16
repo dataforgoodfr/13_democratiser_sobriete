@@ -42,7 +42,7 @@ class Publication(BaseModel):
     openalex_id: str
     doi: str | None = None
     title: str
-    abstract: str
+    abstract: str | None = None
     authors: list[str] | None = None
     publication_year: int | None = None
     url: str | None = None
