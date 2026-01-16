@@ -28,33 +28,45 @@ export async function streamChatResponse(
 		if (!reader) throw new Error('No reader available');
 
 		let currentEvent = 'message';
+		let buffer = ''; // Buffer for incomplete chunks, to avoid issues with latency
 
 		while (true) {
 			const { done, value } = await reader.read();
 			if (done) break;
 
-			const chunk = decoder.decode(value, { stream: true });
-			const lines = chunk.split('\n\n');
+			buffer += decoder.decode(value, { stream: true });
 
-			for (const line of lines) {
-				if (line.startsWith('event: ')) {
-					currentEvent = line.slice(7).trim();
-				} else if (line.startsWith('data: ')) {
-					const data = line.slice(6);
-					if (data === '[DONE]') break;
+			// Process complete messages (ending with \n\n)
+			const parts = buffer.split('\n\n');
+			// Keep the last part in buffer (might be incomplete)
+			buffer = parts.pop() || '';
 
-					if (currentEvent === 'documents') {
-						try {
-							const parsed = JSON.parse(data);
-							callbacks.onDocuments(parsed.documents);
-						} catch (e) {
-							console.error('Failed to parse documents:', e);
+			for (const part of parts) {
+				if (!part.trim()) continue;
+
+				// Each part could contain multiple lines (event + data)
+				const lines = part.split('\n\n');
+
+				for (const line of lines) {
+					if (line.startsWith('event: ')) {
+						currentEvent = line.slice(7).trim();
+					} else if (line.startsWith('data: ')) {
+						const data = line.slice(6);
+						if (data === '[DONE]') break;
+
+						if (currentEvent === 'documents') {
+							try {
+								const parsed = JSON.parse(data);
+								callbacks.onDocuments(parsed.documents);
+							} catch (e) {
+								console.error('Failed to parse documents:', e);
+							}
+						} else {
+							const content = data.replace(/<\|newline\|>/g, '\n');
+							callbacks.onContent(content);
 						}
-					} else {
-						const content = data.replace(/<\|newline\|>/g, '\n');
-						callbacks.onContent(content);
+						currentEvent = 'message';
 					}
-					currentEvent = 'message';
 				}
 			}
 		}

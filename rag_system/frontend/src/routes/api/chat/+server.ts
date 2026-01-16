@@ -8,7 +8,7 @@ import type { RequestHandler } from './$types';
 export const POST: RequestHandler = async ({ request }) => {
 	try {
 		const body = await request.json();
-		console.log('Request to backend:', CHAT_SUFFICIENCY_API_URL);
+		console.log('Request to:', CHAT_SUFFICIENCY_API_URL);
 		
 		const response = await fetch(CHAT_SUFFICIENCY_API_URL, {
 			method: 'POST',
