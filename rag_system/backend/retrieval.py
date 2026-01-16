@@ -14,7 +14,7 @@ qdrant_client = QdrantClient(
     url=settings.qdrant_url,
     api_key=settings.qdrant_api_key,
 )
-embedding_model = SentenceTransformer(settings.embedding_model, device="cpu")
+embedding_model = SentenceTransformer(settings.embedding_model, device="cpu").half()
 executor = ThreadPoolExecutor(max_workers=2)
 
 
