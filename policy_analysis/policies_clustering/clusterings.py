@@ -234,7 +234,7 @@ def build_hdbscan_pipeline(
 
 
 def run_clustering_experiment(
-    dataset_name: str = "madoss/wsl_library_filtered",
+    dataset_name: str = "EdouardCallet/wsl-policy-10k",
     dataset_split: str = "train",
     embedding_model: str = "Qwen/Qwen3-Embedding-0.6B",
     embedding_type: Literal["tfidf", "sbert"] = "sbert",
@@ -277,12 +277,12 @@ def run_clustering_experiment(
 
     logger.info(f"Loading dataset: {dataset_name}")
     dataset = load_dataset(dataset_name, split=dataset_split)
-    texts = dataset["text"]
+    texts = dataset["single_policy_item"]
     logger.info(f"Loaded {len(texts)} texts")
     cluster_range = cluster_range or [50, 100, 150, 200]
     if embedding_type == "sbert":
         logger.info(f"Generating embeddings with {embedding_model}...")
-        if dataset_name == "madoss/wsl_library_filtered":
+        if dataset_name == "EdouardCallet/wsl-policy-10k":
             dataset.set_format(type="numpy", columns=["embedding"])
             embeddings = np.array(dataset["embedding"])
         else:
@@ -408,7 +408,7 @@ def main():
     parser = argparse.ArgumentParser(description="Run clustering experiments on text datasets")
     
     # Dataset arguments
-    parser.add_argument("--dataset", type=str, default="madoss/wsl_library_filtered",
+    parser.add_argument("--dataset", type=str, default="EdouardCallet/wsl-policy-10k",
                        help="HuggingFace dataset name")
     parser.add_argument("--split", type=str, default="train",
                        help="Dataset split to use")
@@ -434,15 +434,15 @@ def main():
                        help="Minimum samples for HDBSCAN")
     
     # CV arguments
-    parser.add_argument("--cluster-range", type=int, nargs="+", default=[50, 100, 150, 200],
+    parser.add_argument("--cluster-range", type=int, nargs="+", default=[100, 200, 300, 400, 500, 600],
                        help="Minimum clusters to test in CV")
 
     parser.add_argument("--cv-metric", type=str, 
                        choices=["silhouette", "calinski_harabasz", "coherence"],
-                       default="silhouette", help="Metric for CV optimization")
+                       default="coherence", help="Metric for CV optimization")
     
     # Output arguments
-    parser.add_argument("--output-dir", type=str, default=None,
+    parser.add_argument("--output-dir", type=str, default="results/clustering_experiment",
                        help="Directory to save results")
     parser.add_argument("--no-visualize", action="store_true",
                        help="Disable visualization")

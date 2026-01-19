@@ -2410,9 +2410,15 @@ name = "policy-analysis"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+<<<<<<< HEAD
     { name = "dspy" },
     { name = "faiss-cpu" },
     { name = "hf-xet" },
+=======
+    { name = "datasets" },
+    { name = "faiss-cpu" },
+    { name = "hdbscan" },
+>>>>>>> 8c114f0 (additions_clustering test ed)
     { name = "loguru" },
     { name = "matplotlib" },
     { name = "openpyxl" },
@@ -2421,6 +2427,7 @@ dependencies = [
     { name = "python-dotenv" },
     { name = "sentence-transformers" },
     { name = "torch" },
+    { name = "umap-learn" },
 ]
 
 [package.optional-dependencies]
@@ -2470,11 +2477,13 @@ dspy = [
 [package.metadata]
 requires-dist = [
     { name = "bertopic", marker = "extra == 'clustering'", specifier = ">=0.17.3" },
+    { name = "datasets", specifier = ">=4.4.2" },
     { name = "datasets", marker = "extra == 'clustering'", specifier = ">=4.4.2" },
     { name = "datetime", marker = "extra == 'dspy'", specifier = ">=6.0" },
     { name = "dspy", specifier = ">=3.0.4" },
     { name = "dspy", marker = "extra == 'dspy'", specifier = ">=3.0.4" },
     { name = "faiss-cpu", specifier = ">=1.13.0" },
+    { name = "hdbscan", specifier = ">=0.8.40" },
     { name = "hdbscan", marker = "extra == 'clustering'", specifier = ">=0.8.40" },
     { name = "hf-xet", specifier = ">=1.2.0" },
     { name = "ipykernel", marker = "extra == 'clustering'", specifier = ">=7.1.0" },
@@ -2500,6 +2509,7 @@ requires-dist = [
     { name = "sqlmodel", marker = "extra == 'agentic'", specifier = ">=0.0.16,<0.1" },
     { name = "together", marker = "extra == 'agentic'", specifier = ">=1.5.30" },
     { name = "torch", specifier = ">=2.9.1" },
+    { name = "umap-learn", specifier = ">=0.5.9.post2" },
     { name = "umap-learn", marker = "extra == 'clustering'", specifier = ">=0.5.9.post2" },
     { name = "wordcloud", marker = "extra == 'clustering'", specifier = ">=1.9.4" },
 ]
