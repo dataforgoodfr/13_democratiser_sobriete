@@ -10,7 +10,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		const body = await request.json();
 		console.log('Request to:', CHAT_SUFFICIENCY_API_URL);
 		
-		const response = await fetch(CHAT_SUFFICIENCY_API_URL, {
+		const response = await fetch(`${CHAT_SUFFICIENCY_API_URL}/api/chat`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(body)

@@ -73,7 +73,7 @@
 </script>
 
 <div class="flex h-screen w-screen flex-col bg-background">
-	<NavBar onReset={handleReset} />
+	<NavBar onReset={handleReset} {chatId} />
 	<div class="flex flex-1 overflow-hidden">
 		<ChatPanel
 			{messages}
