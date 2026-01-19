@@ -1,0 +1,17 @@
+policy,actor,population,factor,correlation,related_studied_policy_area,related_studied_sector,correlation_numeric
+severe infestations of root-knot nematodes,None,None,energy from their hosts,decreasing,energy,cohesion,-1.0
+severe infestations of root-knot nematodes,None,None,yield quantity and quality,decreasing,agriculture,cohesion,-1.0
+property/structure buyout and habitat restoration project,None,None,flood losses,decreasing,climate_action,energy,-1.0
+property/structure buyout and habitat restoration project,None,None,natural resource conservation,increasing,biodiversity,energy,1.0
+property/structure buyout and habitat restoration project,None,None,flood exposure,decreasing,climate_action,energy,-1.0
+property/structure buyout and habitat restoration project,None,None,efficient use of limited governmental funds,increasing,finance_and_capital_markets,energy,1.0
+flood mitigation grant programs,None,None,funds for conservation and restoration of habitats,increasing,biodiversity,innovation_and_research,1.0
+strengthening the capacity of rights-holders to demand their rights,None,None,development assistance effectiveness,increasing,reforms,Unknown,1.0
+strengthening the capacity of duty-bearers to meet their obligations,None,None,development assistance effectiveness,increasing,reforms,innovation_and_research,1.0
+limit on state coal-severance taxes,None,None,coal consumption,increasing,economy,agriculture,1.0
+limit on state coal-severance taxes,None,None,state's coal production costs,decreasing,economy,agriculture,-1.0
+Federal funds,None,None,environmental and socio-economic impacts,decreasing,economy,home_affairs,-1.0
+exploitation of coal-rich states,None,None,profits,increasing,economy,social_rights,1.0
+exploitation of coal-rich states,None,None,true costs borne by state governments,increasing,finance_and_capital_markets,social_rights,1.0
+control strategies,None,None,lighting energy demand,decreasing,energy,equality,-1.0
+building features,None,None,lighting energy consumption,neutral,energy,reforms,0.0
