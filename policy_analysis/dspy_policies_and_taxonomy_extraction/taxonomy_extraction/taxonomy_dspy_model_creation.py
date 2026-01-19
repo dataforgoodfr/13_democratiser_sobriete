@@ -3,38 +3,32 @@ import csv
 from enum import Enum
 from typing import List, Dict, Any, Union
 import os
-from dotenv import load_dotenv
 
-import dspy
 from dspy.teleprompt import MIPROv2
 
 import json
-import os
 from dotenv import load_dotenv
 import pandas as pd
 from datetime import datetime
-from geographical_taxonomy import (
+
+from taxonomy_definition.geographical_taxonomy import (
     Geographical_scope,
     Studied_country,
     Regional_group,
 )
-from Impact_taxonomy import (
+from taxonomy_definition.impact_taxonomy import (
     Human_needs,    
     Natural_ressource,
     Wellbeing,
     Justice_consideration,
     Planetary_boundaries
 )
-import re
-
-import ast
-from taxonomy_utils import canonicalize, NULL_STRINGS, clean_token
-
+from utils import canonicalize, normalize_to_set
 
 load_dotenv()
 
 golden_dataset = []
-path = "taxonomy_extraction/transformed_data_all.jsonl"
+path = "model_training_data/gold_taxonomy.jsonl"
 
 if os.path.exists(path):
     with open(path, "r", encoding="utf-8") as f:

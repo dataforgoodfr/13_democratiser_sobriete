@@ -115,7 +115,7 @@ def generate_synthetic_qa(existing_qa, n_samples=5, max_retries=3):
             
 
             response = client.chat.completions.create(
-                model="gpt-4.1",
+                model="gpt-5",
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.8
             )

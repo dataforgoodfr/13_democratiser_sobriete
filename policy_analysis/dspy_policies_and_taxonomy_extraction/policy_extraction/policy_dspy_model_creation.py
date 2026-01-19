@@ -27,45 +27,30 @@ lm = dspy.LM(
 ### OpenAI  API
 lm = dspy.LM("openai/gpt-4o-mini", api_key=os.getenv('OPENAI_API_KEY'))
 
-### Ollama Local Server 
-"""lm = dspy.LM(
-    "openai/llama3",
-    api_base="http://localhost:11434/v1",
-    api_key="None"
-    )"""
-
-## VLLM gpu server
-"""lm = dspy.LM(
-     #model="huggingface/mistralai/Ministral-3-14B-Instruct-2512",
-     model ="huggingface/mistralai/Mistral-Small-3.2-24B-Instruct-2506",
-     api_base="http://51.159.185.13:8000/v1",
-     api_key="llamalove",
-     max_tokens=2048
-)"""
 
 dspy.configure(lm=lm)
 model_used = lm.model.replace("/","_")
 # 2. Data Loading
 golden_dataset = []
 
-if os.path.exists('data/conclusions&pollitiques_gold.jsonl'):
-    with open('data/conclusions&pollitiques_gold.jsonl', 'r', encoding='utf-8') as f:
+if os.path.exists('model_training_data/conclusions&pollitiques_gold.jsonl'):
+    with open('model_training_data/conclusions&pollitiques_gold.jsonl', 'r', encoding='utf-8') as f:
         for line in f:
             data = json.loads(line)
             example = dspy.Example(question=data['question'], response=data['response'])
             golden_dataset.append(example.with_inputs('question'))
 else:
-    exit ("Data file 'data/conclusions&pollitiques_gold.jsonl' not found.")
+    exit ("Data file 'model_training_data/conclusions&pollitiques_gold.jsonl' not found.")
 
 syntetic_dataset = []
-if os.path.exists('data/conclusions&pollitiques_synthetiques_diversifies.jsonl'):
-    with open('data/conclusions&pollitiques_synthetiques_diversifies.jsonl', 'r', encoding='utf-8') as f:
+if os.path.exists('model_training_data/conclusions&pollitiques_synthetiques_diversifies.jsonl'):
+    with open('model_training_data/conclusions&pollitiques_synthetiques_diversifies.jsonl', 'r', encoding='utf-8') as f:
         for line in f:
             data = json.loads(line)
             example = dspy.Example(question=data['question'], response=data['response'])
             syntetic_dataset.append(example.with_inputs('question'))
 else:
-    exit ("Data file 'data/conclusions&pollitiques_synthetiques_diversifies.jsonl' not found.")
+    exit ("Data file 'model_training_data/conclusions&pollitiques_synthetiques_diversifies.jsonl' not found.")
 
 # Meilleur score avec dataset synthetique petit  
 trainset = syntetic_dataset
@@ -139,7 +124,7 @@ optimized_evaluator = dspy.Evaluate(
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
 
-optimized_score = optimized_evaluator(compiled_program,save_as_json=f"saved_dspy_model/{model_used}{timestamp}.json")
+optimized_score = optimized_evaluator(compiled_program,save_as_json=f"saved_dspy_model/policy/{model_used}{timestamp}.json")
 print(optimized_score)
 
 score_str = f"{round(optimized_score.score,2)}".replace(".", "_") 
@@ -152,6 +137,6 @@ optimized_evaluator(
 print(f"Final Score on Validation Set (optimized): {optimized_score}%")
 
 # --- Saving the optimized model ---
-model_path = f"saved_dspy_model/{score_str}"
+model_path = f"saved_dspy_model/policy/{score_str}"
 compiled_program.save(model_path,save_program=True)
 print(f"Optimized model saved to {model_path}")
