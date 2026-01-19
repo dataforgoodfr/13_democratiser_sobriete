@@ -25,6 +25,19 @@ def create_db_and_tables():
         raise
 
 
+class Feedback(SQLModel, table=True):
+    """Model for user feedback."""
+
+    __tablename__ = "chat_feedbacks"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    session_id: Optional[str] = Field(default=None, index=True)  # Optional link to chat session
+    content: str
+    created_at: datetime = Field(default_factory=datetime.utcnow, index=True)
+    ip_address: Optional[str] = None
+    user_agent: Optional[str] = None
+
+
 class ChatSession(SQLModel, table=True):
     """Model for a chat session (conversation)."""
 
@@ -161,3 +174,28 @@ def get_session_history(session_id: str) -> list[ChatTurn]:
             return []
         # Sort turns by turn_number
         return sorted(chat_session.turns, key=lambda t: t.turn_number)
+
+
+def save_feedback(
+    content: str,
+    session_id: Optional[str] = None,
+    ip_address: Optional[str] = None,
+    user_agent: Optional[str] = None,
+) -> Feedback:
+    """Save user feedback to the database."""
+    try:
+        with Session(engine) as db:
+            feedback = Feedback(
+                content=content,
+                session_id=session_id,
+                ip_address=ip_address,
+                user_agent=user_agent,
+            )
+            db.add(feedback)
+            db.commit()
+            db.refresh(feedback)
+            logger.info(f"Saved feedback {feedback.id} for session {session_id}")
+            return feedback
+    except Exception as e:
+        logger.error(f"Error saving feedback: {e}")
+        raise

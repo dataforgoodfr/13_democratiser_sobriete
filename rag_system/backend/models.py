@@ -48,3 +48,10 @@ class Publication(BaseModel):
     publication_year: int | None = None
     url: str | None = None
     retrieved_chunks: list[DocumentChunk]
+
+
+class FeedbackRequest(BaseModel):
+    """Request body for feedback endpoint."""
+
+    chat_id: str | None = None
+    content: str

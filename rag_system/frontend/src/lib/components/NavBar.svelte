@@ -1,13 +1,17 @@
 <script lang="ts">
-	import { SquarePenIcon } from '@lucide/svelte';
+	import { SquarePenIcon, MessageSquareIcon } from '@lucide/svelte';
 	import WSLLogo from '$lib/assets/wsl_logo.svg';
 	import { AppBar } from '@skeletonlabs/skeleton-svelte';
+	import FeedbackModal from './FeedbackModal.svelte';
 
 	interface Props {
 		onReset?: () => void;
+		chatId?: string;
 	}
 
-	let { onReset }: Props = $props();
+	let { onReset, chatId }: Props = $props();
+
+	let showFeedbackModal = $state(false);
 </script>
 
 <AppBar class="bg-wsl-yellow p-4">
@@ -18,7 +22,14 @@
 		<AppBar.Headline>
 			<p class="text-3xl font-bold">Chat Sufficiency</p>
 		</AppBar.Headline>
-		<AppBar.Trail class="ml-auto">
+		<AppBar.Trail class="ml-auto flex gap-2">
+			<button
+				class="flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-black hover:bg-gray-100"
+				onclick={() => (showFeedbackModal = true)}
+			>
+				<MessageSquareIcon size={20} />
+				<span>Feedback</span>
+			</button>
 			<button
 				class="flex items-center gap-2 rounded-lg bg-black px-4 py-2 text-white hover:font-semibold"
 				onclick={onReset}
@@ -29,3 +40,7 @@
 		</AppBar.Trail>
 	</AppBar.Toolbar>
 </AppBar>
+
+{#if showFeedbackModal}
+	<FeedbackModal {chatId} onClose={() => (showFeedbackModal = false)} />
+{/if}
