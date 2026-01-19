@@ -1,14 +1,28 @@
-from fastapi import FastAPI
+from contextlib import asynccontextmanager
+import logging
+
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 
+from config import settings
+from database import create_db_and_tables, get_or_create_session
+from dependencies import get_logger
 from models import ChatRequest
 from rag import generate_dummy_response, simple_rag_pipeline
 
 
-app = FastAPI()
+# TODO: move ml models init/clean here
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logging.basicConfig(level=logging.INFO)
+    create_db_and_tables()
+    logger.info("Application startup complete")
+    yield
 
-# Allow CORS for local development
+logger = get_logger(__name__)
+app = FastAPI(lifespan=lifespan)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -19,11 +33,19 @@ app.add_middleware(
 
 
 @app.post("/api/chat")
-async def chat(request: ChatRequest):
+async def chat(chat_request: ChatRequest, http_request: Request):
     """Stream a chat response."""
+    if settings.log_usage:
+        chat_session = get_or_create_session(
+            session_id=chat_request.chat_id,
+            ip_address=http_request.client.host,
+            user_agent=http_request.headers.get("user-agent"),
+        )
+    else:
+        chat_session = None
     return StreamingResponse(
-        #generate_dummy_response(),
-        simple_rag_pipeline(request.messages),
+        # generate_dummy_response(),
+        simple_rag_pipeline(chat_request.messages, chat_session),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",

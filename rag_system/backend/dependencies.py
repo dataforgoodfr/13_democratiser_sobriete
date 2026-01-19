@@ -1,5 +1,10 @@
+import logging
 from openai import AsyncOpenAI
 from config import settings
+
+
+def get_logger(name: str) -> logging.Logger:
+    return logging.getLogger(name)
 
 
 def create_openai_client() -> AsyncOpenAI:

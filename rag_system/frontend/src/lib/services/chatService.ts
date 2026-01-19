@@ -8,6 +8,7 @@ export interface StreamCallbacks {
 }
 
 export async function streamChatResponse(
+	chatId: string,
 	messages: ChatMessage[],
 	callbacks: StreamCallbacks
 ): Promise<void> {
@@ -16,6 +17,7 @@ export async function streamChatResponse(
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({
+				chat_id: chatId,
 				messages: messages.filter((m) => m.role !== 'assistant' || m.content)
 			})
 		});

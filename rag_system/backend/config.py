@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     query_rewrite_timeout: int = 15
 
     k_rerank: int = 5
-    rerank_method : Literal["flashrank", "llm"] = "flashrank"
+    rerank_method: Literal["flashrank", "llm"] = "flashrank"
     llm_rerank_model: str = "mistral-small-3.2-24b-instruct-2506"
 
     # generation
@@ -32,8 +32,12 @@ class Settings(BaseSettings):
 
     answer_temperature: float = 0.01
     answer_top_p: float = 0.1
-    answer_max_tokens: int = 512
+    answer_max_tokens: int = 1024
     answer_timeout: int = 30
+
+    # database
+    postgres_uri: str
+    log_usage: bool = False
 
     model_config = SettingsConfigDict(env_file=".env")
 

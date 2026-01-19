@@ -4,6 +4,7 @@
 	import { streamChatResponse } from '$lib/services/chatService';
 	import type { ChatMessage, ChatStatus, Document } from '$lib/types';
 
+	let chatId = $state(crypto.randomUUID());
 	let messages: ChatMessage[] = $state([]);
 	let status: ChatStatus = $state('idle');
 	let selectedMessageIndex: number | null = $state(null);
@@ -29,6 +30,7 @@
 	}
 
 	function handleReset() {
+		chatId = crypto.randomUUID();
 		messages = [];
 		selectedMessageIndex = null;
 		status = 'idle';
@@ -44,7 +46,7 @@
 		messages = [...messages, assistantMessage];
 		selectedMessageIndex = null;
 
-		await streamChatResponse(messages, {
+		await streamChatResponse(chatId, messages, {
 			onDocuments: (documents: Document[]) => {
 				messages = messages.map((msg, i) =>
 					i === messages.length - 1 ? { ...msg, documents } : msg

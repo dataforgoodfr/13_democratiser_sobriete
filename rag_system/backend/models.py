@@ -12,6 +12,7 @@ class ChatMessage(BaseModel):
 class ChatRequest(BaseModel):
     """Request body for chat endpoint."""
 
+    chat_id: str
     messages: list[ChatMessage]
 
 
