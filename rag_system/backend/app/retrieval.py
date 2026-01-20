@@ -5,9 +5,9 @@ from sentence_transformers import SentenceTransformer
 from qdrant_client import QdrantClient
 from pyalex import Works
 
-from config import settings
-from models import DocumentChunk, Publication
-from reranking import flashrank_rerank, llm_rerank
+from .config import settings
+from .models import DocumentChunk, Publication
+from .reranking import flashrank_rerank, llm_rerank
 
 
 qdrant_client = QdrantClient(

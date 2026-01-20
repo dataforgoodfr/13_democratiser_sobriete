@@ -3,13 +3,13 @@ from typing import Type
 
 from pydantic import BaseModel, ValidationError
 
-from config import settings
-from dependencies import create_openai_client, escape_newlines
-from models import ChatMessage
+from .config import settings
+from .dependencies import create_openai_client, escape_newlines, get_logger
+from .models import ChatMessage
 
 
 generation_client = create_openai_client()
-
+logger = get_logger(__name__)
 
 async def generate_response(
     messages: list[ChatMessage],
@@ -44,7 +44,7 @@ async def generate_response(
             try:
                 return response_format.model_validate_json(response.choices[0].message.content)
             except ValidationError as e:
-                print("Validation error in query rewrite, retrying...:")
+                logger.warning("Validation error in query rewrite, retrying...")
                 kwargs["temperature"] = 0  # Retry with deterministic output
                 response = await generation_client.chat.completions.create(**kwargs)
                 return response_format.model_validate_json(response.choices[0].message.content)
@@ -53,7 +53,7 @@ async def generate_response(
     except asyncio.TimeoutError:
         return "\n\n[Generation timed out]\n\n"
     except ValidationError as e:
-        print(response.choices[0].message.content)
+        logger.error(response.choices[0].message.content)
         raise e
         
 

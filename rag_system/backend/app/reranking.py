@@ -2,9 +2,9 @@ import asyncio
 
 from flashrank import Ranker, RerankRequest
 
-from config import settings
-from dependencies import create_openai_client
-from models import DocumentChunk
+from .config import settings
+from .dependencies import create_openai_client
+from .models import DocumentChunk
 
 
 ranker = Ranker(max_length=settings.max_length_reranker)
