@@ -2,17 +2,17 @@ from datetime import datetime, UTC
 import json
 import time
 
-from config import settings
-from database import ChatSession, ChatTurn, save_chat_turn
-from dependencies import escape_newlines, get_logger
-from generation import (
+from .config import settings
+from .database import ChatSession, ChatTurn, save_chat_turn
+from .dependencies import escape_newlines, get_logger
+from .generation import (
     generate_response,
     simulate_stream,
     stream_response,
 )
-from models import ChatMessage, DocumentChunk, Publication, QueryRewriteResponse
-from prompts import BASE_SYSTEM_PROMPT, RAG_PROMPT, QUERY_REWRITE_PROMPT
-from retrieval import get_publications_from_chunks, retrieve_chunks
+from .models import ChatMessage, DocumentChunk, Publication, QueryRewriteResponse
+from .prompts import BASE_SYSTEM_PROMPT, RAG_PROMPT, QUERY_REWRITE_PROMPT
+from .retrieval import get_publications_from_chunks, retrieve_chunks
 
 logger = get_logger(__name__)
 

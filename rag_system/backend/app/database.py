@@ -2,8 +2,9 @@ from typing import Optional
 from datetime import datetime
 from sqlmodel import Field, Relationship, SQLModel, create_engine, Session
 
-from dependencies import get_logger
-from config import settings
+from .config import settings
+from .dependencies import get_logger
+
 
 logger = get_logger(__name__)
 
