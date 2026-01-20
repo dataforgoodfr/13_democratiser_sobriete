@@ -3,8 +3,8 @@ from typing import Any, List, Optional, cast
 from .base import LlamaIndexVectorStore
 
 """ Data4Good config - removed for dev setup - please, try to add this on your settings and not here...
-VECTORSTORE_URL = os.getenv("VECTOSTORE_URL", "")
-default_api_key = os.getenv("API_KEY", "")
+VECTORSTORE_URL = os.getenv("VECTORSTORE_URL", "")
+default_api_key = os.getenv("VECTOR_STORE_API_KEY", "")
 
 #And add this in the __init__ method: (but please, try to add this on your settings and not here...)
 
@@ -51,6 +51,7 @@ class QdrantVectorStore(LlamaIndexVectorStore):
             client_kwargs=client_kwargs,
             **kwargs,
         )
+        print(f"Super init done, now importing the QDrantVectorStore")
         from llama_index.vector_stores.qdrant import (
             QdrantVectorStore as LIQdrantVectorStore,
         )
