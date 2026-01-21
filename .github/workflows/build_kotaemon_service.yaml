@@ -2,6 +2,8 @@ name: Build and Push Kotaemon Service Docker Image
 
 on:
   push:
+    paths:
+      - 'rag_system/old/**' # workflow triggers only on changes in the rag_system/old directory
     branches:
       - "*"
     tags:
