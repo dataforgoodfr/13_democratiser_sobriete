@@ -2410,18 +2410,11 @@ name = "policy-analysis"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
-<<<<<<< HEAD
-    { name = "dspy" },
-    { name = "faiss-cpu" },
-    { name = "hf-xet" },
-=======
     { name = "datasets" },
-    { name = "faiss-cpu" },
     { name = "hdbscan" },
->>>>>>> 8c114f0 (additions_clustering test ed)
     { name = "loguru" },
     { name = "matplotlib" },
-    { name = "openpyxl" },
+    { name = "openai" },
     { name = "pandas" },
     { name = "pydantic" },
     { name = "python-dotenv" },
@@ -2492,6 +2485,7 @@ requires-dist = [
     { name = "matplotlib", specifier = ">=3.10.7" },
     { name = "nltk", marker = "extra == 'clustering'", specifier = ">=3.9.2" },
     { name = "openpyxl", specifier = ">=3.1.5" },
+    { name = "openai", specifier = ">=2.12.0" },
     { name = "optuna", marker = "extra == 'agentic'", specifier = ">=4.5.0" },
     { name = "pandas", specifier = ">=2.3.3" },
     { name = "plotly", marker = "extra == 'agentic'", specifier = ">=6.3.1" },

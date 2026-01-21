@@ -1,7 +1,7 @@
 import numpy as np
 
 # Path to your .npy file
-file_path = 'src/policy_analysis/policies_clustering/labels.npy'
+file_path = 'C:/Users/calle/13_democratiser_sobriete/policy_analysis/src/policy_analysis/policies_clustering/results/clustering_experiment/labels.npy'
 
 # Load the .npy file
 try:
