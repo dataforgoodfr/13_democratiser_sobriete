@@ -17,8 +17,8 @@ uv run uvicorn app.main:app --reload
 
 # start frontend (dev)
 cd frontend
-npm install
 cp .env.example .env
+npm install
 npm run dev
 ```
 
