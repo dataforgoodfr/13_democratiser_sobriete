@@ -2,7 +2,6 @@ import dspy
 import os
 import pickle
 import pyarrow.parquet as pq
-import pandas as pd
 from dotenv import load_dotenv
 from tqdm import tqdm
 import json
@@ -108,7 +107,7 @@ with open(OUTPUT_PATH, "a", encoding="utf-8") as out_f:
                 # ----------------------------------------------------
 
                 for (text, (openalex_id, chunk_idx), p_out, g_out) in zip(
-                    batch_texts, batch_meta, policy_outputs, geo_outputs
+                    batch_texts, batch_meta, policy_outputs, geo_outputs, strict=False
                 ):
                     policy_dict = p_out.toDict() if hasattr(p_out, "toDict") else p_out
                     geo_dict = g_out.toDict() if hasattr(g_out, "toDict") else g_out

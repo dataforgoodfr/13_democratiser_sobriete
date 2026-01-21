@@ -1,14 +1,10 @@
 import dspy
-import csv
-from enum import Enum
-from typing import List, Dict, Any, Union
 import os
 
 from dspy.teleprompt import MIPROv2
 
 import json
 from dotenv import load_dotenv
-import pandas as pd
 from datetime import datetime
 
 from taxonomy_definition.geographical_taxonomy import (

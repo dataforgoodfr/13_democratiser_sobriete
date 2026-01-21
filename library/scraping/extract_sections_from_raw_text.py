@@ -34,7 +34,7 @@ def process_file(
         with ProcessPoolExecutor(max_workers=num_workers) as executor:
             futures = {
                 executor.submit(process_text, text): (idx, oa_id)
-                for idx, (oa_id, text) in enumerate(zip(df.index, df["text"]))
+                for idx, (oa_id, text) in enumerate(zip(df.index, df["text"], strict=True))
             }
 
             buffer = []

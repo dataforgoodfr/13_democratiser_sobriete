@@ -43,7 +43,7 @@ async def generate_response(
         if response_format:
             try:
                 return response_format.model_validate_json(response.choices[0].message.content)
-            except ValidationError as e:
+            except ValidationError:
                 logger.warning("Validation error in query rewrite, retrying...")
                 kwargs["temperature"] = 0  # Retry with deterministic output
                 response = await generation_client.chat.completions.create(**kwargs)

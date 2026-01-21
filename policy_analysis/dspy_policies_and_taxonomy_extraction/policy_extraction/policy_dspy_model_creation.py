@@ -4,14 +4,11 @@ from dspy.teleprompt import MIPROv2
 import json
 import os
 from dotenv import load_dotenv
-import pandas as pd
 from sentence_transformers import CrossEncoder
 import torch
 from datetime import datetime
-from dspy.adapters import JSONAdapter
 
 
-import math 
 # Load environment variables
 load_dotenv()
 

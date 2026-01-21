@@ -1,6 +1,4 @@
 import pyarrow.parquet as pq
-import pyarrow as pa
-import pandas as pd
 import re
 import json
 
@@ -127,7 +125,7 @@ for batch in parquet_file.iter_batches(batch_size=10000):
     if TEST_RUN:
         df = df.head(SAMPLE_SIZE)
 
-    for idx, text in enumerate(df[target_col]):
+    for text in df[target_col]:
         cleaned_text, deleted_count, triggered_rules = apply_regex_cleaning(text, REGEX_RULES)
         
         result = {
