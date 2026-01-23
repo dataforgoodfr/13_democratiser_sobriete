@@ -14,19 +14,9 @@ dependencies = [
     "torch>=2.9.1",
     "matplotlib>=3.10.7",
     "loguru>=0.7.3",
-<<<<<<< HEAD
     "openpyxl>=3.1.5",
-    "dspy>=3.0.4",
     "hf-xet>=1.2.0",
-=======
-    "hdbscan>=0.8.40",
-    "umap-learn>=0.5.9.post2",
-    "datasets>=4.4.2",
-<<<<<<< HEAD
->>>>>>> 8c114f0 (additions_clustering test ed)
-=======
     "openai>=2.12.0",
->>>>>>> 434367f (add clustering helper functions)
 ]
 
 [project.optional-dependencies]
