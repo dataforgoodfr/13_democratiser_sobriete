@@ -4,6 +4,10 @@ version = "0.1.0"
 description = "Agentic RAG + policy analysis pipelines"
 readme = "README.md"
 requires-python = ">=3.12"
+dependencies = [
+    "loguru>=0.7.3",
+    "numpy>=2.4.1",
+]
 
 # We need to decide if we want use workspace or not
 # Because this file will not be used in submodules if don't set the workspace properly
