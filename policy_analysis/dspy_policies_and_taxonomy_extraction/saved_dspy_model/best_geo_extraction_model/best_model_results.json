@@ -1,0 +1,622 @@
+[
+    {
+        "question": "The analysis explores the role of artificial intelligence in optimising electricity networks, improving efficiency and system reliability while raising new governance and regulatory challenges.",
+        "example_regional_group": "World",
+        "example_geographical_scopes": [
+            "Regions or world"
+        ],
+        "example_main_country_focus": [],
+        "pred_regional_group": "World",
+        "pred_geographical_scopes": [],
+        "pred_main_country_focus": [],
+        "geography_f1_metric": 0.7222
+    },
+    {
+        "question": "The assessment indicates that urban expansion in Western European countries continues to encroach on agricultural land, posing substantial risks to local food security and ecosystem services. Although policy frameworks have promoted compact city strategies, implementation gaps remain, particularly in peri-urban areas. Strengthening land-use governance and incentivizing sustainable urban planning are critical to mitigate further loss of arable land and to safeguard both community resilience and environmental quality.",
+        "example_regional_group": "Western European",
+        "example_geographical_scopes": [
+            "Local or subnational"
+        ],
+        "example_main_country_focus": [],
+        "pred_regional_group": "Western European",
+        "pred_geographical_scopes": [
+            "Local or subnational"
+        ],
+        "pred_main_country_focus": [],
+        "geography_f1_metric": 1.0
+    },
+    {
+        "question": "Findings indicate that regional implementation of integrated watershed management in the Mekong basin has enhanced both freshwater availability and ecosystem resilience, especially where transboundary cooperation mechanisms are robust. Improved allocation and monitoring have contributed to more equitable access among riparian communities while reducing pressures on aquatic biodiversity.",
+        "example_regional_group": "Asia-Pacific States",
+        "example_geographical_scopes": [
+            "Regions or world"
+        ],
+        "example_main_country_focus": [
+            "Cambodia",
+            "Laos",
+            "Thailand",
+            "Vietnam"
+        ],
+        "pred_regional_group": "Asia-Pacific States",
+        "pred_geographical_scopes": [
+            "Regions or world"
+        ],
+        "pred_main_country_focus": [],
+        "geography_f1_metric": 0.5
+    },
+    {
+        "question": "This research explores how digital financial services improve the economic resilience of smallholder farmers by facilitating access to credit, savings, and market information, particularly in rural regions vulnerable to climate variability.",
+        "example_regional_group": "World",
+        "example_geographical_scopes": [
+            "Countries"
+        ],
+        "example_main_country_focus": [],
+        "pred_regional_group": "World",
+        "pred_geographical_scopes": [
+            "Local or subnational"
+        ],
+        "pred_main_country_focus": [],
+        "geography_f1_metric": 0.5652
+    },
+    {
+        "question": "Findings suggest that accelerated rates of deforestation in Indonesia have direct implications for regional water cycles and biodiversity. The conversion of forested land to agricultural use has resulted in altered rainfall patterns and increased vulnerability to flooding in local communities. Protecting remaining forest areas is critical to maintaining ecosystem services and supporting both environmental stability and community wellbeing. Policy interventions must include equitable participation of indigenous groups to ensure that land management decisions reflect diverse interests and promote long-term sustainability.",
+        "example_regional_group": "Asia-Pacific States",
+        "example_geographical_scopes": [
+            "Countries",
+            "Local or subnational"
+        ],
+        "example_main_country_focus": [
+            "Indonesia"
+        ],
+        "pred_regional_group": "Asia-Pacific States",
+        "pred_geographical_scopes": [],
+        "pred_main_country_focus": [
+            "Indonesia"
+        ],
+        "geography_f1_metric": 0.6667
+    },
+    {
+        "question": "The findings indicate that prolonged drought events in the Sahel region have significantly reduced agricultural productivity, exacerbating food insecurity and posing challenges to rural livelihoods. These environmental stressors have disproportionately affected access to freshwater for both household and agricultural purposes. Policy responses must therefore address not only the immediate nutritional needs but also the equitable allocation of water resources to support vulnerable communities.",
+        "example_regional_group": "African States",
+        "example_geographical_scopes": [
+            "Regions or world",
+            "Local or subnational"
+        ],
+        "example_main_country_focus": [],
+        "pred_regional_group": "African States",
+        "pred_geographical_scopes": [
+            "Regions or world"
+        ],
+        "pred_main_country_focus": [],
+        "geography_f1_metric": 0.8214
+    },
+    {
+        "question": "The analysis assesses the effectiveness of urban greening strategies in reducing heat stress and improving living conditions in densely populated cities. Green infrastructure is shown to enhance thermal comfort and environmental quality.",
+        "example_regional_group": "World",
+        "example_geographical_scopes": [
+            "Local or subnational"
+        ],
+        "example_main_country_focus": [],
+        "pred_regional_group": "World",
+        "pred_geographical_scopes": [
+            "Local or subnational"
+        ],
+        "pred_main_country_focus": [],
+        "geography_f1_metric": 1.0
+    },
+    {
+        "question": "Recent assessments indicate that urban expansion within Southeast Asia has accelerated the conversion of agricultural land into built environments, leading to heightened pressure on local food systems and diminishing arable land availability. These transitions, if left unmanaged, risk exacerbating food insecurity and undermining regional biodiversity. Strategic urban planning and land-use governance are therefore crucial to balancing urban growth with the preservation of agricultural resources and ecosystem integrity.",
+        "example_regional_group": "Asia-Pacific States",
+        "example_geographical_scopes": [
+            "Regions or world",
+            "Local or subnational"
+        ],
+        "example_main_country_focus": [],
+        "pred_regional_group": "Asia-Pacific States",
+        "pred_geographical_scopes": [
+            "Local or subnational"
+        ],
+        "pred_main_country_focus": [],
+        "geography_f1_metric": 0.8214
+    },
+    {
+        "question": "The report assesses recent reforms of Poland\u2019s public healthcare financing system, focusing on their implications for universal access to essential medical services and financial protection.",
+        "example_regional_group": "Eastern European States",
+        "example_geographical_scopes": [
+            "Countries"
+        ],
+        "example_main_country_focus": [
+            "Poland"
+        ],
+        "pred_regional_group": "Eastern European States",
+        "pred_geographical_scopes": [
+            "Countries"
+        ],
+        "pred_main_country_focus": [
+            "Poland"
+        ],
+        "geography_f1_metric": 1.0
+    },
+    {
+        "question": "These findings indicate that the expansion of intensive agriculture in several Latin American countries has significantly contributed to the depletion of freshwater availability at the regional level. The increased irrigation demand, coupled with inefficient water management practices, has not only strained local hydrological cycles but has also heightened vulnerability to seasonal droughts in rural communities.",
+        "example_regional_group": "Latin American and Caribbean States",
+        "example_geographical_scopes": [
+            "Regions or world"
+        ],
+        "example_main_country_focus": [],
+        "pred_regional_group": "Latin American and Caribbean States",
+        "pred_geographical_scopes": [],
+        "pred_main_country_focus": [],
+        "geography_f1_metric": 0.7222
+    },
+    {
+        "question": "The analysis explores the development of port infrastructure in Indonesia and its role in facilitating domestic trade and regional connectivity.",
+        "example_regional_group": "Asia-Pacific States",
+        "example_geographical_scopes": [
+            "Countries"
+        ],
+        "example_main_country_focus": [
+            "Indonesia"
+        ],
+        "pred_regional_group": "Asia-Pacific States",
+        "pred_geographical_scopes": [
+            "Countries"
+        ],
+        "pred_main_country_focus": [
+            "Indonesia"
+        ],
+        "geography_f1_metric": 1.0
+    },
+    {
+        "question": "This study analyses the deployment of offshore wind energy infrastructure and its implications for coastal economies and marine ecosystems. While offshore wind contributes to decarbonisation and energy security, it also raises concerns regarding marine resource management and long-term governance.",
+        "example_regional_group": "World",
+        "example_geographical_scopes": [
+            "Regions or world"
+        ],
+        "example_main_country_focus": [],
+        "pred_regional_group": "World",
+        "pred_geographical_scopes": [
+            "Regions or world"
+        ],
+        "pred_main_country_focus": [],
+        "geography_f1_metric": 1.0
+    },
+    {
+        "question": "Analysis of recent emissions data suggests that accelerated urban expansion in Western European cities has contributed to increased land-system change, affecting both urban land management and adjacent agricultural areas. This trend underscores the necessity for integrated spatial planning policies that balance urban development with the preservation of productive land resources, ensuring that housing needs are met sustainably while minimizing ecological impacts.",
+        "example_regional_group": "Western European",
+        "example_geographical_scopes": [
+            "Local or subnational"
+        ],
+        "example_main_country_focus": [],
+        "pred_regional_group": "Western European",
+        "pred_geographical_scopes": [
+            "Local or subnational"
+        ],
+        "pred_main_country_focus": [],
+        "geography_f1_metric": 1.0
+    },
+    {
+        "question": "This study analyses drought management policies implemented in Ethiopia, focusing on how early warning systems and community-based responses reduce food insecurity in vulnerable rural areas.",
+        "example_regional_group": "African States",
+        "example_geographical_scopes": [
+            "Countries"
+        ],
+        "example_main_country_focus": [
+            "Ethiopia"
+        ],
+        "pred_regional_group": "African States",
+        "pred_geographical_scopes": [],
+        "pred_main_country_focus": [
+            "Ethiopia"
+        ],
+        "geography_f1_metric": 0.8
+    },
+    {
+        "question": "Findings indicate that implementing agroforestry practices in rural areas of Ghana can enhance food security while contributing to the conservation of forest resources. The adoption of these systems has been associated with increased crop yields and diversification of livelihoods, thereby improving community resilience to climate variability. However, ensuring equitable access to land and technical support remains critical for maximizing both social and environmental benefits.",
+        "example_regional_group": "African States",
+        "example_geographical_scopes": [
+            "Local or subnational"
+        ],
+        "example_main_country_focus": [
+            "Ghana"
+        ],
+        "pred_regional_group": "African States",
+        "pred_geographical_scopes": [
+            "Local or subnational"
+        ],
+        "pred_main_country_focus": [
+            "Ghana"
+        ],
+        "geography_f1_metric": 1.0
+    },
+    {
+        "question": "The study explores vocational education and training programmes in Germany and their role in supporting youth employment and facilitating school-to-work transitions.",
+        "example_regional_group": "Western European",
+        "example_geographical_scopes": [
+            "Countries"
+        ],
+        "example_main_country_focus": [
+            "Germany"
+        ],
+        "pred_regional_group": "Western European",
+        "pred_geographical_scopes": [
+            "Countries"
+        ],
+        "pred_main_country_focus": [
+            "Germany"
+        ],
+        "geography_f1_metric": 1.0
+    },
+    {
+        "question": "This longitudinal study assesses the impact of school-based nutrition programmes on educational outcomes and child health, showing lasting benefits in cognitive development and school completion.",
+        "example_regional_group": "Asia-Pacific States",
+        "example_geographical_scopes": [
+            "Countries"
+        ],
+        "example_main_country_focus": [
+            "Bangladesh"
+        ],
+        "pred_regional_group": null,
+        "pred_geographical_scopes": [],
+        "pred_main_country_focus": [],
+        "geography_f1_metric": 0.0
+    },
+    {
+        "question": "The results of the assessment indicate that expanding renewable energy infrastructure across Western European nations can significantly reduce dependence on fossil fuels, thereby improving air quality and contributing to climate mitigation goals. Additionally, the findings suggest that transitions in the energy sector present opportunities for job creation and income growth, provided that policies are designed to ensure equitable distribution of benefits across affected communities. The importance of implementing transitional justice measures is underscored, to address potential disparities among workers and regions during the decarbonization process.",
+        "example_regional_group": "Western European",
+        "example_geographical_scopes": [
+            "Countries"
+        ],
+        "example_main_country_focus": [],
+        "pred_regional_group": "Western European",
+        "pred_geographical_scopes": [
+            "Countries"
+        ],
+        "pred_main_country_focus": [],
+        "geography_f1_metric": 1.0
+    },
+    {
+        "question": "The report examines public transport investments in several large metropolitan areas in the United States, assessing their role in reducing car dependency and improving mobility access for low-income households.",
+        "example_regional_group": "North America",
+        "example_geographical_scopes": [
+            "Local or subnational"
+        ],
+        "example_main_country_focus": [
+            "United States"
+        ],
+        "pred_regional_group": "North America",
+        "pred_geographical_scopes": [
+            "Local or subnational"
+        ],
+        "pred_main_country_focus": [
+            "United States"
+        ],
+        "geography_f1_metric": 1.0
+    },
+    {
+        "question": "Findings from the assessment of drought adaptation strategies in the agricultural sector indicate that targeted water management policies can significantly mitigate crop yield losses during prolonged dry periods. In particular, the adoption of efficient irrigation technologies and drought-resistant crop varieties in affected regions has improved both water use efficiency and agricultural productivity. These results underscore the importance of integrating climate resilience measures into agricultural planning to ensure food security and sustainable resource use.",
+        "example_regional_group": "African States",
+        "example_geographical_scopes": [
+            "Regions or world"
+        ],
+        "example_main_country_focus": [],
+        "pred_regional_group": "World",
+        "pred_geographical_scopes": [
+            "Regions or world"
+        ],
+        "pred_main_country_focus": [],
+        "geography_f1_metric": 0.5652
+    },
+    {
+        "question": "Findings from the recent assessment indicate that urban expansion in several major cities has led to the substantial conversion of agricultural land to urban land uses, with subsequent impacts on local food systems and ecosystem services. This transition has highlighted the need for integrated land management strategies that prioritize both the preservation of productive agricultural land and the provision of adequate housing. The evidence suggests that uncoordinated land-system change can undermine food security and community wellbeing, particularly for vulnerable populations residing in peri-urban areas.",
+        "example_regional_group": "World",
+        "example_geographical_scopes": [
+            "Local or subnational"
+        ],
+        "example_main_country_focus": [],
+        "pred_regional_group": "World",
+        "pred_geographical_scopes": [
+            "Local or subnational"
+        ],
+        "pred_main_country_focus": [],
+        "geography_f1_metric": 1.0
+    },
+    {
+        "question": "This study investigates the regulation of pesticide use in Argentina, focusing on impacts on agricultural productivity, worker health, and environmental safety.",
+        "example_regional_group": "Latin American and Caribbean States",
+        "example_geographical_scopes": [
+            "Countries"
+        ],
+        "example_main_country_focus": [
+            "Argentina"
+        ],
+        "pred_regional_group": "Latin American and Caribbean States",
+        "pred_geographical_scopes": [
+            "Countries"
+        ],
+        "pred_main_country_focus": [
+            "Argentina"
+        ],
+        "geography_f1_metric": 1.0
+    },
+    {
+        "question": "The study investigates gender inequalities in access to employment and career progression within the information and communication sector, highlighting persistent gaps despite comparable educational attainment.",
+        "example_regional_group": "Western European",
+        "example_geographical_scopes": [
+            "Countries"
+        ],
+        "example_main_country_focus": [
+            "France"
+        ],
+        "pred_regional_group": null,
+        "pred_geographical_scopes": [],
+        "pred_main_country_focus": [],
+        "geography_f1_metric": 0.0
+    },
+    {
+        "question": "Findings\n\nA multi-year analysis of agricultural practices in Bangladesh reveals that the intensification of rice cultivation has resulted in significant groundwater depletion, with measurable consequences for both crop yields and household water security. The data indicate that current irrigation extraction rates exceed natural recharge capacities, raising long-term risks for food production and rural livelihoods. Policymakers are advised to consider integrated water resource management approaches to balance agricultural demands with sustainable groundwater use.",
+        "example_regional_group": "Asia-Pacific States",
+        "example_geographical_scopes": [
+            "Countries"
+        ],
+        "example_main_country_focus": [
+            "Bangladesh"
+        ],
+        "pred_regional_group": "Asia-Pacific States",
+        "pred_geographical_scopes": [
+            "Countries"
+        ],
+        "pred_main_country_focus": [
+            "Bangladesh"
+        ],
+        "geography_f1_metric": 1.0
+    },
+    {
+        "question": "The findings indicate that recent drought events, exacerbated by climate change, have significantly affected agricultural production across several Eastern European States, posing risks to food security and rural livelihoods. Adaptive measures such as the promotion of drought-resistant crop varieties and improved irrigation management are deemed essential to sustain nutrition and income in the region. Furthermore, these impacts underline the importance of equitable resource distribution and participatory decision-making processes in developing effective climate adaptation strategies.",
+        "example_regional_group": "Eastern European States",
+        "example_geographical_scopes": [
+            "Regions or world"
+        ],
+        "example_main_country_focus": [],
+        "pred_regional_group": "Eastern European States",
+        "pred_geographical_scopes": [
+            "Countries"
+        ],
+        "pred_main_country_focus": [],
+        "geography_f1_metric": 0.5652
+    },
+    {
+        "question": "This study examines the socio-economic impacts of copper mining expansion in Zambia, with particular attention to employment conditions and community safety in mining regions.",
+        "example_regional_group": "African States",
+        "example_geographical_scopes": [
+            "Local or subnational"
+        ],
+        "example_main_country_focus": [
+            "Zambia"
+        ],
+        "pred_regional_group": "African States",
+        "pred_geographical_scopes": [],
+        "pred_main_country_focus": [
+            "Zambia"
+        ],
+        "geography_f1_metric": 0.8
+    },
+    {
+        "question": "The implementation of large-scale reforestation initiatives across Southeast Asia has illustrated significant potential for enhancing carbon sequestration and restoring degraded ecosystems. However, the uneven access to land tenure and insufficient recognition of local communities' rights have, in certain instances, led to distributional inequities and limited the effectiveness of these efforts. Improved participatory approaches in project planning and ongoing policy support are needed to ensure that environmental benefits are distributed fairly and that vulnerable populations are meaningfully included in decision-making processes.",
+        "example_regional_group": "Asia-Pacific States",
+        "example_geographical_scopes": [
+            "Regions or world"
+        ],
+        "example_main_country_focus": [],
+        "pred_regional_group": "Asia-Pacific States",
+        "pred_geographical_scopes": [
+            "Regions or world"
+        ],
+        "pred_main_country_focus": [],
+        "geography_f1_metric": 1.0
+    },
+    {
+        "question": "The findings demonstrate that intensified urban expansion in Western European cities has contributed to the significant reduction of peri-urban agricultural land, with implications for local food production and ecosystem services. This pattern underscores the necessity of integrating sustainable land-use planning into municipal policy to balance urban development with the preservation of productive landscapes. Future strategies should prioritize equitable access to green spaces and safeguard agricultural resources to maintain both community wellbeing and environmental integrity.",
+        "example_regional_group": "Western European",
+        "example_geographical_scopes": [
+            "Local or subnational"
+        ],
+        "example_main_country_focus": [],
+        "pred_regional_group": "Western European",
+        "pred_geographical_scopes": [
+            "Local or subnational"
+        ],
+        "pred_main_country_focus": [],
+        "geography_f1_metric": 1.0
+    },
+    {
+        "question": "This study analyses irrigation efficiency reforms implemented in Morocco\u2019s semi-arid agricultural regions, focusing on how water allocation policies affect crop yields and rural livelihoods.",
+        "example_regional_group": "African States",
+        "example_geographical_scopes": [
+            "Countries"
+        ],
+        "example_main_country_focus": [
+            "Morocco"
+        ],
+        "pred_regional_group": "African States",
+        "pred_geographical_scopes": [
+            "Local or subnational"
+        ],
+        "pred_main_country_focus": [
+            "Morocco"
+        ],
+        "geography_f1_metric": 0.6667
+    },
+    {
+        "question": "This study evaluates forest conservation incentive programmes implemented in Peru, analysing their effectiveness in reducing deforestation while supporting employment opportunities in rural and indigenous communities.",
+        "example_regional_group": "Latin American and Caribbean States",
+        "example_geographical_scopes": [
+            "Countries"
+        ],
+        "example_main_country_focus": [
+            "Peru"
+        ],
+        "pred_regional_group": "Latin American and Caribbean States",
+        "pred_geographical_scopes": [],
+        "pred_main_country_focus": [
+            "Peru"
+        ],
+        "geography_f1_metric": 0.8
+    },
+    {
+        "question": "Our analysis of urban expansion demonstrates a strong correlation between the loss of peri-urban agricultural land and the decline in local food security. The findings suggest that rapid land-use change, if left unregulated, can compromise both nutritional outcomes and environmental resilience, especially in densely populated metropolitan regions. This underscores the necessity for integrated spatial planning policies that prioritize sustainable land management to balance development needs with long-term resource stewardship.",
+        "example_regional_group": "World",
+        "example_geographical_scopes": [
+            "Local or subnational"
+        ],
+        "example_main_country_focus": [],
+        "pred_regional_group": "World",
+        "pred_geographical_scopes": [
+            "Local or subnational"
+        ],
+        "pred_main_country_focus": [],
+        "geography_f1_metric": 1.0
+    },
+    {
+        "question": "The analysis explores affordable housing policies introduced by municipal authorities in Spain, focusing on their impact on residential segregation and access to adequate living conditions in major cities.",
+        "example_regional_group": "Western European",
+        "example_geographical_scopes": [
+            "Local or subnational"
+        ],
+        "example_main_country_focus": [
+            "Spain"
+        ],
+        "pred_regional_group": "Western European",
+        "pred_geographical_scopes": [
+            "Local or subnational"
+        ],
+        "pred_main_country_focus": [
+            "Spain"
+        ],
+        "geography_f1_metric": 1.0
+    },
+    {
+        "question": "The analysis indicates that rapid urban expansion in coastal regions is intensifying pressure on both freshwater availability and wetland ecosystems. Land-use changes associated with urbanization have contributed to the reduction of wetland areas, while simultaneously increasing local freshwater demand. These trends underscore the need for integrated urban planning approaches that prioritize the protection of critical natural resources and ensure equitable access to water for growing populations.",
+        "example_regional_group": "World",
+        "example_geographical_scopes": [
+            "Regions or world",
+            "Local or subnational"
+        ],
+        "example_main_country_focus": [],
+        "pred_regional_group": "World",
+        "pred_geographical_scopes": [
+            "Local or subnational"
+        ],
+        "pred_main_country_focus": [],
+        "geography_f1_metric": 0.8214
+    },
+    {
+        "question": "Findings indicate that land-use transitions in Western European States, especially shifts from agricultural land to urban land, have contributed to measurable declines in regional biodiversity. Urban expansion has fragmented habitats and altered local climate patterns, underscoring the need for integrated planning approaches that balance development with the preservation of ecological integrity and community wellbeing.",
+        "example_regional_group": "Western European",
+        "example_geographical_scopes": [
+            "Regions or world",
+            "Local or subnational"
+        ],
+        "example_main_country_focus": [],
+        "pred_regional_group": "Western European",
+        "pred_geographical_scopes": [
+            "Regions or world"
+        ],
+        "pred_main_country_focus": [],
+        "geography_f1_metric": 0.8214
+    },
+    {
+        "question": "This paper analyses renewable energy subsidy schemes in Canada, focusing on their effects on household energy affordability and public acceptance of the energy transition.",
+        "example_regional_group": "North America",
+        "example_geographical_scopes": [
+            "Countries"
+        ],
+        "example_main_country_focus": [
+            "Canada"
+        ],
+        "pred_regional_group": "North America",
+        "pred_geographical_scopes": [
+            "Countries"
+        ],
+        "pred_main_country_focus": [
+            "Canada"
+        ],
+        "geography_f1_metric": 1.0
+    },
+    {
+        "question": "The increased integration of renewable energy sources into national grids has demonstrated significant reductions in greenhouse gas emissions, particularly in countries with supportive policy frameworks. However, the transition process often presents distributional challenges, as the economic impacts of shifting energy infrastructures are not uniformly experienced across populations. Empirical evidence indicates that targeted policy interventions are necessary to ensure equitable access to clean energy benefits and to mitigate adverse effects on vulnerable communities. This highlights the importance of incorporating justice considerations in the planning and implementation of national decarbonization strategies.",
+        "example_regional_group": "World",
+        "example_geographical_scopes": [
+            "Countries"
+        ],
+        "example_main_country_focus": [],
+        "pred_regional_group": "World",
+        "pred_geographical_scopes": [
+            "Countries"
+        ],
+        "pred_main_country_focus": [],
+        "geography_f1_metric": 1.0
+    },
+    {
+        "question": "The analysis indicates that urban expansion in coastal cities is exerting growing pressure on limited freshwater resources, leading to increased competition between domestic, industrial, and agricultural users. Without integrated water management policies, this trend is likely to exacerbate water scarcity, undermine equitable access, and elevate risks to both public health and local ecosystems.",
+        "example_regional_group": "World",
+        "example_geographical_scopes": [
+            "Local or subnational"
+        ],
+        "example_main_country_focus": [],
+        "pred_regional_group": "World",
+        "pred_geographical_scopes": [
+            "Local or subnational"
+        ],
+        "pred_main_country_focus": [],
+        "geography_f1_metric": 1.0
+    },
+    {
+        "question": "The findings highlight that the implementation of urban green corridors significantly mitigates heat island effects, leading to measurable improvements in local microclimates and increased thermal comfort for urban residents. Additionally, expanding vegetated areas contributes to enhanced air quality and supports greater urban biodiversity, underscoring the multifaceted value of nature-based solutions in densely populated environments. Policymakers are encouraged to integrate green infrastructure into urban planning frameworks to simultaneously address climate adaptation, public health, and ecological resilience.",
+        "example_regional_group": "Western European",
+        "example_geographical_scopes": [
+            "Local or subnational"
+        ],
+        "example_main_country_focus": [],
+        "pred_regional_group": "World",
+        "pred_geographical_scopes": [
+            "Local or subnational"
+        ],
+        "pred_main_country_focus": [],
+        "geography_f1_metric": 0.5652
+    },
+    {
+        "question": "The analysis indicates that implementation of large-scale wind energy projects in coastal regions has the potential to significantly reduce reliance on fossil fuels, with concomitant benefits for local air quality and public health. However, findings also highlight that equitable access to clean energy and careful consideration of community engagement processes are essential to avoid reinforcing existing socioeconomic disparities. Effective procedural justice mechanisms, including transparent decision-making and inclusive stakeholder participation, are critical to ensuring that affected communities are fairly represented in the planning and benefit-sharing of renewable energy transitions.",
+        "example_regional_group": "World",
+        "example_geographical_scopes": [
+            "Regions or world",
+            "Local or subnational"
+        ],
+        "example_main_country_focus": [],
+        "pred_regional_group": "World",
+        "pred_geographical_scopes": [
+            "Local or subnational"
+        ],
+        "pred_main_country_focus": [],
+        "geography_f1_metric": 0.8214
+    },
+    {
+        "question": "Findings indicate that increased groundwater extraction in several regions of India has led to heightened stress on freshwater availability and long-term aquifer sustainability. This trend is exacerbated by insufficient regulatory oversight and uneven access, raising significant concerns over water security for both agricultural and domestic needs. Policy interventions are required to ensure equitable distribution and promote sustainable groundwater management practices to safeguard future water supplies.",
+        "example_regional_group": "Asia-Pacific States",
+        "example_geographical_scopes": [
+            "Regions or world",
+            "Countries"
+        ],
+        "example_main_country_focus": [
+            "India"
+        ],
+        "pred_regional_group": "Asia-Pacific States",
+        "pred_geographical_scopes": [
+            "Regions or world"
+        ],
+        "pred_main_country_focus": [
+            "India"
+        ],
+        "geography_f1_metric": 0.8571
+    }
+]

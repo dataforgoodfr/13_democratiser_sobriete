@@ -14,15 +14,15 @@ load_dotenv()
 
 # 1. Configuration
 ### Scaleway  API
-"""
+
 lm = dspy.LM(
-        model="mistral/mistral-small-3.2-24b-instruct-2506:fp8",
+        model="mistral/mistral-small-3.2-24b-instruct-2506",
         api_key=os.getenv('SCALEWAY_API_KEY'),
-        api_base="https://c1b66caa-347e-448c-a54c-d3fb43889a62.ifr.fr-par.scaleway.com"
+        api_base="https://api.scaleway.ai/a2dc0d31-c47f-47f1-b0b9-9877dd4eb2b5/v1"
         )
-"""
+
 ### OpenAI  API
-lm = dspy.LM("openai/gpt-4o-mini", api_key=os.getenv('OPENAI_API_KEY'))
+#lm = dspy.LM("openai/gpt-4o-mini", api_key=os.getenv('OPENAI_API_KEY'))
 
 
 dspy.configure(lm=lm)
@@ -30,28 +30,28 @@ model_used = lm.model.replace("/","_")
 # 2. Data Loading
 golden_dataset = []
 
-if os.path.exists('model_training_data/conclusions&pollitiques_gold.jsonl'):
-    with open('model_training_data/conclusions&pollitiques_gold.jsonl', 'r', encoding='utf-8') as f:
+if os.path.exists('dspy_policies_and_taxonomy_extraction/model_training_data/gold_policy.jsonl'):
+    with open('dspy_policies_and_taxonomy_extraction/model_training_data/gold_policy.jsonl', 'r', encoding='utf-8') as f:
         for line in f:
             data = json.loads(line)
             example = dspy.Example(question=data['question'], response=data['response'])
             golden_dataset.append(example.with_inputs('question'))
 else:
-    exit ("Data file 'model_training_data/conclusions&pollitiques_gold.jsonl' not found.")
+    exit ("Data file 'model_training_data/gold_policy.jsonl' not found.")
 
 syntetic_dataset = []
-if os.path.exists('model_training_data/conclusions&pollitiques_synthetiques_diversifies.jsonl'):
-    with open('model_training_data/conclusions&pollitiques_synthetiques_diversifies.jsonl', 'r', encoding='utf-8') as f:
+if os.path.exists('dspy_policies_and_taxonomy_extraction/model_training_data/synthetic_policy.jsonl'):
+    with open('dspy_policies_and_taxonomy_extraction/model_training_data/synthetic_policy.jsonl', 'r', encoding='utf-8') as f:
         for line in f:
             data = json.loads(line)
             example = dspy.Example(question=data['question'], response=data['response'])
             syntetic_dataset.append(example.with_inputs('question'))
 else:
-    exit ("Data file 'model_training_data/conclusions&pollitiques_synthetiques_diversifies.jsonl' not found.")
+    exit ("Data file 'dspy_policies_and_taxonomy_extraction/model_training_data/synthetic_policy.jsonl' not found.")
 
 # Meilleur score avec dataset synthetique petit  
-trainset = syntetic_dataset
-devset = golden_dataset
+trainset = golden_dataset[40:] 
+devset = golden_dataset[:40]
 
 print(f"Training examples: {len(trainset)}, Validation examples: {len(devset)}")
 
@@ -106,7 +106,7 @@ metric_fn = CrossEncoderMetric()
 print("Starting optimization...")
 
 optimizer = MIPROv2(metric=metric_fn
-                    #,auto="heavy"
+                    ,auto="heavy"
                     )
 
 compiled_program = optimizer.compile(MonProgramme(), trainset=trainset)
@@ -121,7 +121,7 @@ optimized_evaluator = dspy.Evaluate(
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
 
-optimized_score = optimized_evaluator(compiled_program,save_as_json=f"saved_dspy_model/policy/{model_used}{timestamp}.json")
+optimized_score = optimized_evaluator(compiled_program,save_as_json=f"dspy_policies_and_taxonomy_extraction/saved_dspy_model/policy/{timestamp}.json")
 print(optimized_score)
 
 score_str = f"{round(optimized_score.score,2)}".replace(".", "_") 
@@ -134,6 +134,6 @@ optimized_evaluator(
 print(f"Final Score on Validation Set (optimized): {optimized_score}%")
 
 # --- Saving the optimized model ---
-model_path = f"saved_dspy_model/policy/{score_str}"
+model_path = f"saved_dspy_model/policy_model/" 
 compiled_program.save(model_path,save_program=True)
 print(f"Optimized model saved to {model_path}")
