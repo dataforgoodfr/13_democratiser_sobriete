@@ -14,6 +14,9 @@ dependencies = [
     "torch>=2.9.1",
     "matplotlib>=3.10.7",
     "loguru>=0.7.3",
+    "openpyxl>=3.1.5",
+    "dspy>=3.0.4",
+    "hf-xet>=1.2.0",
 ]
 
 [project.optional-dependencies]

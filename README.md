@@ -70,7 +70,8 @@ Installer pre-commit avec uv (pas obligatoire si vous avez déjà pre-commit ins
 
 ```
 uv tool install pre-commit --with pre-commit-uv
-pre-commit --version
+pre-commit --version  # check proper installation
+pre-commit install  # activate hooks before each commit
 ```
 
 Lancer les pre-commit hooks manuellement :

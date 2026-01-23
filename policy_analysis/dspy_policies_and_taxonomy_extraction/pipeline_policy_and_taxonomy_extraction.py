@@ -51,7 +51,7 @@ dspy.configure(lm=lm)
 with open("saved_dspy_model/best_policy_extraction_model/program.pkl", "rb") as f:
     policy_program = pickle.load(f)
 
-with open("saved_dspy_model/best_geo_impact_extraction_model/program.pkl", "rb") as f:
+with open("saved_dspy_model/best_geo_extraction_model/program.pkl", "rb") as f:
     geo_program = pickle.load(f)
 
 # --------------------------------------------------
@@ -123,12 +123,7 @@ with open(OUTPUT_PATH, "a", encoding="utf-8") as out_f:
                         "policy_list": policy_list,
                         "regional_group": geo_dict.get("regional_group"),
                         "geographical_scopes": geo_dict.get("geographical_scopes", []),
-                        "main_country_focus": geo_dict.get("main_country_focus", []),
-                        "human_needs": geo_dict.get("human_needs", []),
-                        "natural_resources": geo_dict.get("natural_ressource", []),
-                        "wellbeing": geo_dict.get("wellbeing", []),
-                        "justice": geo_dict.get("justice_consideration", []),
-                        "planetary_boundaries": geo_dict.get("planetary_boundaries", []),
+                        "main_country_focus": geo_dict.get("main_country_focus", [])
                     }
 
                     buffered_records.append(record)
