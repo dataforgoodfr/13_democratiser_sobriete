@@ -353,7 +353,7 @@ def run_clustering_experiment(
         )
         
         reduced_embeddings = embeddings
-        for name, step in pipe_for_reduction.steps[:-1]:
+        for _, step in pipe_for_reduction.steps[:-1]:
             reduced_embeddings = step.fit_transform(reduced_embeddings)
 
         cv_results = find_optimal_clusters(
