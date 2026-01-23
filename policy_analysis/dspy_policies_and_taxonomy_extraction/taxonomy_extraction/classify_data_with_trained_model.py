@@ -5,7 +5,6 @@ import numpy as np
 from datasets import load_dataset
 import pyarrow as pa
 import pyarrow.parquet as pq
-from itertools import islice
 
 # ---------------------------------------------------------------------
 # 0. Config

@@ -17,12 +17,6 @@ import joblib
 from sentence_transformers import SentenceTransformer
 
 # ---------------------------------------------------------------------
-# PATH SETUP
-# ---------------------------------------------------------------------
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
-load_dotenv()
-
-# ---------------------------------------------------------------------
 # 0. IMPORT TAXONOMY ENUMS
 # ---------------------------------------------------------------------
 from dspy_policies_and_taxonomy_extraction.taxonomy_definition.impact_taxonomy import (
@@ -32,6 +26,12 @@ from dspy_policies_and_taxonomy_extraction.taxonomy_definition.impact_taxonomy i
     Justice_consideration,
     Planetary_boundaries,
 )
+
+# ---------------------------------------------------------------------
+# PATH SETUP
+# ---------------------------------------------------------------------
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
+load_dotenv()
 
 # ---------------------------------------------------------------------
 # ENUM NORMALIZATION
@@ -73,13 +73,13 @@ def normalize_labels(labels, allowed_enum, allow_unknown=False):
         labels = [labels]
 
     cleaned = []
-    for l in labels:
-        if not l:
+    for label in labels:
+        if not label:
             continue
             
         # --- FIX: FORCE SNAKE_CASE ---
         # 1. Lowercase and strip
-        l_norm = l.lower().strip()
+        l_norm = label.lower().strip()
         # 2. Replace spaces and hyphens with underscores 
         #    (e.g., "Climate Change" -> "climate_change", "Land-System Change" -> "land_system_change")
         l_norm = re.sub(r"[\s\-]+", "_", l_norm)
@@ -91,7 +91,7 @@ def normalize_labels(labels, allowed_enum, allow_unknown=False):
             cleaned.append(l_norm)
         # Optional: Print warning if label is rejected (good for debugging)
         # else: 
-        #    print(f"Warning: Label '{l}' normalized to '{l_norm}' not found in Enum.")
+        #    print(f"Warning: Label '{label}' normalized to '{l_norm}' not found in Enum.")
 
     if not cleaned and allow_unknown:
         return ["unknown"]
@@ -255,8 +255,8 @@ for field, clf in classifiers.items():
     y_true_labels = mlb_dict[field].inverse_transform(y_true)
     y_pred_labels = mlb_dict[field].inverse_transform(y_pred)
 
-    results[f"{field}_true"] = [list(l) for l in y_true_labels]
-    results[f"{field}_pred"] = [list(l) for l in y_pred_labels]
+    results[f"{field}_true"] = [list(label) for label in y_true_labels]
+    results[f"{field}_pred"] = [list(label) for label in y_pred_labels]
 
     f1 = f1_score(y_true, y_pred, average="micro")
     f1_scores[field] = round(f1, 4)
