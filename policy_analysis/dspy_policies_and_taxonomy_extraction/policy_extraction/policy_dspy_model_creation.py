@@ -134,6 +134,6 @@ optimized_evaluator(
 print(f"Final Score on Validation Set (optimized): {optimized_score}%")
 
 # --- Saving the optimized model ---
-model_path = f"saved_dspy_model/policy_model/" 
+model_path = "saved_dspy_model/policy_model/" 
 compiled_program.save(model_path,save_program=True)
 print(f"Optimized model saved to {model_path}")

@@ -270,7 +270,7 @@ score = evaluator(compiled_program)
 print("Final Geography F1:", score)
 
 # Save results
-optimized_score = evaluator(compiled_program, save_as_json=f"results.json")
+optimized_score = evaluator(compiled_program, save_as_json="results.json")
 
 # ---------------------------------------------------------------------
 # 8. SAVE MODEL
