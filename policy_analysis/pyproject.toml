@@ -24,6 +24,7 @@ dependencies = [
     "sqlmodel>=0.0.16,<0.1",
     "psycopg2-binary>=2.8.1,<2.9.10",
     "qdrant-client>=1.15.1",
+    "langchain-text-splitters>=1.1.0",
 ]
 
 [dependency-groups]
