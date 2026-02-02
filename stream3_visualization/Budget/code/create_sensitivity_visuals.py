@@ -20,10 +20,20 @@ For each combination of:
 
 import pandas as pd
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')  # Use non-interactive backend to avoid tkinter issues
 import matplotlib.pyplot as plt
 import seaborn as sns
+import plotly.express as px
 import os
 from pathlib import Path
+
+# Try to import pycountry for ISO2 to ISO3 mapping
+try:
+    import pycountry
+    HAS_PYCOUNTRY = True
+except ImportError:
+    HAS_PYCOUNTRY = False
 
 # Configuration
 INPUT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'Output', 'Sensitivity check'))
@@ -122,8 +132,13 @@ def create_scatter_comparison(comparison_df, scope, distribution, warming, proba
     print(f"Created: {filename}")
 
 
-def create_rank_comparison(comparison_df, scope, distribution, warming, probability):
-    """Create visualizations showing rank changes across scenarios."""
+def create_year_difference_chart(comparison_df, scope, distribution, warming, probability):
+    """Create chart showing years lost/gained by replacing historical baselines with 2025.
+    
+    Framing: By replacing 2018/2021 values with 2025 ones, countries lose X years.
+    Values shown as NEGATIVE = years LOST (red) - had more time with older baseline
+    Values shown as POSITIVE = years GAINED (green) - have more time with 2025 baseline
+    """
     
     # Filter data
     df = comparison_df[
@@ -136,64 +151,141 @@ def create_rank_comparison(comparison_df, scope, distribution, warming, probabil
     if len(df) == 0:
         return
     
-    # Remove NaN values
+    # Remove NaN values and "All" aggregates
     df = df.dropna(subset=['Base_2025', 'Alternative_2018', 'Alternative_2021'])
+    df = df[df['Country'] != 'All']
+    df = df[~df['Country'].str.contains('All', case=False, na=False)]
     
-    # Calculate ranks (lower neutrality year = better rank)
-    df['Rank_Base_2025'] = df['Base_2025'].rank(method='min')
-    df['Rank_Alternative_2018'] = df['Alternative_2018'].rank(method='min')
-    df['Rank_Alternative_2021'] = df['Alternative_2021'].rank(method='min')
+    # Calculate years change: INVERTED so negative = lost, positive = gained
+    # Base_2025 - Alternative = negative means we lost time (2025 is earlier)
+    df['Years_change_vs_2018'] = df['Base_2025'] - df['Alternative_2018']  # Negative = lost time
+    df['Years_change_vs_2021'] = df['Base_2025'] - df['Alternative_2021']  # Negative = lost time
     
-    # Calculate rank changes
-    df['Rank_Change_2018'] = df['Rank_Alternative_2018'] - df['Rank_Base_2025']
-    df['Rank_Change_2021'] = df['Rank_Alternative_2021'] - df['Rank_Base_2025']
+    # Filter out countries that overshot in both scenarios (1970)
+    df = df[(df['Base_2025'] > 1970) | (df['Alternative_2018'] > 1970)]
     
-    # Get top 20 biggest rank changes (in both directions)
-    top_gainers = df.nlargest(10, 'Rank_Change_2018')[['Country', 'Rank_Change_2018', 'Rank_Change_2021']].copy()
-    top_losers = df.nsmallest(10, 'Rank_Change_2018')[['Country', 'Rank_Change_2018', 'Rank_Change_2021']].copy()
+    if len(df) == 0:
+        print(f"No valid data for {scope}, {distribution}, {warming}, {probability}")
+        return
     
-    # Create figure
-    fig, axes = plt.subplots(2, 1, figsize=(14, 10))
+    # Calculate average change across both baselines for sorting
+    df['Avg_change'] = (df['Years_change_vs_2018'] + df['Years_change_vs_2021']) / 2
     
-    # Plot 1: Top rank losers (rank went down = neutrality year pushed back)
-    ax1 = axes[0]
-    x_pos = np.arange(len(top_gainers))
+    # Sort by average change (most negative at top = most time lost, most positive at bottom = most time gained)
+    df_sorted = df.sort_values('Avg_change', ascending=True)
+    
+    # Get top 10 losers (most negative average) and top 10 gainers (most positive average)
+    top_losers = df_sorted.head(10)  # Most years LOST (most negative values)
+    top_gainers = df_sorted.tail(10)  # Most years GAINED (most positive values)
+    
+    # Create figure with clear separation - increased size for readability
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(16, 18), gridspec_kw={'height_ratios': [1, 1], 'hspace': 0.4})
+    
+    # ==================== TOP SECTION: Countries LOSING time ====================
+    y_pos_top = np.arange(len(top_losers))
     width = 0.35
     
-    ax1.barh(x_pos, top_gainers['Rank_Change_2018'], width, label='vs 2018', color=COLORS['Alternative_2018'], alpha=0.8)
-    ax1.barh(x_pos + width, top_gainers['Rank_Change_2021'], width, label='vs 2021', color=COLORS['Alternative_2021'], alpha=0.8)
+    # Color bars based on value: red for negative (lost), green for positive (gained)
+    colors_2018_top = ['#d73027' if v < 0 else '#1a9850' for v in top_losers['Years_change_vs_2018']]
+    colors_2021_top = ['#d73027' if v < 0 else '#1a9850' for v in top_losers['Years_change_vs_2021']]
     
-    ax1.set_yticks(x_pos + width/2)
-    ax1.set_yticklabels(top_gainers['Country'])
-    ax1.set_xlabel('Rank Change (Positive = Worse Rank)', fontsize=11, fontweight='bold')
-    ax1.set_title('Top 10 Countries: Biggest Rank Decrease\n(More time to reach neutrality in alternatives)', 
-                  fontsize=12, fontweight='bold')
-    ax1.legend()
+    for i, (country, v2018, v2021) in enumerate(zip(top_losers['Country'], 
+                                                      top_losers['Years_change_vs_2018'], 
+                                                      top_losers['Years_change_vs_2021'])):
+        ax1.barh(i + width/2, v2018, width, color=colors_2018_top[i], alpha=0.8, edgecolor='white', linewidth=0.5)
+        ax1.barh(i - width/2, v2021, width, color=colors_2021_top[i], alpha=0.8, edgecolor='white', linewidth=0.5)
+    
+    # Add value labels for top section - position at end of each bar
+    for i, (v2018, v2021) in enumerate(zip(top_losers['Years_change_vs_2018'], top_losers['Years_change_vs_2021'])):
+        label_2018 = f'{int(v2018):+d}'
+        label_2021 = f'{int(v2021):+d}'
+        # Position labels outside the bar (to the left for negative, to the right for positive)
+        offset = 0.8
+        x_2018 = v2018 - offset if v2018 < 0 else v2018 + offset
+        x_2021 = v2021 - offset if v2021 < 0 else v2021 + offset
+        ha_2018 = 'right' if v2018 < 0 else 'left'
+        ha_2021 = 'right' if v2021 < 0 else 'left'
+        ax1.text(x_2018, i + width/2, label_2018,
+                ha=ha_2018, va='center', fontsize=9, fontweight='bold')
+        ax1.text(x_2021, i - width/2, label_2021,
+                ha=ha_2021, va='center', fontsize=9, fontweight='bold', alpha=0.7)
+    
+    ax1.axvline(x=0, color='black', linestyle='-', linewidth=1.5, alpha=0.7)
+    ax1.set_yticks(y_pos_top)
+    ax1.set_yticklabels(top_losers['Country'])
+    ax1.set_xlabel('Years (negative = LOST, positive = GAINED)', fontsize=11, fontweight='bold')
+    ax1.set_title(f'TOP 10: Countries LOSING the most time by using 2025 baseline\n'
+                  f'{scope} | {distribution} | {warming} | {probability}',
+                  fontsize=13, fontweight='bold', color='#d73027')
     ax1.grid(True, alpha=0.3, axis='x')
     
-    # Plot 2: Top rank gainers (rank went up = neutrality year pulled forward)
-    ax2 = axes[1]
-    x_pos = np.arange(len(top_losers))
+    # Add padding to xlim for labels
+    all_top_values = list(top_losers['Years_change_vs_2018']) + list(top_losers['Years_change_vs_2021'])
+    top_min = min(all_top_values)
+    top_max = max(all_top_values)
+    ax1.set_xlim(top_min - 8, top_max + 8)
+    ax1.axvspan(ax1.get_xlim()[0], 0, alpha=0.05, color='red')
     
-    ax2.barh(x_pos, top_losers['Rank_Change_2018'], width, label='vs 2018', color=COLORS['Alternative_2018'], alpha=0.8)
-    ax2.barh(x_pos + width, top_losers['Rank_Change_2021'], width, label='vs 2021', color=COLORS['Alternative_2021'], alpha=0.8)
+    # Legend for top
+    from matplotlib.patches import Patch
+    legend_elements = [Patch(facecolor='#d73027', alpha=0.8, label='2018 → 2025'),
+                       Patch(facecolor='#d73027', alpha=0.5, label='2021 → 2025')]
+    ax1.legend(handles=legend_elements, loc='lower left', fontsize=9)
     
-    ax2.set_yticks(x_pos + width/2)
-    ax2.set_yticklabels(top_losers['Country'])
-    ax2.set_xlabel('Rank Change (Negative = Better Rank)', fontsize=11, fontweight='bold')
-    ax2.set_title('Top 10 Countries: Biggest Rank Increase\n(Less time to reach neutrality in alternatives)', 
-                  fontsize=12, fontweight='bold')
-    ax2.legend()
+    # ==================== BOTTOM SECTION: Countries GAINING time ====================
+    y_pos_bottom = np.arange(len(top_gainers))
+    
+    # Reverse order so most gained is at bottom
+    top_gainers_rev = top_gainers.iloc[::-1]
+    
+    colors_2018_bottom = ['#d73027' if v < 0 else '#1a9850' for v in top_gainers_rev['Years_change_vs_2018']]
+    colors_2021_bottom = ['#d73027' if v < 0 else '#1a9850' for v in top_gainers_rev['Years_change_vs_2021']]
+    
+    for i, (country, v2018, v2021) in enumerate(zip(top_gainers_rev['Country'], 
+                                                      top_gainers_rev['Years_change_vs_2018'], 
+                                                      top_gainers_rev['Years_change_vs_2021'])):
+        ax2.barh(i + width/2, v2018, width, color=colors_2018_bottom[i], alpha=0.8, edgecolor='white', linewidth=0.5)
+        ax2.barh(i - width/2, v2021, width, color=colors_2021_bottom[i], alpha=0.8, edgecolor='white', linewidth=0.5)
+    
+    # Add value labels for bottom section - position at end of each bar
+    for i, (v2018, v2021) in enumerate(zip(top_gainers_rev['Years_change_vs_2018'], top_gainers_rev['Years_change_vs_2021'])):
+        label_2018 = f'{int(v2018):+d}'
+        label_2021 = f'{int(v2021):+d}'
+        # Position labels outside the bar (to the right for positive, to the left for negative)
+        offset = 0.8
+        x_2018 = v2018 + offset if v2018 > 0 else v2018 - offset
+        x_2021 = v2021 + offset if v2021 > 0 else v2021 - offset
+        ha_2018 = 'left' if v2018 > 0 else 'right'
+        ha_2021 = 'left' if v2021 > 0 else 'right'
+        ax2.text(x_2018, i + width/2, label_2018,
+                ha=ha_2018, va='center', fontsize=9, fontweight='bold')
+        ax2.text(x_2021, i - width/2, label_2021,
+                ha=ha_2021, va='center', fontsize=9, fontweight='bold', alpha=0.7)
+    
+    ax2.axvline(x=0, color='black', linestyle='-', linewidth=1.5, alpha=0.7)
+    ax2.set_yticks(y_pos_bottom)
+    ax2.set_yticklabels(top_gainers_rev['Country'])
+    ax2.set_xlabel('Years (negative = LOST, positive = GAINED)', fontsize=11, fontweight='bold')
+    ax2.set_title(f'TOP 10: Countries GAINING the most time by using 2025 baseline',
+                  fontsize=13, fontweight='bold', color='#1a9850')
     ax2.grid(True, alpha=0.3, axis='x')
     
-    # Overall title
-    fig.suptitle(f'Rank Changes Across Scenarios\n{scope} | {distribution} | {warming} | {probability}',
-                 fontsize=14, fontweight='bold', y=0.995)
+    # Add padding to xlim for labels
+    all_bottom_values = list(top_gainers_rev['Years_change_vs_2018']) + list(top_gainers_rev['Years_change_vs_2021'])
+    bottom_min = min(all_bottom_values)
+    bottom_max = max(all_bottom_values)
+    ax2.set_xlim(bottom_min - 8, bottom_max + 8)
+    ax2.axvspan(0, ax2.get_xlim()[1], alpha=0.05, color='green')
+    
+    # Legend for bottom
+    legend_elements2 = [Patch(facecolor='#1a9850', alpha=0.8, label='2018 → 2025'),
+                        Patch(facecolor='#1a9850', alpha=0.5, label='2021 → 2025')]
+    ax2.legend(handles=legend_elements2, loc='lower right', fontsize=9)
     
     plt.tight_layout()
     
     # Save
-    filename = f'rank_changes_{scope}_{distribution}_{warming}_{probability}.png'
+    filename = f'years_impact_{scope}_{distribution}_{warming}_{probability}.png'
     filepath = os.path.join(OUTPUT_DIR, filename)
     plt.savefig(filepath, dpi=300, bbox_inches='tight')
     plt.close()
@@ -392,6 +484,315 @@ def create_summary_heatmap(summary_df):
     print(f"Created: {filename}")
 
 
+def create_iso2_to_iso3_mapping():
+    """Create a mapping from ISO2 to ISO3 country codes from combined_data.csv."""
+    try:
+        # Load combined_data which has both ISO2 and ISO3 columns
+        combined_data_path = os.path.join(INPUT_DIR, '..', 'combined_data.csv')
+        combined_data = pd.read_csv(combined_data_path)
+        
+        if 'ISO2' in combined_data.columns and 'ISO3' in combined_data.columns:
+            iso_mapping = combined_data[['ISO2', 'ISO3']].drop_duplicates()
+            iso2_to_iso3 = dict(zip(iso_mapping['ISO2'], iso_mapping['ISO3']))
+            print(f"Created ISO mapping with {len(iso2_to_iso3)} entries from combined_data.csv")
+            return iso2_to_iso3
+        else:
+            print("Warning: ISO2 or ISO3 columns not found in combined_data.csv")
+            return {}
+    except Exception as e:
+        print(f"Error loading ISO mapping from combined_data.csv: {e}")
+        # Fallback to pycountry if available
+        if HAS_PYCOUNTRY:
+            mapping = {}
+            for country in pycountry.countries:
+                mapping[country.alpha_2] = country.alpha_3
+            print(f"Using pycountry fallback with {len(mapping)} entries")
+            return mapping
+        else:
+            print("Error: Could not create ISO mapping")
+            return {}
+
+
+def create_difference_maps(comparison_df, scope, distribution, warming, probability, iso2_to_iso3, global_color_range=None):
+    """Create stacked world maps showing years lost by moving to 2025 baseline.
+    
+    Two maps stacked vertically with shared color scale:
+    - Top: Years lost by replacing 2018 → 2025
+    - Bottom: Years lost by replacing 2021 → 2025
+    
+    Args:
+        global_color_range: tuple (min, max) for consistent color scale across all maps
+    """
+    from plotly.subplots import make_subplots
+    import plotly.graph_objects as go
+    
+    # Filter data
+    df = comparison_df[
+        (comparison_df['Emissions_scope'] == scope) &
+        (comparison_df['Distribution_method'] == distribution) &
+        (comparison_df['Warming_scenario'] == warming) &
+        (comparison_df['Probability'] == probability)
+    ].copy()
+    
+    if len(df) == 0:
+        print(f"No data for difference maps: {scope} | {distribution} | {warming} | {probability}")
+        return
+    
+    # Remove NaN values and "All" aggregates
+    df = df.dropna(subset=['Base_2025', 'Alternative_2018', 'Alternative_2021'])
+    df = df[df['Country'] != 'All']
+    df = df[~df['Country'].str.contains('All', case=False, na=False)]
+    
+    # Calculate years lost by switching to 2025 baseline
+    # Positive = LOST time (had more time with older baseline)
+    # Negative = GAINED time (have more time with 2025 baseline)
+    # Years_lost = Alt - Base: if Alt (e.g. 2050) > Base (e.g. 2040), then lost 10 years by moving to 2025
+    df['Years_lost_2018'] = df['Alternative_2018'] - df['Base_2025']
+    df['Years_lost_2021'] = df['Alternative_2021'] - df['Base_2025']
+    
+    # Add ISO3 codes
+    df['ISO3'] = df['ISO2'].map(iso2_to_iso3)
+    
+    # Use global color range if provided, otherwise calculate from this data
+    if global_color_range:
+        color_range_min, color_range_max = global_color_range
+    else:
+        all_diffs = pd.concat([df['Years_lost_2018'], df['Years_lost_2021']])
+        color_range_min = all_diffs.min()
+        color_range_max = all_diffs.max()
+    
+    # Diverging colorscale: Plotly maps zmin->0.0 and zmax->1.0 in colorscale
+    # zmin is most negative (gained time) -> should be GREEN
+    # zmax is most positive (lost time) -> should be RED
+    # So: 0.0 = GREEN (min, negative, gained), 1.0 = RED (max, positive, lost)
+    colorscale = [
+        [0.0, '#1a9850'],    # Dark green (min value = most negative = most time gained)
+        [0.25, '#91cf60'],   # Light green
+        [0.45, '#d9ef8b'],   # Very light green
+        [0.5, '#ffffbf'],    # White/yellow (neutral at midpoint)
+        [0.55, '#fee08b'],   # Very light red
+        [0.75, '#fc8d59'],   # Light red/orange
+        [1.0, '#d73027']     # Dark red (max value = most positive = most time lost)
+    ]
+    
+    # Create figure with 2 rows
+    fig = make_subplots(
+        rows=2, cols=1,
+        subplot_titles=(
+            f'Years Lost by Replacing 2018 Baseline → 2025',
+            f'Years Lost by Replacing 2021 Baseline → 2025'
+        ),
+        specs=[[{"type": "choropleth"}], [{"type": "choropleth"}]],
+        vertical_spacing=0.05
+    )
+    
+    # Map 1: 2018 → 2025
+    fig.add_trace(
+        go.Choropleth(
+            locations=df['ISO3'],
+            z=df['Years_lost_2018'],
+            locationmode='ISO-3',
+            colorscale=colorscale,
+            zmin=color_range_min,
+            zmax=color_range_max,
+            marker_line_color='white',
+            marker_line_width=0.5,
+            hovertemplate="<b>%{text}</b><br>Years lost: %{z:.0f}<extra></extra>",
+            text=df['Country'],
+            colorbar=dict(
+                title=dict(text="Years Lost", font=dict(size=12)),
+                thickness=15,
+                len=0.4,
+                y=0.77,
+                yanchor='middle'
+            ),
+            showscale=True
+        ),
+        row=1, col=1
+    )
+    
+    # Map 2: 2021 → 2025
+    fig.add_trace(
+        go.Choropleth(
+            locations=df['ISO3'],
+            z=df['Years_lost_2021'],
+            locationmode='ISO-3',
+            colorscale=colorscale,
+            zmin=color_range_min,
+            zmax=color_range_max,
+            marker_line_color='white',
+            marker_line_width=0.5,
+            hovertemplate="<b>%{text}</b><br>Years lost: %{z:.0f}<extra></extra>",
+            text=df['Country'],
+            colorbar=dict(
+                title=dict(text="Years Lost", font=dict(size=12)),
+                thickness=15,
+                len=0.4,
+                y=0.23,
+                yanchor='middle'
+            ),
+            showscale=True
+        ),
+        row=2, col=1
+    )
+    
+    # Update geos for both maps
+    geo_settings = dict(
+        showframe=False,
+        showcoastlines=True,
+        coastlinecolor='white',
+        projection_type='equirectangular',
+        bgcolor='white',
+        landcolor='lightgray',
+        showlakes=False,
+        center=dict(lat=20, lon=0),
+        lataxis_range=[-55, 75],
+        lonaxis_range=[-170, 180]
+    )
+    
+    fig.update_geos(geo_settings, row=1, col=1)
+    fig.update_geos(geo_settings, row=2, col=1)
+    
+    # Update layout
+    fig.update_layout(
+        height=900,
+        width=1200,
+        title=dict(
+            text=f"Impact of Baseline Change on Neutrality Year<br>"
+                 f"<sub>{scope} | {distribution} | {warming} | {probability}</sub>",
+            font=dict(size=16, color="#2c3e50"),
+            x=0.5
+        ),
+        margin={"r": 50, "t": 80, "l": 50, "b": 30},
+        paper_bgcolor='#ffffff',
+        font=dict(family="Arial, sans-serif", size=11, color="#2c3e50"),
+    )
+    
+    # Update subplot titles
+    for annotation in fig['layout']['annotations']:
+        annotation['font'] = dict(size=13, color='#2c3e50')
+    
+    # Save
+    filename = f'difference_maps_{scope}_{distribution}_{warming}_{probability}.png'
+    filepath = os.path.join(OUTPUT_DIR, filename)
+    try:
+        fig.write_image(filepath, width=1200, height=900)
+        print(f"Created: {filename}")
+    except Exception as e:
+        print(f"Warning: Could not save {filename} as PNG: {e}")
+
+
+def create_world_map(full_results_df, scope, distribution, warming, probability, scenario_name, iso2_to_iso3):
+    """Create a world map visualization showing neutrality years by country."""
+    # This function is kept but not called in main() anymore
+    pass
+    
+    # Create choropleth map
+    fig = px.choropleth(
+        df,
+        locations="ISO3",
+        locationmode='ISO-3',
+        color="Neutrality_year_numeric",
+        hover_name="Country",
+        hover_data={
+            "Neutrality_year": True,
+            "Neutrality_year_numeric": False,
+            "ISO3": False,
+            "Starting_year_annual_emissions_MtCO2": ':.1f',
+            "Country_budget_MtCO2": ':.1f'
+        },
+        color_continuous_scale=colorscale,
+        range_color=[color_range_min, color_range_max],
+        title=f"Zero Carbon Timeline: {scope} | {distribution} | {warming} | {probability}<br>{scenario_name}",
+        labels={
+            'Neutrality_year_numeric': 'Zero Carbon Year',
+            'Starting_year_annual_emissions_MtCO2': 'Annual Emissions (Mt)',
+            'Country_budget_MtCO2': 'Carbon Budget (Mt)'
+        }
+    )
+    
+    # Update traces for better styling
+    fig.update_traces(
+        marker_line_color="white",
+        marker_line_width=0.5,
+        hovertemplate="<b>%{hovertext}</b><br>" +
+                      "Zero Carbon Year: %{customdata[0]}<br>" +
+                      "Annual Emissions (Mt): %{customdata[1]:.1f}<br>" +
+                      "Carbon Budget (Mt): %{customdata[2]:.1f}<extra></extra>",
+        customdata=df[[
+            'Neutrality_year', 'Starting_year_annual_emissions_MtCO2', 'Country_budget_MtCO2'
+        ]].values
+    )
+    
+    # Update geos for better map appearance
+    fig.update_geos(
+        showframe=False,
+        showcoastlines=True,
+        coastlinecolor='white',
+        projection_type='equirectangular',
+        bgcolor='white',
+        landcolor='lightgray',
+        framecolor='white',
+        showlakes=False,
+        center=dict(lat=20, lon=0),
+        lataxis_range=[-60, 80],
+        lonaxis_range=[-180, 180]
+    )
+    
+    # Update layout
+    fig.update_layout(
+        height=700,
+        width=1200,
+        margin={"r": 100, "t": 80, "l": 100, "b": 50},
+        geo=dict(
+            projection_scale=1.0,
+            showland=True,
+            landcolor='lightgray',
+            showocean=True,
+            oceancolor='white',
+            showlakes=False,
+            showrivers=False,
+            center=dict(lat=20, lon=0),
+            lataxis_range=[-60, 80],
+            lonaxis_range=[-180, 180]
+        ),
+        paper_bgcolor='#ffffff',
+        plot_bgcolor='#ffffff',
+        font=dict(
+            family="Arial, sans-serif",
+            size=12,
+            color="#2c3e50"
+        ),
+        title=dict(
+            font=dict(size=16, color="#2c3e50", weight="bold"),
+            x=0.5
+        ),
+        coloraxis_colorbar=dict(
+            thickness=15,
+            len=0.7,
+            title=dict(
+                text="Zero Carbon<br>Year",
+                font=dict(size=12, color="#2c3e50"),
+                side="right"
+            )
+        ),
+        hoverlabel=dict(
+            bgcolor="rgba(245, 245, 245, 0.9)",
+            bordercolor="white",
+            font=dict(color="black", size=11)
+        )
+    )
+    
+    # Save as PNG
+    filename = f'world_map_{scope}_{distribution}_{warming}_{probability}_{scenario_name}.png'
+    filepath = os.path.join(OUTPUT_DIR, filename)
+    try:
+        fig.write_image(filepath, width=1200, height=700)
+        print(f"Created: {filename}")
+    except Exception as e:
+        print(f"Warning: Could not save {filename} as PNG. Make sure kaleido is installed: {e}")
+
+
 def create_key_findings_visual(full_results_df, comparison_df):
     """Create a comprehensive visual highlighting key findings."""
     
@@ -548,6 +949,22 @@ def main():
     # Load data
     full_results, comparison, summary = load_data()
     
+    # Create ISO2 to ISO3 mapping
+    iso2_to_iso3 = create_iso2_to_iso3_mapping()
+    print(f"Created ISO2 to ISO3 mapping with {len(iso2_to_iso3)} entries")
+    
+    # Calculate GLOBAL color range for all difference maps (use actual min/max)
+    comparison_clean = comparison.dropna(subset=['Base_2025', 'Alternative_2018', 'Alternative_2021'])
+    comparison_clean = comparison_clean[comparison_clean['Country'] != 'All']
+    comparison_clean = comparison_clean[~comparison_clean['Country'].str.contains('All', case=False, na=False)]
+    all_diffs_2018 = comparison_clean['Alternative_2018'] - comparison_clean['Base_2025']
+    all_diffs_2021 = comparison_clean['Alternative_2021'] - comparison_clean['Base_2025']
+    all_diffs = pd.concat([all_diffs_2018, all_diffs_2021])
+    global_min = all_diffs.min()
+    global_max = all_diffs.max()
+    global_color_range = (global_min, global_max)
+    print(f"Global color range for maps: {global_color_range[0]:.0f} to {global_color_range[1]:.0f} years")
+    
     # Define all scenario combinations
     scopes = ['Territory', 'Consumption']
     distributions = ['Responsibility', 'Capability']
@@ -568,31 +985,25 @@ def main():
                     print(f"\n[{counter}/{total_combos}] Processing: {scope} | {distribution} | {warming} | {probability}")
                     
                     # Create visualizations for this combination
+                    # 1. Scatter comparison (kept as-is)
                     create_scatter_comparison(comparison, scope, distribution, warming, probability)
-                    create_rank_comparison(comparison, scope, distribution, warming, probability)
-                    create_top_movers(comparison, scope, distribution, warming, probability)
-                    create_distribution_plot(comparison, scope, distribution, warming, probability)
-    
-    # Create summary visualizations
-    print("\n" + "="*80)
-    print("Creating summary visualizations...")
-    print("="*80)
-    
-    create_summary_heatmap(summary)
-    create_key_findings_visual(full_results, comparison)
+                    
+                    # 2. Year difference chart (replaces rank_changes)
+                    create_year_difference_chart(comparison, scope, distribution, warming, probability)
+                    
+                    # 3. Difference maps (stacked with shared legend and global color range)
+                    create_difference_maps(comparison, scope, distribution, warming, probability, iso2_to_iso3, global_color_range)
     
     print("\n" + "="*80)
-    print("VISUALIZATION CREATION COMPLETED!")
+    print("DONE!")
     print("="*80)
-    print(f"\nTotal visualizations created: {counter * 4 + 2}")
+    
+    print(f"\nTotal scenario combinations processed: {counter}")
     print(f"Output directory: {OUTPUT_DIR}")
     print("\nVisualization types created:")
     print("  - Scatter comparisons (Base vs Alternatives)")
-    print("  - Rank change charts")
-    print("  - Top movers/biggest changes")
-    print("  - Distribution plots")
-    print("  - Summary heatmap")
-    print("  - Key findings overview")
+    print("  - Year impact charts (years lost/gained)")
+    print("  - Difference maps (stacked 2018 & 2021 comparisons)")
 
 
 if __name__ == '__main__':
