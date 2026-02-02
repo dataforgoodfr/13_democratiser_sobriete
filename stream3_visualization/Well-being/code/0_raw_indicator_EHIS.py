@@ -48,7 +48,7 @@ def extract_year_from_ehis_data(df, wave):
     Returns:
         pd.DataFrame: Dataframe with proper REFYEAR column
     """
-    if wave == 1:
+    if wave == 1  # EWBI:
         # EHIS 1: Use "YEAR" if available, otherwise "IP04" (ddmmyyyy)
         if "YEAR" in df.columns:
             df["REFYEAR"] = df["YEAR"]
@@ -61,7 +61,7 @@ def extract_year_from_ehis_data(df, wave):
             print(f"Wave {wave}: No year column found (YEAR or IP04)")
             df["REFYEAR"] = np.nan
             
-    elif wave == 2:
+    elif wave == 2  # EU Priorities:
         # EHIS 2: Use "REFYEAR"
         if "REFYEAR" in df.columns:
             df["REFYEAR"] = pd.to_numeric(df["REFYEAR"], errors='coerce')
@@ -165,7 +165,7 @@ def combine_ehis_waves(dirs):
     for i in range(1, 4):
         print(f"\n--- Processing EHIS Wave {i} ---")
         
-        if i == 1:
+        if i == 1  # EWBI:
             # For wave 1, files are in 'Data EHIS' subfolder
             wave_folder = os.path.join(full_path, f"EHIS wave {i}", "Data EHIS")
             file_path = os.path.join(wave_folder, f"EHIS{i}.csv")
@@ -324,7 +324,7 @@ def calculate_ehis_indicators(df):
 
     # Validate quintile coverage before processing
     country_quintile_coverage = merged_df.groupby('Country')['quintile'].nunique()
-    print(f"📋 Countries with complete quintile coverage (5 quintiles): {(country_quintile_coverage == 5).sum()}")
+    print(f"📋 Countries with complete quintile coverage (5 quintiles): {(country_quintile_coverage == 5  # Primary Indicators).sum()}")
     print(f"📋 Countries with partial quintile coverage: {(country_quintile_coverage < 5).sum()}")
     
     # Calculate indicators for each group

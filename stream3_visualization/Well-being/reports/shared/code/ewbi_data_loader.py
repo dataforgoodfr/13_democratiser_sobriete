@@ -24,12 +24,12 @@ from pathlib import Path
 def get_well_being_data_path():
     """Get the absolute path to the Well-being output directory"""
     current_file = Path(__file__).resolve()
-    # Navigate from shared/code -> shared -> Well-being Reports -> stream3_visualization -> Well-being/output
+    # Navigate from shared/code -> shared -> reports -> Well-being/output
     shared_code_dir = current_file.parent               # Up to shared/code
     shared_dir = shared_code_dir.parent                 # Up to shared
-    well_being_reports_dir = shared_dir.parent          # Up to Well-being Reports
-    stream3_viz_dir = well_being_reports_dir.parent     # Up to stream3_visualization
-    well_being_output = stream3_viz_dir / 'Well-being' / 'output'
+    reports_dir = shared_dir.parent                     # Up to reports
+    well_being_dir = reports_dir.parent                 # Up to Well-being (reports is inside Well-being)
+    well_being_output = well_being_dir / 'output'
     
     if not well_being_output.exists():
         raise FileNotFoundError(f"Well-being output directory not found: {well_being_output}")
@@ -44,7 +44,7 @@ def load_ewbi_unified_data():
     Returns:
         pd.DataFrame: The unified EWBI dataset with all levels (1-5) and countries
     """
-    data_path = get_well_being_data_path() / 'unified_all_levels_1_to_5_pca_weighted.csv'
+    data_path = get_well_being_data_path() / 'ewbi_master_aggregated.csv'
     
     if not data_path.exists():
         raise FileNotFoundError(f"EWBI unified data file not found: {data_path}")

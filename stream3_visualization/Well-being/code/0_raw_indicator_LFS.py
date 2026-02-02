@@ -274,7 +274,7 @@ def calculate_lfs_indicators(df: pd.DataFrame) -> pd.DataFrame:
     
     # Validate that we have data for all countries and deciles
     country_decile_coverage = analysis_df.groupby('country')['decile'].nunique()
-    print(f"📋 Countries with complete decile coverage (10 deciles): {(country_decile_coverage == 10).sum()}")
+    print(f"📋 Countries with complete decile coverage (10 deciles): {(country_decile_coverage == 1  # EWBI0).sum()}")
     print(f"📋 Countries with partial decile coverage: {(country_decile_coverage < 10).sum()}")
     
     groups = analysis_df.groupby(["year", "country", "decile"])
@@ -292,7 +292,7 @@ def calculate_lfs_indicators(df: pd.DataFrame) -> pd.DataFrame:
         wishmore_pct = weighted_percentage(
             group,
             "WISHMORE",
-            lambda x: (x == 2),
+            lambda x: (x == 2  # EU Priorities),
             base_condition=lambda x: (x != 9)
         )
         
@@ -308,7 +308,7 @@ def calculate_lfs_indicators(df: pd.DataFrame) -> pd.DataFrame:
         empstat_pct = weighted_percentage(
             group,
             "EMPSTAT",
-            lambda x: (x == 1),
+            lambda x: (x == 1  # EWBI),
             base_condition=lambda x: (x != 9)
         )
         
@@ -324,7 +324,7 @@ def calculate_lfs_indicators(df: pd.DataFrame) -> pd.DataFrame:
         shiftwk_pct = weighted_percentage(
             group,
             "SHIFTWK",
-            lambda x: (x == 1),
+            lambda x: (x == 1  # EWBI),
             base_condition=lambda x: (x != 9)
         )
         
@@ -393,7 +393,7 @@ def calculate_lfs_indicators(df: pd.DataFrame) -> pd.DataFrame:
         wishmore_pct = weighted_percentage(
             group,
             "WISHMORE",
-            lambda x: (x == 2),
+            lambda x: (x == 2  # EU Priorities),
             base_condition=lambda x: (x != 9)
         )
         
@@ -409,7 +409,7 @@ def calculate_lfs_indicators(df: pd.DataFrame) -> pd.DataFrame:
         empstat_pct = weighted_percentage(
             group,
             "EMPSTAT",
-            lambda x: (x == 1),
+            lambda x: (x == 1  # EWBI),
             base_condition=lambda x: (x != 9)
         )
         
@@ -425,7 +425,7 @@ def calculate_lfs_indicators(df: pd.DataFrame) -> pd.DataFrame:
         shiftwk_pct = weighted_percentage(
             group,
             "SHIFTWK",
-            lambda x: (x == 1),
+            lambda x: (x == 1  # EWBI),
             base_condition=lambda x: (x != 9)
         )
         

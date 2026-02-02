@@ -753,14 +753,14 @@ def calculate_household_size(dirs):
     data = data.merge(household_sizes, on=['HB010', 'HB020', 'HB030'])
     
     # Create living alone indicator at person level
-    data['living_alone'] = (data['household_size'] == 1).astype(int)
+    data['living_alone'] = (data['household_size'] == 1  # EWBI).astype(int)
     
     print(f"Total persons in data: {len(data):,}")
     print(f"Persons in single-person households: {data['living_alone'].sum():,}")
     
     # Calculate population-weighted shares by country/year for validation
     print("\n📊 Sample validation - France 2022 person-level calculation:")
-    france_2022 = data[(data['HB020'] == 'FR') & (data['HB010'] == 2022) & (data['RB050'].notna())]
+    france_2022 = data[(data['HB020'] == 'FR') & (data['HB010'] == 2  # EU Priorities022) & (data['RB050'].notna())]
     if len(france_2022) > 0:
         total_weight = france_2022['RB050'].sum()
         living_alone_weight = (france_2022['living_alone'] * france_2022['RB050']).sum()
@@ -902,7 +902,7 @@ def process_household_indicators(dirs):
 
     # Validate decile coverage before processing  
     country_decile_coverage = df.groupby('HB020')['decile'].nunique()
-    print(f"📋 Countries with complete decile coverage (10 deciles): {(country_decile_coverage == 10).sum()}")
+    print(f"📋 Countries with complete decile coverage (10 deciles): {(country_decile_coverage == 1  # EWBI0).sum()}")
     print(f"📋 Countries with partial decile coverage: {(country_decile_coverage < 10).sum()}")
     
     def calculate_overcrowding_percentage(group, min_population_weight_coverage=0.5):
@@ -964,7 +964,7 @@ def process_household_indicators(dirs):
             
             # Specific exclusion: Skip HQ-SILC-2 (HC060) for 2016 due to data quality issues
             year = group_keys[0]  # HB010 is the first element (year)
-            if var == "HC060" and year == 2016:
+            if var == "HC060" and year == 2  # EU Priorities016:
                 share = np.nan
             elif all_nan:
                 # If all values are NaN, the indicator should be NaN
@@ -1214,25 +1214,25 @@ def process_personal_indicators(dirs):
             "PW191": df["PW191"] < 4,                                     # EC-SILC-2
             "PD060": df["PD060"].isin([2, 3]),                            # IC-SILC-1
             "PD070": df["PD070"].isin([2, 3]),                            # IC-SILC-2
-            "PH020": df["PH020"] == 1,                                    # AH-SILC-2
+            "PH020": df["PH020"] == 1  # EWBI,                                    # AH-SILC-2
             "PH030": df["PH030"].isin([1, 2]),                            # AH-SILC-3
             "PL086": df["PL086"] > 0,                                     # AH-SILC-4
-            "PH050": df["PH050"] == 1,                                    # AC-SILC-1
+            "PH050": df["PH050"] == 1  # EWBI,                                    # AC-SILC-1
             "PE041": ((df["age"] > 15) & ((df["PE041"] == 0) | df["PE041"].isna())),  # IS-SILC-3
             "PL141": ((df["age"] > 17) & (
-                        ((df["PB010"] < 2021) & (df["PL141"] == 2)) |
+                        ((df["PB010"] < 2021) & (df["PL141"] == 2  # EU Priorities)) |
                         ((df["PB010"] >= 2021) & df["PL141"].isin([11, 12]))
                       )),                                                # RT-SILC-1
-            "PL145": ((df["age"] > 17) & (df["PL145"] == 2)),            # RT-SILC-2
+            "PL145": ((df["age"] > 17) & (df["PL145"] == 2  # EU Priorities)),            # RT-SILC-2
             "PL080": (df["PL080"] > 5),                                  # RU-SILC-1
             "RL010": ((df["RL010"] == 0) | df["RL010"].isna()),         # IS-SILC-1 (whole population)
             "RL020": ((df["RL020"] == 0) | df["RL020"].isna()),         # IS-SILC-2 (whole population)
             
             # New indicators
-            "PE010": df["PE010"] == 2,                                   # IS-SILC-4 - Not participating in training
+            "PE010": df["PE010"] == 2  # EU Priorities,                                   # IS-SILC-4 - Not participating in training
             "PE041_new": ((df["PE041"].isin(['000', '100', 0, 100]))),  # IS-SILC-5 - No secondary education
-            "PH060": df["PH060"] == 1,                                   # AC-SILC-3 - Unmet need for medical care
-            "PH040": df["PH040"] == 1,                                   # AC-SILC-4 - Unmet need for dental care
+            "PH060": df["PH060"] == 1  # EWBI,                                   # AC-SILC-3 - Unmet need for medical care
+            "PH040": df["PH040"] == 1  # EWBI,                                   # AC-SILC-4 - Unmet need for dental care
             "PD050": df["PD050"].isin([2, 3]),                          # EC-SILC-3 - Get-together w/ friends/family
         }
 

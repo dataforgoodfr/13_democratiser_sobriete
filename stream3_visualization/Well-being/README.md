@@ -247,8 +247,8 @@ git commit -m "Description of your changes"
 git push origin visualizations-combined
 
 # 3. Push to Clever Cloud for automatic deployment
-# Note: Replace 'clever-well-being' with your actual Clever Cloud remote name
-git push clever-well-being visualizations-combined:master
+# Note: Replace 'clever-wellbeing' with your actual Clever Cloud remote name
+git push clever-wellbeing visualizations-combined:master
 ```
 
 **Note:** The Clever Cloud remote name should be verified in your local git configuration. After pushing, Clever Cloud will automatically redeploy your application with the new changes.

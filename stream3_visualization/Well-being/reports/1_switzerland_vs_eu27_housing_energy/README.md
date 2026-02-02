@@ -20,16 +20,18 @@ This report provides a comprehensive comparison between Switzerland and the EU-2
 │   ├── swiss_vs_eu27_time_series.py      # Time series analysis (moved from Well-being)
 │   ├── housing_analysis.py               # Housing-specific analysis
 │   ├── energy_analysis.py                # Energy-specific analysis
+│   ├── oecd_graphs_generator.py          # OECD data visualizations
+│   ├── eurostat_analysis_swiss.py        # NEW: Eurostat housing/energy analysis for Switzerland
 │   ├── integrated_analysis.py            # Combined housing + energy insights
 │   └── report_generator.py               # Generate final report outputs
 ├── external_data/
-│   ├── housing/                          # Switzerland and EU housing data
-│   ├── energy/                           # Switzerland and EU energy data
-│   └── policy/                           # Policy documents and frameworks
+│   └── [OECD data files]
 ├── outputs/
 │   ├── intermediate/                     # Processed datasets
 │   ├── tables/                          # Summary tables for report
-│   ├── graphs/                          # Visualizations
+│   ├── graphs/
+│   │   ├── OECD/                        # OECD visualizations
+│   │   └── EUROSTAT/                    # NEW: Eurostat visualizations (Switzerland vs EU27)
 │   └── final/                           # Report-ready outputs
 └── README.md                            # This file
 ```
@@ -85,48 +87,98 @@ pip install pandas plotly matplotlib seaborn
 
 ### Execution Steps
 
-1. **Load and Prepare Data**:
-   ```python
-   # Uses shared utilities for EWBI data
-   from shared.code.ewbi_data_loader import load_ewbi_unified_data, get_housing_energy_indicators
-   from shared.code.visualization_utils import create_time_series_plot
+#### EUROSTAT Analysis (NEW - Adapted from EU Analysis)
+The new `eurostat_analysis_swiss.py` script generates housing and energy visualizations specifically for Switzerland vs EU27 comparison:
+
+```bash
+# Generate Eurostat-based visualizations
+python code/eurostat_analysis_swiss.py
+```
+
+**Output Location**: `outputs/graphs/EUROSTAT/`
+
+**Generated Visualizations** (6 key themes):
+1. **Average Number of Rooms Per Person** (`1_rooms_switzerland_vs_eu27_tenure.png`)
+   - Compares rooms by tenure status (Owner, Tenant, Total)
+   - Side-by-side bar chart: Switzerland vs EU27
+
+2. **Real Estate Ownership** (`2_real_estate_switzerland_vs_eu27_quintiles.png`)
+   - Persons owning real estate other than main residence
+   - Breakdown by income quintile (Q1-Q5, Total)
+   - Switzerland vs EU27 comparison
+
+3. **Energy Efficiency Improvements** (`3_energy_efficiency_switzerland_vs_eu27_age.png`)
+   - Dwellings with energy efficiency improvements (last 5 years)
+   - Breakdown by age group (16+, 16-29, 25-34, 35-44, 45-64, 65+)
+   - Switzerland vs EU27 comparison
+
+4. **Business Enterprise R&D by NACE** (`4_berd_switzerland_vs_eu27_nace_*.png`)
+   - Enterprise statistics by size class and NACE Rev. 2 activity
+   - Data from 2021 onwards
+   - Multiple files for different units (PPS per inhabitant, % of GDP)
+
+5. **Under-occupied Dwellings** (`5_under_occupied_switzerland_vs_eu27_age.png`)
+   - Share of people in under-occupied dwellings
+   - Breakdown by age (<18, 18-64, 65+)
+   - Switzerland vs EU27 comparison
+
+6. **Tenure Status Distribution** (`6_tenure_status_switzerland_vs_eu27.png`)
+   - Population distribution by tenure status and household type
+   - Income group analysis (total population focus)
+   - Switzerland vs EU27 comparison
+
+**Data Source**: Uses datasets from `3_eu_analysis_with_examples/external_data/` (shared reference)
+
+**Styling**: 
+- Switzerland: Yellow (#ffd558)
+- EU27: Blue (#80b1d3)
+- Side-by-side bar charts for easy comparison
+- Consistent with oecd_graphs_generator.py visual style
+
+#### Other Analysis Scripts
+
+1. **OECD Visualizations**:
+   ```bash
+   python code/oecd_graphs_generator.py
    ```
 
-2. **Run Housing Analysis**:
+2. **Housing Analysis**:
    ```bash
    python code/housing_analysis.py
    ```
 
-3. **Run Energy Analysis**:
+3. **Energy Analysis**:
    ```bash
    python code/energy_analysis.py
    ```
 
-4. **Generate Time Series Comparisons**:
+4. **Time Series Comparisons**:
    ```bash
    python code/swiss_vs_eu27_time_series.py
    ```
 
-5. **Create Integrated Report**:
+5. **Integrated Report**:
    ```bash
    python code/report_generator.py
    ```
 
 ## 📊 Expected Outputs
 
-### Tables (`outputs/tables/`)
-- `housing_indicators_comparison.csv`: Swiss vs EU housing metrics
-- `energy_indicators_comparison.csv`: Swiss vs EU energy metrics  
-- `temporal_trends_summary.csv`: Time series trend analysis
-- `policy_gap_analysis.csv`: Areas for policy attention
-
 ### Graphs (`outputs/graphs/`)
+- **OECD folder**: OECD-based visualizations
+- **EUROSTAT folder**: NEW! Eurostat housing/energy comparisons (6 visualizations):
+  - Rooms comparison by tenure status
+  - Real estate ownership by income
+  - Energy efficiency by age group
+  - Enterprise R&D by NACE sector
+  - Under-occupied dwellings by age
+  - Tenure status distribution
 - Time series plots for each indicator
 - Decile comparison charts
 - Policy gap visualization
 - Integrated housing-energy analysis
 
-### Final Report (`outputs/final/`)
+### Tables (`outputs/tables/`)
 - Executive summary with key findings
 - Policy recommendations
 - Data appendices

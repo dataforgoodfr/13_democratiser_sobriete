@@ -1,0 +1,12 @@
+{
+  "BREAK_THRESHOLD": 0.4,
+  "APPLY_MOVING_AVERAGE": false,
+  "MOVING_AVERAGE_WINDOW": 3,
+  "NORMALIZATION_METHOD": "percentile",
+  "RESCALE_MIN": 0.2,
+  "NORMALIZATION_APPROACH": "multi_year",
+  "PCA_SCOPE": "all_years",
+  "EU_PRIORITIES_AGGREGATION": "geometric",
+  "EWBI_DECILE_AGGREGATION": "arithmetic",
+  "EWBI_CROSS_DECILE_AGGREGATION": "arithmetic"
+}

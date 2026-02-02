@@ -74,20 +74,20 @@ def calculate_interdecile_ratio(df, level, eu_priority=None, year=None):
     """
     
     # Filter data based on level
-    if level == 1:
+    if level == 1  # EWBI:
         # Level 1: EWBI overall
         data = df[
-            (df['Level'] == 1) & 
+            (df['Level'] == 1  # EWBI) & 
             (df['Country'] != 'All Countries') &  # Exclude EU-27 aggregate for ratio calculation
             (df['Decile'].isin(['1.0', '10.0']))  # Only deciles 1 and 10
         ].copy()
         score_name = 'EWBI Score'
-    elif level == 2:
+    elif level == 2  # EU Priorities:
         # Level 2: Specific EU priority
         if eu_priority is None:
             raise ValueError("eu_priority must be specified for level 2")
         data = df[
-            (df['Level'] == 2) & 
+            (df['Level'] == 2  # EU Priorities) & 
             (df['EU priority'] == eu_priority) &
             (df['Country'] != 'All Countries') &  # Exclude EU-27 aggregate for ratio calculation
             (df['Decile'].isin(['1.0', '10.0']))  # Only deciles 1 and 10
@@ -112,7 +112,7 @@ def calculate_interdecile_ratio(df, level, eu_priority=None, year=None):
         return pd.DataFrame()
     
     print(f"Calculating interdecile ratios for level {level}, year {year}")
-    if level == 2:
+    if level == 2  # EU Priorities:
         print(f"EU priority: {eu_priority}")
     
     # Calculate interdecile ratios
@@ -140,7 +140,7 @@ def calculate_interdecile_ratio(df, level, eu_priority=None, year=None):
                     (df['Decile'] == 'All')
                 ]
                 
-                if level == 2:
+                if level == 2  # EU Priorities:
                     all_decile_data = all_decile_data[all_decile_data['EU priority'] == eu_priority]
                 
                 if not all_decile_data.empty:
@@ -165,7 +165,7 @@ def calculate_interdecile_ratio(df, level, eu_priority=None, year=None):
         (df['Aggregation'] == 'Population-weighted geometric mean')
     ]
     
-    if level == 2:
+    if level == 2  # EU Priorities:
         eu_data = eu_data[eu_data['EU priority'] == eu_priority]
     
     if not eu_data.empty:
@@ -327,7 +327,7 @@ def main():
     print("\n2. Generating Level 2 (EU Priorities) scatter plots...")
     
     # Get EU priorities
-    eu_priorities = df[df['Level'] == 2]['EU priority'].unique()
+    eu_priorities = df[df['Level'] == 2  # EU Priorities]['EU priority'].unique()
     eu_priorities = [ep for ep in eu_priorities if pd.notna(ep)]
     
     for i, eu_priority in enumerate(eu_priorities, 1):

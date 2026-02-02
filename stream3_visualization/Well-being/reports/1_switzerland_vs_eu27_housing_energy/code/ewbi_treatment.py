@@ -22,26 +22,33 @@ import sys
 current_dir = os.path.dirname(os.path.abspath(__file__))
 reports_dir = os.path.abspath(os.path.join(current_dir, '..', '..'))
 shared_code_dir = os.path.join(reports_dir, 'shared', 'code')
-well_being_code_dir = os.path.abspath(os.path.join(reports_dir, '..', 'Well-being', 'code'))
+# Go up to Well-being directory (reports_dir/..)
+well_being_code_dir = os.path.abspath(os.path.join(reports_dir, '..', 'code'))
 
 sys.path.insert(0, current_dir)
 sys.path.insert(0, shared_code_dir)
 sys.path.insert(0, well_being_code_dir)
 
-# Import shared utilities
-from ewbi_data_loader import load_ewbi_unified_data, get_housing_energy_indicators
-from visualization_utils import create_time_series_plot, save_plot
-
-# Import variable mapping functions from Well-being pipeline
-from variable_mapping import get_display_name
+# Import shared utilities (after path setup)
+try:
+    from ewbi_data_loader import load_ewbi_unified_data, get_housing_energy_indicators
+    from visualization_utils import create_time_series_plot, save_plot
+    from variable_mapping import get_display_name
+except ImportError as e:
+    print(f"Import error: {e}")
+    print(f"Current directory: {current_dir}")
+    print(f"Shared code directory: {shared_code_dir}")
+    print(f"Well-being code directory: {well_being_code_dir}")
+    print(f"sys.path: {sys.path[:5]}")
+    raise
 
 # Color palette consistent with 6_graphs.py and dashboard
 COUNTRY_COLORS = ['#ffd558', '#fb8072', '#b3de69', '#fdb462', '#bebada', '#8dd3c7', '#ffffb3']
 EU_27_COLOR = '#80b1d3'
 SWITZERLAND_COLOR = '#ffd558'  # Use yellow for Switzerland as requested
 
-def get_app_level5_indicators():
-    """Get the Level 5 indicators that are actually available in the app's dropdown by replicating app.py logic"""
+def get_app_level3_indicators():
+    """Get the Level 3 primary indicators that are actually available in the app's dropdown by replicating app.py logic"""
     # Use the shared EWBI data loader to get the unified dataset
     try:
         df = load_ewbi_unified_data()
@@ -54,14 +61,14 @@ def get_app_level5_indicators():
         'Energy and Housing'
     ]
 
-    # Get Level 5 indicators that would appear in app dropdowns
+    # Get Level 3 primary indicators that would appear in app dropdowns
     all_available_indicators = set()
 
     for eu_priority in EU_PRIORITIES:
         primary_options = df[
             (df.get('EU priority') == eu_priority) &
             (df.get('Primary and raw data').notna()) &
-            (df.get('Level') == 5)
+            (df.get('Level') == 3)
         ]['Primary and raw data'].unique()
 
         print(f"EU Priority '{eu_priority}': {len(primary_options)} indicators")
@@ -71,7 +78,7 @@ def get_app_level5_indicators():
 
         all_available_indicators.update(primary_options)
 
-    print(f"\nTotal unique Level 5 indicators available in app dropdowns: {len(all_available_indicators)}")
+    print(f"\nTotal unique Level 3 primary indicators available in app dropdowns: {len(all_available_indicators)}")
     return sorted(all_available_indicators)
 
 def load_data():
@@ -82,18 +89,18 @@ def load_data():
 
 def prepare_swiss_ewbi_data(unified_df):
     """Extract Switzerland EWBI (Level 1) data for overall and decile analysis"""
-    # Get Switzerland EWBI overall data (Level 1, Decile='All')
+    # Get Switzerland EWBI overall data (Level 1, Decile='All Deciles')
     swiss_ewbi_overall = unified_df[
         (unified_df['Country'] == 'CH') &
         (unified_df['Level'] == 1) &
-        (unified_df['Decile'] == 'All')
+        (unified_df['Decile'] == 'All Deciles')
     ].copy()
     
-    # Get Switzerland EWBI by deciles (Level 1, all deciles except 'All')
+    # Get Switzerland EWBI by deciles (Level 1, all deciles except 'All Deciles')
     swiss_ewbi_deciles = unified_df[
         (unified_df['Country'] == 'CH') &
         (unified_df['Level'] == 1) &
-        (unified_df['Decile'] != 'All') &
+        (unified_df['Decile'] != 'All Deciles') &
         (unified_df['Decile'].notna())
     ].copy()
     
@@ -109,21 +116,21 @@ def prepare_swiss_eu_priorities_data(unified_df):
         'Energy and Housing'
     ]
     
-    # Get Switzerland EU priorities overall data (Level 2, Decile='All')
+    # Get Switzerland EU priorities overall data (Level 2, Decile='All Deciles')
     # For Switzerland: NO aggregation filtering (matches app.py logic)
     swiss_priorities_overall = unified_df[
         (unified_df['Country'] == 'CH') &
         (unified_df['Level'] == 2) &
-        (unified_df['Decile'] == 'All') &
+        (unified_df['Decile'] == 'All Deciles') &
         (unified_df['EU priority'].isin(EU_PRIORITIES))
     ].copy()
     
-    # Get Switzerland EU priorities by deciles (Level 2, all deciles except 'All')
+    # Get Switzerland EU priorities by deciles (Level 2, all deciles except 'All Deciles')
     # For Switzerland: NO aggregation filtering (matches app.py logic)
     swiss_priorities_deciles = unified_df[
         (unified_df['Country'] == 'CH') &
         (unified_df['Level'] == 2) &
-        (unified_df['Decile'] != 'All') &
+        (unified_df['Decile'] != 'All Deciles') &
         (unified_df['Decile'].notna()) &
         (unified_df['EU priority'].isin(EU_PRIORITIES))
     ].copy()
@@ -136,19 +143,19 @@ def prepare_swiss_eu_priorities_data(unified_df):
 
 def prepare_eu27_ewbi_data(unified_df):
     """Extract EU-27 EWBI (Level 1) data for overall and decile analysis - matches app.py logic"""
-    # Get EU-27 EWBI overall data (Level 1, Decile='All') - use Population-weighted geometric mean
+    # Get EU-27 EWBI overall data (Level 1, Decile='All Deciles') - use Population-weighted geometric mean
     eu27_ewbi_overall = unified_df[
         (unified_df['Country'] == 'All Countries') &
         (unified_df['Level'] == 1) &
-        (unified_df['Decile'] == 'All') &
+        (unified_df['Decile'] == 'All Deciles') &
         (unified_df['Aggregation'] == 'Population-weighted geometric mean')
     ].copy()
     
-    # Get EU-27 EWBI by deciles (Level 1, all deciles except 'All') - use Population-weighted geometric mean
+    # Get EU-27 EWBI by deciles (Level 1, all deciles except 'All Deciles') - use Population-weighted geometric mean
     eu27_ewbi_deciles = unified_df[
         (unified_df['Country'] == 'All Countries') &
         (unified_df['Level'] == 1) &
-        (unified_df['Decile'] != 'All') &
+        (unified_df['Decile'] != 'All Deciles') &
         (unified_df['Decile'].notna()) &
         (unified_df['Aggregation'] == 'Population-weighted geometric mean')
     ].copy()
@@ -164,19 +171,19 @@ def prepare_eu27_eu_priorities_data(unified_df):
         'Energy and Housing'
     ]
     
-    # Get EU-27 EU priorities overall data (Level 2, Decile='All') 
+    # Get EU-27 EU priorities overall data (Level 2, Decile='All Deciles') 
     # For reference lines: Do NOT filter by aggregation (to match app.py logic)
     eu27_priorities_overall = unified_df[
         (unified_df['Country'] == 'All Countries') &
         (unified_df['Level'] == 2) &
-        (unified_df['Decile'] == 'All')
+        (unified_df['Decile'] == 'All Deciles')
     ].copy()
     
-    # Get EU-27 EU priorities by deciles (Level 2, all deciles except 'All') - use Population-weighted geometric mean
+    # Get EU-27 EU priorities by deciles (Level 2, all deciles except 'All Deciles') - use Population-weighted geometric mean
     eu27_priorities_deciles = unified_df[
         (unified_df['Country'] == 'All Countries') &
         (unified_df['Level'] == 2) &
-        (unified_df['Decile'] != 'All') &
+        (unified_df['Decile'] != 'All Deciles') &
         (unified_df['Decile'].notna()) &
         (unified_df['Aggregation'] == 'Population-weighted geometric mean')
     ].copy()
@@ -791,10 +798,10 @@ def create_eu_priority_deciles_comparison_plot(swiss_data, eu27_data, swiss_over
     eu27_reference_value = None
     
     # Get Switzerland reference value
-    if not swiss_latest.empty:
+    if not swiss_latest.empty and not swiss_overall.empty:
         swiss_all_latest = swiss_overall[
             (swiss_overall['Year'] == latest_year) & 
-            (swiss_overall['Decile'] == 'All')
+            (swiss_overall['Decile'] == 'All Deciles')
         ]
         if not swiss_all_latest.empty:
             swiss_geom_interdecile = swiss_all_latest[swiss_all_latest['Aggregation'] == 'Geometric mean inter-decile']
@@ -802,10 +809,10 @@ def create_eu_priority_deciles_comparison_plot(swiss_data, eu27_data, swiss_over
                 swiss_reference_value = swiss_geom_interdecile['Value'].iloc[0]
     
     # Get EU-27 reference value  
-    if not eu27_latest.empty:
+    if not eu27_latest.empty and not eu27_overall.empty:
         eu27_all_latest = eu27_overall[
             (eu27_overall['Year'] == latest_year) & 
-            (eu27_overall['Decile'] == 'All')
+            (eu27_overall['Decile'] == 'All Deciles')
         ]
         if not eu27_all_latest.empty:
             eu27_geom_interdecile = eu27_all_latest[eu27_all_latest['Aggregation'] == 'Geometric mean inter-decile']
@@ -1233,28 +1240,28 @@ def prepare_swiss_data(unified_df):
     # Get 1st and 10th decile data for Switzerland
     swiss_decile_1 = unified_df[
         (unified_df['Country'] == 'CH') &
-        (unified_df['Level'] == 5) &
-        (unified_df['Decile'] == '1.0')
+        (unified_df['Level'] == 3) &
+        (unified_df['Decile'] == '1')
     ].copy()
     
     swiss_decile_10 = unified_df[
         (unified_df['Country'] == 'CH') &
-        (unified_df['Level'] == 5) &
-        (unified_df['Decile'] == '10.0')
+        (unified_df['Level'] == 3) &
+        (unified_df['Decile'] == '10')
     ].copy()
     
     if swiss_data.empty:
-        print("No 'All' decile data found for Switzerland at Level 5. Computing country averages from decile data...")
+        print("No 'All Deciles' data found for Switzerland at Level 3. Computing country averages from decile data...")
         
-        # Get all Switzerland Level 5 data and compute country averages by year and indicator
+        # Get all Switzerland Level 3 data and compute country averages by year and indicator
         swiss_decile_data = unified_df[
             (unified_df['Country'] == 'CH') & 
-            (unified_df['Level'] == 5) &
-            (unified_df['Decile'].isin(['1.0', '2.0', '3.0', '4.0', '5.0', '6.0', '7.0', '8.0', '9.0', '10.0']))
+            (unified_df['Level'] == 3) &
+            (unified_df['Decile'].isin(['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']))
         ].copy()
         
         if swiss_decile_data.empty:
-            print("Warning: No Switzerland data found at Level 5")
+            print("Warning: No Switzerland data found at Level 3")
             return pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
         
         # Compute the mean value across all deciles for each year and indicator
@@ -1267,8 +1274,8 @@ def prepare_swiss_data(unified_df):
             'datasource': 'first'
         }).reset_index()
         
-        # Add the All decile marker
-        swiss_data['Decile'] = 'All'
+        # Add the All Deciles marker
+        swiss_data['Decile'] = 'All Deciles'
         swiss_data['Quintile'] = ''
         swiss_data['EU priority'] = ''
         swiss_data['Secondary'] = ''
@@ -1292,49 +1299,49 @@ def prepare_swiss_data(unified_df):
 
 def prepare_eu27_data(unified_df):
     """Extract and prepare EU-27 data for all primary indicators, including deciles"""
-    # Get EU-27 data from the unified dataset at Level 5 (primary indicators) - median data
+    # Get EU-27 data from the unified dataset at Level 3 (primary indicators) - median data
     # Try the available aggregation method first
     eu27_data = unified_df[
         (unified_df['Country'] == 'All Countries') &
-        (unified_df['Level'] == 5) &
-        (unified_df['Decile'] == 'All') &
+        (unified_df['Level'] == 3) &
+        (unified_df['Decile'] == 'All Deciles') &
         (unified_df['Aggregation'] == 'Median across countries')
     ].copy()
     
     # Get 1st and 10th decile data for EU-27
     eu27_decile_1 = unified_df[
         (unified_df['Country'] == 'All Countries') &
-        (unified_df['Level'] == 5) &
-        (unified_df['Decile'] == '1.0') &
+        (unified_df['Level'] == 3) &
+        (unified_df['Decile'] == '1') &
         (unified_df['Aggregation'] == 'Median across countries')
     ].copy()
     
     eu27_decile_10 = unified_df[
         (unified_df['Country'] == 'All Countries') &
-        (unified_df['Level'] == 5) &
-        (unified_df['Decile'] == '10.0') &
+        (unified_df['Level'] == 3) &
+        (unified_df['Decile'] == '10') &
         (unified_df['Aggregation'] == 'Median across countries')
     ].copy()
     
     if eu27_data.empty:
-        print("Warning: No EU-27 data found at Level 5 with 'All' decile")
+        print("Warning: No EU-27 data found at Level 3 with 'All Deciles'")
         # Try with any decile to see what's available
         eu27_sample = unified_df[
             (unified_df['Country'] == 'All Countries') & 
-            (unified_df['Level'] == 5)
+            (unified_df['Level'] == 3)
         ].copy()
         
         if eu27_sample.empty:
-            print("No Level 5 data found for 'All Countries'")
+            print("No Level 3 data found for 'All Countries'")
             return pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
         
         # Get available deciles
         available_deciles = eu27_sample['Decile'].unique()
-        print(f"Available deciles for EU-27 at Level 5: {available_deciles}")
+        print(f"Available deciles for EU-27 at Level 3: {available_deciles}")
         
         # Compute EU-27 averages across deciles for each year and indicator
         eu27_decile_data = eu27_sample[
-            eu27_sample['Decile'].isin(['1.0', '2.0', '3.0', '4.0', '5.0', '6.0', '7.0', '8.0', '9.0', '10.0'])
+            eu27_sample['Decile'].isin(['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'])
         ].copy()
         
         eu27_data = eu27_decile_data.groupby(['Year', 'Primary and raw data']).agg({
@@ -2073,7 +2080,7 @@ def export_eu_priorities_to_excel(unified_df, output_dir):
     # Get EU Priorities Level 2 data for Switzerland
     priorities_overall_ch = unified_df[
         (unified_df['Level'] == 2) &
-        (unified_df['Decile'] == 'All') &
+        (unified_df['Decile'] == 'All Deciles') &
         (unified_df['Country'] == 'CH') &
         (unified_df['EU priority'].isin(EU_PRIORITIES))
     ].copy()
@@ -2081,7 +2088,7 @@ def export_eu_priorities_to_excel(unified_df, output_dir):
     # Get EU Priorities Level 2 data for EU-27 (with proper aggregation filtering)
     priorities_overall_eu27 = unified_df[
         (unified_df['Level'] == 2) &
-        (unified_df['Decile'] == 'All') &
+        (unified_df['Decile'] == 'All Deciles') &
         (unified_df['Country'] == 'All Countries') &
         (unified_df['Aggregation'] == 'Population-weighted geometric mean') &
         (unified_df['EU priority'].isin(EU_PRIORITIES))
@@ -2176,10 +2183,279 @@ def export_eu_priorities_to_excel(unified_df, output_dir):
     except Exception as e:
         print(f"Error exporting EU Priorities Level 2 to Excel: {e}")
 
-def main():
-    """Main function to generate time series graphs for app-displayed Level 5 indicators plus Switzerland EWBI and EU priorities"""
+def prepare_swiss_primary_indicators_data(unified_df):
+    """Extract Switzerland Primary Indicators (Level 3) data for overall and decile analysis"""
+    # Focus only on Energy and Housing EU priority
+    EU_PRIORITIES = [
+        'Energy and Housing'
+    ]
     
-    print("Starting Swiss vs EU-27 App-Displayed Level 5 Indicators Time Series Analysis")
+    # Get Switzerland Primary Indicators overall data (Level 3, Decile='All Deciles')
+    swiss_primary_overall = unified_df[
+        (unified_df['Country'] == 'CH') &
+        (unified_df['Level'] == 3) &
+        (unified_df['Decile'] == 'All Deciles') &
+        (unified_df['EU priority'].isin(EU_PRIORITIES))
+    ].copy()
+    
+    # Get Switzerland Primary Indicators by deciles (Level 3, all deciles except 'All Deciles')
+    swiss_primary_deciles = unified_df[
+        (unified_df['Country'] == 'CH') &
+        (unified_df['Level'] == 3) &
+        (unified_df['Decile'] != 'All Deciles') &
+        (unified_df['Decile'].notna()) &
+        (unified_df['EU priority'].isin(EU_PRIORITIES))
+    ].copy()
+    
+    print(f"Swiss Primary Indicators overall data: {len(swiss_primary_overall)} records")
+    print(f"Swiss Primary Indicators decile data: {len(swiss_primary_deciles)} records")
+    print(f"Available Primary Indicators: {sorted(swiss_primary_overall['Primary and raw data'].dropna().unique()) if not swiss_primary_overall.empty else []}")
+    
+    return swiss_primary_overall, swiss_primary_deciles
+
+def prepare_eu27_primary_indicators_data(unified_df):
+    """Extract EU-27 Primary Indicators (Level 3) data for overall and decile analysis"""
+    EU_PRIORITIES = [
+        'Energy and Housing'
+    ]
+    
+    # Get EU-27 Primary Indicators overall data (Level 3, Decile='All Deciles')
+    eu27_primary_overall = unified_df[
+        (unified_df['Country'] == 'EU-27') &
+        (unified_df['Level'] == 3) &
+        (unified_df['Decile'] == 'All Deciles') &
+        (unified_df['EU priority'].isin(EU_PRIORITIES))
+    ].copy()
+    
+    # Get EU-27 Primary Indicators by deciles (Level 3, individual deciles 1-10)
+    eu27_primary_deciles = unified_df[
+        (unified_df['Country'] == 'EU-27') &
+        (unified_df['Level'] == 3) &
+        (unified_df['Decile'] != 'All Deciles') &
+        (unified_df['Decile'].notna()) &
+        (unified_df['EU priority'].isin(EU_PRIORITIES))
+    ].copy()
+    
+    print(f"EU-27 Primary Indicators overall data: {len(eu27_primary_overall)} records")
+    print(f"EU-27 Primary Indicators decile data: {len(eu27_primary_deciles)} records")
+    print(f"Available EU-27 Primary Indicators: {sorted(eu27_primary_overall['Primary and raw data'].dropna().unique()) if not eu27_primary_overall.empty else []}")
+    
+    return eu27_primary_overall, eu27_primary_deciles
+
+def create_primary_indicator_deciles_comparison_plot(swiss_data, eu27_data, swiss_overall, eu27_overall, indicator_name, output_dir):
+    """Create deciles comparison bar chart for a specific Primary Indicator (Level 3)"""
+    print(f"Creating deciles chart for Primary Indicator: {indicator_name}")
+    print(f"Swiss data: {len(swiss_data)} records")
+    print(f"EU-27 data: {len(eu27_data)} records")
+    
+    if swiss_data.empty and eu27_data.empty:
+        print(f"No decile data for {indicator_name}")
+        return
+    
+    # Get latest year available
+    if not swiss_data.empty:
+        latest_year = swiss_data['Year'].max()
+    else:
+        latest_year = eu27_data['Year'].max()
+    
+    # Filter data for latest year
+    swiss_latest = pd.DataFrame()
+    eu27_latest = pd.DataFrame()
+    
+    if not swiss_data.empty:
+        swiss_latest = swiss_data[swiss_data['Year'] == latest_year].copy()
+        swiss_latest['Decile_num'] = pd.to_numeric(swiss_latest['Decile'], errors='coerce')
+        swiss_latest = swiss_latest.dropna(subset=['Decile_num']).sort_values('Decile_num')
+    
+    if not eu27_data.empty:
+        eu27_latest = eu27_data[eu27_data['Year'] == latest_year].copy()
+        eu27_latest['Decile_num'] = pd.to_numeric(eu27_latest['Decile'], errors='coerce')
+        eu27_latest = eu27_latest.dropna(subset=['Decile_num']).sort_values('Decile_num')
+    
+    if swiss_latest.empty and eu27_latest.empty:
+        print(f"No data for latest year ({latest_year}) for {indicator_name}")
+        return
+    
+    # Get all deciles
+    all_deciles = set()
+    if not swiss_latest.empty and 'Decile_num' in swiss_latest.columns:
+        all_deciles.update(swiss_latest['Decile_num'])
+    if not eu27_latest.empty and 'Decile_num' in eu27_latest.columns:
+        all_deciles.update(eu27_latest['Decile_num'])
+    
+    if not all_deciles:
+        print(f"Warning: No valid decile data for {indicator_name}")
+        return
+    
+    all_deciles = sorted(list(all_deciles))
+    
+    # Get reference values for legend
+    swiss_reference_value = None
+    eu27_reference_value = None
+    
+    # Get Switzerland reference value
+    if not swiss_latest.empty and not swiss_overall.empty:
+        swiss_all_latest = swiss_overall[
+            (swiss_overall['Year'] == latest_year) & 
+            (swiss_overall['Decile'] == 'All Deciles') &
+            (swiss_overall['Primary and raw data'] == indicator_name)
+        ]
+        if not swiss_all_latest.empty:
+            swiss_geom_interdecile = swiss_all_latest[swiss_all_latest['Aggregation'] == 'Geometric mean inter-decile']
+            if not swiss_geom_interdecile.empty:
+                swiss_reference_value = swiss_geom_interdecile['Value'].iloc[0]
+    
+    # Get EU-27 reference value
+    if not eu27_latest.empty and not eu27_overall.empty:
+        eu27_all_latest = eu27_overall[
+            (eu27_overall['Year'] == latest_year) & 
+            (eu27_overall['Decile'] == 'All Deciles') &
+            (eu27_overall['Primary and raw data'] == indicator_name)
+        ]
+        if not eu27_all_latest.empty:
+            eu27_geom_interdecile = eu27_all_latest[eu27_all_latest['Aggregation'] == 'Geometric mean inter-decile']
+            if not eu27_geom_interdecile.empty and not pd.isna(eu27_geom_interdecile['Value'].iloc[0]):
+                eu27_reference_value = eu27_geom_interdecile['Value'].iloc[0]
+    
+    # Create safe filename from indicator name
+    safe_indicator = indicator_name.lower().replace(' ', '_').replace(',', '').replace('(', '').replace(')', '').replace('/', '_')
+    # Limit length to avoid path issues
+    if len(safe_indicator) > 50:
+        safe_indicator = safe_indicator[:50]
+    
+    # Save PNG only
+    png_path = os.path.join(output_dir, f"switzerland_vs_eu27_{safe_indicator}_deciles.png")
+    try:
+        import matplotlib.pyplot as plt
+        import numpy as np
+        
+        plt.figure(figsize=(14, 8))
+        
+        # Prepare data for grouped bar chart
+        deciles = [str(int(d)) for d in all_deciles]
+        x = np.arange(len(deciles))
+        width = 0.35
+        
+        # Get values for each decile, use NaN for missing data
+        swiss_values = []
+        eu27_values = []
+        
+        for decile in all_deciles:
+            # Switzerland values
+            if not swiss_latest.empty and 'Decile_num' in swiss_latest.columns:
+                swiss_val = swiss_latest[swiss_latest['Decile_num'] == decile]['Value']
+                swiss_values.append(swiss_val.iloc[0] if len(swiss_val) > 0 else np.nan)
+            else:
+                swiss_values.append(np.nan)
+            
+            # EU-27 values
+            if not eu27_latest.empty and 'Decile_num' in eu27_latest.columns:
+                eu27_val = eu27_latest[eu27_latest['Decile_num'] == decile]['Value']
+                eu27_values.append(eu27_val.iloc[0] if len(eu27_val) > 0 else np.nan)
+            else:
+                eu27_values.append(np.nan)
+        
+        # Create bars
+        if not swiss_latest.empty:
+            swiss_bars = plt.bar(x - width/2, swiss_values, width, 
+                               color=SWITZERLAND_COLOR, alpha=0.8, label='Switzerland')
+        
+        if not eu27_latest.empty:
+            eu27_bars = plt.bar(x + width/2, eu27_values, width,
+                              color=EU_27_COLOR, alpha=0.8, label='EU-27')
+        
+        # Add value labels on bars
+        if not swiss_latest.empty:
+            for i, v in enumerate(swiss_values):
+                if not np.isnan(v):
+                    plt.text(i - width/2, v + v*0.01, f'{v:.3f}', 
+                           ha='center', va='bottom', fontsize=9)
+        
+        if not eu27_latest.empty:
+            for i, v in enumerate(eu27_values):
+                if not np.isnan(v):
+                    plt.text(i + width/2, v + v*0.01, f'{v:.3f}', 
+                           ha='center', va='bottom', fontsize=9)
+        
+        # Add reference lines for averages
+        if not swiss_latest.empty and swiss_reference_value is not None:
+            plt.axhline(y=swiss_reference_value, color=SWITZERLAND_COLOR, linestyle='--', 
+                       linewidth=2, alpha=0.7, label=f'Switzerland All: {swiss_reference_value:.3f}')
+        
+        if not eu27_latest.empty and eu27_reference_value is not None:
+            plt.axhline(y=eu27_reference_value, color=EU_27_COLOR, linestyle=':', 
+                       linewidth=2, alpha=0.7, label=f'EU-27 All: {eu27_reference_value:.3f}')
+        
+        plt.title(f"{indicator_name}\nSwitzerland vs EU-27 by Income Decile ({int(latest_year)})", 
+                 fontsize=16, fontweight='bold', pad=20)
+        plt.xlabel('Income Decile', fontsize=14)
+        plt.ylabel('Score', fontsize=14)
+        plt.xticks(x, deciles)
+        plt.grid(True, alpha=0.3, axis='y')
+        plt.legend(fontsize=11, loc='best')
+        
+        plt.gca().set_facecolor('white')
+        plt.tight_layout()
+        
+        plt.savefig(png_path, dpi=150, bbox_inches='tight', 
+                   facecolor='white', edgecolor='none')
+        plt.close()
+        
+        print(f"Saved PNG: {png_path}")
+        
+    except Exception as e:
+        print(f"Warning: Could not save PNG for {indicator_name} deciles: {str(e)[:100]}...")
+
+def create_primary_indicators_deciles_plots(swiss_primary_overall, swiss_primary_deciles,
+                                           eu27_primary_overall, eu27_primary_deciles, output_dir):
+    """Create decile comparison plots for all Primary Indicators related to Energy and Housing"""
+    
+    # Get all unique Primary Indicators (Primary and raw data column at Level 3)
+    all_indicators = set()
+    if not swiss_primary_deciles.empty:
+        all_indicators.update(swiss_primary_deciles['Primary and raw data'].dropna().unique())
+    if not eu27_primary_deciles.empty:
+        all_indicators.update(eu27_primary_deciles['Primary and raw data'].dropna().unique())
+    
+    if not all_indicators:
+        print("Warning: No Primary Indicators found for decile analysis")
+        return
+    
+    print(f"Creating decile plots for {len(all_indicators)} Primary Indicators")
+    
+    for indicator in sorted(all_indicators):
+        print(f"\nProcessing Primary Indicator: {indicator}")
+        
+        # Filter Switzerland data for this indicator
+        swiss_overall = swiss_primary_overall[
+            swiss_primary_overall['Primary and raw data'] == indicator
+        ].copy() if not swiss_primary_overall.empty else pd.DataFrame()
+        
+        swiss_deciles = swiss_primary_deciles[
+            swiss_primary_deciles['Primary and raw data'] == indicator
+        ].copy() if not swiss_primary_deciles.empty else pd.DataFrame()
+        
+        # Filter EU-27 data for this indicator
+        eu27_overall = eu27_primary_overall[
+            eu27_primary_overall['Primary and raw data'] == indicator
+        ].copy() if not eu27_primary_overall.empty else pd.DataFrame()
+        
+        eu27_deciles = eu27_primary_deciles[
+            eu27_primary_deciles['Primary and raw data'] == indicator
+        ].copy() if not eu27_primary_deciles.empty else pd.DataFrame()
+        
+        # Create deciles comparison plot
+        if not swiss_deciles.empty or not eu27_deciles.empty:
+            create_primary_indicator_deciles_comparison_plot(
+                swiss_deciles, eu27_deciles, swiss_overall, eu27_overall, indicator, output_dir
+            )
+        else:
+            print(f"Warning: No decile data for {indicator}")
+
+def main():
+    """Main function to generate time series graphs for app-displayed Level 3 primary indicators plus Switzerland EWBI and EU priorities"""
+    
+    print("Starting Swiss vs EU-27 App-Displayed Level 3 Primary Indicators Time Series Analysis")
     print("Plus Switzerland EWBI and EU Priorities Analysis")
     print("=" * 80)
     
@@ -2277,160 +2553,33 @@ def main():
     except Exception as e:
         print(f"Error exporting EU Priorities Level 2: {e}")
     
-    # PART 2: Original Level 5 indicators analysis
-    print("\n" + "="*50)
-    print("PART 2: LEVEL 5 INDICATORS ANALYSIS (ORIGINAL)")
-    print("="*50)
+    # 1.4 Switzerland vs EU-27 Primary Indicators (Level 3) - Deciles only
+    print("\n1.4. Processing Primary Indicators (Level 3) - Switzerland vs EU-27 Deciles...")
+    swiss_primary_overall, swiss_primary_deciles = prepare_swiss_primary_indicators_data(unified_df)
+    eu27_primary_overall, eu27_primary_deciles = prepare_eu27_primary_indicators_data(unified_df)
     
-    # Get Level 5 indicators that are displayed in the app
-    print("\n2.1. Getting Level 5 indicators displayed in the app...")
-    app_indicators = get_app_level5_indicators()
-    
-    if not app_indicators:
-        print("Error: No Level 5 indicators found in the app")
-        # Continue with Part 1 results only
-        print("\n Part 1 (EWBI and EU priorities) completed successfully!")
-        return
-    
-    print(f"Found {len(app_indicators)} Level 5 indicators displayed in the app:")
-    for indicator in app_indicators:
-        description = get_display_name(indicator)
-        print(f"   • {description}")
-    
-    # Filter data to only include app-displayed Level 5 indicators
-    print(f"\n2.2. Filtering data for app-displayed indicators...")
-    level5_df = unified_df[unified_df['Primary and raw data'].isin(app_indicators)].copy()
-    print(f"Filtered data shape: {level5_df.shape}")
-    
-    # Prepare data
-    print("\n2.3. Preparing Switzerland data...")
-    swiss_data, swiss_decile_1, swiss_decile_10 = prepare_swiss_data(level5_df)
-    
-    print("\n2.4. Preparing EU-27 data...")
-    eu27_data, eu27_decile_1, eu27_decile_10 = prepare_eu27_data(level5_df)
-    
-    if swiss_data.empty and eu27_data.empty:
-        print("Warning: Could not load required Level 5 data")
-        print("Continuing with Part 1 results only...")
-        print("\n Part 1 (EWBI and EU priorities) completed successfully!")
-        return
-    
-    # Process ALL app indicators, even if Switzerland or EU has no data
-    swiss_indicators = set(swiss_data['Indicator'].unique()) if not swiss_data.empty else set()
-    eu27_indicators = set(eu27_data['Indicator'].unique()) if not eu27_data.empty else set()
-    
-    # Use ALL app indicators, not just common ones
-    all_indicators = set(app_indicators)
-    
-    print(f"\n2.5. Processing ALL {len(all_indicators)} app-displayed indicators:")
-    print(f"   • Switzerland has data for: {len(swiss_indicators)} indicators")
-    print(f"   • EU-27 has data for: {len(eu27_indicators)} indicators")
-    print(f"   • Common indicators: {len(swiss_indicators.intersection(eu27_indicators))}")
-    print(f"   • Will generate graphs for ALL {len(all_indicators)} app indicators")
-    
-    for indicator in sorted(all_indicators):
-        description = get_display_name(indicator)
-        has_swiss = indicator in swiss_indicators
-        has_eu = indicator in eu27_indicators
-        status = []
-        if has_swiss:
-            status.append("CH")
-        if has_eu:
-            status.append("EU")
-        status_str = "+".join(status) if status else "No data"
-        print(f"   • {description} ({status_str})")
-    
-    print(f"\n2.6. Generating time series graphs...")
-    
-    # Generate graphs for each indicator
-    for i, indicator in enumerate(sorted(all_indicators), 1):
-        description = get_display_name(indicator)
-        print(f"\n2.6.{i}. Processing {description}...")
-        
-        # Check data availability for this indicator
-        has_swiss_data = indicator in swiss_indicators
-        has_eu_data = indicator in eu27_indicators
-        
-        if not has_swiss_data and not has_eu_data:
-            print(f"   Warning: No data available for {indicator}. Skipping...")
-            continue
-        try:
-            create_time_series_plot(swiss_data, eu27_data, swiss_decile_1, swiss_decile_10, 
-                                  eu27_decile_1, eu27_decile_10, indicator, OUTPUT_DIRS['level3'])
-        except Exception as e:
-            print(f"Error creating plot for {indicator}: {e}")
-    
-    # Create summary statistics
-    print(f"\n2.7. Creating summary statistics...")
-    try:
-        summary_df = create_summary_stats(swiss_data, eu27_data, all_indicators, OUTPUT_DIRS['tables'])
-        print(f"Summary covers {len(summary_df)} indicators")
-    except Exception as e:
-        print(f"Error creating summary statistics: {e}")
-    
-    # Export all data to Excel
-    print(f"\n2.8. Exporting all data to Excel...")
-    try:
-        export_all_data_to_excel(swiss_data, eu27_data, swiss_decile_1, swiss_decile_10, 
-                                eu27_decile_1, eu27_decile_10, all_indicators, OUTPUT_DIRS['tables'])
-    except Exception as e:
-        print(f"Error exporting to Excel: {e}")
+    if not swiss_primary_deciles.empty or not eu27_primary_deciles.empty:
+        print("Creating Primary Indicators decile comparison graphs...")
+        create_primary_indicators_deciles_plots(
+            swiss_primary_overall, swiss_primary_deciles,
+            eu27_primary_overall, eu27_primary_deciles,
+            OUTPUT_DIRS['level3']
+        )
+    else:
+        print("Warning: No Primary Indicators decile data found for Switzerland or EU-27")
     
     # FINAL SUMMARY
     print("\n" + "=" * 80)
-    print(" ALL ANALYSES COMPLETED SUCCESSFULLY!")
+    print(" ALL DECILE ANALYSES COMPLETED SUCCESSFULLY!")
     print(f" Output directory: {output_dir}")
-    print("\nGenerated files:")
-    
-    # List generated files
-    if os.path.exists(output_dir):
-        files = [f for f in os.listdir(output_dir) if f.endswith(('.png', '.csv', '.xlsx'))]
-        
-        # Separate files by category
-        ewbi_files = [f for f in files if 'ewbi' in f.lower()]
-        priority_files = [f for f in files if any(p.lower().replace(' ', '_').replace(',', '').replace('&', 'and') in f.lower() 
-                                                 for p in eu_priorities if 'ewbi' not in f.lower())]
-        level5_files = [f for f in files if f.startswith('switzerland_vs_eu27_')]
-        other_files = [f for f in files if f not in ewbi_files and f not in priority_files and f not in level5_files]
-        
-        if ewbi_files:
-            print(f"\n EWBI Files ({len(ewbi_files)}):")
-            for file in sorted(ewbi_files):
-                print(f"  • {file}")
-        
-        if priority_files:
-            print(f"\n EU Priority Files ({len(priority_files)}):")
-            for file in sorted(priority_files):
-                print(f"  • {file}")
-        
-        if level5_files:
-            print(f"\n Level 5 Indicator Files ({len(level5_files)}):")
-            for file in sorted(level5_files):
-                print(f"  • {file}")
-        
-        if other_files:
-            print(f"\n Other Files ({len(other_files)}):")
-            for file in sorted(other_files):
-                print(f"  • {file}")
-    
-    print(f"\n Analysis Summary:")
-    print(f"  PART 1 - Switzerland Analysis:")
-    print(f"    • EWBI (Level 1): Overall + Deciles temporal graphs")
-    print(f"    • EU Priorities (Level 2): {len(eu_priorities)} priorities × (Overall + Deciles)")
-    print(f"  PART 2 - Comparative Analysis:")
-    print(f"    • {len(all_indicators)} Level 5 indicators: Switzerland vs EU-27")
-    print(f"    • Time ranges: Dynamic (earliest EU/Swiss start to latest Swiss end)")
-    print(f"    • Colors: Switzerland ({SWITZERLAND_COLOR}), EU-27 ({EU_27_COLOR})")
-    print(f"    • Output formats: PNG (static images)")
-    
-    print(f"\n Notes:")
-    print(f"  • Switzerland graphs use yellow color scheme as requested")
-    print(f"  • Data source: unified PCA-weighted dataset from app.py")
-    print(f"  • EWBI = European Well-Being Index (Level 1)")
-    print(f"  • EU Priorities = Major policy areas (Level 2)")
-    print(f"  • Level 5 = Raw statistical indicators")
-    print(f"  • Decile decomposition shows income-based inequality")
-    print(f"  • All graphs are saved as PNG files only")
+    print("\nGenerated decile bar charts:")
+    print("  • Level 1: EWBI decile comparison")
+    print("  • Level 2: EU Priorities (Energy and Housing) decile comparisons")
+    print("  • Level 3: Primary Indicators decile comparisons")
+    print("\n Data source: ewbi_master_aggregated.csv")
+    print(f" Color scheme: Switzerland ({SWITZERLAND_COLOR}), EU-27 ({EU_27_COLOR})")
+    print(" Output format: PNG (static images)")
+    print("\n Note: EU-27 data may be unavailable for some indicators in current dataset.")
 
 if __name__ == "__main__":
     main()

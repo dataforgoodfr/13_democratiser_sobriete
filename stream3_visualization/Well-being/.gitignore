@@ -10,7 +10,14 @@ output/*.json
 output/0_raw_data_EUROSTAT/
 output/1_data_app/
 output/2_data_validation/
+output/2_multivariate_analysis_output/
 output/Archive/
+output/test/
+
+# Reports: exclude project-level data and outputs
+reports/*/external_data/
+reports/*/output/
+reports/*/outputs/
 
 # Python cache files
 __pycache__/

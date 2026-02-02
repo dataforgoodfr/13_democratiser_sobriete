@@ -455,7 +455,7 @@ def process_final_indicators(dirs):
 
     # Validate decile coverage before processing
     country_decile_coverage = df.groupby('COUNTRY')['decile'].nunique()
-    print(f"📋 Countries with complete decile coverage (10 deciles): {(country_decile_coverage == 10).sum()}")
+    print(f"📋 Countries with complete decile coverage (10 deciles): {(country_decile_coverage == 1  # EWBI0).sum()}")
     print(f"📋 Countries with partial decile coverage: {(country_decile_coverage < 10).sum()}")
     
     # Group by Year, Country, Decile and calculate indicators
