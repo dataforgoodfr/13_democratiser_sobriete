@@ -7,6 +7,10 @@ Output/*.png
 Output/Visuals/
 Output/*/outputs/
 
+# Reports (FR) - exclude data and visuals folders
+reports/FR/data*/
+reports/FR/visuals*/
+
 # Python cache files
 __pycache__/
 *.py[cod]
