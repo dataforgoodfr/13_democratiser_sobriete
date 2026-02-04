@@ -13,9 +13,9 @@ from sklearn.metrics.pairwise import cosine_similarity
 import safetensors
 import hdbscan
 
-from policy_analysis.policies_clustering.embeddings import TfidfEmbedder, SentenceBERTEmbedder
-from policy_analysis.policies_clustering.reduction import UMAPReducer
-from policy_analysis.policies_clustering.report import plot_clusters_2d
+from .embeddings import TfidfEmbedder, SentenceBERTEmbedder
+from .reduction import UMAPReducer
+from .report import plot_clusters_2d
 
 
 class HDBSCANClusterer(BaseEstimator):

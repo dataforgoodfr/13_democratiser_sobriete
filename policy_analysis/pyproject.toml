@@ -1,7 +1,7 @@
 [project]
 name = "policy-analysis"
 version = "0.1.0"
-description = "Agentic RAG + policy analysis pipelines"
+description = "Policy analysis pipelines"
 readme = "README.md"
 requires-python = ">=3.12"
 
@@ -27,6 +27,7 @@ dependencies = [
     "langchain-text-splitters>=1.1.0",
 ]
 
+
 [dependency-groups]
 dev = [
     "ipykernel>=7.1.0",
@@ -34,21 +35,22 @@ dev = [
 ]
 
 transformers = [
+    "accelerate>=1.12.0",
     "sentence-transformers>=5.1.2",
     "torch>=2.9.1",
     "transformers>=4.57.3",
 ]
 
-
 clustering = [
+    "hdbscan>=0.8.41",
     "faiss-cpu>=1.13.0",
-    "hdbscan>=0.8.40",
     "scikit-learn>=1.6.1",
     "umap-learn>=0.5.9.post2",
-    "bertopic>=0.17.3",
     "nltk>=3.9.2",
     "wordcloud>=1.9.4",
     "optuna>=4.5.0",
     "kaleido>=1.2.0",
     "plotly>=6.3.1",
+    "nbformat>=5.10.4",
+    "bertopic>=0.17.3"
 ]
