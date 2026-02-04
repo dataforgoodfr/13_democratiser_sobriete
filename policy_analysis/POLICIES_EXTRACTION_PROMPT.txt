@@ -1,0 +1,63 @@
+The query is a conclusion or discussion section from a scientific paper. It could also be an excerpt of such a section.
+The text could contain some amount of garbage, like headers/footers, page or line numbers, table residues, references, etc. Ignore these.
+Our goal is to scan many such texts and constitute a database of public policies mentioned in these texts, along with their mentioned impacts.
+Determine if the query mentions any public policies (author recommendations, policies that have been evaluated, existing policies, etc.).
+If it does, then extract them as a list.
+DO NOT invent policies that aren't mentioned in the query, only extract those that are explicitly mentioned.
+List the policies in English even if the query isn't in English.
+Include enough context in the extracted policy so that it can be understood on its own.
+
+Policy definition:
+A policy is any intentional action, decision, practice, or strategy taken by a human actor or policymakers that aims to influence social, economic, environmental, biological, or technical outcomes.
+Policies include but are not limited to:
+- Government or administrative actions (e.g. regulation, public investment, planning decisions)
+- Organisational or firm-level strategies (e.g. business model changes, standardisation practices)
+- Collective or individual practices (e.g. mobility choices, dietary changes, lifestyle adaptations)
+Policies do not need to be formal, legally binding, or explicitly labelled as “policy” in the text.
+
+For each policy, provide, in addition to the policy itself:
+1. Sector: target sector in which improvements are sought (from the provided DOMAIN list)
+2. Policy type (from the provided POLICY_TYPE list)
+3. Actor: the human individual or collective responsible for implementing the policy (from the provided ACTORS list)
+
+Format each policy as:
+[SECTOR] [POLICY_TYPE] [ACTOR] Policy description
+
+Strictly take values from the provided lists below (use all-caps short labels only).
+
+SECTOR:
+- BUILDING: Built Environment & Housing
+- URBAN: Urban Planning, Land Use & Spatial Development
+- MOBILITY: Mobility, Transport & Accessibility
+- ENERGY: Energy Systems
+- MATERIALS: Material Cycles, Waste & Water Systems
+- FOOD: Food, Agriculture & Fisheries Systems
+- INDUSTRY: Industrial Production & Manufacturing
+- LOGISTICS: Logistics & Supply Chains
+- NATURE: Natural Systems & Biodiversity
+- SOCIAL: Social Systems & Human Development (including wellbeing, health, education)
+- MACROECONOMIC: Macroeconomic & Cross-Sectoral Governance
+
+POLICY_TYPE:
+- REGULATORY: Regulatory Instruments
+- ECONOMIC: Economic & Financial Instruments
+- SPATIAL: Spatial Planning & Infrastructure Provision
+- INFORMATIONAL: Informational, Educational & Capacity-Building Instruments
+- RESEARCH: Research, Innovation & Technological Development
+- STANDARDS: Standards, Certification & Standardisation Instruments
+- PARTICIPATORY: Participatory, Co-governance & Partnership Instruments
+- ORGANISATIONAL: Organisational, Labour & Management Instruments
+- SOCIAL: Social, Equity & Inclusion Instruments
+
+ACTOR:
+- INTERNATIONAL: Supranational & International Institutions
+- NATIONAL: National Governments & Public Authorities
+- REGIONAL: Regional & Local Governments
+- COMPANIES: Private Firms & Industry Actors
+- FINANCE: Financial Actors & Investors
+- NGO: Civil Society & Non-Profit Organizations
+- SCHOOL: Knowledge, Education & Research Institutions
+- INDIVIDUALS: Individuals & Social Groups
+
+Example :
+[ENERGY] [ECONOMIC] [NATIONAL] Carbon tax of 100 €/ton
