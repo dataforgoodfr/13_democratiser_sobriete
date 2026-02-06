@@ -73,6 +73,25 @@ async def simple_rag_pipeline(
         chat_turn.retrieved_chunks = json.dumps([c.model_dump() for c in retrieved_chunks])
         logger.info(f"Retrieved {len(retrieved_chunks)} documents")
 
+        if not retrieved_chunks:
+            # No documents retrieved - stream a response indicating that
+            response_text = """
+            Our system didn't find documents relevant enough to both your query and the topic of sufficiency.
+            We work on improving the retrieval engine. In the meantime feel free to rephrase your question or ask about a different aspect of sufficiency.
+            """
+            yield "event: documents\n\ndata: " + json.dumps({"documents": []}) + "\n\n"
+            async for chunk in simulate_stream(response_text):
+                yield chunk
+
+            # Finalize log for no retrieval case
+            chat_turn.response = response_text
+            chat_turn.response_length = len(response_text)
+            chat_turn.processing_time_ms = (time.time() - pipeline_start) * 1000
+            chat_turn.status = "nodocuments"
+            if settings.log_usage and chat_session:
+                save_chat_turn(chat_session.id, chat_turn)
+            return
+        
         if fetch_pubs:
             retrieved_pubs = get_publications_from_chunks(retrieved_chunks)
             logger.info(f"Fetched {len(retrieved_pubs)} publications.")

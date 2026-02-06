@@ -20,9 +20,11 @@ class Settings(BaseSettings):
     query_rewrite_max_tokens: int = 128
     query_rewrite_timeout: int = 15
 
-    k_rerank: int = 5
-    rerank_method: Literal["flashrank", "llm"] = "flashrank"
+    k_rerank: int = 5  # number of documents to return after reranking (max if llm_sufficiency, exact otherwise)
+    rerank_method: Literal["flashrank", "llm", "llm_sufficiency"] = "flashrank"
     llm_rerank_model: str = "mistral-small-3.2-24b-instruct-2506"
+    llm_filter_min_rating: int = 5  # on a scale of 1-9, included
+
 
     # generation
     generation_api_url: str
