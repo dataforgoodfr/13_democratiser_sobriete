@@ -43,9 +43,9 @@
 		<div class="mb-5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
 			<p class="text-sm leading-relaxed text-amber-800">
 				<strong>⚠️ Preview version</strong> — We're still working on the retrieval pipeline
-                to build the most precise context feeding into the model.
-                Also, while the model should only discuss information provided in the sources,
-                LLMs remain prone to errors.
+                to build the most precise context possible for the model from the literature.
+                Also, as any AI and despite our best efforts, Chat Sufficiency can make mistakes.
+				We encourage you to read the cited works.
 			</p>
 		</div>
 
