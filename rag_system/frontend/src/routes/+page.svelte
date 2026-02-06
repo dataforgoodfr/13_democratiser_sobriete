@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { ChatPanel, DocumentsPanel } from '$lib/components/chat';
+	import DisclaimerModal from '$lib/components/DisclaimerModal.svelte';
 	import NavBar from '$lib/components/NavBar.svelte';
 	import { streamChatResponse } from '$lib/services/chatService';
 	import type { ChatMessage, ChatStatus, Document } from '$lib/types';
@@ -8,6 +9,7 @@
 	let messages: ChatMessage[] = $state([]);
 	let status: ChatStatus = $state('idle');
 	let selectedMessageIndex: number | null = $state(null);
+	let showDisclaimer = $state(true);
 
 	// Get documents for the selected message (or last assistant message if none selected)
 	let displayedDocuments = $derived.by(() => {
@@ -89,3 +91,7 @@
 		/>
 	</div>
 </div>
+
+{#if showDisclaimer}
+	<DisclaimerModal onClose={() => (showDisclaimer = false)} />
+{/if}
