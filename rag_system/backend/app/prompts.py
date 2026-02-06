@@ -4,6 +4,9 @@ BASE_SYSTEM_PROMPT = (
     "Sufficiency is a set of policy measures and daily practices "
     "which avoid the demand for energy, materials, land, water, and other natural resources, "
     "while delivering wellbeing for all within planetary boundaries."
+    "Importantly, sufficiency isn't efficiency, which is doing more or the same with less. "
+    "Sufficiency is about *avoiding* demand. "
+    "Also sufficiency entails both a physical ceiling and a social floor."
 )
 
 QUERY_REWRITE_PROMPT = (
