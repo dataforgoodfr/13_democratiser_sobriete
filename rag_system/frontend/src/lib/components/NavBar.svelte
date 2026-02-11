@@ -52,12 +52,12 @@
 	<!-- Minimal header with just buttons -->
 	<div class="flex items-center justify-end gap-2 border-b bg-background p-2">
 		<button
-			class="flex items-center gap-2 rounded-lg border bg-card px-2 py-1.5 md:px-4 md:py-2 text-card-foreground hover:bg-accent"
+			class="flex items-center gap-2 rounded-lg border bg-wsl-yellow px-2 py-1.5 md:px-4 md:py-2 text-black hover:bg-wsl-yellow/90"
 			onclick={() => (showFeedbackModal = true)}
 			title="Feedback"
 		>
 			<MessageSquareIcon size={20} />
-			<span class="hidden sm:inline">Feedback</span>
+			<span>Feedback</span>
 		</button>
 		<button
 			class="flex items-center gap-2 rounded-lg bg-primary px-2 py-1.5 md:px-4 md:py-2 text-primary-foreground hover:bg-primary/90"
@@ -65,7 +65,7 @@
 			title="New chat"
 		>
 			<SquarePenIcon size={20} />
-			<span class="hidden sm:inline">New chat</span>
+			<span>New chat</span>
 		</button>
 	</div>
 {/if}
