@@ -13,6 +13,7 @@ class ChatRequest(BaseModel):
     """Request body for chat endpoint."""
 
     chat_id: str
+    persona: str | None = None
     messages: list[ChatMessage]
 
 

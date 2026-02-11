@@ -10,6 +10,7 @@
 	let status: ChatStatus = $state('idle');
 	let selectedMessageIndex: number | null = $state(null);
 	let showDisclaimer = $state(true);
+	let userPersona: string = $state('');
 	let activeTab: 'chat' | 'sources' = $state('chat');
 
 	// Get documents for the selected message (or last assistant message if none selected)
@@ -49,7 +50,7 @@
 		messages = [...messages, assistantMessage];
 		selectedMessageIndex = null;
 
-		await streamChatResponse(chatId, messages, {
+		await streamChatResponse(chatId, userPersona, messages, {
 			onDocuments: (documents: Document[]) => {
 				messages = messages.map((msg, i) =>
 					i === messages.length - 1 ? { ...msg, documents } : msg
@@ -126,5 +127,8 @@
 </div>
 
 {#if showDisclaimer}
-	<DisclaimerModal onClose={() => (showDisclaimer = false)} />
+	<DisclaimerModal onClose={(persona) => {
+		userPersona = persona;
+		showDisclaimer = false;
+	}} />
 {/if}

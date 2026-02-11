@@ -38,6 +38,7 @@ async def chat(chat_request: ChatRequest, http_request: Request):
     if settings.log_usage:
         chat_session = get_or_create_session(
             session_id=chat_request.chat_id,
+            persona=chat_request.persona,
             ip_address=http_request.client.host,
             user_agent=http_request.headers.get("user-agent"),
         )
