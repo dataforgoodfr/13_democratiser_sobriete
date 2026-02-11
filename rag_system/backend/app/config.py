@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     # generation
     generation_api_url: str
     generation_model_name: str
-    scw_access_key: str
+    scw_access_key: str | None = None
     scw_secret_key: str
 
     answer_temperature: float = 0.01
