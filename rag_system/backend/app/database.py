@@ -50,6 +50,7 @@ class ChatSession(SQLModel, table=True):
 
     # Session metadata
     title: Optional[str] = None  # Can be auto-generated from first message
+    persona: Optional[str] = None
 
     # Client info (captured on session creation)
     ip_address: Optional[str] = None
@@ -110,6 +111,7 @@ class ChatTurn(SQLModel, table=True):
 
 def get_or_create_session(
     session_id: Optional[str] = None,
+    persona: Optional[str] = None,
     ip_address: Optional[str] = None,
     user_agent: Optional[str] = None,
 ) -> ChatSession:
@@ -122,6 +124,7 @@ def get_or_create_session(
 
         chat_session = ChatSession(
             id=session_id,
+            persona=persona,
             ip_address=ip_address,
             user_agent=user_agent,
         )

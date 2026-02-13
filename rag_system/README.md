@@ -17,8 +17,8 @@ uv run uvicorn app.main:app --reload
 
 # start frontend (dev)
 cd frontend
-cp .env.example .env
 npm install
+cp .env.example .env
 npm run dev
 ```
 
@@ -56,8 +56,6 @@ to create `requirements.txt` file from `pyproject.toml`. To avoid installing use
 
 ## TODO
 - suggestions (of questions)
-- prompt: answer in same language as query
-- prompt: don't forget social floor
 - hybrid search
 - policy analysis
 - optimize cost (use APIs for query embedding and reranking to use a smaller server instance)
