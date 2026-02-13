@@ -1,15 +1,5 @@
 from enum import Enum
 
-class Human_needs(str, Enum):
-    nutrition = "Nutrition"
-    shelter_and_living_conditions = "Shelter and living conditions"
-    hygiene = "Hygiene"
-    clothing = "Clothing"
-    healthcare = "Healthcare"
-    education = "Education"
-    communication_and_information = "Communication and information"
-    mobility = "Mobility"
-
 
 class Studied_sector(str, Enum):
     agriculture_forestry_fishing = "Agriculture, forestry, fishing"
@@ -61,7 +51,18 @@ class Studied_policy_area(str, Enum):
     transport = "Transport"
 
 
-class Natural_ressource(str, Enum):
+class Need(str, Enum):
+    nutrition = "Nutrition"
+    shelter_and_living_conditions = "Shelter and living conditions"
+    hygiene = "Hygiene"
+    clothing = "Clothing"
+    healthcare = "Healthcare"
+    education = "Education"
+    communication_and_information = "Communication and information"
+    mobility = "Mobility"
+
+
+class Resource(str, Enum):
     freshwater = "Freshwater"
     marine_resources = "Marine Resources"
     wetlands = "Wetlands"
@@ -88,7 +89,7 @@ class Wellbeing(str, Enum):
     safety = "Safety"
 
 
-class Justice_consideration(str, Enum):
+class Justice(str, Enum):
     distributional = "Distributional"
     procedural = "Procedural"
     corrective = "Corrective"
@@ -96,7 +97,7 @@ class Justice_consideration(str, Enum):
     transitional = "Transitional"
 
 
-class Planetary_boundaries(str, Enum):
+class PlanetaryBoundary(str, Enum):
     land_system_change = "Land-System Change"
     climate_change = "Climate Change"
     biosphere_integrity = "Biosphere Integrity"

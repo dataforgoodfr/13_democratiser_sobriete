@@ -2550,7 +2550,6 @@ dependencies = [
     { name = "datasets" },
     { name = "datetime" },
     { name = "dspy" },
-    { name = "hdbscan" },
     { name = "hf-xet" },
     { name = "langchain-text-splitters" },
     { name = "loguru" },
@@ -2574,6 +2573,7 @@ dependencies = [
 clustering = [
     { name = "bertopic" },
     { name = "faiss-cpu" },
+    { name = "hdbscan" },
     { name = "kaleido" },
     { name = "nbformat" },
     { name = "nltk" },
@@ -2600,7 +2600,6 @@ requires-dist = [
     { name = "datasets", specifier = ">=4.5.0" },
     { name = "datetime", specifier = ">=6.0" },
     { name = "dspy", specifier = ">=3.0.4" },
-    { name = "hdbscan", specifier = ">=0.8.41" },
     { name = "hf-xet", specifier = ">=1.2.0" },
     { name = "langchain-text-splitters", specifier = ">=1.1.0" },
     { name = "loguru", specifier = ">=0.7.3" },
@@ -2622,6 +2621,7 @@ requires-dist = [
 clustering = [
     { name = "bertopic", specifier = ">=0.17.3" },
     { name = "faiss-cpu", specifier = ">=1.13.0" },
+    { name = "hdbscan", specifier = ">=0.8.41" },
     { name = "kaleido", specifier = ">=1.2.0" },
     { name = "nbformat", specifier = ">=5.10.4" },
     { name = "nltk", specifier = ">=3.9.2" },
@@ -2641,7 +2641,6 @@ transformers = [
     { name = "torch", specifier = ">=2.9.1" },
     { name = "transformers", specifier = ">=4.57.3" },
 ]
-vllm = []
 
 [[package]]
 name = "portalocker"

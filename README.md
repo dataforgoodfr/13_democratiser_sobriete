@@ -64,6 +64,7 @@ Installer uv :
 
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
+source $HOME/.local/bin/env
 ```
 
 Installer pre-commit avec uv (pas obligatoire si vous avez déjà pre-commit installé) :
