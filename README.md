@@ -18,7 +18,7 @@ Le projet est structuré en plusieurs sous-projets :
 - **Policy analysis** (dans `policy_analysis/`) : pipeline d'extraction et d'analyse de politiques de sobriété et de leurs impacts dont les résultats ont vocation à être inclus dans le RAG.
 - **ChatSufficiency** (dans `rag_system/`) : chatbot destiné aux experts des politiques publiques, branchés en RAG sur la library et les résultats de la policy analysis.
 
-Voici un schéma d'architecture du projet (à mettre à jour) :
+Voici un schéma d'architecture du projet :
 ![Schéma du projet](assets/architecture.png)
 
 
@@ -55,55 +55,42 @@ Il a donc été décidé d'en sortir et de réimplémenter les fonctionnalités 
 
 [README ChatSufficiency](rag_system/README.md)
 
-## Ressources cloud
-![Schéma des ressources cloud](assets/cloud_resources.png)
+
+## Quick Start
+Chaque dossier est un projet indépendant, mais voici les dépendances communes à installer.
+
+
+Installer uv :
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+Installer pre-commit avec uv (pas obligatoire si vous avez déjà pre-commit installé) :
+
+```
+uv tool install pre-commit --with pre-commit-uv
+pre-commit --version  # check proper installation
+pre-commit install  # activate hooks before each commit
+```
+
+Lancer les pre-commit hooks manuellement :
+```
+pre-commit run --all-files
+```
 
 
 ## Roadmap
 
 Voici dans les grosses mailles les étapes prévues:
 
-- [ ] Nettoyage du repo et de la base de données postgres
-- [ ] Refactoring pour mieux isoler les sous-projets
-- [ ] Web app moteur de recherche par mot-clés sur les abstracts des articles de la library
-- [ ] Refaire tourner l'extraction du full-text pour les articles open access et essayer de l'obtenir par les abonnements du WSL pour les autres
-- [ ] Adaptation du moteur de recherche au full text
-- [ ] Chunking et embedding pour ingestion en base vectorielle
-- [ ] Adaptation du moteur de recherche à la recherche sémantique
-- [ ] V1 du chatbot : génération par LLM + adaptation de la web app
-- [ ] Finalisation du pipeline de policy analysis
-- [ ] Intégration de la policy analysis au chatbot
+- [x] Nettoyage du repo et de la base de données postgres
+- [x] Refactoring pour mieux isoler les sous-projets
+- [x] Recréer la library
+- [x] Chunking et embedding pour ingestion en base vectorielle
+- [x] V0 du chatbot sans policy analysis
+- [ ] Finalisation du pipeline de policy analysis et application à un petit échantillon de la library
+- [ ] V1 du chatbot avec intégration de la policy analysis
+- [ ] V2 de la library : extraction markdown et chunking plus fin
+- [ ] Application du pipeline de policy analysis à toute la library, ou une portion conséquente (besoin de ressources de calcul importantes -> Jean Zay)
 - [ ] V2 du chatbot
-
-
-## 🚀 Quick Start
-
-### 1. Installer les dépendances `uv` et `pip`
-
-```bash
-# macOS et Linux
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# Windows
-powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
-
-# Alternative : via pip
-pip install uv
-```
-
-Plus d'informations : [documentation officielle de uv](https://astral.sh/uv)
-
-
-### 2. Lancer les precommit-hooks localement
-
-[Installer les precommit](https://pre-commit.com/)
-
-    pre-commit run --all-files
-
-### 3. Utiliser Tox pour tester votre code
-
-    tox -vv
-
-
-> [!IMPORTANT]
-> Projet en développement actif, pas de garantie de fonctionnement, notamment pour les tests.

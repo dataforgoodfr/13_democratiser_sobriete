@@ -1,0 +1,19 @@
+[project]
+name = "dspyrag"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "accelerate>=1.12.0",
+    "datasets>=4.5.0",
+    "datetime>=6.0",
+    "dspy>=3.0.4",
+    "faiss-cpu>=1.13.0",
+    "openpyxl>=3.1.5",
+    "pandas>=2.3.3",
+    "pyarrow>=22.0.0",
+    "sentence-transformers>=5.1.2",
+    "torch>=2.9.1",
+    "transformers>=4.57.3",
+]

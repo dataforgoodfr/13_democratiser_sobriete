@@ -1,0 +1,6 @@
+{
+    "batch_size": 71,
+    "max_neighbors": 89,
+    "sim_threshold": 0.8499811373828857,
+    "medoid_exact_max_cluster": 5
+}
