@@ -9,7 +9,7 @@ from .config import settings
 from .database import create_db_and_tables, get_or_create_session, save_feedback
 from .dependencies import get_logger
 from .models import ChatRequest, FeedbackRequest
-from .rag import generate_dummy_response, simple_rag_pipeline
+from .rag import simple_rag_pipeline
 
 
 # TODO: move ml models init/clean here
