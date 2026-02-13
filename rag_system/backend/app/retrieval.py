@@ -7,7 +7,7 @@ from pyalex import Works
 
 from .config import settings
 from .models import DocumentChunk, Publication
-from .reranking import flashrank_rerank, llm_rerank
+from .reranking import flashrank_rerank, llm_rerank, llm_rate_sufficiency
 
 
 qdrant_client = QdrantClient(
@@ -58,6 +58,8 @@ async def retrieve_chunks(
         reranked_chunks = await flashrank_rerank(query, chunks)
     elif settings.rerank_method == "llm":
         reranked_chunks = await llm_rerank(query, chunks)
+    elif settings.rerank_method == "llm_sufficiency":
+        reranked_chunks = await llm_rate_sufficiency(query, chunks)
     else:
         reranked_chunks = chunks
     # apply new rank

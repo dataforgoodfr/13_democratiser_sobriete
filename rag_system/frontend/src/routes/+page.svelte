@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { ChatPanel, DocumentsPanel } from '$lib/components/chat';
+	import DisclaimerModal from '$lib/components/DisclaimerModal.svelte';
 	import NavBar from '$lib/components/NavBar.svelte';
 	import { streamChatResponse } from '$lib/services/chatService';
 	import type { ChatMessage, ChatStatus, Document } from '$lib/types';
@@ -8,6 +9,9 @@
 	let messages: ChatMessage[] = $state([]);
 	let status: ChatStatus = $state('idle');
 	let selectedMessageIndex: number | null = $state(null);
+	let showDisclaimer = $state(true);
+	let userPersona: string = $state('');
+	let activeTab: 'chat' | 'sources' = $state('chat');
 
 	// Get documents for the selected message (or last assistant message if none selected)
 	let displayedDocuments = $derived.by(() => {
@@ -46,7 +50,7 @@
 		messages = [...messages, assistantMessage];
 		selectedMessageIndex = null;
 
-		await streamChatResponse(chatId, messages, {
+		await streamChatResponse(chatId, userPersona, messages, {
 			onDocuments: (documents: Document[]) => {
 				messages = messages.map((msg, i) =>
 					i === messages.length - 1 ? { ...msg, documents } : msg
@@ -74,18 +78,57 @@
 
 <div class="flex h-screen w-screen flex-col bg-background">
 	<NavBar onReset={handleReset} {chatId} />
-	<div class="flex flex-1 overflow-hidden">
-		<ChatPanel
-			{messages}
-			{status}
-			{selectedMessageIndex}
-			onSelectMessage={handleSelectMessage}
-			onSubmit={handleSubmit}
-		/>
+	
+	<!-- Tab buttons for mobile only -->
+	<div class="flex border-b md:hidden">
+		<button
+			class="flex-1 px-4 py-3 text-sm font-medium transition-colors {activeTab === 'chat'
+				? 'border-b-2 border-primary text-foreground'
+				: 'text-muted-foreground hover:text-foreground'}"
+			onclick={() => (activeTab = 'chat')}
+		>
+			💬 Chat
+		</button>
+		<button
+			class="flex-1 px-4 py-3 text-sm font-medium transition-colors {activeTab === 'sources'
+				? 'border-b-2 border-primary text-foreground'
+				: 'text-muted-foreground hover:text-foreground'}"
+			onclick={() => (activeTab = 'sources')}
+		>
+			📄 Sources
+			{#if displayedDocuments.length > 0}
+				<span class="ml-1 rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
+					{displayedDocuments.length}
+				</span>
+			{/if}
+		</button>
+	</div>
 
-		<DocumentsPanel
-			documents={displayedDocuments}
-			isSelectedMessage={selectedMessageIndex !== null}
-		/>
+	<div class="flex flex-1 overflow-hidden">
+		<!-- Chat panel: full width on mobile when chat tab active, half width on desktop -->
+		<div class="w-full md:w-1/2 {activeTab === 'chat' ? 'block' : 'hidden md:block'}">
+			<ChatPanel
+				{messages}
+				{status}
+				{selectedMessageIndex}
+				onSelectMessage={handleSelectMessage}
+				onSubmit={handleSubmit}
+			/>
+		</div>
+
+		<!-- Documents panel: full width on mobile when sources tab active, half width on desktop -->
+		<div class="w-full md:w-1/2 {activeTab === 'sources' ? 'block' : 'hidden md:block'}">
+			<DocumentsPanel
+				documents={displayedDocuments}
+				isSelectedMessage={selectedMessageIndex !== null}
+			/>
+		</div>
 	</div>
 </div>
+
+{#if showDisclaimer}
+	<DisclaimerModal onClose={(persona) => {
+		userPersona = persona;
+		showDisclaimer = false;
+	}} />
+{/if}

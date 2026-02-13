@@ -13,6 +13,7 @@ class ChatRequest(BaseModel):
     """Request body for chat endpoint."""
 
     chat_id: str
+    persona: str | None = None
     messages: list[ChatMessage]
 
 
@@ -26,10 +27,10 @@ class ChatChunk(BaseModel):
 class QueryRewriteResponse(BaseModel):
     """Response from the query rewriting LLM."""
 
+    should_retrieve: bool = Field(description="Whether document retrieval should be performed.")
     rewritten_query_or_response: str = Field(
         description="The rewritten query, or a response to the user if no retrieval is needed."
     )
-    should_retrieve: bool = Field(description="Whether document retrieval should be performed.")
 
 
 class DocumentChunk(BaseModel):

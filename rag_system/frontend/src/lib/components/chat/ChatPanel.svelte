@@ -34,7 +34,7 @@
 	}
 </script>
 
-<div class="flex h-full w-1/2 flex-col border-r">
+<div class="flex h-full w-full flex-col border-r">
 	<div class="flex-1 overflow-y-auto p-6">
 		<Conversation class="h-full">
 			<ConversationContent>

@@ -15,7 +15,7 @@
 	}
 </script>
 
-<div class="flex h-full w-1/2 flex-col">
+<div class="flex h-full w-full flex-col">
 	<div class="border-b p-4">
 		<h2 class="text-lg font-semibold">📄 Retrieved Sources</h2>
 		<p class="text-sm text-muted-foreground">
