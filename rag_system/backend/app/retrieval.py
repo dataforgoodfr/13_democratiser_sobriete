@@ -4,6 +4,7 @@ from concurrent.futures import ThreadPoolExecutor
 from sentence_transformers import SentenceTransformer
 from qdrant_client import QdrantClient
 from pyalex import Works
+import torch
 
 from .config import settings
 from .models import DocumentChunk, Publication
@@ -14,7 +15,10 @@ qdrant_client = QdrantClient(
     url=settings.qdrant_url,
     api_key=settings.qdrant_api_key,
 )
-embedding_model = SentenceTransformer(settings.embedding_model, device="cpu").half()
+embedding_model = SentenceTransformer(settings.embedding_model, device="cuda" if torch.cuda.is_available() else "cpu")
+if embedding_model.device.type == "cuda":
+    embedding_model = embedding_model.half()
+
 executor = ThreadPoolExecutor(max_workers=2)
 
 
