@@ -8,7 +8,7 @@ from .models import DocumentChunk
 from .prompts import SUFFICIENCY_RATING_PROMPT
 
 
-ranker = Ranker(max_length=settings.max_length_reranker)
+ranker = Ranker(model_name=settings.flashrank_model, max_length=settings.max_length_reranker)
 reranking_client = create_openai_client()
 
 

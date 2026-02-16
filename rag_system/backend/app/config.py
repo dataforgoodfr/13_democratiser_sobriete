@@ -22,6 +22,7 @@ class Settings(BaseSettings):
 
     k_rerank: int = 5  # number of documents to return after reranking (max if llm_sufficiency, exact otherwise)
     rerank_method: Literal["flashrank", "llm", "llm_sufficiency"] = "flashrank"
+    flashrank_model: str = "ms-marco-MiniLM-L-12-v2" # ms-marco-TinyBERT-L-2-v2
     llm_rerank_model: str = "mistral-small-3.2-24b-instruct-2506"
     llm_filter_min_rating: int = 5  # on a scale of 1-9, included
 
