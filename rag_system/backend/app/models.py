@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Any, Literal
 from pydantic import BaseModel, Field
 
 
@@ -56,3 +56,23 @@ class FeedbackRequest(BaseModel):
 
     chat_id: str | None = None
     content: str
+
+
+class StructuredOutputRequest(BaseModel):
+    """Request body for generic non-streaming structured generation."""
+
+    messages: list[ChatMessage]
+    output_schema: dict[str, Any]
+    schema_name: str = "ClientStructuredOutput"
+    fetch_pubs: bool = True
+    temperature: float = Field(default=0.0, ge=0, le=2)
+    top_p: float = Field(default=1.0, ge=0, le=1)
+    max_tokens: int = Field(default=512, ge=1)
+    timeout: int = Field(default=60, ge=1)
+
+
+class StructuredOutputResponse(BaseModel):
+    """Response body for generic structured generation endpoint."""
+
+    output: dict[str, Any]
+    documents: list[dict[str, Any]] = Field(default_factory=list)

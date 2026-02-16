@@ -29,8 +29,14 @@ RAG_PROMPT = (
 )
 
 
+GENERIC_STRUCTURED_OUTPUT_PROMPT = (
+    "Return only valid JSON that matches the user-provided JSON schema exactly. "
+    "Do not include markdown, prose, or extra keys."
+)
+
+
 SUFFICIENCY_RATING_PROMPT = (
-    "Rate on a scale of 1-9 how relevant is the document to the query AND to the topic of sufficiency. ",
+    "Rate on a scale of 1-9 how relevant is the document to the query AND to the topic of sufficiency. "
     "Sufficiency is a set of policy measures and daily practices which avoid the demand for energy, materials, land, water, and other natural resources while delivering wellbeing for all within planetary boundaries. "
     "Importantly, sufficiency isn't efficiency, which is doing more or the same with less. "
     "Sufficiency is about *avoiding* demand. "
