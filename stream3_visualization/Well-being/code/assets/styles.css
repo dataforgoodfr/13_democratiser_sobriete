@@ -128,6 +128,27 @@
     flex-wrap: wrap;
 }
 
+/* Align the Country Selector with the EU Priority + Raw Data Indicator row */
+.controls-row--aligned {
+    max-width: 660px; /* 2 dropdowns (≈300px each) + spacing */
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    justify-content: space-between;
+    gap: 60px;
+    flex-wrap: nowrap;
+}
+
+.controls-row--aligned .control-item {
+    flex: 0 0 calc((100% - 60px) / 2);
+    min-width: 0;
+    max-width: none;
+}
+
+.controls-row--aligned .control-item--full {
+    flex: 0 0 100%;
+}
+
 .control-item {
     min-width: 120px;
     max-width: 220px;
@@ -215,6 +236,17 @@
     .controls-row {
         flex-direction: column;
         gap: 1vw;
+    }
+
+    .controls-row--aligned {
+        max-width: 100%;
+        justify-content: center;
+        gap: 1vw;
+        flex-wrap: wrap;
+    }
+
+    .controls-row--aligned .control-item {
+        flex: 0 0 100%;
     }
     
     .control-item {

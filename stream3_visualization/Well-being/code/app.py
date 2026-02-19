@@ -187,23 +187,23 @@ app.layout = html.Div([
                         id='eu-priority-dropdown',
                         options=[{'label': '(EWBI Overall)', 'value': 'ALL'}] + [{'label': prio, 'value': prio} for prio in EU_PRIORITIES],
                         value='ALL',
-                        style={'marginTop': '0px', 'width': '300px'},
+                        style={'marginTop': '0px', 'width': '100%'},
                         clearable=False
                     ),
-                ], className="control-item", style={'marginRight': '60px', 'width': '300px'}),
+                ], className="control-item"),
                 html.Div([
                     html.Label("Raw Data Indicator", className="control-label"),
                     dcc.Dropdown(
                         id='primary-indicator-dropdown',
                         options=[{'label': '(Select EU Priority first)', 'value': 'ALL'}],
                         value='ALL',
-                        style={'marginTop': '0px', 'width': '300px'},
+                        style={'marginTop': '0px', 'width': '100%'},
                         clearable=False,
                         disabled=True
                     ),
-                ], className="control-item", style={'width': '300px'}),
+                ], className="control-item"),
                 # EWBI: Remove Secondary indicator dropdown entirely
-            ], className="controls-row"),
+            ], className="controls-row controls-row--aligned"),
             # Bottom row: Country selector
             html.Div([
                 html.Div([
@@ -216,8 +216,8 @@ app.layout = html.Div([
                         placeholder='Add countries for comparison',
                         style={'marginTop': '0px'}
                     ),
-                ], style={'width': '102%', 'minWidth': '306px', 'maxWidth': '578px'}),
-            ], className="controls-row"),
+                ], className="control-item control-item--full"),
+            ], className="controls-row controls-row--aligned"),
         ], className="controls-section")
     ], className="dashboard-header"),
 
@@ -285,22 +285,23 @@ app.layout = html.Div([
         html.H3("Data Sources - EWBI", className="sources-title"),
         html.Div([
             html.H4("European Well-Being Index (EWBI) - PCA Enhanced", className="sources-subtitle"),
-            html.P("The PCA-enhanced EWBI uses Principal Component Analysis for improved indicator weighting and a simplified hierarchical structure, with structural break adjustment for data continuity.", className="sources-text"),
+            html.P(
+                "The EWBI is a distributional well-being index computed for each income decile within each country-year, built from harmonized EU-SILC and LFS microdata and aggregated into policy-facing composites.",
+                className="sources-text"
+            ),
             html.H4("Methodology & Data Processing", className="sources-subtitle"),
-            html.P("• Structural Break Adjustment: Corrects for survey methodology changes before normalization", className="sources-text"),
-            html.P("• Winsorization (1st-99th percentile) + Percentile scaling for normalized levels", className="sources-text"),
-            html.P("• Raw data indicators preserved in original measurement scale (break-adjusted but not normalized)", className="sources-text"),
-            html.P("• PCA-based weights for EU priority aggregation ensure optimal indicator contribution", className="sources-text"),
-            html.P("• Simplified hierarchy: Raw Data → EU Priorities → EWBI (no Secondary level)", className="sources-text"),
-            html.P("• Normalized aggregation levels scaled to [0.1, 1] for geometric mean compatibility", className="sources-text"),
-            html.P("• EU-27 aggregates use population-weighted arithmetic means for representative statistics", className="sources-text"),
+            html.P("• Income stratification: households are ranked by equivalized disposable income and assigned to deciles using weighted quantiles (by country-year)", className="sources-text"),
+            html.P("• Missing data treatment: internal gaps are linearly interpolated (no extrapolation beyond endpoints)", className="sources-text"),
+            html.P("• Structural break adjustment: detects large year-to-year jumps and reconstructs series using smoothed growth rates to reduce methodology-driven discontinuities", className="sources-text"),
+            html.P("• Normalization for aggregation: winsorization to limit outliers; z-score standardization (pooled); rescaling to a strictly positive range (baseline: [0.1, 1.0]) with explicit inversion so higher values consistently represent worse outcomes (deprivation)", className="sources-text"),
+            html.P("• Aggregation: EU Priority composites use PCA-based weights; the overall EWBI is the geometric mean of the five EU Priorities", className="sources-text"),
+            html.P("• Aggregates: EU-27 values are built from country values using population-weighted arithmetic means; decile-to-country aggregation follows explicit rules (including geometric aggregation across deciles in the baseline pipeline)", className="sources-text"),
             html.H4("Indicator Structure", className="sources-subtitle"),
-            html.P("The PCA EWBI follows a simplified hierarchical structure:", className="sources-text"),
+            html.P("The EWBI dashboard follows a simplified hierarchical structure:", className="sources-text"),
             html.P([html.Strong("Level 1: "), "EWBI - Overall well-being score (geometric mean of EU priorities)"], className="sources-text"),
             html.P([html.Strong("Level 2: "), "EU Priorities - Major policy areas (PCA-weighted aggregation of raw indicators)"], className="sources-text"),
-            html.P([html.Strong("Level 4: "), "Normalized Raw Data - Indicators normalized for aggregation purposes"], className="sources-text"),
-            html.P([html.Strong("Level 5: "), "Raw Statistics - Original scale survey indicators (break-adjusted, stratified by income decile)"], className="sources-text"),
-            html.P([html.Strong("Note: "), "Level 3 (Secondary Indicators) is skipped in the EWBI for simplified analysis"], className="sources-text"),
+            html.P([html.Strong("Level 3: "), "Raw indicators - Survey-based prevalence rates on the original scale (break-adjusted, stratified by income decile)"], className="sources-text"),
+            html.P([html.Strong("Note: "), "Normalization (winsorization, z-score standardization and positive rescaling) is applied internally for aggregation, but the dashboard exposes the raw indicator layer alongside the aggregated priority and EWBI scores."], className="sources-text"),
         ], className="sources-content")
     ], className="sources-section")
 ], className="dashboard-container")
