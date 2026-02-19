@@ -16,10 +16,10 @@ if [ ! -d "../../../.git" ]; then
 fi
 
 # Check if clever-cloud remote exists
-if ! git remote get-url clever-budget >/dev/null 2>&1; then
-    echo "❌ Error: clever-budget remote not found."
+if ! git remote get-url clever-wellbeing >/dev/null 2>&1; then
+    echo "❌ Error: clever-wellbeing remote not found."
     echo "Please add your CleverCloud remote:"
-    echo "git remote add clever-budget <your-clever-cloud-git-url>"
+    echo "git remote add clever-wellbeing <your-clever-cloud-git-url>"
     exit 1
 fi
 
@@ -55,7 +55,7 @@ git push origin "$current_branch"
 
 # Deploy to CleverCloud
 echo "🚀 Deploying to CleverCloud..."
-git push clever-budget "$current_branch:master"
+git push clever-wellbeing "$current_branch:master"
 
 echo "✅ Deployment complete!"
 echo "🌐 Your application should be available shortly on CleverCloud"

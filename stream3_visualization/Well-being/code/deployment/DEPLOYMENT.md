@@ -8,7 +8,7 @@ This folder contains all deployment-related files for the Well-being application
 - `Procfile` - Process definition for CleverCloud
 - `requirements.txt` - Python dependencies
 - `deploy-clevercloud.sh` - Automated deployment script
-- `deploy-clevercloud.md` - This documentation
+- `DEPLOYMENT.md` - This documentation
 
 ## Quick Deploy
 Run the deployment script:
