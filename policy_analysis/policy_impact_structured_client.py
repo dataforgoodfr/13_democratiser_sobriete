@@ -1,7 +1,14 @@
-from pydantic import BaseModel, Field
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import pickle
 import requests
 from typing import Literal
-from concurrent.futures import ThreadPoolExecutor
+
+import pandas as pd
+from pydantic import BaseModel, Field
+from tqdm import tqdm
+
+
+OUTPUT_FILE = 'impact_evaluation_results_justif.pkl'
 
 
 BACKEND_URL = "http://localhost:8000"
@@ -26,14 +33,25 @@ impacts = {
 
 
 def build_question(policy: str, impact_dimension: str, precision: str) -> str:
-    return f"What is the impact of {policy} on {impact_dimension}? {precision}"
+    return f"What is the impact of {policy} on {impact_dimension.replace('_', ' ')}? {precision}"
 
 
-class ImpactSchema(BaseModel):
-    impact: Literal["positive", "neutral", "negative", "unknown"] = Field(
-        description="The likely impact direction of the policy on the given impact dimension, based on retrieved scientific evidence. "
-        "Use 'positive' when evidence suggests overall beneficial effects on the dimension, 'negative' for harmful effects, 'neutral' when effects are mixed, unclear, or not supported by evidence, and 'unknown' when there is no evidence available."
+class Evidence(BaseModel):
+    evidence: str = Field(description="Very concise (1-2 sentences MAX) summary of the evidence from the document supporting the impact assessment.")
+    openalex_ids: list[str] = Field(description="List of OpenAlex IDs of documents supporting this evidence.")
+    impact: Literal["positive", "neutral", "negative"] = Field(
+        description="The likely impact direction of the policy on the given impact dimension, based on the evidence. "
+        "Use 'positive' when evidence suggests overall beneficial effects on the dimension, 'negative' for harmful effects, 'neutral' when effects are mixed, unclear, or not supported by evidence."
     )
+
+
+class StructuredImpactResponse(BaseModel):
+    evidences: list[Evidence] = Field(
+         description="List of evidences from retrieved documents. Not all documents need to appear: unhelpful documents can be ignored. "
+         "Likewise, not all dimensions of the impact need to be covered: if the evidence only supports an assessment on a subset of dimensions, that's fine. "
+         "Do not list an unsupported evidence."
+         )
+    overall_impact: Literal["positive", "neutral", "negative", "unknown"] = Field(description="Use unknown only when there is no evidence available")
 
 
 def _post_json(url: str, payload: dict) -> dict:
@@ -52,23 +70,30 @@ def evaluate_single_impact(
     ],
     backend_url: str = BACKEND_URL,
 ) -> str:
-    impact_str = impact_dimension.replace("_", " ")
     details = impacts[impact_dimension]
-    question = build_question(policy, impact_str, details)
+    question = build_question(policy, impact_dimension, details)
     payload = {
         "messages": [{"role": "user", "content": question}],
-        "output_schema": ImpactSchema.model_json_schema(),
+        "output_schema": StructuredImpactResponse.model_json_schema(),
         "schema_name": "ImpactSchema",
         "fetch_pubs": True,
         "temperature": 0,
         "top_p": 1,
-        "max_tokens": 64,
+        "max_tokens": 1024,
         "timeout": 60,
     }
 
-    response = _post_json(f"{backend_url}/internal/structured-output", payload)
-    return response["output"]["impact"]
-
+    try:
+        response = _post_json(f"{backend_url}/internal/structured-output", payload)
+        return response["output"]
+    except requests.HTTPError as e:
+        status_code = e.response.status_code if e.response is not None else "unknown"
+        response_text = e.response.text if e.response is not None else ""
+        s = f"error:http:{status_code}:{response_text}"
+        print(s)
+        return s
+    except Exception as e:
+        return f"error:exception:{e}"
 
 def evaluate_policy(
     policy: str,
@@ -89,3 +114,64 @@ def evaluate_policy(
             dimension = futures[future]
             results[dimension] = future.result()
     return results
+
+
+def main():
+    max_concurrent_requests = 10
+    max_consecutive_errors = 20
+    nmax = None
+
+    # if output file exists, load it to avoid redoing work
+    try:
+        with open(OUTPUT_FILE, 'rb') as f_in:
+            results = pickle.load(f_in)
+            results = [r for r in results if isinstance(r[-1], dict)]
+            print(f"Loaded {len(results)} existing results from {OUTPUT_FILE}.")
+    except FileNotFoundError:
+        results = []
+        print("No existing results found. Starting fresh.")
+
+    df = pd.read_parquet('data/sample_10k_policy_clusters_llm_2026-02-12.parquet')
+    print(f'Loaded {len(df)} policy clusters.')
+    
+
+    def _eval_one(idx, policy, impact, details):
+        evaluation = evaluate_single_impact(policy, impact, backend_url='http://localhost:8000')
+        question = build_question(policy, impact, details)
+        return (idx, policy, impact, question, evaluation)
+
+    # Build task args once, filtering out already existing results
+    existing_tasks = set((r[0], r[2]) for r in results)
+    task_args = [
+        (idx, row["cluster"], impact, details)
+        for idx, row in df.iloc[:nmax].iterrows()
+        for impact, details in impacts.items()
+        if (idx, impact) not in existing_tasks
+    ]
+    print(f"Prepared {len(task_args)} tasks for evaluation ( {len(df)} x {len(impacts)} - {len(results)} = {len(df)*len(impacts) - len(results)} ).")
+    print('Will save to ', OUTPUT_FILE)
+
+    consecutive_errors = 0
+    with ThreadPoolExecutor(max_workers=max_concurrent_requests) as executor:
+        futures = [executor.submit(_eval_one, *args) for args in task_args]
+        for f in tqdm(as_completed(futures), total=len(futures), desc="Evaluating impacts"):
+            r = f.result()
+            if isinstance(r[-1], str) and r[-1].startswith("error:"):
+                consecutive_errors += 1
+                print(f"Error encountered: {r[-1]}. Consecutive errors: {consecutive_errors}")
+                if consecutive_errors >= max_consecutive_errors:
+                    print(f"Reached maximum consecutive errors ({max_consecutive_errors}). Stopping execution.")
+                    break
+            else:
+                consecutive_errors = 0
+            
+            results.append(r)
+            if len(results) % 100 == 0:
+                with open(OUTPUT_FILE, 'wb') as f_out:
+                    pickle.dump(results, f_out)
+
+    with open(OUTPUT_FILE, 'wb') as f_out:
+        pickle.dump(results, f_out)
+
+if __name__ == "__main__":
+    main()

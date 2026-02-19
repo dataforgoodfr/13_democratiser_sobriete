@@ -174,7 +174,7 @@ def build_context_from_pubs(publications: list[Publication]) -> str:
     context_parts = []
     for i, pub in enumerate(publications):
         # add abstract + text from each chunk
-        context_parts.append(f"Document {i+1}:\n\n")
+        context_parts.append(f"Document {i+1} (OpenAlex ID: {pub.openalex_id}):\n\n")
         context_parts.append(f"Title: {pub.title}\n")
         context_parts.append(f"ABSTRACT\n{pub.abstract}\n")
         for i, chunk in enumerate(pub.retrieved_chunks):
@@ -189,7 +189,7 @@ def build_context_from_chunks(documents: list[DocumentChunk]) -> str:
     """Build the context string from retrieved documents."""
     context_parts = []
     for i, doc in enumerate(documents):
-        context_parts.append(f"Document {i+1}:\n{doc.text}\n")
+        context_parts.append(f"Document {i+1} (OpenAlex ID: {doc.openalex_id} - chunk {doc.chunk_idx}):\n{doc.text}\n")
     context = "\n".join(context_parts)
     return f"<context>\n{context}\n</context>"
 

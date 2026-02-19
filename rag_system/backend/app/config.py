@@ -26,7 +26,6 @@ class Settings(BaseSettings):
     llm_rerank_model: str = "mistral-small-3.2-24b-instruct-2506"
     llm_filter_min_rating: int = 5  # on a scale of 1-9, included
 
-
     # generation
     generation_api_url: str
     generation_model_name: str
