@@ -3033,6 +3033,77 @@ def create_house_sales_graphs():
         plt.close()
         print(f"  [SAVED] 24b_house_sales_countries_timeseries.png")
 
+
+def create_households_debt_graphs():
+    """Private sector debt: loans, by sectors, consolidated - % of GDP (households)"""
+    print("\n[Private Sector Debt - Households]")
+
+    file_path = os.path.join(EXTERNAL_DATA_DIR, 'eurostat_households_debt.csv')
+    if not os.path.exists(file_path):
+        print("  File not found:", file_path)
+        return
+
+    df = pd.read_csv(file_path)
+    df['TIME_PERIOD'] = pd.to_numeric(df['TIME_PERIOD'], errors='coerce')
+    df['OBS_VALUE'] = pd.to_numeric(df['OBS_VALUE'], errors='coerce')
+
+    df = df[(df['unit'] == 'Percentage of gross domestic product (GDP)') &
+            (df['co_nco'] == 'Consolidated') &
+            (df['na_item'] == 'Loans') &
+            (df['finpos'] == 'Liabilities') &
+            (df['sector'] == 'Households')].copy()
+
+    df = df.dropna(subset=['TIME_PERIOD', 'OBS_VALUE'])
+
+    if df.empty:
+        print("  No data available after filtering")
+        return
+
+    eu27_label = 'European Union - 27 countries (from 2020)'
+    df['country_name'] = df['geo'].apply(
+        lambda x: 'EU27' if x == eu27_label else standardize_country_name(x)
+    )
+
+    df = df.dropna(subset=['country_name'])
+
+    countries_gov = ['Austria', 'Spain', 'Sweden', 'France', 'Germany', 'Italy']
+    countries_capital = ['Austria', 'Spain', 'Sweden', 'France', 'Germany', 'Czech Republic']
+    countries_order = countries_gov + [c for c in countries_capital if c not in countries_gov]
+
+    plot_countries = ['EU27'] + countries_order
+
+    df_plot = df[df['country_name'].isin(plot_countries)].copy()
+    if df_plot.empty:
+        print("  No matching country data found for the selected panels")
+        return
+
+    fig, ax = plt.subplots(figsize=(12, 7))
+
+    for country in plot_countries:
+        country_data = df_plot[df_plot['country_name'] == country].sort_values('TIME_PERIOD')
+        if country_data.empty:
+            continue
+
+        color = EU_AGGREGATE_COLOR if country == 'EU27' else get_country_color(country)
+        linewidth = 3 if country == 'EU27' else 2
+        ax.plot(country_data['TIME_PERIOD'], country_data['OBS_VALUE'],
+                label=country, linewidth=linewidth, color=color)
+
+    ax.set_xlabel('Year', fontsize=12, fontweight='bold')
+    ax.set_ylabel('% of GDP', fontsize=12, fontweight='bold')
+    ax.set_title('Private Sector Debt (Loans, Consolidated) - Households (% of GDP)',
+                 fontsize=13, fontweight='bold')
+    ax.grid(True, alpha=0.2)
+    ax.set_facecolor('white')
+    ax.legend(loc='best', fontsize=9, framealpha=0.9)
+    ax.xaxis.set_major_locator(plt.MaxNLocator(integer=True))
+
+    plt.tight_layout()
+    output_file = os.path.join(OUTPUT_DIR, 'households_debt_loans_gdp_panel_countries.png')
+    plt.savefig(output_file, dpi=300, bbox_inches='tight', facecolor='white')
+    plt.close()
+    print("  [SAVED] households_debt_loans_gdp_panel_countries.png")
+
 def create_air_emissions_graphs():
     """Create visualizations for air emissions by NACE sector"""
     print("\n[10] Creating air emissions graphs...")
@@ -4784,7 +4855,9 @@ def main():
     create_raw_housing_indicators_vs_price()
     create_tenure_status_graphs()
     create_house_sales_graphs()
+    create_households_debt_graphs()
     create_air_emissions_graphs()
+    create_tax_aggregates_graphs()
     create_government_expenditure_housing_graphs()
     create_fixed_capital_formation_graphs()
     create_capital_stocks_graphs()
@@ -4793,6 +4866,317 @@ def main():
     print("\n" + "=" * 70)
     print("All visualizations completed!")
     print("=" * 70)
+
+
+def create_tax_aggregates_graphs():
+    """Main national accounts tax aggregates analysis"""
+    print("\n[Tax Aggregates]")
+
+    filepath = os.path.join(EXTERNAL_DATA_DIR, 'eurostat_tax_aggregates.csv')
+
+    if not os.path.exists(filepath):
+        print(f"  File not found: {filepath}")
+        return
+
+    try:
+        df = pd.read_csv(filepath)
+    except Exception as e:
+        print(f"  Error loading file: {e}")
+        return
+
+    print(f"  Loaded {len(df)} records")
+
+    df['geo'] = df['geo'].str.strip()
+    df['geo'] = df['geo'].replace({
+        'European Union - 27 countries (from 2020)': 'EU27',
+        'Czechia': 'Czech Republic',
+    })
+
+    df['TIME_PERIOD'] = pd.to_numeric(df['TIME_PERIOD'], errors='coerce')
+    df['OBS_VALUE'] = pd.to_numeric(df['OBS_VALUE'], errors='coerce')
+
+    sector_target = 'General government; institutions of the EU'
+    if (df['sector'] == sector_target).any():
+        df = df[df['sector'] == sector_target].copy()
+    elif (df['sector'] == 'General government').any():
+        df = df[df['sector'] == 'General government'].copy()
+        print("  Note: sector 'General government; institutions of the EU' not found; using 'General government'.")
+    else:
+        print("  No data for sector 'General government; institutions of the EU'")
+        return
+
+    df = df[df['unit'] == 'Percentage of gross domestic product (GDP)'].copy()
+    df = df.dropna(subset=['TIME_PERIOD', 'OBS_VALUE'])
+
+    na_item_to_code = {
+        'Total tax receipts': 'D2_D5_D91',
+        'Value added type taxes (VAT)': 'D211',
+        'Taxes on land, buildings and other structures': 'D29A',
+        'Taxes on income': 'D51',
+        'Current taxes on capital': 'D59A'
+    }
+
+    df = df[df['na_item'].isin(na_item_to_code.keys())].copy()
+    if df.empty:
+        print("  No matching tax aggregate categories found")
+        return
+
+    df['tax_code'] = df['na_item'].map(na_item_to_code)
+
+    category_order = ['D29A', 'D59A', 'D51', 'D211', 'OTHER']
+    category_labels = {
+        'D51': 'Taxes on income (D51)',
+        'D211': 'Value added taxes (D211)',
+        'D29A': 'Taxes on land/buildings (D29A)',
+        'D59A': 'Current taxes on capital (D59A)',
+        'OTHER': 'Other taxes'
+    }
+
+    category_colors = {
+        'D51': '#fb8072',
+        'D211': '#80b1d3',
+        'D29A': '#fdb462',
+        'D59A': '#bebada',
+        'OTHER': '#a6d854'
+    }
+
+    def build_pivot(data):
+        pivot = data.pivot_table(
+            index='TIME_PERIOD',
+            columns='tax_code',
+            values='OBS_VALUE',
+            aggfunc='first'
+        ).sort_index()
+
+        required_cols = ['D2_D5_D91', 'D51', 'D211', 'D29A', 'D59A']
+        for col in required_cols:
+            if col not in pivot.columns:
+                pivot[col] = np.nan
+
+        component_sum = pivot[['D51', 'D211', 'D29A', 'D59A']].fillna(0).sum(axis=1)
+        total_series = pivot['D2_D5_D91'].fillna(0)
+        pivot['OTHER'] = total_series - component_sum
+
+        result = pivot[category_order].copy()
+        result = result.fillna(0)
+        return result
+
+    # ====================================================================
+    # VIS 1: EU Area graph - % of GDP across time
+    # ====================================================================
+    print("\n  Creating area graph - EU % of GDP...")
+
+    eu_data = df[df['geo'] == 'EU27'].copy()
+
+    if not eu_data.empty:
+        pivot_eu = build_pivot(eu_data)
+
+        if not pivot_eu.empty:
+            fig, ax = plt.subplots(figsize=(14, 7))
+
+            colors = [category_colors.get(cat, '#cccccc') for cat in pivot_eu.columns]
+            labels = [category_labels.get(cat, cat) for cat in pivot_eu.columns]
+            ax.stackplot(pivot_eu.index, pivot_eu.T, labels=labels,
+                         colors=colors, alpha=0.8, edgecolor='black', linewidth=0.5)
+
+            ax.set_xlabel('Year', fontsize=12, fontweight='bold')
+            ax.set_ylabel('% of GDP', fontsize=12, fontweight='bold')
+            ax.set_title('EU27: Tax Aggregates (% of GDP)', fontsize=13, fontweight='bold')
+            ax.legend(loc='upper left', fontsize=9, framealpha=0.95)
+            ax.grid(True, alpha=0.3)
+
+            plt.tight_layout()
+            output_file = os.path.join(OUTPUT_DIR, 'tax_aggregates_eu_area_gdp.png')
+            plt.savefig(output_file, dpi=300, bbox_inches='tight')
+            print("    OK Saved: tax_aggregates_eu_area_gdp.png")
+            plt.close()
+    else:
+        print("    No EU27 data found")
+
+    # ====================================================================
+    # VIS 2: France Area graph - % of GDP across time
+    # ====================================================================
+    print("\n  Creating area graph - France % of GDP...")
+
+    fr_data = df[df['geo'] == 'France'].copy()
+
+    if not fr_data.empty:
+        pivot_fr = build_pivot(fr_data)
+
+        if not pivot_fr.empty:
+            fig, ax = plt.subplots(figsize=(14, 7))
+
+            colors = [category_colors.get(cat, '#cccccc') for cat in pivot_fr.columns]
+            labels = [category_labels.get(cat, cat) for cat in pivot_fr.columns]
+            ax.stackplot(pivot_fr.index, pivot_fr.T, labels=labels,
+                         colors=colors, alpha=0.8, edgecolor='black', linewidth=0.5)
+
+            ax.set_xlabel('Year', fontsize=12, fontweight='bold')
+            ax.set_ylabel('% of GDP', fontsize=12, fontweight='bold')
+            ax.set_title('France: Tax Aggregates (% of GDP)', fontsize=13, fontweight='bold')
+            ax.legend(loc='upper left', fontsize=9, framealpha=0.95)
+            ax.grid(True, alpha=0.3)
+
+            plt.tight_layout()
+            output_file = os.path.join(OUTPUT_DIR, 'tax_aggregates_france_area_gdp.png')
+            plt.savefig(output_file, dpi=300, bbox_inches='tight')
+            print("    OK Saved: tax_aggregates_france_area_gdp.png")
+            plt.close()
+    else:
+        print("    No France data found")
+
+    # ====================================================================
+    # VIS 3: 6-country panel - % of GDP across time
+    # ====================================================================
+    print("\n  Creating 6-country panel - % of GDP...")
+
+    panel_countries = ['Austria', 'Spain', 'Sweden', 'France', 'Germany', 'Italy']
+    panel_display = {
+        'Austria': 'Austria',
+        'Spain': 'Spain',
+        'Sweden': 'Sweden',
+        'France': 'France',
+        'Germany': 'Germany',
+        'Italy': 'Italy'
+    }
+
+    panel_data = {}
+    panel_min_year = None
+    panel_max_year = None
+    panel_global_max = 0
+
+    for country in panel_countries:
+        country_data = df[df['geo'] == country].copy()
+        if country_data.empty:
+            print(f"    No {country} data found for panel")
+            continue
+
+        pivot_country = build_pivot(country_data)
+        zero_rows = pivot_country.fillna(0).sum(axis=1) == 0
+        pivot_country.loc[zero_rows] = np.nan
+
+        if pivot_country.empty:
+            print(f"    No usable {country} data for panel")
+            continue
+
+        panel_data[country] = pivot_country
+
+        if panel_min_year is None or int(pivot_country.index.min()) < panel_min_year:
+            panel_min_year = int(pivot_country.index.min())
+        if panel_max_year is None or int(pivot_country.index.max()) > panel_max_year:
+            panel_max_year = int(pivot_country.index.max())
+
+        current_max = pivot_country.sum(axis=1, min_count=1).max()
+        if pd.notna(current_max):
+            panel_global_max = max(panel_global_max, current_max)
+
+    if panel_data:
+        fig, axes = plt.subplots(3, 2, figsize=(14, 12), sharex=True, sharey=True)
+        axes = axes.flatten()
+
+        y_max = panel_global_max * 1.1 if panel_global_max > 0 else 1
+
+        for idx, country in enumerate(panel_countries):
+            ax = axes[idx]
+            if country not in panel_data:
+                ax.axis('off')
+                continue
+
+            plot_data = panel_data[country]
+            colors = [category_colors.get(cat, '#cccccc') for cat in plot_data.columns]
+            labels = [category_labels.get(cat, cat) for cat in plot_data.columns]
+            ax.stackplot(plot_data.index, plot_data.T, labels=labels,
+                         colors=colors, alpha=0.8, edgecolor='black', linewidth=0.5)
+            ax.set_title(panel_display.get(country, country), fontsize=11, fontweight='bold')
+            ax.set_xlim(panel_min_year, panel_max_year)
+            ax.set_ylim(0, y_max)
+            ax.grid(True, alpha=0.3)
+
+        fig.suptitle('Tax Aggregates (% of GDP)', fontsize=16, fontweight='bold', y=0.92)
+        fig.text(0.5, 0.06, 'Year', ha='center', fontsize=12, fontweight='bold')
+        fig.text(0.06, 0.5, '% of GDP', va='center', rotation='vertical', fontsize=12, fontweight='bold')
+
+        legend_added = False
+        for ax in axes:
+            handles, labels = ax.get_legend_handles_labels()
+            if handles:
+                fig.legend(handles, labels, loc='upper left', bbox_to_anchor=(0.88, 0.88),
+                           ncol=1, fontsize=9, framealpha=0.95)
+                legend_added = True
+                break
+
+        right_margin = 0.88 if legend_added else 1
+        plt.tight_layout(rect=[0.08, 0.08, right_margin, 0.9])
+        output_file = os.path.join(OUTPUT_DIR, 'tax_aggregates_gdp_panel_6countries.png')
+        plt.savefig(output_file, dpi=300, bbox_inches='tight')
+        print("    OK Saved: tax_aggregates_gdp_panel_6countries.png")
+        plt.close()
+    else:
+        print("    No data available for 6-country panel")
+
+    # ====================================================================
+    # VIS 4: Country comparison - values (% of GDP) (last 2 years)
+    # ====================================================================
+    print("\n  Creating country comparison - values (% of GDP) (last 2 years)...")
+
+    available_years = sorted(df['TIME_PERIOD'].dropna().unique())
+    last_two_years = available_years[-2:] if len(available_years) >= 2 else available_years
+
+    for year in last_two_years:
+        data_year = df[df['TIME_PERIOD'] == year].copy()
+        if data_year.empty:
+            print(f"    No data for {int(year)}")
+            continue
+
+        data_year = data_year[~data_year['geo'].str.startswith('Euro area', na=False)].copy()
+
+        pivot_year = data_year.pivot_table(
+            index='geo',
+            columns='tax_code',
+            values='OBS_VALUE',
+            aggfunc='first'
+        )
+
+        required_cols = ['D2_D5_D91', 'D51', 'D211', 'D29A', 'D59A']
+        for col in required_cols:
+            if col not in pivot_year.columns:
+                pivot_year[col] = np.nan
+
+        component_sum = pivot_year[['D51', 'D211', 'D29A', 'D59A']].fillna(0).sum(axis=1)
+        total_series = pivot_year['D2_D5_D91'].fillna(0)
+        pivot_year['OTHER'] = total_series - component_sum
+
+        values_gdp = pivot_year[category_order].fillna(0)
+        values_gdp = values_gdp.dropna(how='all')
+
+        if values_gdp.empty:
+            print(f"    No usable data for {int(year)}")
+            continue
+
+        values_gdp['Total'] = values_gdp.sum(axis=1, min_count=1)
+        values_gdp = values_gdp.sort_values('Total', ascending=True).drop(columns=['Total'])
+
+        fig, ax = plt.subplots(figsize=(12, 10))
+        colors = [category_colors.get(cat, '#cccccc') for cat in values_gdp.columns]
+        labels = [category_labels.get(cat, cat) for cat in values_gdp.columns]
+
+        values_gdp.plot(kind='barh', stacked=True, ax=ax, color=colors,
+                         edgecolor='black', linewidth=0.5)
+
+        ax.set_xlabel('% of GDP', fontsize=12, fontweight='bold')
+        ax.set_ylabel('Country', fontsize=12, fontweight='bold')
+        ax.set_title(f'Tax Aggregates by Country - % of GDP ({int(year)})',
+                     fontsize=13, fontweight='bold')
+
+        handles, _ = ax.get_legend_handles_labels()
+        ax.legend(handles, labels, title='Category', bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=9)
+        ax.grid(True, alpha=0.3, axis='x')
+
+        plt.tight_layout()
+        output_file = os.path.join(OUTPUT_DIR, f'tax_aggregates_countries_total_{int(year)}.png')
+        plt.savefig(output_file, dpi=300, bbox_inches='tight')
+        print(f"    OK Saved: tax_aggregates_countries_total_{int(year)}.png")
+        plt.close()
 
 
 def create_government_expenditure_housing_graphs():

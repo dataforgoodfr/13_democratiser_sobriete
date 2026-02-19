@@ -178,6 +178,7 @@ cython_debug/
 !stream3_visualization/Well-being/data/2025-08-29_EWBI-Renaming*.xlsx
 !stream3_visualization/Well-being/output/unified_all_levels_1_to_5.csv
 !stream3_visualization/Well-being/output/unified_all_levels_1_to_5_pca*.csv
+!stream3_visualization/Well-being/output/ewbi_master_aggregated.csv
 
 # Exclude specific large files even if they match allowed patterns
 stream3_visualization/Budget/Output/combined_data.csv
@@ -195,6 +196,36 @@ stream3_visualization/Well-being/output/Archive/ewbi_time_series_fixed.csv
 
 # Large HTML documentation files
 docs/*.html
+
+# =============================================================================
+# WELL-BEING DASHBOARD OUTPUTS - Keep repo lightweight
+# =============================================================================
+
+# Ignore all generated outputs under Well-being/output, except the app input CSV
+# and markdown documentation that is safe to version.
+stream3_visualization/Well-being/output/**
+!stream3_visualization/Well-being/output/ewbi_master_aggregated.csv
+!stream3_visualization/Well-being/output/unified_all_levels_1_to_5.csv
+!stream3_visualization/Well-being/output/unified_all_levels_1_to_5_pca*.csv
+!stream3_visualization/Well-being/output/*.md
+!stream3_visualization/Well-being/output/**/*.md
+
+# Ignore generated artifacts in reports (keep code/notebooks/markdown)
+stream3_visualization/Well-being/reports/**/external_data/
+stream3_visualization/Well-being/reports/**/output/
+stream3_visualization/Well-being/reports/**/outputs/
+stream3_visualization/Well-being/reports/**/*.png
+stream3_visualization/Well-being/reports/**/*.jpg
+stream3_visualization/Well-being/reports/**/*.jpeg
+stream3_visualization/Well-being/reports/**/*.svg
+stream3_visualization/Well-being/reports/**/*.pdf
+stream3_visualization/Well-being/reports/**/*.html
+stream3_visualization/Well-being/reports/**/*.parquet
+stream3_visualization/Well-being/reports/**/*.feather
+stream3_visualization/Well-being/reports/**/*.pkl
+stream3_visualization/Well-being/reports/**/*.pickle
+stream3_visualization/Well-being/reports/**/*.zip
+
 
 # Jupyter notebook outputs and checkpoints  
 *.ipynb_checkpoints/

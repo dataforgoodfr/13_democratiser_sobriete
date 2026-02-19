@@ -543,6 +543,252 @@ def create_percentage_barplot(aggregated_data):
     plt.close()
 
 
+def create_simplified_percentage_barplot(aggregated_data):
+    """Create simplified percentage stacked bar plot with merged main categories only (no subcategories)."""
+    
+    # Get actual income columns from the data
+    income_levels = list(aggregated_data.keys())
+    
+    # Define simplified category order (bottom to top)
+    simplified_categories = [
+        'Housing and Energy',
+        'Transport',
+        'Food',
+        'Health',
+        'Education',
+        'Compulsory transfers, taxes and insurance',
+        'Remaining'
+    ]
+    
+    # Aggregate subcategories into main categories
+    simplified_data = {}
+    for income_level, data in aggregated_data.items():
+        simplified_data[income_level] = {
+            'Gross Income': data['Gross Income'],
+            'Housing and Energy': 0,
+            'Transport': 0,
+            'Food': data.get('Food', 0),
+            'Health': 0,
+            'Education': data.get('Education', 0),
+            'Compulsory transfers, taxes and insurance': data.get('Compulsory transfers, taxes and insurance', 0),
+            'Remaining': data.get('Remaining', 0)
+        }
+        
+        # Sum Housing and Energy subcategories
+        for subcat_name in SUBCATEGORIES['Housing and Energy'].keys():
+            simplified_data[income_level]['Housing and Energy'] += data.get(subcat_name, 0)
+        
+        # Sum Transport subcategories
+        for subcat_name in SUBCATEGORIES['Transport'].keys():
+            simplified_data[income_level]['Transport'] += data.get(subcat_name, 0)
+        
+        # Sum Health subcategories
+        for subcat_name in SUBCATEGORIES['Health'].keys():
+            simplified_data[income_level]['Health'] += data.get(subcat_name, 0)
+    
+    # Create figure
+    fig, ax = plt.subplots(figsize=(14, 9))
+    
+    # Convert to DataFrame
+    plot_df = pd.DataFrame(simplified_data).T
+    plot_df = plot_df[simplified_categories]
+    
+    # Convert to percentages: divide each value by GROSS INCOME
+    plot_df_pct = plot_df.copy()
+    for idx in plot_df_pct.index:
+        gross_income = simplified_data[idx]['Gross Income']
+        if gross_income > 0:
+            plot_df_pct.loc[idx] = (plot_df.loc[idx] / gross_income) * 100
+        else:
+            plot_df_pct.loc[idx] = 0
+    
+    # Create stacked bar plot
+    x = np.arange(len(income_levels))
+    width = 0.6
+    
+    bottom = np.zeros(len(income_levels))
+    bars = []
+    
+    # Plot all categories (handling Remaining separately if negative)
+    for category in simplified_categories:
+        if category == 'Remaining':
+            continue  # Plot Remaining last
+        
+        values = plot_df_pct[category].values
+        bar = ax.bar(x, values, width, bottom=bottom,
+                    color=COMPONENT_COLORS[category],
+                    edgecolor='black', linewidth=0.5,
+                    alpha=0.85, label=category)
+        bars.append(bar)
+        bottom += values
+    
+    # Plot Remaining (can be positive or negative)
+    remaining_values = plot_df_pct['Remaining'].values
+    positive_remaining = np.where(remaining_values > 0, remaining_values, 0)
+    negative_remaining = np.where(remaining_values < 0, remaining_values, 0)
+    
+    # Plot positive Remaining on top of the stack
+    if np.any(positive_remaining > 0):
+        bar = ax.bar(x, positive_remaining, width, bottom=bottom,
+                    color=COMPONENT_COLORS['Remaining'],
+                    edgecolor='black', linewidth=0.5,
+                    alpha=0.85, label='Remaining')
+        bars.append(bar)
+    
+    # Plot negative Remaining below baseline
+    if np.any(negative_remaining < 0):
+        bar = ax.bar(x, negative_remaining, width, bottom=0,
+                    color=COMPONENT_COLORS['Remaining'],
+                    edgecolor='black', linewidth=0.5,
+                    alpha=0.85)
+        if np.all(positive_remaining == 0):  # Only add to bars if not already added
+            bars.append(bar)
+    
+    # Formatting
+    ax.set_title('Household Expenses by Income Quintile - Simplified View (% of Gross Income)\nSwitzerland, 2020-2021',
+                fontsize=15, fontweight='bold', pad=20)
+    ax.set_xlabel('Income Group (Monthly gross income in CHF)', fontsize=12, fontweight='bold')
+    ax.set_ylabel('Share of Gross Income (%)', fontsize=12, fontweight='bold')
+    
+    # Set x-axis labels
+    ax.set_xticks(x)
+    ax.set_xticklabels(income_levels, rotation=45, ha='right')
+    
+    # Add grid for readability
+    ax.yaxis.grid(True, alpha=0.3, linestyle='--')
+    ax.set_axisbelow(True)
+    
+    # Set y-axis to 0-100%
+    ax.set_ylim(0, 100)
+    
+    # Add percentage labels to bars (skip if too small)
+    cumulative_bottom = np.zeros(len(income_levels))
+    for category in simplified_categories:
+        values = plot_df_pct[category].values
+        for i, val in enumerate(values):
+            if val >= 4.0:  # Only show if >= 4%
+                y_pos = cumulative_bottom[i] + val / 2
+                ax.text(x[i], y_pos, f'{val:.1f}%',
+                       ha='center', va='center', fontsize=10, fontweight='bold', color='white',
+                       bbox=dict(boxstyle='round,pad=0.2', facecolor='black', alpha=0.3, edgecolor='none'))
+        cumulative_bottom += values
+    
+    # Legend
+    ax.legend(
+        title='Expense Category',
+        bbox_to_anchor=(1.05, 1),
+        loc='upper left',
+        frameon=True,
+        fancybox=True,
+        shadow=True,
+        fontsize=10
+    )
+    
+    plt.tight_layout()
+    
+    # Save figure
+    output_path = OUTPUT_DIR / "fso_stacked_expenses_percentage_simplified.png"
+    plt.savefig(output_path, dpi=300, bbox_inches='tight')
+    print(f"Simplified percentage stacked bar plot saved: {output_path}")
+    
+    plt.close()
+
+
+def export_simplified_to_excel(aggregated_data):
+    """Export simplified percentage data to Excel with specified structure."""
+    
+    # Get income levels
+    income_levels = list(aggregated_data.keys())
+    
+    # Define simplified category order
+    simplified_categories = [
+        'Housing and Energy',
+        'Transport',
+        'Food',
+        'Health',
+        'Education',
+        'Compulsory transfers, taxes and insurance',
+        'Remaining'
+    ]
+    
+    # Aggregate subcategories into main categories
+    simplified_data = {}
+    for income_level, data in aggregated_data.items():
+        simplified_data[income_level] = {
+            'Gross Income': data['Gross Income'],
+            'Housing and Energy': 0,
+            'Transport': 0,
+            'Food': data.get('Food', 0),
+            'Health': 0,
+            'Education': data.get('Education', 0),
+            'Compulsory transfers, taxes and insurance': data.get('Compulsory transfers, taxes and insurance', 0),
+            'Remaining': data.get('Remaining', 0)
+        }
+        
+        # Sum Housing and Energy subcategories
+        for subcat_name in SUBCATEGORIES['Housing and Energy'].keys():
+            simplified_data[income_level]['Housing and Energy'] += data.get(subcat_name, 0)
+        
+        # Sum Transport subcategories
+        for subcat_name in SUBCATEGORIES['Transport'].keys():
+            simplified_data[income_level]['Transport'] += data.get(subcat_name, 0)
+        
+        # Sum Health subcategories
+        for subcat_name in SUBCATEGORIES['Health'].keys():
+            simplified_data[income_level]['Health'] += data.get(subcat_name, 0)
+    
+    # Convert to DataFrame
+    plot_df = pd.DataFrame(simplified_data).T
+    plot_df = plot_df[simplified_categories]
+    
+    # Convert to percentages: divide each value by GROSS INCOME
+    plot_df_pct = plot_df.copy()
+    for idx in plot_df_pct.index:
+        gross_income = simplified_data[idx]['Gross Income']
+        if gross_income > 0:
+            plot_df_pct.loc[idx] = (plot_df.loc[idx] / gross_income) * 100
+        else:
+            plot_df_pct.loc[idx] = 0
+    
+    # Create Excel structure
+    excel_data = []
+    for income_level in income_levels:
+        for category in simplified_categories:
+            excel_data.append({
+                'visual_number': np.nan,
+                'visual_name': 'Household Expenses by Income Quintile - Simplified View',
+                'year': '2020-2021',
+                'decile': income_level,
+                'category': category,
+                'value': plot_df_pct.loc[income_level, category],
+                'unit': '%'
+            })
+    
+    # Convert to DataFrame
+    excel_df = pd.DataFrame(excel_data)
+    
+    # Save to Excel with proper formatting
+    output_path = OUTPUT_DIR / "fso_expenses_simplified_percentage.xlsx"
+    
+    # Check if openpyxl is available, if not install it
+    try:
+        import openpyxl
+    except ImportError:
+        print("Installing openpyxl for Excel export...")
+        import subprocess
+        import sys
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "openpyxl", "--quiet"])
+        import openpyxl
+    
+    # Save using ExcelWriter with openpyxl engine
+    with pd.ExcelWriter(output_path, engine='openpyxl', mode='w') as writer:
+        excel_df.to_excel(writer, index=False, sheet_name='Expense Data')
+    
+    print(f"Simplified percentage data exported to Excel: {output_path}")
+    
+    return excel_df
+
+
 def create_detailed_comparison(aggregated_data):
     """Create a more detailed comparison showing absolute and percentage values."""
     
@@ -668,20 +914,16 @@ def main():
     print("\nCreating percentage stacked bar plot...")
     create_percentage_barplot(aggregated_data)
     
-    # Save aggregated data to CSV
-    print("\nSaving aggregated data to CSV...")
-    csv_data = []
-    for income_level, data in aggregated_data.items():
-        for category, value in data.items():
-            csv_data.append({
-                'Income_Level': income_level,
-                'Category': category,
-                'Value': value
-            })
-    df_csv = pd.DataFrame(csv_data)
-    csv_path = OUTPUT_DIR / "fso_expenses_aggregated.csv"
-    df_csv.to_csv(csv_path, index=False)
-    print(f"Aggregated data saved: {csv_path}")
+    print("\nCreating simplified percentage stacked bar plot...")
+    create_simplified_percentage_barplot(aggregated_data)
+    
+    print("\nExporting simplified percentage data to Excel and CSV...")
+    excel_df = export_simplified_to_excel(aggregated_data)
+    
+    # Save the same data to CSV (using same structure as Excel)
+    csv_path = OUTPUT_DIR / "fso_expenses_simplified_percentage.csv"
+    excel_df.to_csv(csv_path, index=False, sep=';')
+    print(f"Simplified percentage data saved to CSV: {csv_path}")
     
     print("\n" + "="*70)
     print("Analysis complete!")

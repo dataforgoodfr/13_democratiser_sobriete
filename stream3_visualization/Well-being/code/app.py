@@ -90,7 +90,7 @@ try:
         'HQ-SILC-2', 'HQ-SILC-3', 'HQ-SILC-4', 'HQ-SILC-5', 
         'HQ-SILC-6', 'HQ-SILC-7', 'HQ-SILC-8',
         'IS-SILC-4', 'IS-SILC-5', 'AC-SILC-3', 'AC-SILC-4', 'EC-SILC-3',
-        'RT-LFS-4', 'RT-LFS-5', 'RT-LFS-6', 'RT-LFS-7', 'RT-LFS-8', 'EL-SILC-2'
+        'RT-LFS-4', 'RT-LFS-5', 'RT-LFS-6', 'RT-LFS-7', 'RT-LFS-8'
     ]
     
     available_indicators = unified_df['Primary and raw data'].unique()
@@ -119,15 +119,9 @@ try:
 
     print(f"Found {len(COUNTRIES)} individual countries")
 
-    # Create EU priority options - EWBI: These are the only aggregation levels available
-    EU_PRIORITIES = [
-        'Energy and Housing', 
-        'Equality',
-        'Health and Animal Welfare',
-        'Intergenerational Fairness, Youth, Culture and Sport',
-        'Social Rights and Skills, Quality Jobs and Preparedness'
-        # Note: 'Sustainable Transport and Tourism' might be commented out in config
-    ]
+    # Create EU priority options dynamically from the data
+    available_eu_priorities = unified_df[unified_df['Level']==2]['EU priority'].dropna().unique()
+    EU_PRIORITIES = sorted(available_eu_priorities.tolist())
 
     # EWBI: No secondary indicators - skip this section entirely
     # Secondary indicators are not used in the EWBI as we go directly from Raw -> EU Priorities -> EWBI
@@ -137,8 +131,8 @@ try:
 
 except FileNotFoundError as e:
     print(f"Error loading unified PCA data file: {e}")
-    print(f"Please ensure that unified_all_levels_1_to_5_pca.csv is in the '{DATA_DIR}' directory.")
-    print("Run 3_generate_outputs_pca.py first to generate the PCA data.")
+    print(f"Please ensure that ewbi_master_aggregated.csv is in the '{DATA_DIR}' directory.")
+    print("If needed, re-run the computation pipeline to regenerate the app-ready outputs.")
     exit()
 
 # Initialize the Dash app
@@ -299,7 +293,7 @@ app.layout = html.Div([
             html.P("• PCA-based weights for EU priority aggregation ensure optimal indicator contribution", className="sources-text"),
             html.P("• Simplified hierarchy: Raw Data → EU Priorities → EWBI (no Secondary level)", className="sources-text"),
             html.P("• Normalized aggregation levels scaled to [0.1, 1] for geometric mean compatibility", className="sources-text"),
-            html.P("• EU-27 aggregates use population-weighted geometric means for representative statistics", className="sources-text"),
+            html.P("• EU-27 aggregates use population-weighted arithmetic means for representative statistics", className="sources-text"),
             html.H4("Indicator Structure", className="sources-subtitle"),
             html.P("The PCA EWBI follows a simplified hierarchical structure:", className="sources-text"),
             html.P([html.Strong("Level 1: "), "EWBI - Overall well-being score (geometric mean of EU priorities)"], className="sources-text"),
@@ -478,13 +472,13 @@ def create_map_chart_pca(level_filters):
         return fig
     
     # Create choropleth map
-    # For level 3 (primary indicators), use normal color scale
+    # For level 3 (primary indicators), use inverted color scale and show percentages
     if level_filters['current_level'] == 3:  # Primary Indicators
-        colorscale = 'RdYlGn'  # Normal color scale for primary indicators
-        # For level 3, display values
-        hover_template = '<b>%{text}</b><br>Value: %{z:.2f}<extra></extra>'
-        colorbar_title = "Value"
-        # Data is in normalized format
+        colorscale = 'RdYlGn_r'  # Inverted color scale for primary indicators (red=high, green=low)
+        # For level 3, display values as percentages
+        hover_template = '<b>%{text}</b><br>Value: %{z:.1f}%<extra></extra>'
+        colorbar_title = "Value (%)"
+        # Data is in normalized format but represents population percentages
     else:
         colorscale = 'RdYlGn'  # Normal color scale for aggregated levels
         hover_template = '<b>%{text}</b><br>Score: %{z:.2f}<extra></extra>'
@@ -528,7 +522,7 @@ def create_time_series_chart_pca(level_filters, selected_countries):
     # Filter data based on level - same logic as map chart but across all years
     if level_filters['current_level'] == 1:  # EWBI
         # Level 1: EWBI overall
-        # Use Geometric mean inter-decile for 'EU-27' with Decile='All deciles' to match decile chart
+        # Use Population-weighted arithmetic mean for 'EU-27' with Decile='All deciles' to match decile chart
         ts_data = unified_df[
             (unified_df['Level'] == 1) &  # EWBI
             (unified_df['Decile'] == 'All Deciles') &
@@ -536,14 +530,14 @@ def create_time_series_chart_pca(level_filters, selected_countries):
             (
                 (unified_df['Country'] != 'EU-27') |
                 ((unified_df['Country'] == 'EU-27') & 
-                 (unified_df['Aggregation'] == 'Population-weighted geometric mean'))
+                 (unified_df['Aggregation'] == 'Population-weighted arithmetic mean'))
             )
         ].copy()
-        title = 'EWBI Overall Well-being Evolution Over Time - EWBI (Inter-Decile Geometric Mean)'
+        title = 'EWBI Overall Well-being Evolution Over Time - EWBI (Population-Weighted Arithmetic Mean)'
         
     elif level_filters['current_level'] == 2:  # EU Priorities
         # Level 2: EU priority
-        # Use Geometric mean inter-decile for 'EU-27' with Decile='All deciles' to match decile chart
+        # Use Population-weighted arithmetic mean for 'EU-27' with Decile='All deciles' to match decile chart
         ts_data = unified_df[
             (unified_df['Level'] == 2) &  # EU Priorities
             (unified_df['Decile'] == 'All Deciles') &
@@ -552,10 +546,10 @@ def create_time_series_chart_pca(level_filters, selected_countries):
             (
                 (unified_df['Country'] != 'EU-27') |
                 ((unified_df['Country'] == 'EU-27') & 
-                 (unified_df['Aggregation'] == 'Population-weighted geometric mean'))
+                 (unified_df['Aggregation'] == 'Population-weighted arithmetic mean'))
             )
         ].copy()
-        title = f'{level_filters["eu_priority"]} Evolution Over Time - Inter-Decile Geometric Mean'
+        title = f'{level_filters["eu_priority"]} Evolution Over Time - Population-Weighted Arithmetic Mean'
         
     else:  # Level 3
         # Level 3: Primary data (use raw break-adjusted data aggregated to country/EU-27 level)
@@ -595,7 +589,7 @@ def create_time_series_chart_pca(level_filters, selected_countries):
                 # Adjust hover template and y-values for level 3 data
                 if level_filters['current_level'] == 3:  # Primary Indicators
                     y_values = country_data['Value']  # Data is in normalized format
-                    hover_template = '<b>Value:</b> %{y:.2f}<br><b>Year:</b> %{x}<extra></extra>'
+                    hover_template = '<b>Value:</b> %{y:.1f}%<br><b>Year:</b> %{x}<extra></extra>'
                 else:
                     y_values = country_data['Value']
                     hover_template = '<b>Score:</b> %{y:.2f}<br><b>Year:</b> %{x}<extra></extra>'
@@ -612,7 +606,7 @@ def create_time_series_chart_pca(level_filters, selected_countries):
     
     # Set y-axis title based on level
     if level_filters['current_level'] == 3:  # Primary Indicators
-        y_axis_title = 'Value'
+        y_axis_title = 'Value (%)'
     else:
         y_axis_title = 'Score'
     
@@ -656,10 +650,10 @@ def create_decile_chart_pca(level_filters, selected_countries):
             (
                 (unified_df['Country'] != 'EU-27') |
                 ((unified_df['Country'] == 'EU-27') & 
-                 (unified_df['Aggregation'] == 'Population-weighted geometric mean'))
+                 (unified_df['Aggregation'] == 'Population-weighted arithmetic mean'))
             )
         ].copy()
-        title = f'EWBI Scores by Decile ({int(latest_year)}) - Population-Weighted'
+        title = f'EWBI Scores by Decile ({int(latest_year)}) - Population-Weighted Arithmetic Mean'
         x_axis_title = 'Income Decile'
         
     elif level_filters['current_level'] == 2:  # EU Priorities
@@ -672,10 +666,10 @@ def create_decile_chart_pca(level_filters, selected_countries):
             (
                 (unified_df['Country'] != 'EU-27') |
                 ((unified_df['Country'] == 'EU-27') & 
-                 (unified_df['Aggregation'] == 'Population-weighted geometric mean'))
+                 (unified_df['Aggregation'] == 'Population-weighted arithmetic mean'))
             )
         ].copy()
-        title = f'{level_filters["eu_priority"]} Scores by Decile ({int(latest_year)}) - Population-Weighted'
+        title = f'{level_filters["eu_priority"]} Scores by Decile ({int(latest_year)}) - Population-Weighted Arithmetic Mean'
         x_axis_title = 'Income Decile'
         
     else:  # Level 3
@@ -721,12 +715,12 @@ def create_decile_chart_pca(level_filters, selected_countries):
         if level_filters['current_level'] == 1:  # EWBI
             # Filter for country-level aggregations (contains "across deciles") and EU-27 aggregations
             all_aggregate_data = all_aggregate_data[
-                all_aggregate_data['Aggregation'].str.contains('across deciles|Population-weighted geometric mean', na=False)
+                all_aggregate_data['Aggregation'].str.contains('across deciles|Population-weighted arithmetic mean', na=False)
             ]
         elif level_filters['current_level'] == 2:  # EU Priorities
             all_aggregate_data = all_aggregate_data[
                 (all_aggregate_data['EU priority'] == level_filters['eu_priority']) &
-                (all_aggregate_data['Aggregation'].str.contains('across deciles|Population-weighted geometric mean', na=False))
+                (all_aggregate_data['Aggregation'].str.contains('across deciles|Population-weighted arithmetic mean', na=False))
             ]
         elif level_filters['current_level'] == 3:  # Primary Indicators
             all_aggregate_data = all_aggregate_data[all_aggregate_data['Primary and raw data'] == level_filters['primary_indicator']]
@@ -752,7 +746,7 @@ def create_decile_chart_pca(level_filters, selected_countries):
                 # Adjust values and text for level 3 data
                 if level_filters['current_level'] == 3:  # Primary Indicators
                     y_values = country_data['Value']  # Data is in normalized format
-                    text_values = [f'{v:.2f}' for v in y_values]
+                    text_values = [f'{v:.1f}%' for v in y_values]
                 else:
                     y_values = country_data['Value']
                     text_values = [f'{v:.2f}' for v in y_values]
@@ -794,7 +788,7 @@ def create_decile_chart_pca(level_filters, selected_countries):
     
     # Set y-axis title based on level
     if level_filters['current_level'] == 3:  # Primary Indicators
-        y_axis_title = 'Value'
+        y_axis_title = 'Value (%)'
     else:
         y_axis_title = 'Score'
     
@@ -830,7 +824,7 @@ def create_radar_chart_pca(level_filters, selected_countries):
         if selected_countries:
             countries_to_show.extend(selected_countries)
         
-        # Get Level 2 data (EU priorities) - use Population-weighted geometric mean for 'EU-27'
+        # Get Level 2 data (EU priorities) - use Population-weighted arithmetic mean for 'EU-27'
         radar_data = unified_df[
             (unified_df['Level'] == 2) &  # EU Priorities
             (unified_df['Year'] == latest_year) &
@@ -839,7 +833,7 @@ def create_radar_chart_pca(level_filters, selected_countries):
             (
                 (unified_df['Country'] != 'EU-27') |
                 ((unified_df['Country'] == 'EU-27') & 
-                 (unified_df['Aggregation'] == 'Population-weighted geometric mean'))
+                 (unified_df['Aggregation'] == 'Population-weighted arithmetic mean'))
             )
         ].copy()
         
@@ -934,7 +928,7 @@ def create_radar_chart_pca(level_filters, selected_countries):
                     (unified_df['Decile'] == 'All Deciles') &
                     (unified_df['EU priority'] == level_filters['eu_priority']) &
                     (unified_df['Country'] == 'EU-27') &
-                    (unified_df['Aggregation'] == 'Population-weighted geometric mean')
+                    (unified_df['Aggregation'] == 'Population-weighted arithmetic mean')
                 ].copy()
             else:  # Level 3
                 primary_indicator = level_filters['primary_indicator']
@@ -980,7 +974,7 @@ def create_radar_chart_pca(level_filters, selected_countries):
                 
                 # Format text based on level
                 if level_filters['current_level'] == 3:  # Primary Indicators
-                    text_values.append(f'{value:.2f}')
+                    text_values.append(f'{value:.1f}%')
                 else:
                     text_values.append(f'{value:.2f}')
                 
@@ -1003,7 +997,7 @@ def create_radar_chart_pca(level_filters, selected_countries):
         
         # Set y-axis title based on level
         if level_filters['current_level'] == 3:  # Primary Indicators
-            y_axis_title = 'Value'
+            y_axis_title = 'Value (%)'
         else:
             y_axis_title = 'Score'
         
@@ -1030,7 +1024,7 @@ if __name__ == '__main__':
     
     print("🚀 Starting European Well-Being Index Dashboard - EWBI...")
     print(f"📊 Dashboard will be available at: http://localhost:{port}")
-    print(f"🗃️  Using PCA unified data from: {DATA_DIR}/unified_all_levels_1_to_5_pca.csv")
+    print(f"🗃️  Using app-ready data from: {DATA_DIR}/ewbi_master_aggregated.csv")
     print("🔬 PCA Features:")
     print("   • Winsorization + Percentile scaling normalization")
     print("   • PCA-based weights for EU priority aggregation")

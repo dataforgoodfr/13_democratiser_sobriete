@@ -33,31 +33,32 @@ import numpy as np
 from pathlib import Path
 from scipy.stats import rankdata
 from tqdm import tqdm
+from pipeline_env import env_float, env_str, get_output_dir
 
 # ===============================
 # CONFIGURATION
 # ===============================
-OUTPUT_DIR = Path(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'output')))
+OUTPUT_DIR = get_output_dir()
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 # ===============================
 # SENSITIVITY ANALYSIS CONFIGURATION
 # ===============================
 # Variant 1: Normalization method
-# Base solution: 'percentile' (Winsorization + Percentile Scaling)
-# Alternative: 'zscore' (Z-score standardization)
-NORMALIZATION_METHOD = 'percentile'
+# Base solution: 'zscore' (Winsorization + Z-score standardization)
+# Alternative: 'percentile' (Winsorization + Percentile Scaling)
+NORMALIZATION_METHOD = env_str("EWBI_NORMALIZATION_METHOD", 'zscore')
 
 # Variant 2: Rescaling range
 # Base solution: [0.1, 1] to ensure positive values for geometric mean
-# Alternatives: [0, 1], [0.01, 1], [0.2, 1]
-RESCALE_MIN = 0.1
-RESCALE_MAX = 1.0  # Maximum value after rescaling
+# Alternatives: [0.05, 1], [0.1, 1], [0.2, 1]
+RESCALE_MIN = env_float("EWBI_RESCALE_MIN", 0.1)
+RESCALE_MAX = env_float("EWBI_RESCALE_MAX", 1.0)  # Maximum value after rescaling
 
 # Variant 3: Normalization approach (temporal pooling)
 # Base solution: 'multi_year' (pooled statistics across all years)
 # Alternative: 'per_year' (normalize within each year separately)
-NORMALIZATION_APPROACH = 'multi_year'
+NORMALIZATION_APPROACH = env_str("EWBI_NORMALIZATION_APPROACH", 'multi_year')
 
 MISSING_DATA_OUTPUT = OUTPUT_DIR / "1_missing_data_output"
 
@@ -65,31 +66,31 @@ MISSING_DATA_OUTPUT = OUTPUT_DIR / "1_missing_data_output"
 # NORMALIZATION FUNCTIONS
 # ===============================
 
-def winsorize_and_percentile_scale(values, lower_percentile=1, upper_percentile=99, 
-                                     method=None, rescale_min=None, rescale_max=None):
+def winsorize_and_zscore_normalize(values, lower_percentile=1, upper_percentile=99, 
+                                   method=None, rescale_min=None, rescale_max=None):
     """
     Apply normalization to indicator values using configurable method and scale.
     
     Methods:
-    1. 'percentile' (default): Winsorization + Percentile Scaling
+    1. 'zscore' (default): Winsorization + Z-score standardization
+       - Winsorize at 1st and 99th percentiles to remove extreme outliers
+       - Apply z-score normalization: I = (x - x̄) / σ across countries
+       - Rescale to [rescale_min, rescale_max] with indicator inversion
+    
+    2. 'percentile': Winsorization + Percentile Scaling
        - Winsorize at 1st and 99th percentiles to remove extreme outliers
        - Apply empirical CDF (percentile scaling) to get values in [0,1]
        - Rescale to [rescale_min, rescale_max] with indicator inversion
     
-    2. 'zscore': Z-score standardization
-       - Standardize using z = (x - mean) / std
-       - Apply sigmoid transformation for bounded output
-       - Rescale to [rescale_min, rescale_max] with indicator inversion
+    Formula (zscore method - baseline):
+    - Winsorized: x_win = clip(x, P1, P99)
+    - Z-score: I^t_qc = (x_win - x̄^t_c) / σ^t_c
+    - Rescaled: x' = rescale_min + (rescale_max - rescale_min) * (1 - normalized(z))
     
     Formula (percentile method):
     - Winsorized: x_win = clip(x, P1, P99)
     - Percentile: P(x) = rank(x) / (n-1)
     - Rescaled: x' = rescale_min + (rescale_max - rescale_min) * (1 - P(x))
-    
-    Formula (zscore method):
-    - Z-score: z = (x - mean) / std
-    - Sigmoid: s = 1 / (1 + exp(-z))
-    - Rescaled: x' = rescale_min + (rescale_max - rescale_min) * (1 - s)
     
     Args:
         values: Array of indicator values
@@ -121,10 +122,17 @@ def winsorize_and_percentile_scale(values, lower_percentile=1, upper_percentile=
         # Not enough data points for meaningful transformation
         return np.where(finite_mask, (rescale_min + rescale_max) / 2, np.nan)
     
-    if method == 'zscore':
-        # Z-score standardization method
-        mean_val = np.mean(finite_values)
-        std_val = np.std(finite_values)
+    if method == 'zscore':  # Default method - baseline
+        # Step 1: Winsorization at 1st and 99th percentiles
+        lower_bound = np.percentile(finite_values, lower_percentile)
+        upper_bound = np.percentile(finite_values, upper_percentile)
+        
+        winsorized_values = np.clip(finite_values, lower_bound, upper_bound)
+        
+        # Step 2: Z-score standardization across countries
+        # Formula: I^t_qc = (x^t_qc - x̄^t_c) / σ^t_c
+        mean_val = np.mean(winsorized_values)
+        std_val = np.std(winsorized_values, ddof=0)  # Population standard deviation
         
         if std_val == 0 or std_val < 1e-10:
             # No variance - return middle value
@@ -132,19 +140,26 @@ def winsorize_and_percentile_scale(values, lower_percentile=1, upper_percentile=
             result[finite_mask] = (rescale_min + rescale_max) / 2
             return result
         
-        # Calculate z-scores
-        z_scores = (finite_values - mean_val) / std_val
+        # Calculate z-scores (can be negative)
+        z_scores = (winsorized_values - mean_val) / std_val
         
-        # Apply sigmoid transformation to bound values in (0, 1)
-        # sigmoid(z) = 1 / (1 + exp(-z))
-        sigmoid_scores = 1 / (1 + np.exp(-z_scores))
+        # Step 3: Rescale z-scores to [rescale_min, rescale_max] with indicator inversion
+        # First normalize z-scores to [0,1] using min-max scaling, then invert
+        z_min = np.min(z_scores)
+        z_max = np.max(z_scores)
+        z_range = z_max - z_min
         
-        # Rescale to [rescale_min, rescale_max] with indicator inversion
-        # Inversion: higher raw value -> lower final score (since these are deprivation indicators)
-        scale_range = rescale_max - rescale_min
-        final_scores = rescale_min + scale_range * (1 - sigmoid_scores)
+        if z_range == 0:
+            # All z-scores are identical
+            final_scores = np.full_like(z_scores, (rescale_min + rescale_max) / 2)
+        else:
+            # Normalize to [0,1] then rescale with inversion
+            normalized_z = (z_scores - z_min) / z_range
+            # Inversion: higher raw value -> lower final score (deprivation indicators)
+            scale_range = rescale_max - rescale_min
+            final_scores = rescale_min + scale_range * (1 - normalized_z)
         
-    else:  # 'percentile' method (default)
+    else:  # 'percentile' method
         # Step 1: Winsorization at 1st and 99th percentiles
         lower_bound = np.percentile(finite_values, lower_percentile)
         upper_bound = np.percentile(finite_values, upper_percentile)
@@ -301,15 +316,20 @@ def normalize_raw_to_level4(df, normalization_approach=None, method=None, rescal
     print(f"   Rescaling range: [{rescale_min}, {rescale_max}]")
     print(f"   All values will be strictly positive for geometric mean aggregation")
     
-    normalized_records = []
+    normalized_frames = []
     
     if normalization_approach == 'multi_year':
         # Method 1: Multi-year pooled normalization (most stable across years)
         print("   Using pooled statistics across all years for temporal stability...\n")
         
         # Group by indicator only (cross-decile, cross-year normalization)
-        for indicator in tqdm(df['Primary and raw data'].unique(), desc="Normalizing indicators"):
-            group_data = df[df['Primary and raw data'] == indicator].copy()
+        n_indicators = df['Primary and raw data'].nunique(dropna=True)
+        for indicator, group_data in tqdm(
+            df.groupby('Primary and raw data', sort=False),
+            total=n_indicators,
+            desc="Normalizing indicators",
+        ):
+            group_data = group_data.copy()
             
             # Extract values for normalization across ALL years and deciles
             values = group_data['Value'].values
@@ -326,15 +346,13 @@ def normalize_raw_to_level4(df, normalization_approach=None, method=None, rescal
                 continue
             
             # Apply normalization with configurable method and scale
-            normalized_values = winsorize_and_percentile_scale(
+            normalized_values = winsorize_and_zscore_normalize(
                 values, method=method, rescale_min=rescale_min, rescale_max=rescale_max
             )
             
-            # Create normalized records
-            for i, (_, row) in enumerate(group_data.iterrows()):
-                normalized_row = row.copy()
-                normalized_row['Value'] = normalized_values[i]
-                normalized_records.append(normalized_row)
+            # Assign normalized values vectorized and keep the original columns.
+            group_data.loc[:, 'Value'] = normalized_values
+            normalized_frames.append(group_data)
     
     elif normalization_approach == 'per_year':
         # Method 2: Per-year normalization
@@ -355,19 +373,17 @@ def normalize_raw_to_level4(df, normalization_approach=None, method=None, rescal
                 continue
             
             # Apply normalization with configurable method and scale per year
-            normalized_values = winsorize_and_percentile_scale(
+            normalized_values = winsorize_and_zscore_normalize(
                 values, method=method, rescale_min=rescale_min, rescale_max=rescale_max
             )
             
-            # Create normalized records
-            for i, (_, row) in enumerate(group_data.iterrows()):
-                normalized_row = row.copy()
-                normalized_row['Value'] = normalized_values[i]
-                normalized_records.append(normalized_row)
+            group_data = group_data.copy()
+            group_data.loc[:, 'Value'] = normalized_values
+            normalized_frames.append(group_data)
     
     # Convert to DataFrame
-    if normalized_records:
-        level4_data = pd.DataFrame(normalized_records)
+    if normalized_frames:
+        level4_data = pd.concat(normalized_frames, ignore_index=True)
         print(f"\n[OK] Created Level 4 normalized data: {len(level4_data):,} records")
         print(f"   1:1 relationship with raw data: {len(level4_data) == len(df)}")
         print(f"   Value range: [{level4_data['Value'].min():.4f}, {level4_data['Value'].max():.4f}]")
@@ -407,7 +423,7 @@ def convert_to_unified_structure(level4_data):
     # Add Level 4 metadata (normalized indicators)
     level4_unified['Level'] = 4
     level4_unified['Type'] = 'Normalized indicator'
-    level4_unified['Aggregation'] = 'Winsorization + Percentile Scaling'
+    level4_unified['Aggregation'] = 'Winsorization + Z-score Standardization'
     level4_unified['EU priority'] = pd.NA
     level4_unified['Secondary'] = pd.NA
     
@@ -434,7 +450,7 @@ def convert_to_unified_structure(level4_data):
 def main():
     """Main execution function"""
     
-    method_name = 'Z-score standardization' if NORMALIZATION_METHOD == 'zscore' else 'Winsorization + Percentile Scaling'
+    method_name = 'Winsorization + Z-score Standardization' if NORMALIZATION_METHOD == 'zscore' else 'Winsorization + Percentile Scaling'
     
     print("\n" + "="*70)
     print("STAGE 3: NORMALIZATION OF DATA")
@@ -447,8 +463,9 @@ def main():
     print("  1. Load break-adjusted raw data (Level 3) from Stage 1")
     print("  2. Apply forward fill to complete missing data")
     if NORMALIZATION_METHOD == 'zscore':
-        print("  3. Apply Z-score standardization")
-        print("  4. Apply sigmoid transformation for bounded output")
+        print("  3. Apply Winsorization (1st-99th percentiles)")
+        print("  4. Apply Z-score standardization across countries: I = (x - x̄) / σ")
+        print("  5. Rescale z-scores to positive range")
     else:
         print("  3. Apply Winsorization (1st-99th percentiles)")
         print("  4. Apply Percentile Scaling (empirical CDF)")

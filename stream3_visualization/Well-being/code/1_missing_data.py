@@ -22,26 +22,32 @@ import numpy as np
 from pathlib import Path
 from tqdm import tqdm
 from variable_mapping import should_filter_indicator
+from pipeline_env import env_bool, env_float, env_int, get_output_dir
 
 # ===============================
 # CONFIGURATION
 # ===============================
-OUTPUT_DIR = Path(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'output')))
+OUTPUT_DIR = get_output_dir()
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 # ===============================
 # SENSITIVITY ANALYSIS CONFIGURATION
 # ===============================
 # Variant 1: Structural break detection threshold (absolute percentage change)
-# Base solution: 0.30 (30%)
-# Alternatives: 0.20 (20%), 0.40 (40%), 0.50 (50%)
-BREAK_THRESHOLD = 0.3
+# Base solution: 0.20 (20%)
+# Alternatives: 0.10 (10%), 0.20 (20%), 0.30 (30%)
+BREAK_THRESHOLD = env_float("EWBI_BREAK_THRESHOLD", 0.2)
 
 # Variant 2: Apply 5-year moving average after structural break adjustment
-# Base solution: False (no moving average)
-# Alternative: True (apply 5-year centered moving average before average rescaling)
-APPLY_MOVING_AVERAGE = False
-MOVING_AVERAGE_WINDOW = 5
+# Base solution: True (apply 5-year centered moving average)
+# Alternative: False (no moving average smoothing)
+APPLY_MOVING_AVERAGE = env_bool("EWBI_APPLY_MOVING_AVERAGE", True)
+MOVING_AVERAGE_WINDOW = env_int("EWBI_MOVING_AVERAGE_WINDOW", 5)
+
+# Variant 3: Apply mean rescaling (mean-preservation) after adjustments
+# Base solution: False (no mean rescaling)
+# Alternative: True (restore original series mean after break adjustments)
+APPLY_MEAN_RESCALING = env_bool("EWBI_APPLY_MEAN_RESCALING", False)
 
 # ===============================
 # HELPER FUNCTIONS
@@ -72,7 +78,7 @@ def setup_directories() -> dict:
     return dirs
 
 
-def detect_and_adjust_structural_breaks(df, break_threshold=None, apply_moving_average=None, moving_average_window=None):
+def detect_and_adjust_structural_breaks(df, break_threshold=None, apply_moving_average=None, moving_average_window=None, apply_mean_rescaling=None):
     """
     Process time series data: interpolation, break adjustment, optional moving average, and rescaling.
     
@@ -83,11 +89,12 @@ def detect_and_adjust_structural_breaks(df, break_threshold=None, apply_moving_a
        - This ensures a complete series before break detection
     
     2. STRUCTURAL BREAK ADJUSTMENT: Detect and correct methodological discontinuities
+       - REVERSED DIRECTION: Process breaks from future to past (last to first)
        - For each series (indicator/country/decile), calculate year-to-year percentage changes
        - Use configurable threshold (default: 30% absolute) to detect breaks
-       - Handle breaks based on their position in the series:
+       - Handle breaks using mean of before and after-break growth rates:
          a) Break at START: Use post-break growth rate (t+1→t+2) to correct first value
-         b) Break at MIDDLE: Use pre-break growth rate to find corrected value, then rebase future values
+         b) Break at MIDDLE: Use MEAN of pre-break and post-break growth rates for correction
          c) Break at END: Use pre-break growth rate to correct last value
          d) Break at BOTH start and end (only 2 points): Do nothing
     
@@ -96,20 +103,22 @@ def detect_and_adjust_structural_breaks(df, break_threshold=None, apply_moving_a
        - Smooths time series after break adjustment, before rescaling
        - Handles edge cases at series boundaries
     
-    4. AVERAGE RESCALING (Mean-Preservation): Restore original series mean
-       - Calculate scale factor to restore the original mean after adjustments
+    4. OPTIONAL MEAN RESCALING (Mean-Preservation): Restore original series mean
+       - If enabled, calculate scale factor to restore the original mean after adjustments
        - Apply proportional correction to all values in the series
     
     Example - Break at t=2012 with values [3.0 (2011), 4.0 (2012), 3.8 (2013)]:
-      - Pre-break growth (2011→2012 should be): Growth rate from 2010→2011
-      - If 2010→2011 was 6.4%, then 2012 should be 3.0 * 1.064 = 3.192
-      - For 2013+: Apply actual growth rates on corrected 2012
+      - Pre-break growth (2010→2011): e.g., 6.4%
+      - Post-break growth (2012→2013): (3.8/4.0 - 1) = -5%
+      - Mean growth rate: (6.4% + (-5%)) / 2 = 0.7%
+      - Corrected 2012: 3.0 * 1.007 = 3.021
     
     Args:
         df: DataFrame with columns [primary_index, country, decile, year, value]
         break_threshold: Threshold for structural break detection (default: BREAK_THRESHOLD config)
         apply_moving_average: Whether to apply moving average smoothing (default: APPLY_MOVING_AVERAGE config)
         moving_average_window: Window size for moving average (default: MOVING_AVERAGE_WINDOW config)
+        apply_mean_rescaling: Whether to apply mean rescaling (default: APPLY_MEAN_RESCALING config)
     
     Returns:
         DataFrame with adjusted values (preserves all original columns)
@@ -121,15 +130,23 @@ def detect_and_adjust_structural_breaks(df, break_threshold=None, apply_moving_a
         apply_moving_average = APPLY_MOVING_AVERAGE
     if moving_average_window is None:
         moving_average_window = MOVING_AVERAGE_WINDOW
-    print("\n[PROCESSING] Interpolation, structural break adjustment, and rescaling...")
+    if apply_mean_rescaling is None:
+        apply_mean_rescaling = APPLY_MEAN_RESCALING
+    print("\n[PROCESSING] Interpolation, structural break adjustment, and optional rescaling...")
     print(f"Input data: {len(df):,} records")
     print("Step 1: Linear interpolation of missing values")
-    print(f"Step 2: Structural break detection (threshold: {break_threshold*100:.0f}% absolute year-to-year change)")
+    print(f"Step 2: Structural break detection (threshold: {break_threshold*100:.0f}% absolute, future-to-past direction)")
     if apply_moving_average:
         print(f"Step 3: {moving_average_window}-year moving average smoothing")
-        print("Step 4: Average rescaling (mean-preservation)")
+        if apply_mean_rescaling:
+            print("Step 4: Mean rescaling (mean-preservation)")
+        else:
+            print("Step 4: No mean rescaling (preserve adjusted values)")
     else:
-        print("Step 3: Average rescaling (mean-preservation)")
+        if apply_mean_rescaling:
+            print("Step 3: Mean rescaling (mean-preservation)")
+        else:
+            print("Step 3: No mean rescaling (preserve adjusted values)")
     
     df = df.copy()
     df['year'] = df['year'].astype(int)
@@ -201,13 +218,14 @@ def detect_and_adjust_structural_breaks(df, break_threshold=None, apply_moving_a
                 }
         
         # =====================================================
-        # STEP 2: STRUCTURAL BREAK ADJUSTMENT (after interpolation)
+        # =====================================================
+        # STEP 2: NEW VARIATION-BASED STRUCTURAL BREAK ADJUSTMENT
         # =====================================================
         # Re-extract valid data after interpolation
         valid_idx = group['value'].notna()
         valid_data = group[valid_idx].copy()
         
-        if len(valid_data) < 3:
+        if len(valid_data) < 2:
             return group
         
         values = valid_data['value'].values.copy()
@@ -217,85 +235,130 @@ def detect_and_adjust_structural_breaks(df, break_threshold=None, apply_moving_a
         if np.any(values <= 0):
             return group
         
-        # Use configurable absolute threshold (captured from outer scope)
-        # break_threshold is passed from the outer function
+        # Store original values for mean rescaling
+        original_values = values.copy()
         
-        # Store original mean for later proportional correction
-        original_mean = np.mean(values)
+        # Step 1: Detect breaks (30% variations)
+        breaks = []
+        for i in range(len(values) - 1):
+            pct_change = np.abs((values[i+1] - values[i]) / values[i])
+            if pct_change > break_threshold:
+                breaks.append(i)  # Break between year[i] and year[i+1]
         
-        # Detect and process ALL breaks using adaptive threshold
-        # Loop through series looking for breaks and fixing them as we find them
-        i = 1
+        if len(breaks) == 0:
+            # No breaks detected - return original data
+            return group
+        
+        # Step 2: Determine reference year
+        # If break at the end, use year before the break as reference
+        last_break_index = max(breaks) if breaks else -1
+        if last_break_index == len(years) - 2:  # Break between last two years
+            ref_year_index = len(years) - 2  # Year before the break
+            # Step 2b: Correct the last variation using g(t_last-2, t_last-1)
+            if len(years) >= 3 and values[-3] > 0:
+                g_correction = values[-3] / values[-2] if values[-2] > 0 else 1.0
+                values[-1] = values[-2] * g_correction
+        else:
+            ref_year_index = len(years) - 1  # Last year
+        
+        ref_year = years[ref_year_index]
+        ref_value = values[ref_year_index]
+        
+        # Step 3: Build variation database (reference year = 1.0)
+        variations = np.ones(len(values))  # Start with all = 1.0
+        variations[ref_year_index] = 1.0  # Reference year
+        
+        # Calculate growth rates, handling breaks
+        growth_rates = np.ones(len(values) - 1)  # Growth from year[i] to year[i+1]
+
+        # Identify runs of consecutive breaks, e.g. breaks at i and i+1.
+        # For a run [start..end], smooth all breaks in the run using:
+        #   g_pre  = growth just before run  (year[start-1] -> year[start])
+        #   g_post = growth just after run   (year[end+1]   -> year[end+2])
+        # and apply mean(g_pre, g_post) when both exist.
+        breaks_set = set(breaks)
+        break_runs = []
+        idx = 0
+        while idx < (len(values) - 1):
+            if idx in breaks_set:
+                run_start = idx
+                while (idx + 1) in breaks_set:
+                    idx += 1
+                run_end = idx
+                break_runs.append((run_start, run_end))
+            idx += 1
+
+        break_to_run = {}
+        for run_start, run_end in break_runs:
+            for b in range(run_start, run_end + 1):
+                break_to_run[b] = (run_start, run_end)
+        
         adjustments_this_series = 0
-        max_iterations = len(years) * 10  # Safety limit to prevent infinite loops
-        iterations = 0
-        
-        while i < len(years) and iterations < max_iterations:
-            iterations += 1
-            pct_change = np.abs((values[i] - values[i-1]) / values[i-1])
-            
-            if pct_change > break_threshold:  # Adaptive threshold - found a break
-                break_year = years[i]
-                is_first_break = (i == 1)
-                is_last_break = (i == len(years) - 1)
+        for i in range(len(values) - 1):
+            if i in breaks:
+                # Step 4: Handle break - use mean of pre and post break growth
+
+                run_start, run_end = break_to_run.get(i, (i, i))
+
+                # Growth just before the run
+                g_pre = None
+                if run_start > 0 and values[run_start - 1] > 0 and values[run_start] > 0:
+                    g_pre = values[run_start] / values[run_start - 1]
+
+                # Growth just after the run
+                g_post = None
+                if (run_end + 2) < len(values) and values[run_end + 1] > 0 and values[run_end + 2] > 0:
+                    g_post = values[run_end + 2] / values[run_end + 1]
                 
-                if is_first_break and is_last_break:
-                    # Only 2 datapoints - skip
-                    i += 1
-                
-                elif is_first_break:
-                    # Break at START
-                    if len(values) >= 3:
-                        g_t1_t2 = values[2] / values[1]
-                        value_at_start_corrected = values[1] / g_t1_t2
-                        group.loc[group['year'] == years[0], 'value'] = value_at_start_corrected
-                        
-                        # Update values array for next iterations
-                        values[0] = value_at_start_corrected
-                        adjustments_this_series += 1
-                    i += 1
-                
-                elif is_last_break:
-                    # Break at END
-                    if i >= 2:
-                        g_pre_break = values[i - 1] / values[i - 2]
-                        value_at_end_corrected = values[i - 1] * g_pre_break
-                        group.loc[group['year'] == break_year, 'value'] = value_at_end_corrected
-                        
-                        # Update values array
-                        values[i] = value_at_end_corrected
-                        adjustments_this_series += 1
-                    i += 1
-                
+                # Step 5: Edge handling + mean of outside-run growth rates
+                if run_start == 0 and g_post is not None:
+                    growth_rates[i] = g_post
+                elif run_end == (len(values) - 2) and g_pre is not None:
+                    growth_rates[i] = g_pre
+                elif g_pre is not None and g_post is not None:
+                    growth_rates[i] = (g_pre + g_post) / 2.0
+                elif g_pre is not None:
+                    growth_rates[i] = g_pre
+                elif g_post is not None:
+                    growth_rates[i] = g_post
                 else:
-                    # Break in MIDDLE
-                    if i >= 2:
-                        g_pre_break = values[i - 1] / values[i - 2]
-                        value_at_break_corrected = values[i - 1] * g_pre_break
-                        group.loc[group['year'] == break_year, 'value'] = value_at_break_corrected
-                        
-                        # Rebase future values using adjustment ratio
-                        adjustment_ratio = value_at_break_corrected / values[i]
-                        
-                        for j in range(i + 1, len(values)):
-                            year_j = years[j]
-                            group.loc[group['year'] == year_j, 'value'] = values[j] * adjustment_ratio
-                            values[j] = values[j] * adjustment_ratio
-                        
-                        # Update the break point value
-                        values[i] = value_at_break_corrected
-                        adjustments_this_series += 1
-                    i += 1
+                    growth_rates[i] = 1.0  # No growth if no data available
+                    
+                print(f"✅ Smoothed break: {group['primary_index'].iloc[0]} in {group['country'].iloc[0]} (year {years[i+1]})")
+                print(f"   Using growth rate: {growth_rates[i]:.3f} (mean of pre/post break)")
+                adjustments_this_series += 1
+                    
             else:
-                i += 1
+                # Normal growth rate calculation
+                if values[i] > 0:
+                    growth_rates[i] = values[i+1] / values[i]
+                else:
+                    growth_rates[i] = 1.0
         
+        # Step 3 continued: Build variation database working backwards from reference year
+        for i in range(ref_year_index - 1, -1, -1):
+            variations[i] = variations[i+1] / growth_rates[i]
+            
+        # Build variation database working forwards from reference year  
+        for i in range(ref_year_index, len(values) - 1):
+            variations[i+1] = variations[i] * growth_rates[i]
+        
+        # Step 6: Reconstruct series using reference_value * variation_ratio
+        reconstructed_values = ref_value * variations
+        
+        # Update the group with reconstructed values
+        # Merge back into original group structure
+        for i, (_, row) in enumerate(valid_data.iterrows()):
+            group.loc[group['year'] == row['year'], 'value'] = reconstructed_values[i]
+        
+        # Track breaks for reporting
         if adjustments_this_series > 0:
             adjustments_made += adjustments_this_series
             series_key = (group['primary_index'].iloc[0], group['country'].iloc[0], group['decile'].iloc[0])
             series_with_breaks[series_key] = {
-                'breaks_fixed': adjustments_this_series,
+                'breaks_fixed': len(breaks),
                 'break_threshold': break_threshold,
-                'action': 'processed_all_breaks_in_series'
+                'action': 'variation_database_reconstruction'
             }
         
         # =====================================================
@@ -311,19 +374,22 @@ def detect_and_adjust_structural_breaks(df, break_threshold=None, apply_moving_a
             ).mean()
         
         # =====================================================
-        # STEP 4: AVERAGE RESCALING (Mean-Preservation)
+        # STEP 4: CONDITIONAL MEAN RESCALING (Mean-Preservation)
         # =====================================================
-        # Get current values after break adjustment (and optional moving average)
-        current_values = group['value'].dropna().values
-        
-        if len(current_values) > 0 and np.all(np.isfinite(current_values)):
-            new_mean = np.mean(current_values)
-            if new_mean > 0 and original_mean > 0:
-                # Scale factor to restore original mean
-                scale_factor = original_mean / new_mean
-                
-                # Apply proportional correction to all values in the series
-                group['value'] = group['value'] * scale_factor
+        if apply_mean_rescaling:
+            # Get current values after break adjustment (and optional moving average)
+            current_values = group['value'].dropna().values
+            
+            if len(current_values) > 0 and np.all(np.isfinite(current_values)):
+                # Use original values from before break adjustment for mean calculation
+                original_mean = np.mean(original_values) if 'original_values' in locals() else np.mean(current_values)
+                new_mean = np.mean(current_values)
+                if new_mean > 0 and original_mean > 0:
+                    # Scale factor to restore original mean
+                    scale_factor = original_mean / new_mean
+                    
+                    # Apply proportional correction to all values in the series
+                    group['value'] = group['value'] * scale_factor
         
         return group
     
@@ -347,12 +413,18 @@ def detect_and_adjust_structural_breaks(df, break_threshold=None, apply_moving_a
     
     print(f"[OK] Processing pipeline completed")
     print(f"   - Step 1 (Interpolation): {interpolations_made} values interpolated")
-    print(f"   - Step 2 (Break adjustment): {adjustments_made} breaks fixed (threshold: {break_threshold*100:.0f}%)")
+    print(f"   - Step 2 (Break adjustment): {adjustments_made} breaks fixed (threshold: {break_threshold*100:.0f}%, future-to-past, mean growth rates)")
     if apply_moving_average:
         print(f"   - Step 3 (Moving average): {moving_average_window}-year centered window applied")
-        print(f"   - Step 4 (Rescaling): Applied to all series with adjustments")
+        if apply_mean_rescaling:
+            print(f"   - Step 4 (Mean rescaling): Applied to series with adjustments")
+        else:
+            print(f"   - Step 4 (Mean rescaling): Disabled - preserving adjusted values")
     else:
-        print(f"   - Step 3 (Rescaling): Applied to all series with adjustments")
+        if apply_mean_rescaling:
+            print(f"   - Step 3 (Mean rescaling): Applied to series with adjustments")
+        else:
+            print(f"   - Step 3 (Mean rescaling): Disabled - preserving adjusted values")
     print(f"   - Output data: {len(adjusted_df):,} records")
     
     if series_with_interpolations:
@@ -380,19 +452,28 @@ def main():
     print("="*70)
     print(f"\n[CONFIG] Sensitivity analysis settings:")
     print(f"   - Break detection threshold: {BREAK_THRESHOLD*100:.0f}%")
+    print(f"   - Break processing direction: Future-to-past (reversed)")
+    print(f"   - Growth calculation: Mean of before/after-break rates")
     print(f"   - Moving average smoothing: {'Enabled (' + str(MOVING_AVERAGE_WINDOW) + '-year window)' if APPLY_MOVING_AVERAGE else 'Disabled'}")
+    print(f"   - Mean rescaling: {'Enabled' if APPLY_MEAN_RESCALING else 'Disabled (baseline)'}")
     print("\nProcessing steps:")
     print("  1. Load raw indicator data from 0_raw_indicator_EU-SILC.py and 0_raw_indicator_LFS.py")
     print("  2. Merge data from EU-SILC and LFS sources")
     print("  3. Linear interpolation of missing values between data points")
-    print(f"  4. Detect and adjust structural breaks ({BREAK_THRESHOLD*100:.0f}% year-to-year threshold)")
+    print(f"  4. Detect and adjust structural breaks ({BREAK_THRESHOLD*100:.0f}% threshold, future-to-past, mean growth)")
     if APPLY_MOVING_AVERAGE:
         print(f"  5. Apply {MOVING_AVERAGE_WINDOW}-year moving average smoothing")
-        print("  6. Average rescaling (mean-preservation)")
-        print("  7. Output processed data (forward fill applied in Stage 3)\n")
+        if APPLY_MEAN_RESCALING:
+            print("  6. Mean rescaling (mean-preservation)")
+            print("  7. Output processed data (forward fill applied in Stage 3)\n")
+        else:
+            print("  6. Output processed data (forward fill applied in Stage 3)\n")
     else:
-        print("  5. Average rescaling (mean-preservation)")
-        print("  6. Output processed data (forward fill applied in Stage 3)\n")
+        if APPLY_MEAN_RESCALING:
+            print("  5. Mean rescaling (mean-preservation)")
+            print("  6. Output processed data (forward fill applied in Stage 3)\n")
+        else:
+            print("  5. Output processed data (forward fill applied in Stage 3)\n")
     
     dirs = setup_directories()
     
@@ -527,7 +608,13 @@ def main():
     raw_data_for_imputation['value'] = pd.to_numeric(raw_data_for_imputation['value'], errors='coerce')
     
     # Step 1: Apply structural break adjustment
-    raw_data_adjusted = detect_and_adjust_structural_breaks(raw_data_for_imputation)
+    raw_data_adjusted = detect_and_adjust_structural_breaks(
+        raw_data_for_imputation,
+        break_threshold=BREAK_THRESHOLD,
+        apply_moving_average=APPLY_MOVING_AVERAGE,
+        moving_average_window=MOVING_AVERAGE_WINDOW,
+        apply_mean_rescaling=APPLY_MEAN_RESCALING
+    )
     
     # Output: Raw data with structural breaks (no forward fill - will be done in Stage 3)
     raw_data_final = raw_data_adjusted.rename(columns={
@@ -571,13 +658,34 @@ def main():
         print(f"\n[CLEANUP] Removed {nans_before_save:,} records with NaN in 'Primary and raw data'")
         print(f"   Records after cleanup: {len(raw_data_final):,}")
     
+    # ===== MATHEMATICAL VALIDATION: Check for impossible percentage values =====
+    print(f"\n[VALIDATION] Final mathematical validation...")
+    
+    # Count extreme values for reporting only
+    extreme_values = raw_data_final[raw_data_final['Value'] > 200]  # Values >200% are suspicious for social indicators
+    if len(extreme_values) > 0:
+        print(f"⚠️  WARNING: Found {len(extreme_values)} extreme values (>200%) - will be handled in later stages")
+        print("   Top 5 extreme values:")
+        top_extreme = extreme_values.nlargest(5, 'Value')[['Year', 'Country', 'Primary and raw data', 'Value']]
+        for _, row in top_extreme.iterrows():
+            print(f"      {row['Primary and raw data']} {row['Country']} {row['Year']}: {row['Value']:.1f}%")
+        
+        print(f"   ✅ Validation complete - extreme values will be handled downstream")
+    else:
+        print(f"   ✅ No extreme values detected - all values appear reasonable")
+    
     # Save output
     output_path = dirs['missing_data_output'] / 'raw_data_break_adjusted.csv'
     raw_data_final.to_csv(output_path, index=False)
     
-    print(f"\n[COMPLETE] Stage 1 complete: Break adjustment, interpolation, and rescaling")
+    print(f"\n[COMPLETE] Stage 1 complete: Break adjustment (future-to-past, mean growth), interpolation, and {'rescaling' if APPLY_MEAN_RESCALING else 'value preservation'}")
     print(f"[SAVED] Output saved: {output_path}")
-    print(f"   Records: {len(raw_data_final):,} (break-adjusted, interpolated, rescaled; forward fill in Stage 3)")
+    processing_desc = "break-adjusted (future-to-past), interpolated"
+    if APPLY_MEAN_RESCALING:
+        processing_desc += ", rescaled"
+    else:
+        processing_desc += ", values preserved"
+    print(f"   Records: {len(raw_data_final):,} ({processing_desc}; forward fill in Stage 3)")
     print(f"   Columns: {len(raw_data_final.columns)}")
     
     return raw_data_final

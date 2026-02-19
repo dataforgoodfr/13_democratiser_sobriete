@@ -1,23 +1,29 @@
-# Output data files (exclude all except essential files)
-output/*.csv
+# Output data files (exclude all except essential app inputs)
+# Keep only the minimum required for the dashboard to run on CleverCloud.
+output/**
+!output/ewbi_master_aggregated.csv
 !output/unified_all_levels_1_to_5.csv
 !output/unified_all_levels_1_to_5_pca*.csv
-output/*.html
-output/*.png
-output/*.json
-
-# Heavy data directories
-output/0_raw_data_EUROSTAT/
-output/1_data_app/
-output/2_data_validation/
-output/2_multivariate_analysis_output/
-output/Archive/
-output/test/
+!output/*.md
+!output/**/*.md
 
 # Reports: exclude project-level data and outputs
 reports/*/external_data/
 reports/*/output/
 reports/*/outputs/
+
+# Reports: exclude generated heavy artifacts (keep code/notebooks/markdown)
+reports/**/*.png
+reports/**/*.jpg
+reports/**/*.jpeg
+reports/**/*.svg
+reports/**/*.pdf
+reports/**/*.html
+reports/**/*.parquet
+reports/**/*.feather
+reports/**/*.pkl
+reports/**/*.pickle
+reports/**/*.zip
 
 # Python cache files
 __pycache__/
@@ -41,6 +47,7 @@ Thumbs.db
 
 # Jupyter notebooks
 *.ipynb_checkpoints/
+
 
 # Logs
 *.log

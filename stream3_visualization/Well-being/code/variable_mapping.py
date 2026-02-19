@@ -21,8 +21,6 @@ VARIABLE_NAME_MAPPING = {
     "AH-SILC-2": "Living with Chronic Illness",
     "AH-SILC-3": "Limited by Health Problems",
     "AH-SILC-4": "Unable to Work Due to Long-Term Illness",
-    "IS-SILC-1": "Preschool-Age Children Not Enrolled",
-    "IS-SILC-2": "School-Age Children Not Attending School",
     "IS-SILC-3": "No Formal Education",
     "RT-SILC-1 ": "Adults on Fixed-Term Contracts",
     "RT-SILC-2": "Adults Working Part-Time",
@@ -30,8 +28,8 @@ VARIABLE_NAME_MAPPING = {
     "RT-LFS-2": "Wanting to Work More Hours",
     "RT-LFS-3": "Doing Overtime or Extra Hours",
     "RU-SILC-1": "Unemployed for Over 6 Months",
-    "RU-LFS-1": "Currently Unemployed",
     "RR-AES-1": "Wanted to Learn, But Couldn't Participate",
+    "EL-LFS-2": "No adequate childcare services",
     "HQ-SILC-2": "Cannot keep dwelling warm",
     "HQ-SILC-3": "Cannot keep dwelling cool", 
     "HQ-SILC-4": "Dwelling too dark",
@@ -49,7 +47,6 @@ VARIABLE_NAME_MAPPING = {
     "RT-LFS-6": "Night work", 
     "RT-LFS-7": "Saturday work",
     "RT-LFS-8": "Sunday work",
-    "EL-SILC-2": "No relevant care service",
     # Additional EU-SILC indicators
     "HQ-SILC-2": "Cannot keep dwelling comfortably warm",
     "HQ-SILC-3": "Cannot keep dwelling comfortably cool",
@@ -80,8 +77,6 @@ VARIABLE_NAME_MAPPING_FR = {
     "AH-SILC-2": "Maladie chronique",
     "AH-SILC-3": "Limité par des problèmes de santé",
     "AH-SILC-4": "Incapable de travailler pour raison de santé",
-    "IS-SILC-1": "Enfants d'âge maternel non scolarisés",
-    "IS-SILC-2": "Enfants d'âge primaire non scolarisés",
     "IS-SILC-3": "Pas d'éducation formelle",
     "RT-SILC-1 ": "Adultes avec contrats à durée déterminée",
     "RT-SILC-2": "Adultes travaillant à temps partiel",
@@ -89,7 +84,6 @@ VARIABLE_NAME_MAPPING_FR = {
     "RT-LFS-2": "Souhait de travailler plus d'heures",
     "RT-LFS-3": "Heures supplémentaires",
     "RU-SILC-1": "Chômage depuis plus de 6 mois",
-    "RU-LFS-1": "Actuellement au chômage",
     "RR-AES-1": "Souhait d'apprendre mais incapacité à participer",
     "HQ-SILC-2": "Incapacité à maintenir le logement confortablement chaud",
     "HQ-SILC-3": "Incapacité à maintenir le logement confortablement frais",
@@ -206,14 +200,12 @@ EXCLUDED_INDICATORS = {
 # List of valid indicators that SHOULD be included in analysis
 VALID_INDICATORS = {
     'AC-SILC-3', 'AC-SILC-4', 'AH-SILC-2', 'AH-SILC-3', 'AH-SILC-4',
-    'AN-SILC-1', 'EC-SILC-2', 'EC-SILC-3', 'EC-SILC-4', 'EL-LFS-2',
+    'EC-SILC-2', 'EC-SILC-3', 'EC-SILC-4',
     'ES-SILC-1', 'ES-SILC-2', 'HE-SILC-2', 'HQ-SILC-1', 'HQ-SILC-2',
     'HQ-SILC-3', 'HQ-SILC-4', 'HQ-SILC-5', 'HQ-SILC-6', 'HQ-SILC-7',
-    'HQ-SILC-8', 'IC-SILC-1', 'IC-SILC-2', 'IS-SILC-1', 'IS-SILC-2',
-    'IS-SILC-3', 'IS-SILC-4', 'IS-SILC-5', 'RT-LFS-1', 'RT-LFS-2',
+    'HQ-SILC-8', 'IS-SILC-3', 'IS-SILC-4', 'IS-SILC-5', 'RT-LFS-1', 'RT-LFS-2',
     'RT-LFS-3', 'RT-LFS-4', 'RT-LFS-5', 'RT-LFS-6', 'RT-LFS-7',
-    'RT-LFS-8', 'RT-SILC-1', 'RT-SILC-2', 'RU-LFS-1', 'RU-SILC-1',
-    'TS-SILC-1'
+    'RT-LFS-8', 'RT-SILC-1', 'RT-SILC-2', 'RU-SILC-1'
 }
 
 def should_filter_indicator(indicator):

@@ -22,7 +22,7 @@ import sys
 current_dir = os.path.dirname(os.path.abspath(__file__))
 reports_dir = os.path.abspath(os.path.join(current_dir, '..', '..'))
 shared_code_dir = os.path.join(reports_dir, 'shared', 'code')
-well_being_code_dir = os.path.abspath(os.path.join(reports_dir, '..', 'Well-being', 'code'))
+well_being_code_dir = os.path.abspath(os.path.join(reports_dir, '..', 'code'))
 
 sys.path.insert(0, current_dir)
 sys.path.insert(0, shared_code_dir)
@@ -48,14 +48,9 @@ def get_app_level5_indicators():
         print(f"Error loading EWBI unified data for app indicators: {e}")
         return []
 
-    # EU priorities that are active in the app (from app.py)
-    EU_PRIORITIES = [
-        'Energy and Housing', 
-        'Equality',
-        'Health and Animal Welfare',
-        'Intergenerational Fairness, Youth, Culture and Sport',
-        'Social Rights and Skills, Quality Jobs and Preparedness'
-    ]
+    # Get EU priorities dynamically from Level 2 data (same as app.py)
+    available_eu_priorities = df[df['Level']==2]['EU priority'].dropna().unique()
+    EU_PRIORITIES = sorted(available_eu_priorities.tolist())
 
     # Get Level 5 indicators that would appear in app dropdowns
     all_available_indicators = set()
@@ -107,14 +102,9 @@ def prepare_swiss_ewbi_data(unified_df):
 
 def prepare_swiss_eu_priorities_data(unified_df):
     """Extract Switzerland EU priorities (Level 2) data for overall and decile analysis"""
-    # Get list of EU priorities from app.py
-    EU_PRIORITIES = [
-        'Energy and Housing', 
-        'Equality',
-        'Health and Animal Welfare',
-        'Intergenerational Fairness, Youth, Culture and Sport',
-        'Social Rights and Skills, Quality Jobs and Preparedness'
-    ]
+    # Get EU priorities dynamically from Level 2 data (same as app.py)
+    available_eu_priorities = unified_df[unified_df['Level']==2]['EU priority'].dropna().unique()
+    EU_PRIORITIES = sorted(available_eu_priorities.tolist())
     
     # Get Switzerland EU priorities overall data (Level 2, Decile='All')
     # For Switzerland: NO aggregation filtering (matches app.py logic)
@@ -167,13 +157,9 @@ def prepare_eu27_ewbi_data(unified_df):
 
 def prepare_eu27_eu_priorities_data(unified_df):
     """Extract EU-27 EU priorities (Level 2) data for overall and decile analysis - matches app.py logic"""
-    EU_PRIORITIES = [
-        'Energy and Housing',
-        'Equality', 
-        'Health and Animal Welfare',
-        'Intergenerational Fairness, Youth, Culture and Sport',
-        'Social Rights and Skills, Quality Jobs and Preparedness'
-    ]
+    # Get EU priorities dynamically from Level 2 data (same as app.py)
+    available_eu_priorities = unified_df[unified_df['Level']==2]['EU priority'].dropna().unique()
+    EU_PRIORITIES = sorted(available_eu_priorities.tolist())
     
     # Get EU-27 EU priorities overall data (Level 2, Decile='All') 
     # For reference lines: Do NOT filter by aggregation (to match app.py logic)
@@ -768,6 +754,49 @@ def prepare_swiss_data(unified_df):
     
     return swiss_data, swiss_decile_1, swiss_decile_10
 
+def prepare_swiss_level3_data_by_eu_priority(unified_df):
+    """Extract Switzerland Level 3 (primary indicators) data by EU Priority for decile visualization"""
+    # Get EU priorities dynamically from Level 2 data (same as app.py)
+    available_eu_priorities = unified_df[unified_df['Level']==2]['EU priority'].dropna().unique()
+    EU_PRIORITIES = sorted(available_eu_priorities.tolist())
+    
+    print(f"EU priorities from Level 2 data: {EU_PRIORITIES}")
+    
+    # Get Switzerland Level 3 data for all deciles (1-10)
+    # Don't filter by notna() on column name - filter by actual values later
+    swiss_level3_deciles = unified_df[
+        (unified_df['Country'] == 'CH') &
+        (unified_df['Level'] == 3) &
+        (unified_df['Decile'].isin(['1.0', '2.0', '3.0', '4.0', '5.0', '6.0', '7.0', '8.0', '9.0', '10.0']))
+    ].copy()
+    
+    print(f"Swiss Level 3 decile data (all priorities): {len(swiss_level3_deciles)} records")
+    print(f"  Unique EU priorities before filtering: {sorted(swiss_level3_deciles['EU priority'].dropna().unique())}")
+    print(f"  EU_PRIORITIES list from Level 2: {EU_PRIORITIES}")
+    
+    # Now filter by EU priorities that exist in Level 2
+    swiss_level3_deciles = swiss_level3_deciles[
+        swiss_level3_deciles['EU priority'].isin(EU_PRIORITIES)
+    ].copy()
+    
+    print(f"Swiss Level 3 decile data (filtered by Level 2 EU priorities): {len(swiss_level3_deciles)} records")
+    
+    if not swiss_level3_deciles.empty:
+        print(f"Available EU priorities in Switzerland Level 3: {sorted(swiss_level3_deciles['EU priority'].unique())}")
+        for priority in sorted(swiss_level3_deciles['EU priority'].unique()):
+            priority_data = swiss_level3_deciles[swiss_level3_deciles['EU priority'] == priority]
+            indicators = priority_data['Primary and raw data'].unique()
+            # Count how many indicators have at least some non-null values
+            valid_indicators = []
+            for ind in indicators:
+                if pd.notna(ind):
+                    ind_data = priority_data[priority_data['Primary and raw data'] == ind]
+                    if ind_data['Value'].notna().any():
+                        valid_indicators.append(ind)
+            print(f"  {priority}: {len(indicators)} total indicators, {len(valid_indicators)} with values")
+    
+    return swiss_level3_deciles, EU_PRIORITIES
+
 def create_swiss_primary_indicator_plot(swiss_data, swiss_decile_1, swiss_decile_10, indicator, output_dir):
     """Create a time series plot for a specific primary indicator in Switzerland with deciles"""
     
@@ -965,6 +994,197 @@ def create_swiss_primary_indicator_plot(swiss_data, swiss_decile_1, swiss_decile
     except Exception as e:
         print(f"Warning: Could not save PNG for {indicator}: {str(e)[:100]}...")
 
+def create_swiss_level3_indicators_by_eu_priority(swiss_level3_deciles, eu_priorities, output_dir):
+    """Create one graph per EU Priority showing all Level 3 indicators across deciles"""
+    print(f"\nCreating Level 3 All Raw Indicators graphs for {len(eu_priorities)} EU priorities...")
+    
+    # Create output directory for Level 3 All Raw Indicators
+    level3_all_dir = os.path.join(output_dir, 'EWBI', 'Level_3_All_Raw_Indicators')
+    os.makedirs(level3_all_dir, exist_ok=True)
+    
+    # Initialize list to collect all data for Excel export
+    excel_data_list = []
+    graphs_created = 0
+    
+    if swiss_level3_deciles.empty:
+        print("Warning: No Level 3 decile data available")
+        return
+    
+    # Convert Decile to numeric for sorting
+    swiss_level3_deciles['Decile_num'] = swiss_level3_deciles['Decile'].astype(float)
+    
+    # Process each EU Priority
+    for priority in eu_priorities:
+        print(f"\nProcessing EU Priority: {priority}")
+        
+        # Filter data for this priority - with debug output
+        priority_data = swiss_level3_deciles[swiss_level3_deciles['EU priority'] == priority].copy()
+        
+        print(f"  Priority data shape: {priority_data.shape}")
+        print(f"  Unique indicators in data: {priority_data['Primary and raw data'].unique()}")
+        
+        if priority_data.empty:
+            print(f"  Warning: No data available for {priority}")
+            continue
+        
+        # Get all indicators for this priority that have at least some non-null values
+        all_indicators = priority_data['Primary and raw data'].unique()
+        valid_indicators_data = {}
+        
+        print(f"  Checking {len(all_indicators)} indicators...")
+        for ind in all_indicators:
+            if pd.notna(ind):
+                ind_data = priority_data[priority_data['Primary and raw data'] == ind]
+                non_null_count = ind_data['Value'].notna().sum()
+                print(f"    {ind}: {non_null_count} non-null values")
+                
+                # Only include indicators with at least one non-null value
+                if ind_data['Value'].notna().any():
+                    # For each indicator, get the latest year available
+                    latest_year_for_ind = ind_data['Year'].max()
+                    ind_latest = ind_data[ind_data['Year'] == latest_year_for_ind].copy()
+                    ind_latest = ind_latest.sort_values('Decile_num')
+                    valid_indicators_data[ind] = {
+                        'data': ind_latest,
+                        'year': latest_year_for_ind
+                    }
+                    print(f"      -> Using year {int(latest_year_for_ind)}")
+        
+        if not valid_indicators_data:
+            print(f"  Warning: No indicators with valid values for {priority}")
+            continue
+        
+        indicators = sorted(valid_indicators_data.keys())
+        print(f"  Found {len(indicators)} indicators with values")
+        
+        # Determine the most common latest year for the title
+        years = [valid_indicators_data[ind]['year'] for ind in indicators]
+        most_common_year = max(set(years), key=years.count)
+        year_range = f"{int(min(years))}-{int(max(years))}" if len(set(years)) > 1 else str(int(most_common_year))
+        
+        # Create matplotlib figure
+        try:
+            import matplotlib.pyplot as plt
+            import matplotlib.cm as cm
+            
+            print(f"  Creating figure...")
+            plt.figure(figsize=(14, 8))
+            
+            # Use a colormap for multiple indicators
+            colors = cm.get_cmap('tab20', len(indicators))
+            
+            lines_plotted = 0
+            # Plot each indicator
+            for idx, indicator in enumerate(indicators):
+                try:
+                    indicator_data = valid_indicators_data[indicator]['data']
+                    ind_year = valid_indicators_data[indicator]['year']
+                    
+                    # Filter out rows with NaN values for plotting
+                    indicator_data = indicator_data[indicator_data['Value'].notna()]
+                    
+                    if indicator_data.empty:
+                        print(f"    Skipping {indicator} - no valid values after filtering")
+                        continue
+                    
+                    print(f"    Processing {indicator}: {len(indicator_data)} rows with values")
+                    
+                    # Get display name for indicator (no year in legend, it's in title)
+                    display_name = get_display_name(indicator)
+                    
+                    # Collect data for Excel export (7 columns: visual_number, visual_name, year, filter, decile, value, unit)
+                    for _, row in valid_indicators_data[indicator]['data'].iterrows():
+                        excel_data_list.append({
+                            'visual_number': np.nan,
+                            'visual_name': priority,
+                            'year': int(ind_year),
+                            'filter': display_name,
+                            'decile': int(row['Decile_num']),
+                            'value': row['Value'] if pd.notna(row['Value']) else np.nan,
+                            'unit': '%'  # Default to %, could be refined per indicator
+                        })
+                    
+                    # Plot line with markers
+                    plt.plot(indicator_data['Decile_num'], indicator_data['Value'],
+                            marker='o', linewidth=2, markersize=6,
+                            color=colors(idx), label=display_name, alpha=0.8)
+                    lines_plotted += 1
+                    print(f"      [OK] Plotted {display_name}")
+                    
+                except Exception as ind_error:
+                    print(f"    ERROR processing indicator {indicator}: {ind_error}")
+                    import traceback
+                    traceback.print_exc()
+            
+            if lines_plotted == 0:
+                print(f"  WARNING: No lines plotted for {priority}, skipping graph save")
+                plt.close()
+                continue
+            
+            print(f"  Customizing plot ({lines_plotted} lines plotted)...")
+            
+            # Customize the plot
+            plt.title(f"Switzerland - {priority}\nAll Primary Indicators by Income Decile ({year_range})",
+                     fontsize=16, fontweight='bold', color="#2C3E50", pad=20)
+            plt.xlabel("Income Decile", fontsize=14, fontweight='bold')
+            plt.ylabel("Indicator Value", fontsize=14, fontweight='bold')
+            
+            # Set x-axis ticks
+            plt.xticks(range(1, 11), [str(i) for i in range(1, 11)])
+            
+            # Add grid and legend
+            plt.grid(True, alpha=0.3, axis='y')
+            plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=9)
+            plt.tight_layout()
+            
+            # Create safe filename (short to avoid Windows MAX_PATH limit of 260 chars)
+            # Use abbreviated names for long EU priorities
+            priority_abbrev_map = {
+                'Energy and Housing': 'Energy_Housing',
+                'Equality': 'Equality',
+                'Health and Animal Welfare': 'Health_Animal',
+                'Intergenerational Fairness, Youth, Culture and Sport': 'Intergenerational',
+                'Social Rights and Skills, Quality Jobs and Preparedness': 'Social_Rights'
+            }
+            safe_priority = priority_abbrev_map.get(priority, priority.replace(' ', '_').replace(',', '').replace('/', '_'))
+            png_path = os.path.join(level3_all_dir, f"CH_{safe_priority}_level3_deciles.png")
+            
+            print(f"  Saving to: {os.path.basename(png_path)}")
+            # Save PNG
+            plt.savefig(png_path, dpi=150, bbox_inches='tight', 
+                       facecolor='white', edgecolor='none')
+            plt.close()
+            
+            graphs_created += 1
+            print(f"  [SUCCESS] Saved: {os.path.basename(png_path)}")
+            
+        except Exception as e:
+            print(f"  FATAL ERROR creating plot for {priority}: {e}")
+            import traceback
+            traceback.print_exc()
+            plt.close()  # Ensure figure is closed even if error occurs
+    
+    # Summary
+    print(f"\n[SUMMARY] Level 3: Created {graphs_created} / {len(eu_priorities)} EU priority graphs")
+    
+    # Export data to Excel
+    if excel_data_list:
+        try:
+            excel_df = pd.DataFrame(excel_data_list)
+            excel_path = os.path.join(level3_all_dir, 'switzerland_level3_indicators_by_decile.xlsx')
+            excel_df.to_excel(excel_path, index=False, sheet_name='Level 3 Indicators')
+            print(f"\nExported Excel file: {os.path.basename(excel_path)}")
+            print(f"  Total records: {len(excel_df)}")
+        except Exception as e:
+            print(f"\nWarning: Could not export Excel file: {e}")
+            print("  Trying CSV export as fallback...")
+            try:
+                csv_path = os.path.join(level3_all_dir, 'switzerland_level3_indicators_by_decile.csv')
+                excel_df.to_csv(csv_path, index=False)
+                print(f"  Exported CSV file: {os.path.basename(csv_path)}")
+            except Exception as e2:
+                print(f"  CSV export also failed: {e2}")
+
 def main():
     """Main function to generate Switzerland comprehensive analysis"""
     
@@ -1033,6 +1253,20 @@ def main():
     else:
         print("Warning: No Switzerland EU priorities data found")
     
+    # PART 2.5: Switzerland Level 3 All Raw Indicators by EU Priority
+    print("\n" + "="*40)
+    print("PART 2.5: SWITZERLAND LEVEL 3 ALL RAW INDICATORS BY EU PRIORITY")
+    print("="*40)
+    
+    print("\n2.5.1. Processing Switzerland Level 3 data by EU Priority...")
+    swiss_level3_deciles, level3_priorities = prepare_swiss_level3_data_by_eu_priority(unified_df)
+    
+    if not swiss_level3_deciles.empty:
+        print("\n2.5.2. Creating Level 3 All Raw Indicators graphs by EU Priority...")
+        create_swiss_level3_indicators_by_eu_priority(swiss_level3_deciles, level3_priorities, output_dir)
+    else:
+        print("Warning: No Switzerland Level 3 data found")
+    
     # PART 3: Switzerland Primary Indicators Analysis (Level 5)
     print("\n" + "="*40)
     print("PART 3: SWITZERLAND PRIMARY INDICATORS ANALYSIS")
@@ -1096,9 +1330,14 @@ def main():
     print(f"\nAnalysis Summary:")
     print(f"  • EWBI (Level 1): Overall + Deciles temporal analysis")
     print(f"  • EU Priorities (Level 2): {len(eu_priorities)} priorities × (Overall + Deciles)")
+    if 'level3_priorities' in locals():
+        print(f"  • Level 3 All Raw Indicators: {len(level3_priorities)} EU priorities × All primary indicators by decile")
+        print(f"    EU Priorities processed: {level3_priorities}")
+    print(f"  • Primary Indicators (Level 5): Time series analysis with deciles")
     print(f"  • Focus: Switzerland comprehensive well-being assessment")
     print(f"  • Color scheme: Switzerland yellow ({SWITZERLAND_COLOR})")
     print(f"  • Output format: PNG static files only")
+    print(f"\n  📁 Level 3 graphs location: {os.path.join(output_dir, 'EWBI', 'Level_3_All_Raw_Indicators')}")
 
 if __name__ == "__main__":
     main()

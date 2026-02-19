@@ -10,14 +10,14 @@ This folder contains a comprehensive dashboard for analyzing the European Well-B
 The dashboard uses a **pre-calculated aggregated data structure** to ensure fast performance and avoid real-time calculations:
 
 - `output/ewbi_master.csv`: Latest year for all levels and all deciles (including EU Average and countries)
-- `output/ewbi_time_series.csv`: Historical time series (decile = All) for all years, levels, EU Average and countries
+- `output/ewbi_master_aggregated.csv`: App-ready master file (all years/levels/deciles as needed by the dashboard)
 - `data/ewbi_indicators.json`: Configuration file defining the hierarchical structure
 
 ### Hierarchical Levels
 1. **Level 1**: EWBI - Overall well-being score
-2. **Level 2**: EU Priorities - 6 major policy areas
-3. **Level 3**: Secondary Indicators - 19 specific well-being dimensions
-4. **Level 4**: Primary Indicators - 58 individual survey questions and measures (satisfier indicators only)
+2. **Level 2**: EU Priorities - 5 major policy areas
+3. **Level 3**: Secondary Indicators - 11 specific well-being dimensions
+4. **Level 4**: Primary Indicators - 34 individual survey questions and measures (EU-SILC and LFS only)
 
 ## 🚀 Quick Start
 
@@ -48,8 +48,7 @@ cd Well-being/code
 python 3_generate_outputs.py
 ```
 Outputs:
-- `Well-being/output/ewbi_master.csv`
-- `Well-being/output/ewbi_time_series.csv`
+- `Well-being/output/ewbi_master_aggregated.csv`
 
 ## 📊 Dashboard Features
 
@@ -89,8 +88,7 @@ Well-being/
 ├── data/
 │   └── ewbi_indicators.json            # EWBI structure configuration
 ├── output/
-│   ├── ewbi_master.csv                 # Latest year, all deciles
-│   ├── ewbi_time_series.csv            # All years, decile = All
+│   ├── ewbi_master_aggregated.csv      # App-ready master file (used by dashboard)
 │   └── MASTER_DATAFRAME_STRUCTURE.md   # Data structure documentation
 └── README.md                           # This file
 ```
@@ -121,24 +119,22 @@ Well-being/
 #### Level 1: EWBI (Overall Well-being)
 - **EWBI**: Composite score across all EU Priorities
 
-#### Level 2: EU Priorities (6 major policy areas)
+#### Level 2: EU Priorities (5 major policy areas)
 1. **Energy and Housing**
 2. **Equality**
 3. **Health and Animal Welfare**
 4. **Intergenerational Fairness, Youth, Culture and Sport**
 5. **Social Rights and Skills, Quality Jobs and Preparedness**
-6. **Sustainable Transport and Tourism**
 
-#### Level 3: Secondary Indicators (18 dimensions)
-- **Energy and Housing**: Housing quality, Energy, Housing expense
-- **Equality**: Life satisfaction, Security, Community
-- **Health and Animal Welfare**: Nutrition, Health condition and impact, Accidents and addictive behaviour
-- **Intergenerational Fairness, Youth, Culture and Sport**: Education, Education expense, Leisure and culture
+#### Level 3: Secondary Indicators (11 dimensions)
+- **Energy and Housing**: Housing quality, Energy
+- **Equality**: Security, Community, Care Services
+- **Health and Animal Welfare**: Health condition and impact, Access to care
+- **Intergenerational Fairness, Youth, Culture and Sport**: Education
 - **Social Rights and Skills, Quality Jobs and Preparedness**: Type of job and market participation, Unemployment
-- **Sustainable Transport and Tourism**: Transport, Tourism
 
-#### Level 4: Primary Indicators (58 individual measures)
-[Individual indicators list remains the same as it appears comprehensive and accurate based on the workspace files]
+#### Level 4: Primary Indicators (34 individual measures)
+[Individual indicators are defined in `data/ewbi_indicators.json` and include only EU-SILC and LFS survey indicators that are actually processed in the pipeline]
 
 ### Performance Optimizations
 - Pre-calculated aggregates eliminate real-time computation
@@ -232,8 +228,7 @@ The dashboard is deployed directly from the main repository with the following k
 - `code/app.py` - Main dashboard application
 - `code/deployment/requirements.txt` - Python dependencies
 - `data/ewbi_indicators.json` - Indicator definitions and structure
-- `output/ewbi_master.csv` - Main data file
-- `output/ewbi_time_series.csv` - Time series data
+- `output/ewbi_master_aggregated.csv` - Main data file (required at runtime)
 
 ### Quick Deploy
 After making changes to the code, deploy updates to Clever Cloud using Git:

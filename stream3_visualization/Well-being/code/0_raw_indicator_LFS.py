@@ -10,7 +10,6 @@ The script handles the following indicators:
 - RT-LFS-1: Multiple jobs (NUMJOB_2or3_pct)
 - RT-LFS-2: Wish to work more (WISHMORE_2_pct)  
 - RT-LFS-3: Overtime/extra hours (EXTRAHRS_gt0_pct)
-- RU-LFS-1: Employment status (EMPSTAT_1_pct)
 
 Author: Data Processing Pipeline
 Date: 2024
@@ -243,7 +242,6 @@ def calculate_lfs_indicators(df: pd.DataFrame) -> pd.DataFrame:
         "NUMJOB",    # RT-LFS-1 - Number of jobs
         "WISHMORE",  # RT-LFS-2 - Wish to work more
         "EXTRAHRS",  # RT-LFS-3 - Overtime or extra hours
-        "EMPSTAT",   # RU-LFS-1 - Being in employment
         # New indicators
         "VARITIME",  # RT-LFS-4 - No freedom on working time choice
         "SHIFTWK",   # RT-LFS-5 - Shift work in main job
@@ -274,7 +272,7 @@ def calculate_lfs_indicators(df: pd.DataFrame) -> pd.DataFrame:
     
     # Validate that we have data for all countries and deciles
     country_decile_coverage = analysis_df.groupby('country')['decile'].nunique()
-    print(f"📋 Countries with complete decile coverage (10 deciles): {(country_decile_coverage == 1  # EWBI0).sum()}")
+    print(f"📋 Countries with complete decile coverage (10 deciles): {(country_decile_coverage == 10).sum()}")  # EWBI
     print(f"📋 Countries with partial decile coverage: {(country_decile_coverage < 10).sum()}")
     
     groups = analysis_df.groupby(["year", "country", "decile"])
@@ -292,7 +290,7 @@ def calculate_lfs_indicators(df: pd.DataFrame) -> pd.DataFrame:
         wishmore_pct = weighted_percentage(
             group,
             "WISHMORE",
-            lambda x: (x == 2  # EU Priorities),
+            lambda x: (x == 2),  # EU Priorities
             base_condition=lambda x: (x != 9)
         )
         
@@ -302,14 +300,6 @@ def calculate_lfs_indicators(df: pd.DataFrame) -> pd.DataFrame:
             "EXTRAHRS",
             lambda x: (x > 0),
             base_condition=lambda x: (x != 999)
-        )
-        
-        # RU-LFS-1: Employment status (employed)
-        empstat_pct = weighted_percentage(
-            group,
-            "EMPSTAT",
-            lambda x: (x == 1  # EWBI),
-            base_condition=lambda x: (x != 9)
         )
         
         # RT-LFS-4: No freedom on working time choice
@@ -324,7 +314,7 @@ def calculate_lfs_indicators(df: pd.DataFrame) -> pd.DataFrame:
         shiftwk_pct = weighted_percentage(
             group,
             "SHIFTWK",
-            lambda x: (x == 1  # EWBI),
+            lambda x: (x == 1),
             base_condition=lambda x: (x != 9)
         )
         
@@ -367,7 +357,6 @@ def calculate_lfs_indicators(df: pd.DataFrame) -> pd.DataFrame:
             "NUMJOB_2or3_pct": numjob_pct,
             "WISHMORE_2_pct": wishmore_pct,
             "EXTRAHRS_gt0_pct": extrahrs_pct,
-            "EMPSTAT_1_pct": empstat_pct,
             "VARITIME_34_pct": varitime_pct,
             "SHIFTWK_1_pct": shiftwk_pct,
             "NIGHTWK_12_pct": nightwk_pct,
@@ -393,7 +382,7 @@ def calculate_lfs_indicators(df: pd.DataFrame) -> pd.DataFrame:
         wishmore_pct = weighted_percentage(
             group,
             "WISHMORE",
-            lambda x: (x == 2  # EU Priorities),
+            lambda x: (x == 2),  # EU Priorities
             base_condition=lambda x: (x != 9)
         )
         
@@ -403,14 +392,6 @@ def calculate_lfs_indicators(df: pd.DataFrame) -> pd.DataFrame:
             "EXTRAHRS",
             lambda x: (x > 0),
             base_condition=lambda x: (x != 999)
-        )
-        
-        # RU-LFS-1: Employment status (employed)
-        empstat_pct = weighted_percentage(
-            group,
-            "EMPSTAT",
-            lambda x: (x == 1  # EWBI),
-            base_condition=lambda x: (x != 9)
         )
         
         # RT-LFS-4: No freedom on working time choice
@@ -425,7 +406,7 @@ def calculate_lfs_indicators(df: pd.DataFrame) -> pd.DataFrame:
         shiftwk_pct = weighted_percentage(
             group,
             "SHIFTWK",
-            lambda x: (x == 1  # EWBI),
+            lambda x: (x == 1 ),
             base_condition=lambda x: (x != 9)
         )
         
@@ -497,7 +478,6 @@ def prepare_final_output(results_df: pd.DataFrame) -> pd.DataFrame:
         "NUMJOB_2or3_pct": "RT-LFS-1",
         "WISHMORE_2_pct": "RT-LFS-2",
         "EXTRAHRS_gt0_pct": "RT-LFS-3",
-        "EMPSTAT_1_pct": "RU-LFS-1",
         "VARITIME_34_pct": "RT-LFS-4",
         "SHIFTWK_1_pct": "RT-LFS-5",
         "NIGHTWK_12_pct": "RT-LFS-6",

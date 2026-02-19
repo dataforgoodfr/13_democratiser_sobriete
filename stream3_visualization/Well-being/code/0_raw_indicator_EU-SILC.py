@@ -191,11 +191,24 @@ def combine_household_data(dirs):
 
     # Merge all data
     if dfs:
-        final_df = pd.concat(dfs, ignore_index=True)
-        output_path = os.path.join(dirs['merged_dir'], "EU_SILC_combined_household_data.csv")
-        final_df.to_csv(output_path, index=False)
-        print(f"✅ Household data combined: {final_df.shape} from {len(dfs)} files")
-        return final_df
+        # Filter out empty DataFrames and those with all-NaN content to avoid FutureWarning
+        non_empty_dfs = []
+        for df in dfs:
+            if not df.empty and not df.isna().all().all():
+                # Also remove columns that are entirely NaN to prevent concatenation issues
+                df_cleaned = df.dropna(axis=1, how='all')
+                if not df_cleaned.empty:
+                    non_empty_dfs.append(df_cleaned)
+        
+        if non_empty_dfs:
+            final_df = pd.concat(non_empty_dfs, ignore_index=True)
+            output_path = os.path.join(dirs['merged_dir'], "EU_SILC_combined_household_data.csv")
+            final_df.to_csv(output_path, index=False)
+            print(f"✅ Household data combined: {final_df.shape} from {len(non_empty_dfs)} files")
+            return final_df
+        else:
+            print("❗All collected dataframes were empty.")
+            return pd.DataFrame()
     else:
         print("❗No valid household dataframes were collected.")
         return pd.DataFrame()
@@ -246,10 +259,23 @@ def combine_household_register(dirs):
                 print(f"⚠️ File not found: {file_name}")
 
     if dfs:
-        final_df = pd.concat(dfs, ignore_index=True)
-        final_df.to_csv(os.path.join(dirs['merged_dir'], "EU_SILC_combined_household_register.csv"), index=False)
-        print(f"Household register data combined: {final_df.shape}")
-        return final_df
+        # Filter out empty DataFrames and those with all-NaN content to avoid FutureWarning
+        non_empty_dfs = []
+        for df in dfs:
+            if not df.empty and not df.isna().all().all():
+                # Also remove columns that are entirely NaN to prevent concatenation issues
+                df_cleaned = df.dropna(axis=1, how='all')
+                if not df_cleaned.empty:
+                    non_empty_dfs.append(df_cleaned)
+        
+        if non_empty_dfs:
+            final_df = pd.concat(non_empty_dfs, ignore_index=True)
+            final_df.to_csv(os.path.join(dirs['merged_dir'], "EU_SILC_combined_household_register.csv"), index=False)
+            print(f"Household register data combined: {final_df.shape}")
+            return final_df
+        else:
+            print("❗All collected household register dataframes were empty.")
+            return pd.DataFrame()
     else:
         print("❗No valid household register dataframes were collected.")
         return pd.DataFrame()
@@ -269,8 +295,6 @@ def combine_personal_register(dirs):
         "RB050",  # Weight
         "RB081",  # Age
         "RB082",  # Age of person interviewed (alternative age field)
-        "RL010",  # IS-SILC-1 - Education at pre-school
-        "RL020",  # IS-SILC-2 - Education at compulsory school
         # New personal indicators
         "PE010",  # IS-SILC-4 - Participation in formal training (student/apprentice)
         "PE041",  # IS-SILC-5 - No secondary education
@@ -306,10 +330,23 @@ def combine_personal_register(dirs):
                 print(f"⚠️ File not found: {file_name}")
 
     if dfs:
-        final_df = pd.concat(dfs, ignore_index=True)
-        final_df.to_csv(os.path.join(dirs['merged_dir'], "EU_SILC_combined_personal_register.csv"), index=False)
-        print(f"Personal register data combined: {final_df.shape}")
-        return final_df
+        # Filter out empty DataFrames and those with all-NaN content to avoid FutureWarning
+        non_empty_dfs = []
+        for df in dfs:
+            if not df.empty and not df.isna().all().all():
+                # Also remove columns that are entirely NaN to prevent concatenation issues
+                df_cleaned = df.dropna(axis=1, how='all')
+                if not df_cleaned.empty:
+                    non_empty_dfs.append(df_cleaned)
+        
+        if non_empty_dfs:
+            final_df = pd.concat(non_empty_dfs, ignore_index=True)
+            final_df.to_csv(os.path.join(dirs['merged_dir'], "EU_SILC_combined_personal_register.csv"), index=False)
+            print(f"Personal register data combined: {final_df.shape}")
+            return final_df
+        else:
+            print("❗All collected personal register dataframes were empty.")
+            return pd.DataFrame()
     else:
         print("❗No valid personal register dataframes were collected.")
         return pd.DataFrame()
@@ -359,10 +396,23 @@ def combine_personal_data(dirs):
                 print(f"⚠️ File not found: {file_name}")
 
     if dfs:
-        final_df = pd.concat(dfs, ignore_index=True)
-        final_df.to_csv(os.path.join(dirs['merged_dir'], "EU_SILC_combined_personal_data.csv"), index=False)
-        print(f"Personal data combined: {final_df.shape}")
-        return final_df
+        # Filter out empty DataFrames and those with all-NaN content to avoid FutureWarning
+        non_empty_dfs = []
+        for df in dfs:
+            if not df.empty and not df.isna().all().all():
+                # Also remove columns that are entirely NaN to prevent concatenation issues
+                df_cleaned = df.dropna(axis=1, how='all')
+                if not df_cleaned.empty:
+                    non_empty_dfs.append(df_cleaned)
+        
+        if non_empty_dfs:
+            final_df = pd.concat(non_empty_dfs, ignore_index=True)
+            final_df.to_csv(os.path.join(dirs['merged_dir'], "EU_SILC_combined_personal_data.csv"), index=False)
+            print(f"Personal data combined: {final_df.shape}")
+            return final_df
+        else:
+            print("❗All collected personal dataframes were empty.")
+            return pd.DataFrame()
     else:
         print("❗No valid personal dataframes were collected.")
         return pd.DataFrame()
@@ -578,51 +628,57 @@ def calculate_overcrowding(dirs):
     # Calculate age
     data['age'] = data['PB010'] - data['PB140']
 
-    # Categorize age for overcrowding rules
-    def classify_person(row):
-        age = row['age']
-        if age >= 18:
-            return 'adult'
-        elif 12 <= age < 18:
-            return 'teen'
-        elif age < 12:
-            return 'child'
-        else:
-            return 'unknown'
-
+    # Categorize age for overcrowding rules (vectorized)
     print("Classifying age groups...")
-    data['age_group'] = data.apply(classify_person, axis=1)
+    data['age_group'] = 'unknown'
+    data.loc[data['age'] >= 18, 'age_group'] = 'adult'
+    data.loc[(data['age'] >= 12) & (data['age'] < 18), 'age_group'] = 'teen'
+    data.loc[data['age'] < 12, 'age_group'] = 'child'
 
-    # Group by household and calculate required rooms
-    def required_rooms(group):
-        # Count adults in consensual unions (PB200 = 1 or 2) who can share bedrooms
-        adults_in_unions = group[(group['age_group'] == 'adult') & (group['PB200'].isin([1, 2]))]
-        adults_single = group[(group['age_group'] == 'adult') & (~group['PB200'].isin([1, 2]) | group['PB200'].isna())]
-        
-        # For adults in unions, assume they can share bedrooms in pairs
-        # This is a simplification - ideally we'd match actual couples
-        n_couples = len(adults_in_unions) // 2
-        n_single_adults = len(adults_single) + (len(adults_in_unions) % 2)  # Include unpaired adults
-        
-        teens = group[group['age_group'] == 'teen']
-        n_teen_pairs = len(teens) // 2
-        n_remaining_teens = len(teens) % 2
-        children = group[group['age_group'] == 'child']
-        n_child_pairs = len(children) // 2
-        n_remaining_children = len(children) % 2
-        
-        required = (1 + n_couples + n_single_adults + n_teen_pairs + n_remaining_teens + 
-                   n_child_pairs + n_remaining_children)
-        return pd.Series({'required_rooms': required, 'HH030': group['HH030'].iloc[0]})
-
-    # Get groups and show progress
-    grouped = data.groupby(['HB010', 'HB020', 'HB030'])
-    total_households = len(grouped)
-    print(f"Processing {total_households:,} households for overcrowding calculation...")
+    # OPTIMIZED: Calculate required rooms using vectorized operations
+    print("Calculating required rooms (optimized vectorized approach)...")
     
-    # Apply with progress bar
-    tqdm.pandas(desc="Calculating required rooms")
-    rooms_df = grouped.progress_apply(required_rooms).reset_index()
+    # Create indicators for different person types
+    data['is_adult_in_union'] = (data['age_group'] == 'adult') & (data['PB200'].isin([1, 2]))
+    data['is_adult_single'] = (data['age_group'] == 'adult') & (~data['PB200'].isin([1, 2]) | data['PB200'].isna())
+    data['is_teen'] = (data['age_group'] == 'teen')
+    data['is_child'] = (data['age_group'] == 'child')
+    
+    # Aggregate by household using fast built-in functions
+    print("Aggregating household composition...")
+    household_composition = data.groupby(['HB010', 'HB020', 'HB030']).agg({
+        'is_adult_in_union': 'sum',
+        'is_adult_single': 'sum', 
+        'is_teen': 'sum',
+        'is_child': 'sum',
+        'HH030': 'first'  # Keep the HH030 value
+    }).reset_index()
+    
+    # Calculate required rooms using vectorized operations
+    print("Computing room requirements...")
+    household_composition['n_couples'] = household_composition['is_adult_in_union'] // 2
+    household_composition['n_single_adults'] = (
+        household_composition['is_adult_single'] + 
+        (household_composition['is_adult_in_union'] % 2)  # Unpaired adults in unions
+    )
+    household_composition['n_teen_pairs'] = household_composition['is_teen'] // 2
+    household_composition['n_remaining_teens'] = household_composition['is_teen'] % 2
+    household_composition['n_child_pairs'] = household_composition['is_child'] // 2
+    household_composition['n_remaining_children'] = household_composition['is_child'] % 2
+    
+    # Calculate total required rooms (1 living room + bedrooms)
+    household_composition['required_rooms'] = (
+        1 +  # Living room
+        household_composition['n_couples'] +
+        household_composition['n_single_adults'] +
+        household_composition['n_teen_pairs'] +
+        household_composition['n_remaining_teens'] +
+        household_composition['n_child_pairs'] +
+        household_composition['n_remaining_children']
+    )
+    
+    # Keep only the columns we need
+    rooms_df = household_composition[['HB010', 'HB020', 'HB030', 'HH030', 'required_rooms']].copy()
 
     # Calculate overcrowding indicator
     print("Calculating overcrowding status...")
@@ -630,46 +686,83 @@ def calculate_overcrowding(dirs):
     overcrowded_condition = rooms_df['HH030'] < rooms_df['required_rooms']
     rooms_df['overcrowded'] = overcrowded_condition.where(rooms_df['HH030'].notna(), np.nan).astype('float')
 
-    # Calculate person-level overcrowding indicator for accurate population shares
+    # Calculate person-level overcrowding indicator using correct approach
     print("Calculating person-level overcrowding indicator...")
     
-    # Load personal register for weights
+    # Load personal register for weights (RB050)
     cols_needed_register = ["RB010", "RB020", "RB030", "RB050"]
     pr = pd.read_csv(
         os.path.join(dirs['merged_dir'], "EU_SILC_combined_personal_register.csv"),
         usecols=cols_needed_register
     )
     
-    # Extract household IDs (convert to string first in case they're numeric)
+    # Step 1: Extract household IDs from person IDs (PB030 = Household ID + 2 digits)
     pr['household_id'] = pr['RB030'].astype(str).str[:-2]
     
-    # Calculate population weight (sum of personal weights) for each household
-    household_population_weights = pr.groupby(['RB010', 'RB020', 'household_id'])['RB050'].sum().reset_index()
+    # Step 2: Load decile information to include in person-level data
+    print("Loading decile data to include in person-level overcrowding...")
+    try:
+        decile_df = pd.read_csv(
+            os.path.join(dirs['decile_dir'], "EU_SILC_household_data_with_decile.csv")
+        )[["HB010", "HB020", "HB030", "decile"]]
+        
+        # Ensure consistent data types for merge
+        decile_df['HB030'] = decile_df['HB030'].fillna(0).astype('int64').astype(str)
+        
+        # Join decile information to overcrowding data
+        rooms_df_with_decile = rooms_df.merge(
+            decile_df, on=['HB010', 'HB020', 'HB030'], how='left'
+        )
+        print(f"   ✅ Successfully added decile info to {len(rooms_df_with_decile):,} households")
+        
+    except Exception as e:
+        print(f"   ⚠️ Could not load decile data: {e}")
+        print("   Using overcrowding data without decile information")
+        rooms_df_with_decile = rooms_df.copy()
+        rooms_df_with_decile['decile'] = np.nan
+    
+    # Step 3: Join overcrowding status AND decile to person-level data
+    merge_cols = ['HB010', 'HB020', 'HB030', 'overcrowded']
+    if 'decile' in rooms_df_with_decile.columns:
+        merge_cols.append('decile')
+        
+    person_overcrowd = pr.merge(
+        rooms_df_with_decile[merge_cols],
+        left_on=['RB010', 'RB020', 'household_id'],
+        right_on=['HB010', 'HB020', 'HB030'],
+        how='left'
+    )
+    
+    # Step 3: Calculate population weight (sum of RB050) for each household for later use
+    household_population_weights = person_overcrowd.groupby(['RB010', 'RB020', 'household_id'])['RB050'].sum().reset_index()
     household_population_weights.rename(columns={'RB050': 'population_weight'}, inplace=True)
     
-    # Merge population weights with overcrowding data
+    # Step 4: Merge population weights back to household-level data for consistency
     rooms_df = rooms_df.merge(household_population_weights,
-                             left_on=['HB010', 'HB020', rooms_df['HB030'].astype(str).str[:-2]],
-                             right_on=['RB010', 'RB020', 'household_id'], how='left')
+                             left_on=['HB010', 'HB020', 'HB030'],
+                             right_on=['RB010', 'RB020', 'household_id'], 
+                             how='left')
     
-    # Merge personal register with household overcrowding data for validation
-    person_overcrowd = pr.merge(rooms_df, 
-                               left_on=['RB010', 'RB020', 'household_id'],
-                               right_on=['RB010', 'RB020', 'household_id'], 
-                               how='left')
-    
-    # Calculate weighted person-level overcrowding for validation
+    # Validate the correct calculation using person-level RB050 weights
     if not person_overcrowd.empty and 'RB050' in person_overcrowd.columns:
         valid_data = person_overcrowd.dropna(subset=['RB050', 'overcrowded'])
         if not valid_data.empty:
+            # CORRECT CALCULATION: Sum RB050 weights directly
             total_weight = valid_data['RB050'].sum()
             overcrowded_weight = (valid_data['overcrowded'] * valid_data['RB050']).sum()
             person_overcrowd_pct = (overcrowded_weight / total_weight) * 100
             
-            print(f"📊 Person-level overcrowding validation:")
+            print(f"📊 Person-level overcrowding validation (CORRECT METHOD):")
             print(f"   Total persons: {len(valid_data):,}")
             print(f"   Persons in overcrowded households: {valid_data['overcrowded'].sum():,}")
             print(f"   Person-level overcrowding rate: {person_overcrowd_pct:.1f}%")
+            
+            # Mathematical validation - this should NEVER exceed 100%
+            if person_overcrowd_pct > 100:
+                print(f"   🚨 WARNING: Mathematical impossibility detected in validation!")
+    
+    # Save person-level overcrowding data for use in indicator calculations
+    person_overcrowd.to_csv(os.path.join(dirs['overcrowd_dir'], "EU_SILC_person_overcrowding_data.csv"), index=False)
 
     print("Saving overcrowding results...")
     rooms_df.to_csv(os.path.join(dirs['overcrowd_dir'], "EU_SILC_household_data_with_overcrowding.csv"), index=False)
@@ -753,14 +846,14 @@ def calculate_household_size(dirs):
     data = data.merge(household_sizes, on=['HB010', 'HB020', 'HB030'])
     
     # Create living alone indicator at person level
-    data['living_alone'] = (data['household_size'] == 1  # EWBI).astype(int)
+    data['living_alone'] = (data['household_size'] == 1).astype(int)  # EWBI
     
     print(f"Total persons in data: {len(data):,}")
     print(f"Persons in single-person households: {data['living_alone'].sum():,}")
     
     # Calculate population-weighted shares by country/year for validation
     print("\n📊 Sample validation - France 2022 person-level calculation:")
-    france_2022 = data[(data['HB020'] == 'FR') & (data['HB010'] == 2  # EU Priorities022) & (data['RB050'].notna())]
+    france_2022 = data[(data['HB020'] == 'FR') & (data['HB010'] == 2022) & (data['RB050'].notna())]  # EU Priorities
     if len(france_2022) > 0:
         total_weight = france_2022['RB050'].sum()
         living_alone_weight = (france_2022['living_alone'] * france_2022['RB050']).sum()
@@ -804,6 +897,7 @@ def process_household_indicators(dirs):
     print("Processing household indicators...")
     
     # Load and merge all necessary datasets
+    print("📂 Loading household data...")
     cols_needed_household = [
         "HB010", "HB020", "HB030", "HS050", "HD080", "HS011", 
         "HS021", "HS060", "HS120", "HS040",
@@ -815,24 +909,34 @@ def process_household_indicators(dirs):
         os.path.join(dirs['merged_dir'], "EU_SILC_combined_household_data.csv"),
         usecols=cols_needed_household
     )
+    print(f"   ✅ Loaded household data: {household_df.shape}")
 
+    print("📂 Loading household register...")
     household_df_weight = pd.read_csv(
         os.path.join(dirs['merged_dir'], "EU_SILC_combined_household_register.csv")
     )[["DB010", "DB020", "DB030", "DB090"]]
+    print(f"   ✅ Loaded household register: {household_df_weight.shape}")
 
+    print("📂 Loading decile data...")
     decile_df = pd.read_csv(
         os.path.join(dirs['decile_dir'], "EU_SILC_household_data_with_decile.csv")
     )
+    print(f"   ✅ Loaded decile data: {decile_df.shape}")
     
+    print("📂 Loading overcrowding data...")
     overpop_df = pd.read_csv(
         os.path.join(dirs['overcrowd_dir'], "EU_SILC_household_data_with_overcrowding.csv")
     )
+    print(f"   ✅ Loaded overcrowding data: {overpop_df.shape}")
     
+    print("📂 Loading household size data...")
     household_size_df = pd.read_csv(
         os.path.join(dirs['final_merged_dir'], "EU_SILC_household_size.csv")
     )
+    print(f"   ✅ Loaded household size data: {household_size_df.shape}")
 
     # Convert merge keys to string (use int64 to avoid overflow with large IDs)
+    print("🔧 Converting data types for merging...")
     household_df['HB030'] = household_df['HB030'].fillna(0).astype('int64').astype(str)
     decile_df['HB030'] = decile_df['HB030'].fillna(0).astype('int64').astype(str)
     overpop_df['HB030'] = overpop_df['HB030'].fillna(0).astype('int64').astype(str)
@@ -841,31 +945,41 @@ def process_household_indicators(dirs):
     household_df_weight['DB030'] = household_df_weight['DB030'].fillna(0).astype('int64').astype(str)
 
     # Merge all datasets
+    print("🔗 Merging household data with weights...")
     merged_df = household_df.merge(
         household_df_weight, left_on=['HB010', 'HB020', 'HB030'], 
         right_on=['DB010', 'DB020', 'DB030'], how='left'
     )
+    print(f"   ✅ After weight merge: {merged_df.shape}")
 
+    print("🔗 Merging with decile data...")
     merged_df = merged_df.merge(
         decile_df[["HB010", "HB020", "HB030", "equi_disp_inc", "decile"]], 
         left_on=['HB010', 'HB020', 'HB030'], 
         right_on=['HB010', 'HB020', 'HB030'], how='left'
     )
+    print(f"   ✅ After decile merge: {merged_df.shape}")
 
+    print("🔗 Merging with overcrowding data...")
     merged_df = merged_df.merge(
         overpop_df[["HB010", "HB020", "HB030", "overcrowded", "population_weight"]], 
         left_on=['HB010', 'HB020', 'HB030'], 
         right_on=['HB010', 'HB020', 'HB030'], how='left', suffixes=('', '_overcrowd')
     )
+    print(f"   ✅ After overcrowding merge: {merged_df.shape}")
     
+    print("🔗 Merging with household size data...")
     merged_df = merged_df.merge(
         household_size_df[["HB010", "HB020", "HB030", "living_alone", "population_weight"]], 
         left_on=['HB010', 'HB020', 'HB030'], 
         right_on=['HB010', 'HB020', 'HB030'], how='left', suffixes=('', '_living_alone')
     )
+    print(f"   ✅ Final merged dataset: {merged_df.shape}")
 
     # Save merged dataset
+    print("💾 Saving merged dataset...")
     merged_df.to_csv(os.path.join(dirs['final_merged_dir'], "EU_SILC_household_final_merged.csv"), index=False)
+    print("   ✅ Merged dataset saved")
 
     # Define variable filters for indicators (existing + new)
     df = merged_df
@@ -877,7 +991,6 @@ def process_household_indicators(dirs):
         "HS021": lambda row: [1] if row["HB010"] < 2008 else [1, 2],  # HE-SILC-2
         "HS060": [2],                          # ES-SILC-1
         "HS120": [1, 2],                       # ES-SILC-2
-        "HS040": [2],                          # TS-SILC-1
         "overcrowded": [1],                    # HQ-SILC-1
         
         # New Energy and Housing indicators
@@ -892,69 +1005,37 @@ def process_household_indicators(dirs):
     }
 
     # Precompute masks per row
-    for var, condition in variable_filters.items():
+    print("🎯 Precomputing indicator masks for all variables...")
+    for i, (var, condition) in enumerate(variable_filters.items()):
+        print(f"   Processing mask {i+1}/{len(variable_filters)}: {var}")
         if callable(condition):
             df[f"_valid_{var}"] = df.apply(
                 lambda row: row[var] in condition(row) if pd.notnull(row[var]) else False, axis=1
             )
         else:
             df[f"_valid_{var}"] = df[var].isin(condition) & df[var].notna()
+    print("   ✅ All indicator masks computed")
 
     # Validate decile coverage before processing  
     country_decile_coverage = df.groupby('HB020')['decile'].nunique()
-    print(f"📋 Countries with complete decile coverage (10 deciles): {(country_decile_coverage == 1  # EWBI0).sum()}")
+    print(f"📋 Countries with complete decile coverage (10 deciles): {(country_decile_coverage == 10).sum()}")  # EWBI
     print(f"📋 Countries with partial decile coverage: {(country_decile_coverage < 10).sum()}")
-    
-    def calculate_overcrowding_percentage(group, min_population_weight_coverage=0.5):
-        """
-        Calculate overcrowding percentage with fallback to household weights when population weights are insufficient.
-        
-        Args:
-            group: DataFrame group (by country/year/decile or country/year for total)
-            min_population_weight_coverage: Minimum coverage threshold for using population weights
-            
-        Returns:
-            float: Overcrowding percentage or NaN if overcrowding data is missing
-        """
-        # Check if overcrowding data is available at all for this group
-        overcrowded_available = group['overcrowded'].notna().sum()
-        total_households = len(group)
-        
-        # If no overcrowding data is available, return NaN (missing data)
-        if overcrowded_available == 0:
-            return np.nan
-        
-        mask = group[f"_valid_overcrowded"]
-        overcrowded_households = group.loc[mask]
-        
-        # If we have overcrowding data but no households are overcrowded, return 0.0
-        if len(overcrowded_households) == 0:
-            return 0.0
-        
-        # Check population weight coverage (non-zero values)
-        total_households = len(group)
-        households_with_pop_weights = (group['population_weight'] > 0).sum()
-        pop_weight_coverage = households_with_pop_weights / total_households if total_households > 0 else 0
-        
-        if pop_weight_coverage >= min_population_weight_coverage:
-            # Use population weights (person-level calculation)
-            population_weight_col = 'population_weight'
-            overcrowded_population = overcrowded_households[population_weight_col].sum()
-            total_population = group[population_weight_col].sum()
-            percentage = (overcrowded_population / total_population * 100) if total_population > 0 else 0.0
-        else:
-            # Fall back to household weights (household-level calculation)
-            overcrowded_weight = overcrowded_households['DB090'].sum()
-            total_weight = group['DB090'].sum()
-            percentage = (overcrowded_weight / total_weight * 100) if total_weight > 0 else 0.0
-        
-        return percentage
     
     # Group by Year, Country, Decile and calculate indicators
     group_cols = ["HB010", "HB020", "decile"]
     results = []
-
-    for group_keys, group in df.groupby(group_cols):
+    
+    print("📊 Computing indicators by year, country, and decile...")
+    grouped_data = df.groupby(group_cols)
+    total_groups = len(grouped_data)
+    print(f"   Total groups to process: {total_groups:,}")
+    
+    processed_groups = 0
+    for group_keys, group in grouped_data:
+        processed_groups += 1
+        if processed_groups % 1000 == 0:  # Progress every 1000 groups
+            print(f"   Progress: {processed_groups:,}/{total_groups:,} groups ({processed_groups/total_groups*100:.1f}%)")
+        
         group_result = dict(zip(group_cols, group_keys))
         total_weight = group["DB090"].sum()
 
@@ -964,7 +1045,7 @@ def process_household_indicators(dirs):
             
             # Specific exclusion: Skip HQ-SILC-2 (HC060) for 2016 due to data quality issues
             year = group_keys[0]  # HB010 is the first element (year)
-            if var == "HC060" and year == 2  # EU Priorities016:
+            if var == "HC060" and year == 2016:  # EU Priorities
                 share = np.nan
             elif all_nan:
                 # If all values are NaN, the indicator should be NaN
@@ -997,24 +1078,91 @@ def process_household_indicators(dirs):
                         share = (living_alone_population / total_population * 100) if total_population > 0 else np.nan
                 
                 elif var == "overcrowded":
-                    # SPECIAL HANDLING FOR HQ-SILC-1 (overcrowded) - Fixed version with fallback
-                    share = calculate_overcrowding_percentage(group)
+                    # SPECIAL HANDLING FOR HQ-SILC-1 (overcrowded) - Use household-level calculation with DB090 weights
+                    # The person-level approach was causing issues with decile filtering
+                    mask = group[f"_valid_{var}"]
+                    
+                    # Critical fix: Ensure mask is boolean and handle edge cases
+                    if mask.sum() == 0:
+                        # No households meet the criteria
+                        share = 0.0
+                    else:
+                        weighted_sum = group.loc[mask, "DB090"].sum()
+                        share = (weighted_sum / total_weight * 100) if total_weight > 0 else np.nan
+                        
+                        # Mathematical validation: weighted_sum cannot exceed total_weight
+                        if pd.notna(share) and share > 100:
+                            print(f"🚨 CRITICAL ERROR: Mathematical impossibility detected for {var}: {share:.1f}%")
+                            print(f"    Country: {group_keys[1]}, Year: {group_keys[0]}, Decile: {group_keys[2]}")
+                            print(f"    Weighted sum: {weighted_sum:.2f}, Total weight: {total_weight:.2f}")
+                            print(f"    This indicates data corruption or processing error!")
+                            
+                            # Use count-based percentage as the correct calculation
+                            total_households = len(group)
+                            households_meeting_criteria = mask.sum()
+                            simple_share = (households_meeting_criteria / total_households * 100) if total_households > 0 else np.nan
+                            
+                            print(f"    Using count-based calculation: {simple_share:.1f}% ({households_meeting_criteria}/{total_households})")
+                            share = simple_share
+                        elif pd.notna(share) and share < 0:
+                            print(f"⚠️  WARNING: Negative percentage detected for {var}: {share:.1f}%")
+                            # Use absolute value or count-based method
+                            total_households = len(group)
+                            households_meeting_criteria = mask.sum()
+                            share = (households_meeting_criteria / total_households * 100) if total_households > 0 else np.nan
                 
                 else:
                     # Normal calculation for other indicators using household weights
                     mask = group[f"_valid_{var}"]
-                    weighted_sum = group.loc[mask, "DB090"].sum()
-                    share = (weighted_sum / total_weight * 100) if total_weight > 0 else np.nan
+                    
+                    # Critical fix: Ensure mask is boolean and handle edge cases
+                    if mask.sum() == 0:
+                        # No households meet the criteria
+                        share = 0.0
+                    else:
+                        weighted_sum = group.loc[mask, "DB090"].sum()
+                        share = (weighted_sum / total_weight * 100) if total_weight > 0 else np.nan
+                        
+                        # Mathematical validation: weighted_sum cannot exceed total_weight
+                        if pd.notna(share) and share > 100:
+                            print(f"🚨 CRITICAL ERROR: Mathematical impossibility detected for {var}: {share:.1f}%")
+                            print(f"    Country: {group_keys[1]}, Year: {group_keys[0]}, Decile: {group_keys[2]}")
+                            print(f"    Weighted sum: {weighted_sum:.2f}, Total weight: {total_weight:.2f}")
+                            print(f"    This indicates data corruption or processing error!")
+                            
+                            # Use count-based percentage as the correct calculation
+                            total_households = len(group)
+                            households_meeting_criteria = mask.sum()
+                            simple_share = (households_meeting_criteria / total_households * 100) if total_households > 0 else np.nan
+                            
+                            print(f"    Using count-based calculation: {simple_share:.1f}% ({households_meeting_criteria}/{total_households})")
+                            share = simple_share
+                        elif pd.notna(share) and share < 0:
+                            print(f"⚠️  WARNING: Negative percentage detected for {var}: {share:.1f}%")
+                            # Use absolute value or count-based method
+                            total_households = len(group)
+                            households_meeting_criteria = mask.sum()
+                            share = (households_meeting_criteria / total_households * 100) if total_households > 0 else np.nan
             
             group_result[f"{var}_share"] = share
 
         results.append(group_result)
     
+    print(f"   ✅ Completed processing {processed_groups:,} groups")
+
     # Also calculate indicators for total population per country (decile = "All")
     print("📊 Computing total population indicators (decile = 'All')...")
     total_group_cols = ["HB010", "HB020"]
     
-    for group_keys, group in df.groupby(total_group_cols):
+    total_grouped = df.groupby(total_group_cols)
+    total_groups_count = len(total_grouped)
+    print(f"   Total country-year groups to process: {total_groups_count:,}")
+    
+    processed_total = 0
+    for group_keys, group in total_grouped:
+        processed_total += 1
+        if processed_total % 100 == 0:  # Progress every 100 groups for country-year
+            print(f"   Progress: {processed_total:,}/{total_groups_count:,} country-year groups ({processed_total/total_groups_count*100:.1f}%)")
         group_result = dict(zip(total_group_cols, group_keys))
         group_result['decile'] = "All"
         total_weight = group["DB090"].sum()
@@ -1058,8 +1206,38 @@ def process_household_indicators(dirs):
                     share = (living_alone_population / total_population * 100) if total_population > 0 else np.nan
                 
             elif var == "overcrowded":
-                # SPECIAL HANDLING FOR HQ-SILC-1 (overcrowded) - Fixed version with fallback
-                share = calculate_overcrowding_percentage(group)
+                # SPECIAL HANDLING FOR HQ-SILC-1 (overcrowded) - Use household-level calculation with DB090 weights
+                # The person-level approach was causing issues with decile filtering
+                mask = group[f"_valid_{var}"]
+                
+                # Critical fix: Ensure mask is boolean and handle edge cases
+                if mask.sum() == 0:
+                    # No households meet the criteria
+                    share = 0.0
+                else:
+                    weighted_sum = group.loc[mask, "DB090"].sum()
+                    share = (weighted_sum / total_weight * 100) if total_weight > 0 else np.nan
+                    
+                    # Mathematical validation: weighted_sum cannot exceed total_weight
+                    if pd.notna(share) and share > 100:
+                        print(f"🚨 CRITICAL ERROR: Mathematical impossibility detected for {var}: {share:.1f}%")
+                        print(f"    Country: {group_keys[1]}, Year: {group_keys[0]}, Total population")
+                        print(f"    Weighted sum: {weighted_sum:.2f}, Total weight: {total_weight:.2f}")
+                        print(f"    This indicates data corruption or processing error!")
+                        
+                        # Use count-based percentage as the correct calculation
+                        total_households = len(group)
+                        households_meeting_criteria = mask.sum()
+                        simple_share = (households_meeting_criteria / total_households * 100) if total_households > 0 else np.nan
+                        
+                        print(f"    Using count-based calculation: {simple_share:.1f}% ({households_meeting_criteria}/{total_households})")
+                        share = simple_share
+                    elif pd.notna(share) and share < 0:
+                        print(f"⚠️  WARNING: Negative percentage detected for {var}: {share:.1f}%")
+                        # Use absolute value or count-based method
+                        total_households = len(group)
+                        households_meeting_criteria = mask.sum()
+                        share = (households_meeting_criteria / total_households * 100) if total_households > 0 else np.nan
             else:
                 # Normal calculation for other indicators
                 if all_nan or coverage_pct < min_coverage_threshold:
@@ -1070,6 +1248,20 @@ def process_household_indicators(dirs):
                     mask = group[f"_valid_{var}"]
                     weighted_sum = group.loc[mask, "DB090"].sum()
                     share = (weighted_sum / total_weight * 100) if total_weight > 0 else np.nan
+                    
+                    # Data quality validation: Check for extreme values (>100% or <0%)
+                    if pd.notna(share) and (share > 100 or share < 0):
+                        print(f"⚠️  WARNING: Extreme weighted percentage detected for {var}: {share:.1f}%")
+                        print(f"    Country: {group_keys[1]}, Year: {group_keys[0]}, Total population")
+                        print(f"    Weighted sum: {weighted_sum:.2f}, Total weight: {total_weight:.2f}")
+                        
+                        # Fallback to simple count-based percentage when weights are problematic
+                        total_households = len(group)
+                        households_meeting_criteria = mask.sum()
+                        simple_share = (households_meeting_criteria / total_households * 100) if total_households > 0 else np.nan
+                        
+                        print(f"    Fallback to simple percentage: {simple_share:.1f}% ({households_meeting_criteria}/{total_households})")
+                        share = simple_share
             
             group_result[f"{var}_share"] = share
 
@@ -1083,7 +1275,7 @@ def process_household_indicators(dirs):
         # Existing indicators
         "HS050": "AN-SILC-1",
         "HS011": "HH-SILC-1", "HS021": "HE-SILC-2",
-        "HS060": "ES-SILC-1", "HS120": "ES-SILC-2", "HS040": "TS-SILC-1",
+        "HS060": "ES-SILC-1", "HS120": "ES-SILC-2",
         "overcrowded": "HQ-SILC-1",
         # New Energy and Housing indicators as specified by user
         "HC060": "HQ-SILC-2",    # Keep dwelling comfortably warm
@@ -1111,7 +1303,7 @@ def process_household_indicators(dirs):
     columns_to_melt = [
         # Existing indicators
         "AN-SILC-1", "HH-SILC-1", "HE-SILC-2",
-        "ES-SILC-1", "ES-SILC-2", "TS-SILC-1", "HQ-SILC-1",
+        "ES-SILC-1", "ES-SILC-2", "HQ-SILC-1",
         # New Energy and Housing indicators
         "HQ-SILC-2", "HQ-SILC-3", "HQ-SILC-4", "HQ-SILC-5", 
         "HQ-SILC-6", "HQ-SILC-7", "HQ-SILC-8",
@@ -1212,27 +1404,23 @@ def process_personal_indicators(dirs):
         return {
             # Existing indicators
             "PW191": df["PW191"] < 4,                                     # EC-SILC-2
-            "PD060": df["PD060"].isin([2, 3]),                            # IC-SILC-1
-            "PD070": df["PD070"].isin([2, 3]),                            # IC-SILC-2
-            "PH020": df["PH020"] == 1  # EWBI,                                    # AH-SILC-2
+            "PH020": df["PH020"] == 1,  # EWBI AH-SILC-2
             "PH030": df["PH030"].isin([1, 2]),                            # AH-SILC-3
             "PL086": df["PL086"] > 0,                                     # AH-SILC-4
-            "PH050": df["PH050"] == 1  # EWBI,                                    # AC-SILC-1
+            "PH050": df["PH050"] == 1,  # EWBI AC-SILC-1
             "PE041": ((df["age"] > 15) & ((df["PE041"] == 0) | df["PE041"].isna())),  # IS-SILC-3
             "PL141": ((df["age"] > 17) & (
-                        ((df["PB010"] < 2021) & (df["PL141"] == 2  # EU Priorities)) |
+                        ((df["PB010"] < 2021) & (df["PL141"] == 2)) |  # EU Priorities
                         ((df["PB010"] >= 2021) & df["PL141"].isin([11, 12]))
                       )),                                                # RT-SILC-1
-            "PL145": ((df["age"] > 17) & (df["PL145"] == 2  # EU Priorities)),            # RT-SILC-2
+            "PL145": ((df["age"] > 17) & (df["PL145"] == 2)),  # EU Priorities RT-SILC-2
             "PL080": (df["PL080"] > 5),                                  # RU-SILC-1
-            "RL010": ((df["RL010"] == 0) | df["RL010"].isna()),         # IS-SILC-1 (whole population)
-            "RL020": ((df["RL020"] == 0) | df["RL020"].isna()),         # IS-SILC-2 (whole population)
             
             # New indicators
-            "PE010": df["PE010"] == 2  # EU Priorities,                                   # IS-SILC-4 - Not participating in training
+            "PE010": df["PE010"] == 2,  # EU Priorities IS-SILC-4 - Not participating in training
             "PE041_new": ((df["PE041"].isin(['000', '100', 0, 100]))),  # IS-SILC-5 - No secondary education
-            "PH060": df["PH060"] == 1  # EWBI,                                   # AC-SILC-3 - Unmet need for medical care
-            "PH040": df["PH040"] == 1  # EWBI,                                   # AC-SILC-4 - Unmet need for dental care
+            "PH060": df["PH060"] == 1,  # EWBI AC-SILC-3 - Unmet need for medical care
+            "PH040": df["PH040"] == 1,  # EWBI AC-SILC-4 - Unmet need for dental care
             "PD050": df["PD050"].isin([2, 3]),                          # EC-SILC-3 - Get-together w/ friends/family
         }
 
@@ -1253,8 +1441,6 @@ def process_personal_indicators(dirs):
             "PL141": "PL141",
             "PL145": "PL145",
             "PL080": "PL080",
-            "RL010": "RL010",
-            "RL020": "RL020",
             "PE010": "PE010",
             "PH060": "PH060", 
             "PH040": "PH040",
@@ -1343,11 +1529,10 @@ def process_personal_indicators(dirs):
     rename_dict = {
         "PB010": "year", "PB020": "country", "RB050": "Weight",
         # Existing indicators
-        "PW191": "EC-SILC-2", "PD060": "IC-SILC-1", "PD070": "IC-SILC-2",
+        "PW191": "EC-SILC-2",
         "PH020": "AH-SILC-2", "PH030": "AH-SILC-3", "PL086": "AH-SILC-4",
         "PH040": "AC-SILC-4", "PH050": "AC-SILC-1", "PE041": "IS-SILC-3",
         "PL141": "RT-SILC-1", "PL145": "RT-SILC-2", "PL080": "RU-SILC-1",
-        "RL010": "IS-SILC-1", "RL020": "IS-SILC-2",
         # New indicators
         "PE010": "IS-SILC-4", "PE041_new": "IS-SILC-5", "PH060": "AC-SILC-3", 
         "PD050": "EC-SILC-3"
@@ -1367,9 +1552,9 @@ def process_personal_indicators(dirs):
     # Melt to long format (existing + new indicators)
     columns_to_melt = [
         # Existing indicators
-        "EC-SILC-2", "IC-SILC-1", "IC-SILC-2", "AH-SILC-2",
+        "EC-SILC-2", "AH-SILC-2",
         "AH-SILC-3", "AH-SILC-4", "AC-SILC-1",
-        "IS-SILC-1", "IS-SILC-2", "IS-SILC-3",
+        "IS-SILC-3",
         "RT-SILC-1", "RT-SILC-2", "RU-SILC-1",
         # New indicators
         "IS-SILC-4", "IS-SILC-5", "AC-SILC-3", "AC-SILC-4", "EC-SILC-3"

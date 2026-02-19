@@ -43,12 +43,15 @@ OUTPUT_DIR = os.path.join(BASE_DIR, 'outputs', 'graphs', 'EUROSTAT')
 EU_ANALYSIS_DIR = os.path.abspath(os.path.join(CURRENT_DIR, '../../3_eu_analysis_with_examples'))
 EXTERNAL_DATA_DIR = os.path.join(EU_ANALYSIS_DIR, 'external_data')
 
+# Local report external data (shapefiles + any report-specific datasets)
+LOCAL_EXTERNAL_DATA_DIR = os.path.join(BASE_DIR, 'external_data')
+
 # Add code directory to path to import plot_functions
 sys.path.insert(0, CURRENT_DIR)
 
 # Import plot_functions
 try:
-    from plot_functions import plot_europe_map
+    from plot_functions import plot_europe_map, plot_europe_nuts3_map
     PLOT_FUNCTIONS_AVAILABLE = True
 except ImportError:
     PLOT_FUNCTIONS_AVAILABLE = False
@@ -135,6 +138,72 @@ def get_country_color(country):
     elif country in COUNTRY_COLOR_MAP:
         return COUNTRY_COLOR_MAP[country]
     return DEFAULT_COUNTRY_COLOR
+
+
+def _find_external_data_file(candidate_filenames, search_dirs):
+    """Find a data file by trying multiple filenames across multiple directories."""
+    for directory in search_dirs:
+        if not directory or not os.path.exists(directory):
+            continue
+        for filename in candidate_filenames:
+            path = os.path.join(directory, filename)
+            if os.path.exists(path):
+                return path
+    return None
+
+
+def _extract_year_series(series):
+    years = pd.to_numeric(series, errors='coerce')
+    if years.notna().any():
+        return years.astype('Int64')
+    # Try extracting a 4-digit year from strings like '2024M01'
+    extracted = series.astype(str).str.extract(r'(\d{4})')[0]
+    return pd.to_numeric(extracted, errors='coerce').astype('Int64')
+
+
+def _load_eurostat_long_any(path):
+    """Load common Eurostat exports into a long dataframe with columns: geo, year, value.
+
+    Supports typical CSV with TIME_PERIOD/OBS_VALUE, and TSV produced by Eurostat.
+    """
+    if path.lower().endswith('.tsv'):
+        try:
+            from plot_functions import process_eurostat_tsv
+            df_long = process_eurostat_tsv(path, return_format='long', verbose=False)
+            if 'year' in df_long.columns and 'geo' in df_long.columns and 'value' in df_long.columns:
+                df_long['year'] = pd.to_numeric(df_long['year'], errors='coerce').astype('Int64')
+                df_long['value'] = pd.to_numeric(df_long['value'], errors='coerce')
+                return df_long
+        except Exception:
+            pass
+
+    df = pd.read_csv(path)
+
+    # Harmonize names
+    if 'TIME_PERIOD' in df.columns and 'OBS_VALUE' in df.columns:
+        df = df.rename(columns={'TIME_PERIOD': 'year', 'OBS_VALUE': 'value'})
+    elif 'time' in df.columns and 'value' in df.columns and 'year' not in df.columns:
+        df['year'] = _extract_year_series(df['time'])
+
+    if 'year' not in df.columns:
+        # Wide format fallback: detect year-like columns
+        year_cols = [c for c in df.columns if str(c).strip().isdigit()]
+        if year_cols:
+            id_cols = [c for c in df.columns if c not in year_cols]
+            df = df.melt(id_vars=id_cols, value_vars=year_cols, var_name='year', value_name='value')
+
+    if 'geo' not in df.columns:
+        # Some Eurostat exports use 'GEO' or 'nuts'
+        for alt in ['GEO', 'nuts', 'NUTS_ID']:
+            if alt in df.columns:
+                df = df.rename(columns={alt: 'geo'})
+                break
+
+    df['geo'] = df['geo'].astype(str).str.strip()
+    df['year'] = _extract_year_series(df['year'])
+    df['value'] = pd.to_numeric(df['value'], errors='coerce')
+
+    return df
 
 # ============================================================================
 # DATA LOADING FUNCTIONS
@@ -496,9 +565,10 @@ def create_real_estate_graphs():
     
     fig, ax = plt.subplots(figsize=(9, 5.5))
     
-    countries = ['Switzerland', 'EU27']
+    # Only show Switzerland data (excluding EU27)
+    countries = ['Switzerland']
     x = np.arange(len(common_quantiles))
-    width = 0.35
+    width = 0.6  # Make bars wider since only one country
     
     for i, country in enumerate(countries):
         df_country = df_filtered[df_filtered['country_name'] == country].copy()
@@ -507,7 +577,7 @@ def create_real_estate_graphs():
         values = df_country['value'].tolist()
         
         color = get_country_color(country)
-        bars = ax.bar(x + i*width, values, width, label=country, color=color, edgecolor='white', linewidth=1.5)
+        bars = ax.bar(x + i*width/2, values, width, label=country, color=color, edgecolor='white', linewidth=1.5)
         
         # Add value labels
         for bar in bars:
@@ -517,7 +587,7 @@ def create_real_estate_graphs():
                        f'{height:.1f}%', ha='center', va='bottom', fontsize=9, fontweight='bold')
     
     ax.set_ylabel('Persons owning real estate (%)', fontsize=12, fontweight='bold')
-    ax.set_title(f'Persons Owning Real Estate Other Than Main Residence ({latest_year})\nSwitzerland vs EU27 by Income Quintile', 
+    ax.set_title(f'Persons Owning Real Estate Other Than Main Residence ({latest_year})\nSwitzerland by Income Quintile', 
                 fontsize=13, fontweight='bold', pad=15)
     ax.set_xticks(x + width/2)
     short_labels = [l.replace('First ', 'Q1 ').replace('Second ', 'Q2 ').replace('Third ', 'Q3 ')
@@ -533,6 +603,97 @@ def create_real_estate_graphs():
                dpi=300, bbox_inches='tight', facecolor='white')
     plt.close()
     print("  [SAVED] 2_real_estate_switzerland_vs_eu27_quintiles.png")
+    
+    # Export data to Excel
+    excel_path = os.path.join(OUTPUT_DIR, '2_real_estate_switzerland_vs_eu27_quintiles.xlsx')
+    export_real_estate_quintiles_to_excel(df_filtered, latest_year, excel_path)
+    print(f"  [SAVED] 2_real_estate_switzerland_vs_eu27_quintiles.xlsx")
+
+def export_real_estate_quintiles_to_excel(df_filtered, latest_year, excel_path):
+    """Export real estate quintiles data to Excel with requested format"""
+    print("  Exporting real estate quintiles data to Excel...")
+    
+    # Create list to store all data rows
+    excel_data = []
+    
+    # Visual title
+    visual_name = f"Persons Owning Real Estate Other Than Main Residence ({latest_year}) - Switzerland by Income Quintile"
+    
+    # Filter only Switzerland data
+    df_swiss = df_filtered[df_filtered['country_name'] == 'Switzerland']
+    
+    for _, row in df_swiss.iterrows():
+        excel_data.append({
+            'visual_number': np.nan,
+            'visual_name': visual_name,
+            'year': int(latest_year),
+            'Filter': row['quant_inc'],  # Income quintile as filter
+            'decile': np.nan,
+            'value': row['value'],
+            'unit': 'Persons owning real estate (%)'
+        })
+    
+    # Create DataFrame and save
+    df_excel = pd.DataFrame(excel_data)
+    df_excel.to_excel(excel_path, index=False)
+    print(f"[OK] Real estate quintiles data exported to Excel with {len(df_excel)} rows")
+
+
+def export_real_estate_countries_to_excel(df_countries, latest_year, excel_path):
+    """Export real estate countries data to Excel with requested format"""
+    print("  Exporting real estate countries data to Excel...")
+    
+    # Create list to store all data rows
+    excel_data = []
+    
+    # Visual title
+    visual_name = f"Real Estate Ownership Other Than Main Residence (Total) ({latest_year}) by Country"
+    
+    for _, row in df_countries.iterrows():
+        excel_data.append({
+            'visual_number': np.nan,
+            'visual_name': visual_name,
+            'year': int(latest_year),
+            'Filter': row['country_name'],  # Country as filter
+            'decile': np.nan,
+            'value': row['value'],
+            'unit': 'Persons owning real estate (%)'
+        })
+    
+    # Create DataFrame and save
+    df_excel = pd.DataFrame(excel_data)
+    df_excel = df_excel.sort_values(['value'], ascending=True)  # Same order as the graph
+    df_excel.to_excel(excel_path, index=False)
+    print(f"[OK] Real estate countries data exported to Excel with {len(df_excel)} rows")
+
+
+def export_tenure_status_map_to_excel(df_countries, latest_year, excel_path):
+    """Export tenure status map data to Excel with requested format"""
+    print("  Exporting tenure status map data to Excel...")
+    
+    # Create list to store all data rows
+    excel_data = []
+    
+    # Visual title
+    visual_name = f"Owner-Occupied Dwellings ({latest_year}) by Country"
+    
+    for _, row in df_countries.iterrows():
+        excel_data.append({
+            'visual_number': np.nan,
+            'visual_name': visual_name,
+            'year': int(latest_year),
+            'Filter': row['country_name'],  # Country as filter
+            'decile': np.nan,
+            'value': row['value'],
+            'unit': 'Owner-Occupied Dwellings (%)'
+        })
+    
+    # Create DataFrame and save
+    df_excel = pd.DataFrame(excel_data)
+    df_excel = df_excel.sort_values(['Filter'])  # Sort alphabetically by country
+    df_excel.to_excel(excel_path, index=False)
+    print(f"[OK] Tenure status map data exported to Excel with {len(df_excel)} rows")
+
 
 def create_energy_efficiency_graphs():
     """Create energy efficiency visualization graphs - Switzerland vs EU27 (overall population only)"""
@@ -862,6 +1023,11 @@ def create_real_estate_countries_total():
                    dpi=300, bbox_inches='tight', facecolor='white')
         plt.close()
         print("  [SAVED] 2_real_estate_countries_total.png")
+        
+        # Export data to Excel
+        excel_path = os.path.join(OUTPUT_DIR, '2_real_estate_countries_total.xlsx')
+        export_real_estate_countries_to_excel(df_countries, latest_year, excel_path)
+        print(f"  [SAVED] 2_real_estate_countries_total.xlsx")
 
 def create_real_estate_countries_map():
     """Create map visualization for real estate ownership by country using plot_functions"""
@@ -1030,8 +1196,262 @@ def create_tenure_status_countries_map():
         plt.close()
         print("  [SAVED] 6c_tenure_status_countries_map.png")
         
+        # Export data to Excel
+        excel_path = os.path.join(OUTPUT_DIR, '6c_tenure_status_countries_map.xlsx')
+        export_tenure_status_map_to_excel(df_countries, latest_year, excel_path)
+        print(f"  [SAVED] 6c_tenure_status_countries_map.xlsx")
+        
     except Exception as e:
         print(f"  Error creating map: {e}")
+        import traceback
+        traceback.print_exc()
+
+
+def create_short_stay_accommodation_nuts3_maps():
+    """Create 4 NUTS3 maps for short-stay accommodation nights (raw and per capita) for 2018 and 2024."""
+    print("\n[Short-stay accommodation (collaborative platforms) - NUTS3 maps]")
+
+    if not PLOT_FUNCTIONS_AVAILABLE or 'plot_europe_nuts3_map' not in globals():
+        print("  plot_functions (NUTS3 map) not available; skipping.")
+        return
+
+    # Look first in this report's external_data, then in the EU analysis external_data
+    search_dirs = [LOCAL_EXTERNAL_DATA_DIR, EXTERNAL_DATA_DIR]
+
+    nights_path = _find_external_data_file(
+        [
+            'eurostat_short-stay_accommod.csv',
+            'eurostat_short_stay_accommod.csv',
+            'eurostat_short-stay_accommod.tsv',
+            'eurostat_short_stay_accommod.tsv',
+            'eurostat_short-stay_accommod.txt',
+        ],
+        search_dirs
+    )
+    pop_path = _find_external_data_file(
+        [
+            'eurostat_population_nuts3.csv',
+            'eurostat_population_nuts3.tsv',
+            'eurostat_population_nuts3.txt',
+        ],
+        search_dirs
+    )
+
+    if nights_path is None:
+        print("  Missing short-stay file. Expected one of: eurostat_short-stay_accommod.(csv|tsv|txt)")
+        print(f"  Searched: {search_dirs}")
+        return
+    if pop_path is None:
+        print("  Missing population file. Expected one of: eurostat_population_nuts3.(csv|tsv|txt)")
+        print(f"  Searched: {search_dirs}")
+        return
+
+    try:
+        import difflib
+        import unicodedata
+
+        df_nights = _load_eurostat_long_any(nights_path)
+        df_pop = _load_eurostat_long_any(pop_path)
+
+        # If a 'residence' dimension exists, prefer TOTAL if present; otherwise aggregate.
+        for col in ['resid', 'residence', 'guest_residence', 'c_resid']:
+            if col in df_nights.columns:
+                total_mask = df_nights[col].astype(str).str.upper().isin(['TOTAL', 'TOT', 'TOTAL_RESIDENCE'])
+                if total_mask.any():
+                    df_nights = df_nights[total_mask].copy()
+                break
+
+        nuts_gpkg = os.path.join(LOCAL_EXTERNAL_DATA_DIR, '0_shapefile', 'NUTS_RG_10M_2024_3035.gpkg')
+        world_shp = os.path.join(LOCAL_EXTERNAL_DATA_DIR, '0_shapefile', 'ne_50m_admin_0_countries',
+                                 'ne_50m_admin_0_countries.shp')
+
+        # Build mapping from NUTS3 region names -> NUTS3 code
+        try:
+            nuts_gdf = gpd.read_file(nuts_gpkg, layer='NUTS_RG_10M_2024_3035')
+        except Exception:
+            nuts_gdf = gpd.read_file(nuts_gpkg)
+        if 'LEVL_CODE' in nuts_gdf.columns:
+            nuts_gdf = nuts_gdf[nuts_gdf['LEVL_CODE'] == 3].copy()
+        elif 'STAT_LEVL_' in nuts_gdf.columns:
+            nuts_gdf = nuts_gdf[nuts_gdf['STAT_LEVL_'] == 3].copy()
+
+        nuts_id_col = 'NUTS_ID' if 'NUTS_ID' in nuts_gdf.columns else None
+        nuts_name_col = None
+        for col in ['NUTS_NAME', 'NAME_LATN', 'NAME', 'nuts_name']:
+            if col in nuts_gdf.columns:
+                nuts_name_col = col
+                break
+        if nuts_id_col is None or nuts_name_col is None:
+            raise ValueError('NUTS3 shapefile missing expected NUTS_ID / name columns')
+
+        nuts3_ids = set(nuts_gdf[nuts_id_col].dropna().astype(str).str.strip().tolist())
+
+        def _normalize_name(text: str) -> str:
+            if text is None:
+                return ''
+            text = str(text).strip()
+            if ':' in text:
+                text = text.split(':', 1)[1].strip()
+            text = unicodedata.normalize('NFKD', text)
+            text = ''.join(ch for ch in text if not unicodedata.combining(ch))
+            text = text.lower()
+            text = ''.join(ch if ch.isalnum() else ' ' for ch in text)
+            text = ' '.join(text.split())
+            return text
+
+        nuts_name_to_id = {}
+        for _, row in nuts_gdf[[nuts_id_col, nuts_name_col]].dropna().iterrows():
+            key = _normalize_name(row[nuts_name_col])
+            nuts_id = str(row[nuts_id_col]).strip()
+            if key and key not in nuts_name_to_id:
+                nuts_name_to_id[key] = nuts_id
+
+        nuts_name_keys = list(nuts_name_to_id.keys())
+
+        def _map_geo_to_nuts3(geo_value: str) -> str | None:
+            if geo_value is None:
+                return None
+            raw = str(geo_value).strip()
+            if not raw:
+                return None
+            if ':' in raw:
+                maybe_code = raw.split(':', 1)[0].strip()
+                if maybe_code in nuts3_ids:
+                    return maybe_code
+
+            key = _normalize_name(raw)
+            if not key:
+                return None
+            direct = nuts_name_to_id.get(key)
+            if direct is not None:
+                return direct
+
+            # Fuzzy match for slightly corrupted encodings (e.g. 'S�dburgenland')
+            close = difflib.get_close_matches(key, nuts_name_keys, n=1, cutoff=0.90)
+            if close:
+                return nuts_name_to_id.get(close[0])
+            return None
+
+        # Map short-stay geo labels to NUTS3 codes
+        df_nights = df_nights.dropna(subset=['geo', 'year', 'value']).copy()
+        df_nights['geo'] = df_nights['geo'].astype(str).str.strip()
+        df_nights['nuts3'] = df_nights['geo'].apply(_map_geo_to_nuts3)
+        df_nights = df_nights.dropna(subset=['nuts3']).copy()
+        df_nights['geo'] = df_nights['nuts3']
+
+        # Population file often uses 'CODE:Label' at multiple NUTS levels; keep only NUTS3.
+        df_pop = df_pop.dropna(subset=['geo', 'year', 'value']).copy()
+        df_pop['geo'] = df_pop['geo'].astype(str).str.strip()
+        df_pop['geo_code'] = df_pop['geo'].str.split(':', n=1).str[0].str.strip()
+        df_pop = df_pop[df_pop['geo_code'].isin(nuts3_ids)].copy()
+        df_pop['geo'] = df_pop['geo_code']
+
+        # Aggregate to yearly total per NUTS3 (some datasets are monthly or have additional dims)
+        df_nights['year'] = df_nights['year'].astype('Int64')
+        nights_yearly = df_nights.groupby(['geo', 'year'], as_index=False)['value'].sum()
+        nights_yearly = nights_yearly.rename(columns={'value': 'nights'})
+
+        df_pop['year'] = df_pop['year'].astype('Int64')
+        pop_yearly = df_pop.groupby(['geo', 'year'], as_index=False)['value'].mean()
+        pop_yearly = pop_yearly.rename(columns={'value': 'population'})
+
+        def _compute_quantile_bins(values, k_target=6):
+            values = pd.to_numeric(pd.Series(values), errors='coerce').dropna()
+            if values.empty:
+                return None
+            unique_count = int(values.nunique())
+            k_eff = max(1, min(int(k_target), unique_count))
+            if k_eff == 1:
+                return np.asarray([float(values.max())])
+            try:
+                import mapclassify
+                classifier = mapclassify.Quantiles(values, k=k_eff)
+                return np.asarray(classifier.bins, dtype=float)
+            except Exception:
+                # Fallback: numpy quantiles
+                probs = np.linspace(1 / k_eff, 1, k_eff)
+                return np.asarray(np.quantile(values.to_numpy(), probs), dtype=float)
+
+        years_to_plot = [2018, 2024]
+
+        # Pre-compute shared bins across years for comparability
+        merged_all = nights_yearly[nights_yearly['year'].isin(years_to_plot)].merge(
+            pop_yearly[pop_yearly['year'].isin(years_to_plot)],
+            on=['geo', 'year'],
+            how='left'
+        )
+        raw_bins = _compute_quantile_bins(merged_all['nights'], k_target=6)
+        pop_all = pd.to_numeric(merged_all['population'], errors='coerce')
+        nights_all = pd.to_numeric(merged_all['nights'], errors='coerce')
+        percap_values = np.where((pop_all > 0) & pop_all.notna(), nights_all / pop_all, np.nan)
+        pc_bins = _compute_quantile_bins(percap_values, k_target=6)
+
+        for yr in years_to_plot:
+            nights_y = nights_yearly[nights_yearly['year'] == yr].copy()
+            pop_y = pop_yearly[pop_yearly['year'] == yr].copy()
+
+            if nights_y.empty:
+                print(f"  No nights data for {yr}; skipping.")
+                continue
+
+            merged = nights_y.merge(pop_y, on=['geo', 'year'], how='left')
+
+            df_raw = merged[['geo']].copy()
+            df_raw['year'] = yr
+            df_raw['value'] = pd.to_numeric(merged['nights'], errors='coerce')
+            df_raw = df_raw.dropna(subset=['value'])
+
+            # Raw nights map
+            fig, ax = plot_europe_nuts3_map(
+                df_raw,
+                year=yr,
+                colormap='YlOrRd',
+                value_title='Short-stay nights booked',
+                figsize=(14, 12),
+                shapefile_path=nuts_gpkg,
+                world_shapefile_path=world_shp,
+                k=6,
+                bins=raw_bins,
+                legend_fontsize=12,
+                legend_title_fontsize=13
+            )
+            out_raw = os.path.join(OUTPUT_DIR, f'short_stay_nights_nuts3_{yr}.png')
+            plt.savefig(out_raw, dpi=300, bbox_inches='tight', facecolor='white')
+            plt.close()
+            print(f"  [SAVED] short_stay_nights_nuts3_{yr}.png")
+
+            # Per-capita map
+            pop = pd.to_numeric(merged['population'], errors='coerce')
+            nights = pd.to_numeric(merged['nights'], errors='coerce')
+            df_pc = merged[['geo']].copy()
+            df_pc['year'] = yr
+            df_pc['value'] = np.where((pop > 0) & pop.notna(), nights / pop, np.nan)
+            df_pc = df_pc.dropna(subset=['value'])
+
+            if df_pc.empty:
+                print(f"  No population coverage for {yr}; skipping per-capita map.")
+                continue
+
+            fig, ax = plot_europe_nuts3_map(
+                df_pc,
+                year=yr,
+                colormap='YlGnBu',
+                value_title='Short-stay nights per inhabitant',
+                figsize=(14, 12),
+                shapefile_path=nuts_gpkg,
+                world_shapefile_path=world_shp,
+                k=6,
+                bins=pc_bins,
+                legend_fontsize=12,
+                legend_title_fontsize=13
+            )
+            out_pc = os.path.join(OUTPUT_DIR, f'short_stay_nights_per_capita_nuts3_{yr}.png')
+            plt.savefig(out_pc, dpi=300, bbox_inches='tight', facecolor='white')
+            plt.close()
+            print(f"  [SAVED] short_stay_nights_per_capita_nuts3_{yr}.png")
+
+    except Exception as e:
+        print(f"  Error creating NUTS3 maps: {e}")
         import traceback
         traceback.print_exc()
 
@@ -1381,6 +1801,44 @@ def create_under_occupied_countries_side_by_side():
                dpi=300, bbox_inches='tight', facecolor='white')
     plt.close()
     print("  [SAVED] 7_under_occupied_countries_all_ages_sbs.png")
+    
+    # Export data to Excel
+    excel_path = os.path.join(OUTPUT_DIR, '7_under_occupied_countries_all_ages_sbs.xlsx')
+    export_under_occupied_to_excel(df_countries, year_for_countries, age_order, excel_path)
+    print(f"  [SAVED] 7_under_occupied_countries_all_ages_sbs.xlsx")
+
+def export_under_occupied_to_excel(df_countries, year_for_countries, age_order, excel_path):
+    """Export under-occupied dwellings data to Excel with requested format"""
+    print("  Exporting under-occupied dwellings data to Excel...")
+    
+    # Create list to store all data rows
+    excel_data = []
+    
+    # Visual title
+    visual_name = f"Under-occupied Dwellings by Country and Age Group - Share of Population ({year_for_countries})"
+    
+    # Process each age group
+    for age_group in age_order:
+        df_age = df_countries[df_countries['age'] == age_group].copy()
+        df_age = df_age.dropna(subset=['value'])
+        
+        for _, row in df_age.iterrows():
+            excel_data.append({
+                'visual_number': np.nan,
+                'visual_name': visual_name,
+                'year': int(year_for_countries),
+                'Filter': age_group,  # Age group as filter
+                'decile': np.nan,
+                'value': row['value'],
+                'unit': 'Share of population (%)'
+            })
+    
+    # Create DataFrame and save
+    df_excel = pd.DataFrame(excel_data)
+    df_excel = df_excel.sort_values(['Filter', 'value'])  # Sort by age group and value
+    df_excel.to_excel(excel_path, index=False)
+    print(f"[OK] Under-occupied dwellings data exported to Excel with {len(df_excel)} rows")
+
 
 def create_government_expenditure_housing():
     """Create government expenditure on housing visualization - area chart over time"""
@@ -1510,6 +1968,7 @@ def main():
     create_tenure_status_countries_map()
     create_dwellings_vs_price_scatter()
     create_government_expenditure_housing()
+    create_short_stay_accommodation_nuts3_maps()
     
     print("\n" + "=" * 70)
     print("SUCCESS! All visualizations have been generated successfully!")

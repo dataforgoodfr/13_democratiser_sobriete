@@ -371,6 +371,47 @@ def load_d_file_weights(year, country=COUNTRY):
         return None
 
 
+def export_to_excel(all_results, excel_path):
+    """Export housing ownership data to Excel with requested format"""
+    print("  Exporting housing ownership data to Excel...")
+    
+    # Create list to store all data rows
+    excel_data = []
+    
+    # Overall title for visual_name
+    visual_name = "Housing Ownership Rate by Age Group and Income Decile - Switzerland, EU-SILC 2007-2022"
+    
+    # Process each year and age group
+    for year in range(START_YEAR, END_YEAR + 1):
+        if year in all_results:
+            for age_id, age_info in AGE_GROUPS.items():
+                if age_id in all_results[year]:
+                    for decile in range(1, 11):
+                        value = all_results[year][age_id].get(decile, None)
+                        
+                        # Only add rows with valid data
+                        if value is not None:
+                            excel_data.append({
+                                'visual_number': np.nan,
+                                'visual_name': visual_name,
+                                'year': int(year),
+                                'filter': age_info['label'],  # Age group as filter
+                                'decile': int(decile),
+                                'value': value,
+                                'unit': 'Ownership Rate (%)'
+                            })
+    
+    # Create DataFrame
+    df_excel = pd.DataFrame(excel_data)
+    
+    # Sort by year, age group, and decile
+    df_excel = df_excel.sort_values(['year', 'filter', 'decile'])
+    
+    # Save to Excel
+    df_excel.to_excel(excel_path, index=False)
+    print(f"[OK] Housing ownership data exported to Excel with {len(df_excel)} rows")
+
+
 # ============================================================================
 # MAIN ANALYSIS
 # ============================================================================
@@ -572,6 +613,11 @@ def create_heatmaps():
     csv_path = OUTPUT_DIR / "ownership_by_age_and_decile_CH.csv"
     df_csv.to_csv(csv_path, index=False)
     print(f"Data saved: {csv_path}")
+    
+    # Export to Excel with requested format
+    excel_path = OUTPUT_DIR / "ownership_by_age_and_decile_CH.xlsx"
+    export_to_excel(all_results, excel_path)
+    print(f"Excel data saved: {excel_path}")
 
 
 def main():

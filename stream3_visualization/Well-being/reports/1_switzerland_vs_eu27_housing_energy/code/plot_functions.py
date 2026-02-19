@@ -553,3 +553,193 @@ def plot_europe_nuts2_map(df, year, colormap='YlOrRd', value_title='Value',
     plt.tight_layout()
 
     return fig, ax
+
+
+def plot_europe_nuts3_map(df, year, colormap='YlOrRd', value_title='Value',
+                          figsize=(14, 12), shapefile_path=None, k=6,
+                          world_shapefile_path="0_shapefile/ne_50m_admin_0_countries/ne_50m_admin_0_countries.shp",
+                          bins=None,
+                          legend_fontsize=12,
+                          legend_title_fontsize=13):
+    """Create a choropleth map of Europe at NUTS 3 level.
+
+    Expected df columns: 'year', 'geo' (NUTS3 code), 'value'.
+    Study regions are derived from the first 2 letters of the NUTS code.
+    """
+    import matplotlib.pyplot as plt
+    import geopandas as gpd
+    import mapclassify
+    import matplotlib.patches as mpatches
+    from matplotlib import cm
+    import numpy as np
+
+    # Define study countries
+    country_code_map = {'UK': 'GB'}
+    study_countries_mapped = [country_code_map.get(c, c) for c in study_countries]
+
+    # Load NUTS 3 shapefile
+    if shapefile_path is None:
+        shapefile_path = r"0_shapefile/NUTS_RG_10M_2024_3035.gpkg"
+
+    try:
+        try:
+            nuts = gpd.read_file(shapefile_path, layer='NUTS_RG_10M_2024_3035')
+        except Exception:
+            nuts = gpd.read_file(shapefile_path)
+    except FileNotFoundError:
+        raise FileNotFoundError(f"NUTS geopackage not found at {shapefile_path}.")
+
+    if 'LEVL_CODE' in nuts.columns:
+        nuts = nuts[nuts['LEVL_CODE'] == 3].copy()
+    elif 'STAT_LEVL_' in nuts.columns:
+        nuts = nuts[nuts['STAT_LEVL_'] == 3].copy()
+
+    # Identify NUTS code column
+    nuts_code_col = None
+    for col in ['NUTS_ID', 'geo', 'CNTR_CODE', 'id', 'CODE']:
+        if col in nuts.columns:
+            nuts_code_col = col
+            break
+    if nuts_code_col is None:
+        raise ValueError("Could not find a NUTS code column in the shapefile.")
+
+    # Prepare data
+    year_df = df[df['year'] == year].copy()
+    if year_df.empty:
+        raise ValueError(f"No data found for year {year}")
+    if nuts_code_col != 'geo':
+        nuts = nuts.rename(columns={nuts_code_col: 'geo'})
+
+    # Merge value
+    nuts = nuts.merge(year_df[['geo', 'value']], on='geo', how='left')
+    nuts['country_code'] = nuts['geo'].astype(str).str[:2]
+    nuts['is_study_region'] = nuts['country_code'].isin(study_countries_mapped)
+
+    # Convert CRS
+    if nuts.crs != 'EPSG:3035':
+        nuts = nuts.to_crs(epsg=3035)
+
+    # Load world shapefile
+    world = gpd.read_file(world_shapefile_path)
+    europe_world = world[(world['CONTINENT'] == 'Europe') | (world.get('ISO_A2') == 'TR')].copy()
+    europe_world = europe_world.to_crs(epsg=3035)
+    non_study_countries = europe_world[~europe_world['ISO_A2'].isin(study_countries_mapped)]
+
+    def _fmt(x: float) -> str:
+        if x is None or (isinstance(x, float) and np.isnan(x)):
+            return ''
+        if abs(x) >= 1000:
+            return f"{x:,.0f}"
+        if abs(x) >= 10:
+            return f"{x:.1f}"
+        return f"{x:.3f}"
+
+    fig, ax = plt.subplots(figsize=figsize)
+
+    # Non-study countries with hatch (background)
+    if not non_study_countries.empty:
+        non_study_countries.plot(
+            ax=ax,
+            color='white',
+            edgecolor='black',
+            linewidth=0.3,
+            hatch='///',
+            alpha=0.35
+        )
+
+    # Study regions with data
+    study_nuts = nuts[nuts['is_study_region'] & nuts['value'].notna()].copy()
+    if not study_nuts.empty:
+        plot_kwargs = dict(
+            column='value',
+            cmap=colormap,
+            linewidth=0.1,
+            ax=ax,
+            edgecolor='black',
+            legend=False,
+            missing_kwds={"color": "lightgrey", "label": "Missing values"},
+        )
+
+        if bins is not None:
+            plot_kwargs['scheme'] = 'UserDefined'
+            plot_kwargs['classification_kwds'] = {'bins': list(bins)}
+        else:
+            plot_kwargs['scheme'] = 'quantiles'
+            plot_kwargs['k'] = k
+
+        study_nuts.plot(**plot_kwargs)
+
+    # Study regions with missing data
+    study_missing = nuts[nuts['is_study_region'] & nuts['value'].isna()].copy()
+    if not study_missing.empty:
+        study_missing.plot(
+            ax=ax,
+            color='lightgrey',
+            linewidth=0.1,
+            edgecolor='black'
+        )
+
+    # Legend
+    legend_elements = []
+    if not study_nuts.empty:
+        values = study_nuts['value']
+
+        if bins is None:
+            classifier = mapclassify.Quantiles(values, k=k)
+            bins_used = classifier.bins
+        else:
+            bins_used = np.asarray(list(bins), dtype=float)
+
+        n_classes = len(bins_used)
+        cmap = cm.get_cmap(colormap, n_classes)
+        colors = [cmap(i) for i in range(n_classes)]
+        vmin = float(values.min())
+
+        for i in range(n_classes):
+            low = vmin if i == 0 else float(bins_used[i - 1])
+            high = float(bins_used[i])
+            label = f"{_fmt(low)} – {_fmt(high)}"
+            patch = mpatches.Rectangle((0, 0), 1, 1,
+                                       facecolor=colors[i],
+                                       edgecolor='black',
+                                       linewidth=0.3)
+            legend_elements.append((patch, label))
+
+    if not study_missing.empty:
+        legend_elements.append((
+            mpatches.Rectangle((0, 0), 1, 1, facecolor='lightgrey', edgecolor='black', linewidth=0.3),
+            'Missing values'
+        ))
+
+    if not non_study_countries.empty:
+        legend_elements.append((
+            mpatches.Rectangle((0, 0), 1, 1,
+                               facecolor='white',
+                               edgecolor='black',
+                               hatch='///',
+                               linewidth=0.3,
+                               alpha=0.35),
+            'Non-study regions'
+        ))
+
+    if legend_elements:
+        ax.legend([e[0] for e in legend_elements],
+                  [e[1] for e in legend_elements],
+                  loc='upper right',
+                  title=f'{value_title} ({year})',
+                  fontsize=legend_fontsize,
+                  title_fontsize=legend_title_fontsize,
+                  fancybox=False,
+                  framealpha=1.0,
+                  edgecolor='black',
+                  facecolor='white')
+
+    # Draw borders for all European countries
+    europe_world.boundary.plot(ax=ax, edgecolor='black', linewidth=0.5)
+
+    ax.set_xlim(2200000, 6600000)
+    ax.set_ylim(1200000, 5800000)
+    ax.set_axis_off()
+    plt.tight_layout()
+
+    return fig, ax
