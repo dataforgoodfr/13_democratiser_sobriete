@@ -50,9 +50,8 @@
 		{#if !isAuthenticated}
 			<div class="mb-4">
 				<p class="mb-3 text-sm text-gray-600">Sign in with your organisation account to get started.</p>
-				<form method="POST" action="?/signIn">
-					<input type="hidden" name="provider" value="keycloak" />
-					<input type="hidden" name="redirectTo" value="/" />
+				<form method="POST" action="/auth/signin/keycloak">
+					<input type="hidden" name="callbackUrl" value="/" />
 					<button
 						type="submit"
 						class="flex w-full items-center justify-center gap-2 rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-gray-700"

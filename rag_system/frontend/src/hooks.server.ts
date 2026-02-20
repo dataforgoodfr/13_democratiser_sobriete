@@ -26,7 +26,8 @@ const authorizationHandle: Handle = async ({ event, resolve }) => {
 			});
 		}
 
-		throw redirect(303, '/auth/signin');
+		const callbackUrl = encodeURIComponent(event.url.pathname + event.url.search);
+		throw redirect(303, `/auth/signin/keycloak?callbackUrl=${callbackUrl}`);
 	}
 
 	return resolve(event);
