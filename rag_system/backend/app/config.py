@@ -39,7 +39,7 @@ class Settings(BaseSettings):
 
     # database
     postgres_uri: str
-    log_usage: bool = False
+    log_usage: bool = False  # log sessions to db, should only be true in production
 
     model_config = SettingsConfigDict(env_file=".env")
 
