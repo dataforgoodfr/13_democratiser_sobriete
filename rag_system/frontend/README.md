@@ -1,38 +1,54 @@
-# sv
+# Chat Sufficiency Frontend
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+SvelteKit frontend for Chat Sufficiency. It proxies chat/feedback calls to the FastAPI backend and uses Auth.js with Keycloak for SSO.
 
-## Creating a project
+## Prerequisites
 
-If you're seeing this, you've probably already done this step. Congrats!
+- Node.js 20+
+- A Keycloak OpenID Connect client (confidential)
+
+## Environment variables
+
+Copy `.env.example` to `.env` and set values:
+
+- `CHAT_SUFFICIENCY_API_URL`: backend base URL (e.g. `http://localhost:8000`)
+- `PUBLIC_SHOW_FULL_NAVBAR`: `true` or `false`
+- `AUTH_SECRET`: random secret (at least 32 chars)
+- `AUTH_TRUST_HOST`: `true` on deployments behind a proxy
+- `AUTH_KEYCLOAK_ID`: Keycloak client ID
+- `AUTH_KEYCLOAK_SECRET`: Keycloak client secret
+- `AUTH_KEYCLOAK_ISSUER`: realm issuer URL (must include realm)
+
+Example issuer:
+
+`https://keycloak.example.org/realms/your-realm`
+
+## Keycloak client settings
+
+Use a **confidential** OIDC client with Standard Flow enabled.
+
+- Valid redirect URIs:
+	- `http://localhost:5173/auth/callback/keycloak`
+	- `https://chat.thesufficiencylab.org/auth/callback/keycloak`
+- Valid post logout redirect URIs:
+	- `http://localhost:5173`
+	- `https://chat.thesufficiencylab.org`
+- Web origins:
+	- `http://localhost:5173`
+	- `https://chat.thesufficiencylab.org`
+
+If you want end users to self-register ("sign-up"), enable user registration in the Keycloak realm.
+
+## Run locally
 
 ```sh
-# create a new project in the current directory
-npx sv create
-
-# create a new project in my-app
-npx sv create my-app
-```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```sh
+npm install
 npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
 ```
 
-## Building
-
-To create a production version of your app:
+## Build
 
 ```sh
 npm run build
+npm run start
 ```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.

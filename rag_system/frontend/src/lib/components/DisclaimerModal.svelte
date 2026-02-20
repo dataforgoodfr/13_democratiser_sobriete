@@ -1,11 +1,12 @@
 <script lang="ts">
-	import { GraduationCapIcon, BookOpenIcon, BriefcaseIcon, LandmarkIcon, MegaphoneIcon, ScaleIcon, UserIcon } from '@lucide/svelte';
+	import { GraduationCapIcon, BookOpenIcon, BriefcaseIcon, LandmarkIcon, MegaphoneIcon, ScaleIcon, UserIcon, LogInIcon } from '@lucide/svelte';
 
 	interface Props {
 		onClose: (persona: string) => void;
+		isAuthenticated?: boolean;
 	}
 
-	let { onClose }: Props = $props();
+	let { onClose, isAuthenticated = false }: Props = $props();
 
 	const personas = [
 		{ id: 'researcher', label: 'Researcher', icon: BookOpenIcon },
@@ -46,20 +47,37 @@
 			</p>
 		</div>
 
-		<div class="mb-4">
-			<p class="mb-3 text-sm font-medium text-gray-700">Tell us about yourself to get started:</p>
-			<div class="flex flex-wrap justify-center gap-2">
-				{#each personas as persona}
-					<!-- the complicated width calculation is for centering the buttons in each row -->
+		{#if !isAuthenticated}
+			<div class="mb-4">
+				<p class="mb-3 text-sm text-gray-600">Sign in with your organisation account to get started.</p>
+				<form method="POST" action="?/signIn">
+					<input type="hidden" name="provider" value="keycloak" />
+					<input type="hidden" name="redirectTo" value="/" />
 					<button
-						class="flex w-[calc(50%-0.25rem)] sm:w-[calc(33.333%-0.35rem)] flex-col items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-3 text-sm font-medium text-gray-700 transition-all hover:border-gray-400 hover:bg-gray-50 hover:shadow-sm"
-						onclick={() => onClose(persona.id)}
+						type="submit"
+						class="flex w-full items-center justify-center gap-2 rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-gray-700"
 					>
-						<persona.icon size={20} class="text-gray-500" />
-						<span class="text-center text-xs">{persona.label}</span>
+						<LogInIcon size={16} />
+						Sign in with SSO
 					</button>
-				{/each}
+				</form>
 			</div>
-		</div>
+		{:else}
+			<div class="mb-4">
+				<p class="mb-3 text-sm font-medium text-gray-700">Tell us about yourself to get started:</p>
+				<div class="flex flex-wrap justify-center gap-2">
+					{#each personas as persona}
+						<!-- the complicated width calculation is for centering the buttons in each row -->
+						<button
+							class="flex w-[calc(50%-0.25rem)] sm:w-[calc(33.333%-0.35rem)] flex-col items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-3 text-sm font-medium text-gray-700 transition-all hover:border-gray-400 hover:bg-gray-50 hover:shadow-sm"
+							onclick={() => onClose(persona.id)}
+						>
+							<persona.icon size={20} class="text-gray-500" />
+							<span class="text-center text-xs">{persona.label}</span>
+						</button>
+					{/each}
+				</div>
+			</div>
+		{/if}
 	</div>
 </div>

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import { ChatPanel, DocumentsPanel } from '$lib/components/chat';
 	import DisclaimerModal from '$lib/components/DisclaimerModal.svelte';
 	import NavBar from '$lib/components/NavBar.svelte';
@@ -12,6 +13,8 @@
 	let showDisclaimer = $state(true);
 	let userPersona: string = $state('');
 	let activeTab: 'chat' | 'sources' = $state('chat');
+	const userName = $derived(page.data.session?.user?.name || page.data.session?.user?.email || null);
+	const isAuthenticated = $derived(!!page.data.session?.user);
 
 	// Get documents for the selected message (or last assistant message if none selected)
 	let displayedDocuments = $derived.by(() => {
@@ -77,7 +80,7 @@
 </script>
 
 <div class="flex h-screen w-screen flex-col bg-background">
-	<NavBar onReset={handleReset} {chatId} />
+	<NavBar onReset={handleReset} {chatId} {userName} />
 	
 	<!-- Tab buttons for mobile only -->
 	<div class="flex border-b md:hidden">
@@ -126,9 +129,12 @@
 	</div>
 </div>
 
-{#if showDisclaimer}
-	<DisclaimerModal onClose={(persona) => {
-		userPersona = persona;
-		showDisclaimer = false;
-	}} />
+{#if !isAuthenticated || showDisclaimer}
+	<DisclaimerModal
+		{isAuthenticated}
+		onClose={(persona) => {
+			userPersona = persona;
+			showDisclaimer = false;
+		}}
+	/>
 {/if}

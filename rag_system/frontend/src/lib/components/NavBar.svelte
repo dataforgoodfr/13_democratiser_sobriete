@@ -4,14 +4,16 @@
 	import WSLLogoIcon from '$lib/assets/wsl_icon.svg';
 	import { AppBar } from '@skeletonlabs/skeleton-svelte';
 	import FeedbackModal from './FeedbackModal.svelte';
+	import UserAvatar from './UserAvatar.svelte';
 	import { PUBLIC_SHOW_FULL_NAVBAR } from '$env/static/public';
 
 	interface Props {
 		onReset?: () => void;
 		chatId?: string;
+		userName?: string | null;
 	}
 
-	let { onReset, chatId }: Props = $props();
+	let { onReset, chatId, userName = null }: Props = $props();
 
 	let showFeedbackModal = $state(false);
 	const showFullNavbar = PUBLIC_SHOW_FULL_NAVBAR === 'true';
@@ -28,7 +30,7 @@
 			<AppBar.Headline>
 				<p class="text-xl sm:text-3xl font-bold">Chat Sufficiency</p>
 			</AppBar.Headline>
-			<AppBar.Trail class="sm:ml-auto flex gap-2">
+			<AppBar.Trail class="sm:ml-auto flex gap-2 items-center">
 				<button
 					class="flex items-center gap-2 rounded-lg bg-white px-2 py-1.5 md:px-4 md:py-2 text-black hover:bg-gray-100"
 					onclick={() => (showFeedbackModal = true)}
@@ -45,6 +47,9 @@
 					<SquarePenIcon size={20} />
 					<span>New chat</span>
 				</button>
+				{#if userName}
+					<UserAvatar {userName} variant="dark" />
+				{/if}
 			</AppBar.Trail>
 		</AppBar.Toolbar>
 	</AppBar>
@@ -67,6 +72,9 @@
 			<SquarePenIcon size={20} />
 			<span>New chat</span>
 		</button>
+		{#if userName}
+			<UserAvatar {userName} variant="light" />
+		{/if}
 	</div>
 {/if}
 

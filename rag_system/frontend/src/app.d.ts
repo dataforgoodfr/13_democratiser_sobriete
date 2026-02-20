@@ -3,8 +3,12 @@
 declare global {
 	namespace App {
 		// interface Error {}
-		// interface Locals {}
-		// interface PageData {}
+		interface Locals {
+			auth: () => Promise<import('@auth/sveltekit').Session | null>;
+		}
+		interface PageData {
+			session: import('@auth/sveltekit').Session | null;
+		}
 		// interface PageState {}
 		// interface Platform {}
 	}
