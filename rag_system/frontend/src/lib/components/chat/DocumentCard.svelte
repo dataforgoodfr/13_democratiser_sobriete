@@ -32,7 +32,7 @@
 		<div class="min-w-0 flex-1">
 			<div class="mb-1 flex items-center gap-2">
 				<span
-					class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-medium text-primary-foreground"
+					class="inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-medium text-primary-foreground"
 				>
 					{index + 1}
 				</span>
