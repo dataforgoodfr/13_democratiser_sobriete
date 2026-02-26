@@ -28,7 +28,7 @@
 		? 'cursor-pointer rounded-lg transition-colors hover:bg-muted/50'
 		: ''}"
 	onclick={onSelect}
-	disabled={message.role !== 'assistant'}
+	
 >
 	<Message from={message.role}>
 		<MessageContent>
@@ -39,9 +39,11 @@
 			{/if}
 		</MessageContent>
 	</Message>
-	{#if message.role === 'assistant' && enableCopy}
-		<Action onclick={() => handleCopy(message.content)} label="Copy" tooltip="Copy to clipboard">
-			<CopyIcon class="size-4" />
-		</Action>
+	{#if enableCopy}
+		<div class={message.role === 'user' ? 'flex justify-end' : ''}>
+			<Action onclick={() => handleCopy(message.content)} label="Copy" tooltip="Copy to clipboard">
+				<CopyIcon class="size-4" />
+			</Action>
+		</div>
 	{/if}
 </button>
