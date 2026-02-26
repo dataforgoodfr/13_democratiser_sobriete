@@ -49,6 +49,7 @@
 		"vite": "^7.2.6"
 	},
 	"dependencies": {
+		"@auth/sveltekit": "^1.11.1",
 		"lucide-svelte": "^0.562.0",
 		"mode-watcher": "^1.1.0",
 		"runed": "^0.31.1",

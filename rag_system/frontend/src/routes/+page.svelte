@@ -1,6 +1,7 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import { ChatPanel, DocumentsPanel } from '$lib/components/chat';
-	import DisclaimerModal from '$lib/components/DisclaimerModal.svelte';
+	import WelcomeModal from '$lib/components/WelcomeModal.svelte';
 	import NavBar from '$lib/components/NavBar.svelte';
 	import { streamChatResponse } from '$lib/services/chatService';
 	import type { ChatMessage, ChatStatus, Document } from '$lib/types';
@@ -9,9 +10,10 @@
 	let messages: ChatMessage[] = $state([]);
 	let status: ChatStatus = $state('idle');
 	let selectedMessageIndex: number | null = $state(null);
-	let showDisclaimer = $state(true);
-	let userPersona: string = $state('');
 	let activeTab: 'chat' | 'sources' = $state('chat');
+	const isAuthenticated = $derived(!!page.data.session?.user);
+	const userName = $derived(page.data.session?.user?.name || page.data.session?.user?.email || null);
+	const userEmail = $derived(page.data.session?.user?.email ?? null);
 
 	// Get documents for the selected message (or last assistant message if none selected)
 	let displayedDocuments = $derived.by(() => {
@@ -50,7 +52,7 @@
 		messages = [...messages, assistantMessage];
 		selectedMessageIndex = null;
 
-		await streamChatResponse(chatId, userPersona, messages, {
+		await streamChatResponse(chatId, userEmail, messages, {
 			onDocuments: (documents: Document[]) => {
 				messages = messages.map((msg, i) =>
 					i === messages.length - 1 ? { ...msg, documents } : msg
@@ -77,7 +79,7 @@
 </script>
 
 <div class="flex h-screen w-screen flex-col bg-background">
-	<NavBar onReset={handleReset} {chatId} />
+	<NavBar onReset={handleReset} {chatId} {userName} />
 	
 	<!-- Tab buttons for mobile only -->
 	<div class="flex border-b md:hidden">
@@ -126,9 +128,6 @@
 	</div>
 </div>
 
-{#if showDisclaimer}
-	<DisclaimerModal onClose={(persona) => {
-		userPersona = persona;
-		showDisclaimer = false;
-	}} />
+{#if !isAuthenticated}
+	<WelcomeModal />
 {/if}
