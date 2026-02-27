@@ -11,6 +11,11 @@ from .generation import (
     stream_response,
 )
 from .models import ChatMessage, DocumentChunk, Publication, QueryRewriteResponse
+from .policy_rag import (
+    build_policy_system_message,
+    identify_policies_in_context,
+    retrieve_policy_impacts,
+)
 from .prompts import BASE_SYSTEM_PROMPT, RAG_PROMPT, QUERY_REWRITE_PROMPT
 from .retrieval import get_publications_from_chunks, retrieve_chunks
 
@@ -39,6 +44,7 @@ async def simple_rag_pipeline(
 
     try:
         # Query rewriting stage
+        yield "event: status\n\ndata: " + json.dumps({"step": "analyzing_query"}) + "\n\n"
         query_rewrite_start = time.time()
         query_rewrite_response = await rewrite_query(messages)
         chat_turn.query_rewrite_time_ms = (time.time() - query_rewrite_start) * 1000
@@ -66,6 +72,7 @@ async def simple_rag_pipeline(
         logger.info(f"Rewritten query: {rewritten_query}")
 
         # Retrieval stage
+        yield "event: status\n\ndata: " + json.dumps({"step": "retrieving_sources"}) + "\n\n"
         retrieval_start = time.time()
         retrieved_chunks = await retrieve_chunks(rewritten_query)
         chat_turn.retrieval_time_ms = (time.time() - retrieval_start) * 1000
@@ -102,12 +109,29 @@ async def simple_rag_pipeline(
             documents = retrieved_chunks
             context = build_context_from_chunks(retrieved_chunks)
 
+        # Send documents as special events
+        docs_json = [doc.model_dump() for doc in documents]
+        yield "event: documents\n\ndata: " + json.dumps({"documents": docs_json}) + "\n\n"
+
         chat_turn.context_built = context
         chat_turn.context_length = len(context)
 
-        # Send documents first as special events
-        docs_json = [doc.model_dump() for doc in documents]
-        yield "event: documents\n\ndata: " + json.dumps({"documents": docs_json}) + "\n\n"
+        # Optional policy RAG stage
+        policy_system_message: ChatMessage | None = None
+        policy_impacts = []
+        if settings.policy_rag_enabled:
+            yield "event: status\n\ndata: " + json.dumps({"step": "analyzing_policies"}) + "\n\n"
+            policy_names = await identify_policies_in_context(rewritten_query, context)
+            if policy_names:
+                policy_impacts = await retrieve_policy_impacts(policy_names)
+                if policy_impacts:
+                    policy_system_message = ChatMessage(
+                        role="system",
+                        content=build_policy_system_message(policy_impacts),
+                    )
+
+        # Send policies event (empty list when policy RAG is disabled)
+        yield "event: policies\n\ndata: " + json.dumps({"policies": [p.model_dump() for p in policy_impacts]}) + "\n\n"
 
         system_prompt = BASE_SYSTEM_PROMPT + "\n\n" + RAG_PROMPT
         context_instruction = (
@@ -120,6 +144,8 @@ async def simple_rag_pipeline(
             *messages,
             ChatMessage(role="system", content=context_instruction),
         ]
+        if policy_system_message:
+            augmented_messages.append(policy_system_message)
 
         # Generation stage
         generation_start = time.time()

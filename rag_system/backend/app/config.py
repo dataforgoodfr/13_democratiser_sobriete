@@ -34,8 +34,14 @@ class Settings(BaseSettings):
 
     answer_temperature: float = 0.01
     answer_top_p: float = 0.1
-    answer_max_tokens: int = 1024
+    answer_max_tokens: int = 2048
     answer_timeout: int = 30
+
+    # policy RAG (optional second-stage retrieval)
+    policy_rag_enabled: bool = False
+    policy_qdrant_collection_name: str = "policies-v1"
+    k_policy_search: int = 3  # results per policy name
+    policy_embedding_dim: int = 1024
 
     # database
     postgres_uri: str

@@ -52,6 +52,22 @@ class Publication(BaseModel):
     retrieved_chunks: list[DocumentChunk]
 
 
+class PolicyIdentificationResponse(BaseModel):
+    """Structured output for identifying policies cited in retrieved context."""
+
+    policies: list[str] = Field(
+        description="List of policy names or descriptions explicitly cited or described in the provided context."
+    )
+
+
+class PolicyImpact(BaseModel):
+    """A policy with its impact information retrieved from the policies Qdrant collection."""
+
+    cluster: str
+    sufficiency_class: Literal['S', 'PS', 'NS']
+    sufficiency_classification_reasoning: str
+
+
 class FeedbackRequest(BaseModel):
     """Request body for feedback endpoint."""
 

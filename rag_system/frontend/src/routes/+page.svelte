@@ -1,16 +1,21 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { ChatPanel, DocumentsPanel } from '$lib/components/chat';
+	import PolicyAnalysisPanel from '$lib/components/chat/PolicyAnalysisPanel.svelte';
 	import WelcomeModal from '$lib/components/WelcomeModal.svelte';
 	import NavBar from '$lib/components/NavBar.svelte';
 	import { streamChatResponse } from '$lib/services/chatService';
-	import type { ChatMessage, ChatStatus, Document } from '$lib/types';
+	import type { ChatMessage, ChatStatus, Document, PolicyImpact, RetrievalStep } from '$lib/types';
+	import { PUBLIC_POLICY_PANEL_ENABLED } from '$env/static/public';
+
+	const policyPanelEnabled = PUBLIC_POLICY_PANEL_ENABLED !== 'false';
 
 	let chatId = $state(crypto.randomUUID());
 	let messages: ChatMessage[] = $state([]);
 	let status: ChatStatus = $state('idle');
 	let selectedMessageIndex: number | null = $state(null);
-	let activeTab: 'chat' | 'sources' = $state('chat');
+	let activeTab: 'chat' | 'sources' | 'policies' = $state('chat');
+	let retrievalStep: RetrievalStep = $state(null);
 	const isAuthenticated = $derived(!!page.data.session?.user);
 	const userName = $derived(page.data.session?.user?.name || page.data.session?.user?.email || null);
 	const userEmail = $derived(page.data.session?.user?.email ?? null);
@@ -29,6 +34,19 @@
 		return [];
 	});
 
+	// same for policies
+	let displayedPolicies = $derived.by((): PolicyImpact[] => {
+		if (selectedMessageIndex !== null) {
+			return messages[selectedMessageIndex]?.policies || [];
+		}
+		for (let i = messages.length - 1; i >= 0; i--) {
+			if (messages[i].role === 'assistant' && messages[i].policies) {
+				return messages[i].policies || [];
+			}
+		}
+		return [];
+	});
+
 	function handleSelectMessage(index: number) {
 		if (messages[index].role === 'assistant') {
 			selectedMessageIndex = selectedMessageIndex === index ? null : index;
@@ -40,6 +58,7 @@
 		messages = [];
 		selectedMessageIndex = null;
 		status = 'idle';
+		retrievalStep = null;
 	}
 
 	async function handleSubmit(input: string) {
@@ -58,6 +77,14 @@
 					i === messages.length - 1 ? { ...msg, documents } : msg
 				);
 			},
+			onPolicies: (policies) => {
+				messages = messages.map((msg, i) =>
+					i === messages.length - 1 ? { ...msg, policies } : msg
+				);
+			},
+			onStatus: (step) => {
+				retrievalStep = step;
+			},
 			onContent: (content: string) => {
 				status = 'streaming';
 				messages = messages.map((msg, i) =>
@@ -70,9 +97,11 @@
 					i === messages.length - 1 ? { ...msg, content: 'Error: Failed to get response' } : msg
 				);
 				status = 'idle';
+				retrievalStep = null;
 			},
 			onDone: () => {
 				status = 'idle';
+				retrievalStep = null;
 			}
 		});
 	}
@@ -104,6 +133,21 @@
 				</span>
 			{/if}
 		</button>
+		{#if policyPanelEnabled}
+		<button
+			class="flex-1 px-4 py-3 text-sm font-medium transition-colors {activeTab === 'policies'
+				? 'border-b-2 border-primary text-foreground'
+				: 'text-muted-foreground hover:text-foreground'}"
+			onclick={() => (activeTab = 'policies')}
+		>
+			🏛️ Policies
+			{#if displayedPolicies.length > 0}
+				<span class="ml-1 rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
+					{displayedPolicies.length}
+				</span>
+			{/if}
+		</button>
+		{/if}
 	</div>
 
 	<div class="flex flex-1 overflow-hidden">
@@ -113,17 +157,32 @@
 				{messages}
 				{status}
 				{selectedMessageIndex}
+				{retrievalStep}
 				onSelectMessage={handleSelectMessage}
 				onSubmit={handleSubmit}
 			/>
 		</div>
 
-		<!-- Documents panel: full width on mobile when sources tab active, half width on desktop -->
-		<div class="w-full md:w-1/2 {activeTab === 'sources' ? 'block' : 'hidden md:block'}">
-			<DocumentsPanel
-				documents={displayedDocuments}
-				isSelectedMessage={selectedMessageIndex !== null}
-			/>
+		<!-- Right column: sources + optional policy panel -->
+		<div class="{activeTab === 'chat' ? 'hidden' : 'flex'} w-full flex-col overflow-hidden md:flex md:w-1/2">
+			<!-- Documents panel -->
+			<div
+				class="{activeTab !== 'sources' ? 'hidden md:flex' : 'flex'} flex-1 flex-col overflow-hidden min-h-0 {policyPanelEnabled ? 'md:flex-none md:h-1/2' : ''}"
+			>
+				<DocumentsPanel
+					documents={displayedDocuments}
+					isSelectedMessage={selectedMessageIndex !== null}
+				/>
+			</div>
+
+			<!-- Policy analysis panel -->
+			{#if policyPanelEnabled}
+			<div
+				class="{activeTab !== 'policies' ? 'hidden md:flex' : 'flex'} flex-1 flex-col overflow-hidden min-h-0 border-t md:flex-none md:h-1/2"
+			>
+				<PolicyAnalysisPanel policies={displayedPolicies} />
+			</div>
+			{/if}
 		</div>
 	</div>
 </div>

@@ -29,10 +29,29 @@ export function isChunk(doc: Document): doc is Chunk {
   return 'chunk_idx' in doc && !('retrieved_chunks' in doc);
 }
 
+export interface PolicyImpact {
+  cluster: string;
+  sufficiency_class: 'S' | 'PS' | 'NS';
+  sufficiency_classification_reasoning: string;
+}
+
+export type RetrievalStep =
+  | 'analyzing_query'
+  | 'retrieving_sources'
+  | 'analyzing_policies'
+  | null;
+
+export const RETRIEVAL_STEP_LABELS: Record<NonNullable<RetrievalStep>, string> = {
+  analyzing_query: 'Analyzing query…',
+  retrieving_sources: 'Retrieving sources…',
+  analyzing_policies: 'Analyzing policies…',
+};
+
 export interface ChatMessage {
   role: "user" | "assistant";
   content: string;
   documents?: Document[];
+  policies?: PolicyImpact[];
 }
 
 export type ChatStatus = "idle" | "submitted" | "streaming" | "error";

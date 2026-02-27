@@ -1,7 +1,9 @@
-import type { ChatMessage, Document } from '$lib/types';
+import type { ChatMessage, Document, PolicyImpact, RetrievalStep } from '$lib/types';
 
 export interface StreamCallbacks {
 	onDocuments: (documents: Document[]) => void;
+	onPolicies: (policies: PolicyImpact[]) => void;
+	onStatus: (step: RetrievalStep) => void;
 	onContent: (content: string) => void;
 	onError: (error: Error) => void;
 	onDone: () => void;
@@ -64,6 +66,20 @@ export async function streamChatResponse(
 								callbacks.onDocuments(parsed.documents);
 							} catch (e) {
 								console.error('Failed to parse documents:', e);
+							}
+						} else if (currentEvent === 'policies') {
+							try {
+								const parsed = JSON.parse(data);
+								callbacks.onPolicies(parsed.policies);
+							} catch (e) {
+								console.error('Failed to parse policies:', e);
+							}
+						} else if (currentEvent === 'status') {
+							try {
+								const parsed = JSON.parse(data);
+								callbacks.onStatus(parsed.step ?? null);
+							} catch (e) {
+								console.error('Failed to parse status:', e);
 							}
 						} else {
 							const content = data.replace(/<\|newline\|>/g, '\n');
