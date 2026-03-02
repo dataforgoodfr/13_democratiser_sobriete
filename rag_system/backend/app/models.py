@@ -14,6 +14,7 @@ class ChatRequest(BaseModel):
 
     chat_id: str
     persona: str | None = None
+    username: str | None = None
     messages: list[ChatMessage]
 
 

@@ -5,8 +5,13 @@ import { CHAT_SUFFICIENCY_API_URL } from '$env/static/private';
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request, locals }) => {
 	try {
+		const session = await locals.auth();
+		if (!session?.user) {
+			throw error(401, 'Unauthorized');
+		}
+
 		const body = await request.json();
 
 		const response = await fetch(`${CHAT_SUFFICIENCY_API_URL}/api/feedback`, {
