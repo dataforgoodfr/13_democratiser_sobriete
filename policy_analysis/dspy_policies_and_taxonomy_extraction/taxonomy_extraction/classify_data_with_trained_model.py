@@ -3,20 +3,18 @@ import joblib
 import pandas as pd
 import numpy as np
 from datasets import load_dataset
-import pyarrow as pa
-import pyarrow.parquet as pq
 
 # ---------------------------------------------------------------------
 # 0. Config
 # ---------------------------------------------------------------------
-HF_DATASET_ID = "sufficiencylab/sufficiency-library"
-PARQUET_FILE = "embeddings_results_conclusions_585k_cs1024_ov100_qw3-06B.parquet"
+HF_DATASET_ID = None #"sufficiencylab/sufficiency-library"
+PARQUET_FILE = "../../results_557k/sample_2000_cleaned_chunks_embedding_Qwen3_06B.parquet"
 
-MODEL_DIR = "saved_impact_models/impact_model_only_20260122_174131"
+MODEL_DIR = "../saved_impact_models/impact_model_only_20260122_174131"
 OUTPUT_CSV = "sufficiency_library_predictions.csv"
-SLICE_ROWS = 10000
+SLICE_ROWS = 10000  # set to None to process all rows (be careful with memory if you do this without streaming or batching)
 
-EMBEDDING_FIELD = "embedding"
+EMBEDDING_FIELD = "embeddings"
 
 # ---------------------------------------------------------------------
 # 1. Load classifiers (NO SBERT)
@@ -38,13 +36,15 @@ print(f"Loaded classifiers for {impact_fields}")
 # ---------------------------------------------------------------------
 print(f"Loading embeddings from {PARQUET_FILE} (first {SLICE_ROWS} rows)...")
 
-dataset = load_dataset(
-    HF_DATASET_ID,
-    data_files=PARQUET_FILE,
-    split="train"
-)
-
-df = dataset.to_pandas().head(SLICE_ROWS)
+if HF_DATASET_ID:
+    dataset = load_dataset(
+        HF_DATASET_ID,
+        data_files=PARQUET_FILE,
+        split="train"
+    )
+    df = dataset.to_pandas().head(SLICE_ROWS)
+else:
+    df = pd.read_parquet(PARQUET_FILE).head(SLICE_ROWS)
 
 # Extract required fields
 chunk_ids = df["chunk_idx"].tolist()
@@ -77,9 +77,12 @@ for field in impact_fields:
 # ---------------------------------------------------------------------
 # 4. Save as Parquet (NO TEXT)
 # ---------------------------------------------------------------------
-output_parquet = OUTPUT_CSV.replace(".csv", ".parquet")
+
+results.to_csv(OUTPUT_CSV, index=False)
+
+""" output_parquet = OUTPUT_CSV.replace(".csv", ".parquet")
 
 table = pa.Table.from_pandas(results, preserve_index=False)
 pq.write_table(table, output_parquet)
 
-print(f"Predictions saved to {output_parquet}")
+print(f"Predictions saved to {output_parquet}") """

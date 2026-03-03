@@ -8,7 +8,11 @@ import json
 import contextlib
 import sys
 
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
+
+
 load_dotenv()
+
 
 # --------------------------------------------------
 # Helper to suppress ALL output (stdout and stderr)
@@ -30,44 +34,38 @@ def suppress_output():
             sys.stdout = old_stdout
             sys.stderr = old_stderr
 
+
 # --------------------------------------------------
 # DSPy setup
 # --------------------------------------------------
-"""lm = dspy.LM(
-    model="mistral/mistral-small-3.2-24b-instruct-2506:fp8",
-    api_key=os.getenv("SCALEWAY_API_KEY"),
-    api_base="https://37d2b07c-4a0b-4b15-aa11-0fb2fb89c078.ifr.fr-par.scaleway.com"
-)"""
-
 lm = dspy.LM(
-        model="mistral/mistral-small-3.2-24b-instruct-2506:fp8",
-        api_key=os.getenv('SCALEWAY_API_KEY'),
-        api_base="https://api.scaleway.ai/a2dc0d31-c47f-47f1-b0b9-9877dd4eb2b5"
-        )
+    model="mistral/mistral-small-3.2-24b-instruct-2506",
+    api_key=os.getenv("SCW_SECRET_KEY"),
+    api_base=os.getenv("GENERATION_API_URL"),
+)
 
 dspy.configure(lm=lm)
 
 # Load programs
-with open("saved_dspy_model/best_policy_extraction_model/program.pkl", "rb") as f:
+with open("../saved_dspy_model/best_policy_extraction_model/program.pkl", "rb") as f:
     policy_program = pickle.load(f)
 
-with open("saved_dspy_model/best_geo_extraction_model/program.pkl", "rb") as f:
+with open("../saved_dspy_model/best_geo_extraction_model/program.pkl", "rb") as f:
     geo_program = pickle.load(f)
 
 # --------------------------------------------------
 # Parameters
 # --------------------------------------------------
 BATCH_SIZE = 128
-MAX_ROWS = 100 
-OUTPUT_PATH = "policy_extraction_outputs.jsonl"
+MAX_ROWS = None
+OUTPUT_PATH = "dspy_policy_extraction_outputs.jsonl"
 WRITE_BUFFER_SIZE = 200
 
-parquet_path = "C:/Users/calle/Downloads/chunked_results_conclusions_585k_cs1024_ov100_qw3-06B.parquet"
+parquet_path = "../../results_557k/sample_2000_cleaned_chunks.parquet"
 parquet_file = pq.ParquetFile(parquet_path)
-
 rows_seen = 0
 # Initialize main progress bar
-pbar = tqdm(total=MAX_ROWS, desc="Processing rows", unit="row")
+pbar = tqdm(total=parquet_file.metadata.num_rows, desc="Processing rows", unit="row")
 
 # --------------------------------------------------
 # Main loop
@@ -75,9 +73,10 @@ pbar = tqdm(total=MAX_ROWS, desc="Processing rows", unit="row")
 buffered_records = []
 
 with open(OUTPUT_PATH, "a", encoding="utf-8") as out_f:
-
     for rg_idx in range(parquet_file.num_row_groups):
-        table = parquet_file.read_row_group(rg_idx, columns=["openalex_id","text", "chunk_idx"])
+        table = parquet_file.read_row_group(
+            rg_idx, columns=["openalex_id", "text", "chunk_idx"]
+        )
         df = table.to_pandas()
         df.reset_index(inplace=True)
 
@@ -85,9 +84,9 @@ with open(OUTPUT_PATH, "a", encoding="utf-8") as out_f:
         batch_meta = []
 
         for row in df.itertuples(index=False):
-            if rows_seen >= MAX_ROWS:
+            if MAX_ROWS and rows_seen >= MAX_ROWS:
                 break
-            
+
             openalex_id = row.openalex_id
             text = row.text
             chunk_idx = row.chunk_idx
@@ -97,8 +96,12 @@ with open(OUTPUT_PATH, "a", encoding="utf-8") as out_f:
 
             # Run models in batch when size is reached
             if len(batch_texts) == BATCH_SIZE:
-                policy_examples = [dspy.Example(question=t).with_inputs("question") for t in batch_texts]
-                geo_examples = [dspy.Example(question=t).with_inputs("question") for t in batch_texts]
+                policy_examples = [
+                    dspy.Example(question=t).with_inputs("question") for t in batch_texts
+                ]
+                geo_examples = [
+                    dspy.Example(question=t).with_inputs("question") for t in batch_texts
+                ]
 
                 # --- CHANGE HERE: SUPPRESS BOTH STDOUT AND STDERR ---
                 with suppress_output():
@@ -106,7 +109,7 @@ with open(OUTPUT_PATH, "a", encoding="utf-8") as out_f:
                     geo_outputs = geo_program.batch(geo_examples)
                 # ----------------------------------------------------
 
-                for (text, (openalex_id, chunk_idx), p_out, g_out) in zip(
+                for text, (openalex_id, chunk_idx), p_out, g_out in zip(
                     batch_texts, batch_meta, policy_outputs, geo_outputs, strict=False
                 ):
                     policy_dict = p_out.toDict() if hasattr(p_out, "toDict") else p_out
@@ -114,7 +117,9 @@ with open(OUTPUT_PATH, "a", encoding="utf-8") as out_f:
 
                     policy_list = []
                     if isinstance(policy_dict.get("response"), str):
-                        policy_list = [p.strip() for p in policy_dict["response"].split(";") if p.strip()]
+                        policy_list = [
+                            p.strip() for p in policy_dict["response"].split(";") if p.strip()
+                        ]
 
                     record = {
                         "openalex_id": openalex_id,
@@ -123,7 +128,7 @@ with open(OUTPUT_PATH, "a", encoding="utf-8") as out_f:
                         "policy_list": policy_list,
                         "regional_group": geo_dict.get("regional_group"),
                         "geographical_scopes": geo_dict.get("geographical_scopes", []),
-                        "main_country_focus": geo_dict.get("main_country_focus", [])
+                        "main_country_focus": geo_dict.get("main_country_focus", []),
                     }
 
                     buffered_records.append(record)
@@ -137,7 +142,7 @@ with open(OUTPUT_PATH, "a", encoding="utf-8") as out_f:
                 batch_texts.clear()
                 batch_meta.clear()
 
-        if rows_seen >= MAX_ROWS:
+        if MAX_ROWS and rows_seen >= MAX_ROWS:
             break
 
     if buffered_records:

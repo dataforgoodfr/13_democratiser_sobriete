@@ -6,9 +6,9 @@ import json
 # CONFIGURATION
 # ============================================================
 
-TEST_RUN = True  
-INPUT_PATH = "C:/Users/calle/Downloads/chunked_results_conclusions_585k_cs1024_ov100_qw3-06B.parquet"
-OUTPUT_JSON_PATH = "cleaned_results_preview.jsonl"
+TEST_RUN = False  
+INPUT_PATH = "../../results_557k/sample_2000_extracted_policies.parquet"
+OUTPUT_JSON_PATH = "cleaned_sample_2000.jsonl"
 SAMPLE_SIZE = 100 
 
 # ============================================================
