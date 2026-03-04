@@ -37,6 +37,7 @@ SECTOR:
 - NATURE: Natural Systems & Biodiversity
 - SOCIAL: Social Systems & Human Development (including wellbeing, health, education)
 - MACROECONOMIC: Macroeconomic & Cross-Sectoral Governance
+- LEISURE: Leisure, Tourism & Cultural Systems
 
 POLICY_TYPE:
 - REGULATORY: Regulatory Instruments
