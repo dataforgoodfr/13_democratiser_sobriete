@@ -25,6 +25,7 @@ dependencies = [
     "psycopg2-binary>=2.8.1,<2.9.10",
     "qdrant-client>=1.15.1",
     "langchain-text-splitters>=1.1.0",
+    "google-genai>=1.66.0",
 ]
 
 
