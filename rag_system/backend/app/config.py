@@ -4,11 +4,12 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     fetch_pubs: bool = True
+    rag_pipeline: Literal["standard", "policy"] = "standard"
 
     # retrieval
     qdrant_url: str
     qdrant_api_key: str
-    qdrant_collection_name: str = "library-test"
+    library_collection_name: str = "library-test"
     qdrant_timeout: int = 10
     embedding_dim: int = 128
     embedding_model: str = "Qwen/Qwen3-Embedding-0.6B"
@@ -39,9 +40,13 @@ class Settings(BaseSettings):
 
     # policy RAG (optional second-stage retrieval)
     policy_rag_enabled: bool = False
-    policy_qdrant_collection_name: str = "policies-v1"
+    policy_collection_name: str = "policies-v1"
     k_policy_search: int = 3  # results per policy name
-    policy_embedding_dim: int = 1024
+    policy_embedding_dim: int = 4096
+    policy_embedding_model: str = "qwen3-embedding-8b"
+    policy_candidate_count: int = 20
+    policy_max_retained: int = 10
+    policy_refs_per_direction: int = 2
 
     # database
     postgres_uri: str

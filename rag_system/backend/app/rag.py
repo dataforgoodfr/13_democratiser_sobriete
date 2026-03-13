@@ -17,7 +17,8 @@ from .policy_rag import (
     retrieve_policy_impacts,
 )
 from .prompts import BASE_SYSTEM_PROMPT, RAG_PROMPT, QUERY_REWRITE_PROMPT
-from .retrieval import get_publications_from_chunks, retrieve_chunks
+from .retrieval_shared import get_publications_from_chunks
+from .retrieval_standard import retrieve_chunks
 
 logger = get_logger(__name__)
 

@@ -1,7 +1,7 @@
 """
-Optional second-stage RAG: identify policies cited in retrieved context,
+Legacy second-stage policy RAG: identify policies cited in retrieved context,
 then retrieve their impacts from a dedicated Qdrant policies collection.
-Activated by POLICY_RAG_ENABLED=true in the environment.
+Activated by POLICY_RAG_ENABLED=true in .env.
 """
 
 import asyncio
@@ -10,7 +10,8 @@ import logging
 from .config import settings
 from .generation import generate_response
 from .models import ChatMessage, PolicyIdentificationResponse, PolicyImpact
-from .retrieval import embed_query, qdrant_client
+from .retrieval_policy import embed_policy_query
+from .retrieval_shared import qdrant_client
 
 logger = logging.getLogger(__name__)
 
@@ -56,12 +57,12 @@ async def identify_policies_in_context(
 
 async def _retrieve_for_policy(policy_name: str) -> list[PolicyImpact]:
     """Embed a single policy name and query the policies Qdrant collection."""
-    embedding = await embed_query(policy_name, dim=settings.policy_embedding_dim)
+    embedding = await embed_policy_query(policy_name)
     loop = asyncio.get_event_loop()
     hits = await loop.run_in_executor(
         None,
         lambda: qdrant_client.query_points(
-            collection_name=settings.policy_qdrant_collection_name,
+            collection_name=settings.policy_collection_name,
             query=embedding,
             limit=settings.k_policy_search,
         ),
@@ -91,7 +92,6 @@ async def retrieve_policy_impacts(policy_names: list[str]) -> list[PolicyImpact]
     if not policy_names:
         return []
 
-    # Retrieve for all policies concurrently
     all_results_nested = await asyncio.gather(
         *[_retrieve_for_policy(name) for name in policy_names],
         return_exceptions=True,

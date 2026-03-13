@@ -1,8 +1,8 @@
-import type { ChatMessage, Document, PolicyImpact, RetrievalStep } from '$lib/types';
+import type { ChatMessage, Document, Policy, RetrievalStep } from '$lib/types';
 
 export interface StreamCallbacks {
 	onDocuments: (documents: Document[]) => void;
-	onPolicies: (policies: PolicyImpact[]) => void;
+	onPolicies: (policies: Policy[]) => void;
 	onStatus: (step: RetrievalStep) => void;
 	onContent: (content: string) => void;
 	onError: (error: Error) => void;

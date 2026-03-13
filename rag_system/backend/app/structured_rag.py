@@ -2,7 +2,8 @@ from .generation import generate_response
 from .models import ChatMessage, StructuredOutputRequest, StructuredOutputResponse
 from .prompts import BASE_SYSTEM_PROMPT, GENERIC_STRUCTURED_OUTPUT_PROMPT
 from .rag import build_context_from_chunks, build_context_from_pubs
-from .retrieval import get_publications_from_chunks, retrieve_chunks
+from .retrieval_shared import get_publications_from_chunks
+from .retrieval_standard import retrieve_chunks
 
 
 async def structured_output_pipeline(request: StructuredOutputRequest) -> StructuredOutputResponse:

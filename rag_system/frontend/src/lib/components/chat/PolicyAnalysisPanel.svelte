@@ -1,22 +1,27 @@
 <script lang="ts">
 	import { PUBLIC_POLICY_COLOR_ENABLED } from '$env/static/public';
-	import type { PolicyImpact } from '$lib/types';
+	import { isPolicySearchResult, type Policy } from '$lib/types';
 
 	interface Props {
-		policies: PolicyImpact[];
+		policies: Policy[];
 	}
 
 	let { policies }: Props = $props();
 	let expandedIndex: number | null = $state(null);
 
 	const colorEnabled = PUBLIC_POLICY_COLOR_ENABLED !== 'false';
+	const hasPolicyFirstResults = $derived(policies.some(isPolicySearchResult));
 
 	const CLASS_ORDER: Record<string, number> = { S: 0, PS: 1, NS: 2 };
 
 	const sortedPolicies = $derived(
-		[...policies].sort(
-			(a, b) => (CLASS_ORDER[a.sufficiency_class] ?? 99) - (CLASS_ORDER[b.sufficiency_class] ?? 99)
-		)
+		hasPolicyFirstResults
+			? [...policies]
+			: [...policies].sort(
+					(a, b) =>
+						(CLASS_ORDER[!isPolicySearchResult(a) ? a.sufficiency_class : ''] ?? 99) -
+						(CLASS_ORDER[!isPolicySearchResult(b) ? b.sufficiency_class : ''] ?? 99)
+				)
 	);
 
 	const CLASS_COLORS: Record<string, string> = {
@@ -34,13 +39,24 @@
 	function toggle(index: number) {
 		expandedIndex = expandedIndex === index ? null : index;
 	}
+
+	function sentimentBadgeClass(sentiment: 'positive' | 'neutral' | 'negative') {
+		if (sentiment === 'positive') return 'bg-emerald-100 text-emerald-800';
+		if (sentiment === 'negative') return 'bg-rose-100 text-rose-800';
+		return 'bg-slate-100 text-slate-800';
+	}
 </script>
 
 <div class="flex h-full w-full flex-col">
 	<div class="border-b p-4">
 		<h2 class="text-lg font-semibold">🏛️ Policy Analysis</h2>
-		<p class="text-sm text-muted-foreground">Policies identified in the retrieved context</p>
-		<p class="text-sm text-muted-foreground">S = Sufficiency, PS = Possible Sufficiency, NS = Not Sufficiency</p>
+		{#if hasPolicyFirstResults}
+			<p class="text-sm text-muted-foreground">Policies retained after relevance reranking</p>
+			<p class="text-sm text-muted-foreground">Impact counts and sampled evidence help surface both pros and cons</p>
+		{:else}
+			<p class="text-sm text-muted-foreground">Policies identified in the retrieved context</p>
+			<p class="text-sm text-muted-foreground">S = Sufficiency, PS = Possible Sufficiency, NS = Not Sufficiency</p>
+		{/if}
 	</div>
 
 	<div class="flex-1 overflow-y-auto p-4">
@@ -52,17 +68,28 @@
 		{:else}
 			<div class="space-y-2">
 			{#each sortedPolicies as policy, i}
-				<div class="rounded-lg border bg-card text-card-foreground shadow-sm {colorEnabled ? CLASS_COLORS[policy.sufficiency_class] ?? '' : ''}">
+				<div class="rounded-lg border bg-card text-card-foreground shadow-sm {(!hasPolicyFirstResults && colorEnabled && !isPolicySearchResult(policy)) ? CLASS_COLORS[policy.sufficiency_class] ?? '' : ''}">
 					<!-- Header / toggle -->
 					<button
 						class="flex w-full items-center justify-between px-4 py-3 text-left"
 						onclick={() => toggle(i)}
 					>
-						<span class="font-medium">{policy.cluster}</span>
+						<div class="min-w-0">
+							{#if isPolicySearchResult(policy)}
+								<p class="font-medium leading-snug">{policy.policy_text}</p>
+								<p class="text-xs text-muted-foreground">Cluster {policy.cluster_id} · Score {policy.rerank_score}/9</p>
+							{:else}
+								<span class="font-medium">{policy.cluster}</span>
+							{/if}
+						</div>
 						<div class="flex items-center gap-2">
-							{#if colorEnabled}
+							{#if colorEnabled && !isPolicySearchResult(policy)}
 								<span class="rounded px-1.5 py-0.5 text-xs font-bold {BADGE_COLORS[policy.sufficiency_class] ?? ''}">
 									{policy.sufficiency_class}
+								</span>
+							{:else if isPolicySearchResult(policy)}
+								<span class="rounded bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
+									{policy.count} refs
 								</span>
 							{/if}
 							<svg
@@ -83,12 +110,45 @@
 						<!-- Expanded content -->
 						{#if expandedIndex === i}
 							<div class="border-t px-4 pb-4 pt-3 space-y-3">
-								<div>
-									<p class="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-										Sufficiency Assessment
-									</p>
-									<p class="text-sm">{policy.sufficiency_classification_reasoning}</p>
-								</div>
+								{#if isPolicySearchResult(policy)}
+									<div>
+										<p class="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+											Reranker Reasoning
+										</p>
+										<p class="text-sm">{policy.rerank_reasoning}</p>
+									</div>
+									<div class="flex flex-wrap gap-2">
+										<span class="rounded px-2 py-1 text-xs font-medium {sentimentBadgeClass('positive')}">
+											Positive {policy.positive_count}
+										</span>
+										<span class="rounded px-2 py-1 text-xs font-medium {sentimentBadgeClass('neutral')}">
+											Neutral {policy.neutral_count}
+										</span>
+										<span class="rounded px-2 py-1 text-xs font-medium {sentimentBadgeClass('negative')}">
+											Negative {policy.negative_count}
+										</span>
+									</div>
+	
+									{#if policy.matched_impact_categories.length > 0}
+										<div>
+											<p class="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Matched Categories</p>
+											<p class="text-sm">{policy.matched_impact_categories.join(', ')}</p>
+										</div>
+									{/if}
+									{#if policy.matched_impact_dimensions.length > 0}
+										<div>
+											<p class="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Matched Dimensions</p>
+											<p class="text-sm">{policy.matched_impact_dimensions.join(', ')}</p>
+										</div>
+									{/if}
+								{:else}
+									<div>
+										<p class="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+											Sufficiency Assessment
+										</p>
+										<p class="text-sm">{policy.sufficiency_classification_reasoning}</p>
+									</div>
+								{/if}
 							</div>
 						{/if}
 					</div>

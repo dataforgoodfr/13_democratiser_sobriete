@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { ChevronDown, ChevronUp, ExternalLink } from 'lucide-svelte';
 	import type { Document, Publication, Chunk } from '$lib/types';
-	import { isPublication } from '$lib/types';
+	import { isEvidenceChunk, isPublication } from '$lib/types';
 
 	interface Props {
 		doc: Document;
@@ -82,7 +82,16 @@
 						<div class="space-y-2">
 							{#each pub.retrieved_chunks as chunkItem, chunkIdx}
 								<div class="rounded-md bg-muted/50 p-3">
-									<p class="mb-1 text-xs text-muted-foreground">Chunk {chunkIdx + 1}</p>
+									<div class="mb-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+										<p>Chunk {chunkIdx + 1}</p>
+										{#if isEvidenceChunk(chunkItem)}
+											<span class="rounded bg-background px-2 py-0.5 font-medium text-foreground">
+												{chunkItem.sentiment}
+											</span>
+											<span>{chunkItem.policy_label}</span>
+											<span>{chunkItem.impact_category} / {chunkItem.impact_dimension}</span>
+										{/if}
+									</div>
 									<p class="text-sm leading-relaxed">{chunkItem.text}</p>
 								</div>
 							{/each}
@@ -127,8 +136,15 @@
 				<!-- Chunk mode: just show the text -->
 				<div class="pt-3">
 					<h4 class="mb-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-						Content
+						{isEvidenceChunk(chunk) ? 'Evidence Chunk' : 'Content'}
 					</h4>
+					{#if isEvidenceChunk(chunk)}
+						<div class="mb-2 flex flex-wrap gap-2 text-xs">
+							<span class="rounded bg-background px-2 py-1 font-medium">{chunk.sentiment}</span>
+							<span class="rounded bg-background px-2 py-1">{chunk.policy_label}</span>
+							<span class="rounded bg-background px-2 py-1">{chunk.impact_category} / {chunk.impact_dimension}</span>
+						</div>
+					{/if}
 					<p class="text-sm leading-relaxed">{chunk.text}</p>
 				</div>
 				<div class="mt-3 border-t pt-3">

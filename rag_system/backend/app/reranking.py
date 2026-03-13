@@ -1,15 +1,47 @@
 import asyncio
+import json
+import random
 
 from flashrank import Ranker, RerankRequest
+from pydantic import ValidationError
 
 from .config import settings
 from .dependencies import create_openai_client
-from .models import DocumentChunk
-from .prompts import SUFFICIENCY_RATING_PROMPT
-
+from .models import DocumentChunk, PolicyEvidenceChunk, PolicyRerankResponse, PolicySearchCandidate, PolicySearchResult
+from .prompts import POLICY_RERANK_PROMPT, SUFFICIENCY_RATING_PROMPT
 
 ranker = Ranker(model_name=settings.flashrank_model, max_length=settings.max_length_reranker)
 reranking_client = create_openai_client()
+
+
+async def rerank_evidence(
+    query: str,
+    chunks: list[PolicyEvidenceChunk],
+    top_k: int = settings.k_rerank,
+    max_input: int = 50,
+) -> list[PolicyEvidenceChunk]:
+    """Rerank evidence chunks against the user query using flashrank.
+
+    If there are more than max_input chunks, only the first max_input are reranked
+    (they arrive roughly ordered by sampling priority already).
+    """
+    if not chunks or ranker is None:
+        return chunks[:top_k]
+
+    pool = list(chunks)
+    random.shuffle(pool)
+    rerank_pool = pool[:max_input]
+
+    # Use a composite ID since multiple chunks can share the same openalex_id
+    chunk_map: dict[str, PolicyEvidenceChunk] = {}
+    passages = []
+    for chunk in rerank_pool:
+        uid = f"{chunk.openalex_id}_{chunk.chunk_idx}"
+        chunk_map[uid] = chunk
+        passages.append({"id": uid, "text": chunk.text})
+
+    reranked = ranker.rerank(RerankRequest(query=query, passages=passages))
+    return [chunk_map[r["id"]] for r in reranked[:top_k] if r["id"] in chunk_map]
 
 
 async def flashrank_rerank(
@@ -126,3 +158,119 @@ Query: {query}
 Document: {document.text}
 """
     return prompt.strip()
+
+
+def _format_policy_impacts_for_prompt(policy: PolicySearchCandidate) -> str:
+    lines = []
+    for category, dimension_map in policy.impacts.items():
+        if not isinstance(dimension_map, dict):
+            continue
+        lines.append(f"Category: {category}")
+        for dimension, summaries in dimension_map.items():
+            if not isinstance(summaries, list):
+                summaries = [summaries]
+            total_positive = 0
+            total_neutral = 0
+            total_negative = 0
+            for summary in summaries:
+                if not isinstance(summary, dict):
+                    continue
+                total_positive += int(summary.get("positive", 0) or 0)
+                total_neutral += int(summary.get("neutral", 0) or 0)
+                total_negative += int(summary.get("negative", 0) or 0)
+            lines.append(
+                f"- {dimension}: positive={total_positive}, neutral={total_neutral}, negative={total_negative}"
+            )
+    return "\n".join(lines)
+
+
+def build_policy_rerank_prompt(query: str, policy: PolicySearchCandidate) -> str:
+    impacts = _format_policy_impacts_for_prompt(policy)
+    return f"""
+{POLICY_RERANK_PROMPT}
+
+User query: {query}
+
+Policy candidate: {policy.text}
+
+Impacts summary:
+{impacts or 'No impact summary available.'}
+""".strip()
+
+
+async def llm_rerank_policy(
+    query: str,
+    policy: PolicySearchCandidate,
+    model_name: str = settings.llm_rerank_model,
+) -> PolicyRerankResponse:
+    response = await reranking_client.chat.completions.create(
+        model=model_name,
+        messages=[{"role": "user", "content": build_policy_rerank_prompt(query, policy)}],
+        max_tokens=256,
+        temperature=0,
+        response_format={
+            "type": "json_schema",
+            "json_schema": {
+                "name": PolicyRerankResponse.__name__,
+                "schema": PolicyRerankResponse.model_json_schema(),
+            },
+        },
+    )
+
+    content = response.choices[0].message.content
+    try:
+        return PolicyRerankResponse.model_validate_json(content)
+    except ValidationError:
+        parsed = json.loads(content)
+        return PolicyRerankResponse.model_validate(parsed)
+
+
+async def llm_rerank_policies(
+    query: str,
+    policies: list[PolicySearchCandidate],
+    min_rating: int = settings.llm_filter_min_rating,
+    max_results: int = settings.policy_max_retained,
+    model_name: str = settings.llm_rerank_model,
+) -> list[PolicySearchResult]:
+    """Rerank policy candidates using policy descriptions plus structured impact summaries."""
+    if not policies:
+        return []
+
+    ratings = await asyncio.gather(
+        *[llm_rerank_policy(query, policy, model_name=model_name) for policy in policies],
+        return_exceptions=True,
+    )
+
+    retained: list[PolicySearchResult] = []
+    for policy, rating in zip(policies, ratings, strict=True):
+        if isinstance(rating, Exception):
+            continue
+        if rating.relevance_score < min_rating:
+            continue
+        retained.append(
+            PolicySearchResult(
+                cluster_id=policy.cluster_id,
+                policy_text=policy.text,
+                count=policy.count,
+                retrieved_rank=policy.retrieved_rank,
+                retrieved_score=policy.retrieved_score,
+                rerank_score=rating.relevance_score,
+                rerank_reasoning=rating.reasoning,
+                matched_impact_categories=rating.matched_impact_categories,
+                matched_impact_dimensions=rating.matched_impact_dimensions,
+                positive_count=policy.positive_count,
+                neutral_count=policy.neutral_count,
+                negative_count=policy.negative_count,
+                impacts=policy.impacts,
+            )
+        )
+
+    retained.sort(
+        key=lambda policy: (
+            policy.rerank_score,
+            policy.negative_count,
+            policy.positive_count + policy.neutral_count,
+        ),
+        reverse=True,
+    )
+    return retained[:max_results]

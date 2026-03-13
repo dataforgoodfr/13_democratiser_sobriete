@@ -41,6 +41,14 @@ class DocumentChunk(BaseModel):
     retrieved_rank: int
 
 
+class PolicyEvidenceChunk(DocumentChunk):
+    sentiment: Literal["positive", "neutral", "negative"]
+    impact_category: str
+    impact_dimension: str
+    policy_cluster_id: int | str
+    policy_label: str
+
+
 class Publication(BaseModel):
     openalex_id: str
     doi: str | None = None
@@ -49,7 +57,7 @@ class Publication(BaseModel):
     authors: list[str] | None = None
     publication_year: int | None = None
     url: str | None = None
-    retrieved_chunks: list[DocumentChunk]
+    retrieved_chunks: list[DocumentChunk | PolicyEvidenceChunk]
 
 
 class PolicyIdentificationResponse(BaseModel):
@@ -66,6 +74,65 @@ class PolicyImpact(BaseModel):
     cluster: str
     sufficiency_class: Literal['S', 'PS', 'NS']
     sufficiency_classification_reasoning: str
+
+
+class PolicyRerankResponse(BaseModel):
+    """Structured response returned by the policy reranker."""
+
+    reasoning: str
+    relevance_score: int = Field(ge=1, le=9)
+    matched_impact_categories: list[str] = Field(default_factory=list)
+    matched_impact_dimensions: list[str] = Field(default_factory=list)
+
+
+class PolicySearchCandidate(BaseModel):
+    """A raw policy candidate retrieved from the policies Qdrant collection."""
+
+    cluster_id: int | str
+    text: str
+    count: int = 0
+    impacts: dict[str, Any] = Field(default_factory=dict)
+    retrieved_rank: int
+    retrieved_score: float | None = None
+    impact_categories: list[str] = Field(default_factory=list)
+    impact_dimensions: list[str] = Field(default_factory=list)
+    positive_count: int = 0
+    neutral_count: int = 0
+    negative_count: int = 0
+
+
+class PolicyReference(BaseModel):
+    """A sampled literature reference extracted from policy impacts."""
+
+    raw_ref: str
+    openalex_id: str
+    chunk_idx: int
+    sentiment: Literal["positive", "neutral", "negative"]
+    impact_category: str
+    impact_dimension: str
+    policy_cluster_id: int | str
+    policy_label: str
+
+
+class PolicySearchResult(BaseModel):
+    """A policy retained after LLM reranking for final presentation and context building."""
+
+    cluster_id: int | str
+    policy_text: str
+    count: int = 0
+    retrieved_rank: int
+    retrieved_score: float | None = None
+    rerank_score: int
+    rerank_reasoning: str
+    matched_impact_categories: list[str] = Field(default_factory=list)
+    matched_impact_dimensions: list[str] = Field(default_factory=list)
+    positive_count: int = 0
+    neutral_count: int = 0
+    negative_count: int = 0
+    sampled_positive_refs: int = 0
+    sampled_neutral_refs: int = 0
+    sampled_negative_refs: int = 0
+    impacts: dict[str, Any] = Field(default_factory=dict, exclude=True)
 
 
 class FeedbackRequest(BaseModel):
