@@ -1,4 +1,6 @@
 """
+Outdated, we use a newer method now (see README).
+
 WARNING: understand what you're doing before running.
 The script is currently set for assessing negative impacts only, although you can switch back easily to impacts in general.
 This was done to save on costs after a first run mostly returned positive impacts, while we wanted to also find negative or neutral ones.
