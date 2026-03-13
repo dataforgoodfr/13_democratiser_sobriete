@@ -26,6 +26,7 @@ dependencies = [
     "qdrant-client>=1.15.1",
     "langchain-text-splitters>=1.1.0",
     "google-genai>=1.66.0",
+    "pyalex>=0.21",
 ]
 
 
