@@ -140,8 +140,8 @@ async def policy_first_rag_pipeline(
         policy_candidates = await retrieve_policy_candidates(rewritten_query)
         retained_policies = await llm_rerank_policies(rewritten_query, policy_candidates)
         chat_turn.retrieval_time_ms = (time.time() - retrieval_start) * 1000
-        chat_turn.retrieved_chunks_count = len(policy_candidates)
-        chat_turn.retrieved_chunks = json.dumps([p.model_dump() for p in retained_policies])
+        chat_turn.retrieved_cluster_count = len(policy_candidates)
+        chat_turn.retrieved_cluster_ids = ','.join([str(p.cluster_id) for p in retained_policies])
 
         if not retained_policies:
             response_text = (
@@ -165,6 +165,8 @@ async def policy_first_rag_pipeline(
         # --- Evidence retrieval ---
         yield "event: status\n\ndata: " + json.dumps({"step": "retrieving_evidence"}) + "\n\n"
         evidence_chunks = await retrieve_evidence_for_policies(rewritten_query, retained_policies)
+        chat_turn.retrieved_chunks_count = len(evidence_chunks)
+        chat_turn.retrieved_chunks = json.dumps([c.model_dump() for c in evidence_chunks])
         logger.info("Evidence: %d chunks retrieved", len(evidence_chunks))
         documents = get_publications_from_chunks(evidence_chunks) if fetch_pubs else evidence_chunks
 
@@ -173,7 +175,6 @@ async def policy_first_rag_pipeline(
 
         # --- Generation ---
         context = build_policy_first_context(rewritten_query, retained_policies, documents)
-        print(context)
         chat_turn.context_built = context
         chat_turn.context_length = len(context)
 
