@@ -52,6 +52,10 @@ def build_policy_first_context(
         sections.append(f"Policy {idx}: {policy.policy_text} (cluster {policy.cluster_id})")
         sections.append(f"Relevance score: {policy.rerank_score}/9")
         sections.append(f"Why relevant: {policy.rerank_reasoning}")
+        if policy.stage1_reasoning:
+            sections.append(f"Sufficiency-compatibility reasoning: {policy.stage1_reasoning}")
+        if policy.stage2_reasoning:
+            sections.append(f"Sufficiency class reasoning (S/PS): {policy.stage2_reasoning}")
         sections.append(
             f"Impact counts: positive={policy.positive_count}, neutral={policy.neutral_count}, negative={policy.negative_count}"
         )

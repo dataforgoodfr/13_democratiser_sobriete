@@ -186,14 +186,22 @@ def _format_policy_impacts_for_prompt(policy: PolicySearchCandidate) -> str:
 
 def build_policy_rerank_prompt(query: str, policy: PolicySearchCandidate) -> str:
     impacts = _format_policy_impacts_for_prompt(policy)
+    reasoning_block = ""
+    if policy.stage1_reasoning or policy.stage2_reasoning:
+        parts = []
+        if policy.stage1_reasoning:
+            parts.append(f"Sufficiency-compatibility reasoning: {policy.stage1_reasoning}")
+        if policy.stage2_reasoning:
+            parts.append(f"Sufficiency class reasoning (S/PS): {policy.stage2_reasoning}")
+        reasoning_block = "\n\nSufficiency classification reasoning:\n" + "\n".join(parts)
     return f"""
 {POLICY_RERANK_PROMPT}
 
 User query: {query}
 
-Policy candidate: {policy.text}
+Policy candidate: {policy.text}{reasoning_block}
 
-Impacts summary:
+Quantitative impact summary (secondary context):
 {impacts or 'No impact summary available.'}
 """.strip()
 
@@ -256,6 +264,8 @@ async def llm_rerank_policies(
                 retrieved_score=policy.retrieved_score,
                 rerank_score=rating.relevance_score,
                 rerank_reasoning=rating.reasoning,
+                stage1_reasoning=policy.stage1_reasoning,
+                stage2_reasoning=policy.stage2_reasoning,
                 matched_impact_categories=rating.matched_impact_categories,
                 matched_impact_dimensions=rating.matched_impact_dimensions,
                 positive_count=policy.positive_count,

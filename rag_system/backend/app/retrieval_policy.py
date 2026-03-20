@@ -69,7 +69,7 @@ async def retrieve_policy_candidates(
             collection_name=collection_name,
             query=query_embedding,
             limit=top_k,
-            with_payload=["cluster_id", "text", "count", "impacts"],
+            with_payload=["cluster_id", "text", "count", "impacts", "stage1_reasoning", "stage2_reasoning"],
             timeout=settings.qdrant_timeout,
         ),
     )
@@ -81,10 +81,12 @@ async def retrieve_policy_candidates(
         categories, dimensions, positive_count, neutral_count, negative_count = summarize_policy_impacts(impacts)
         candidates.append(
             PolicySearchCandidate(
-                cluster_id=payload.get("cluster_id", f"policy-{idx + 1}"),
+                cluster_id=payload.get("cluster_id"),
                 text=payload.get("text", ""),
                 count=int(payload.get("count", 0) or 0),
                 impacts=impacts,
+                stage1_reasoning=payload.get("stage1_reasoning", "") or "",
+                stage2_reasoning=payload.get("stage2_reasoning", "") or "",
                 retrieved_rank=idx + 1,
                 retrieved_score=getattr(point, "score", None),
                 impact_categories=categories,

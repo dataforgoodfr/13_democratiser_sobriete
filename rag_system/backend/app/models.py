@@ -92,6 +92,8 @@ class PolicySearchCandidate(BaseModel):
     text: str
     count: int = 0
     impacts: dict[str, Any] = Field(default_factory=dict)
+    stage1_reasoning: str = ""
+    stage2_reasoning: str = ""
     retrieved_rank: int
     retrieved_score: float | None = None
     impact_categories: list[str] = Field(default_factory=list)
@@ -124,6 +126,8 @@ class PolicySearchResult(BaseModel):
     retrieved_score: float | None = None
     rerank_score: int
     rerank_reasoning: str
+    stage1_reasoning: str = ""
+    stage2_reasoning: str = ""
     matched_impact_categories: list[str] = Field(default_factory=list)
     matched_impact_dimensions: list[str] = Field(default_factory=list)
     positive_count: int = 0
