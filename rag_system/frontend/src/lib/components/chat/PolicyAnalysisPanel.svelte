@@ -110,10 +110,21 @@
 						<!-- Expanded content -->
 						{#if expandedIndex === i}
 							<div class="border-t px-4 pb-4 pt-3 space-y-3">
-								{#if isPolicySearchResult(policy)}
+								{#if isPolicySearchResult(policy)}								{#if policy.stage1_reasoning || policy.stage2_reasoning}
 									<div>
 										<p class="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-											Reranker Reasoning
+											Sufficiency Classification
+										</p>
+										{#if policy.stage1_reasoning}
+											<p class="text-sm">{policy.stage1_reasoning}</p>
+										{/if}
+										{#if policy.stage2_reasoning}
+											<p class="mt-1 text-sm">{policy.stage2_reasoning}</p>
+										{/if}
+									</div>
+								{/if}									<div>
+										<p class="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+											Query relevance
 										</p>
 										<p class="text-sm">{policy.rerank_reasoning}</p>
 									</div>

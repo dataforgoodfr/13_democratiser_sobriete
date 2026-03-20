@@ -55,6 +55,8 @@ export interface PolicySearchResult {
   retrieved_score: number | null;
   rerank_score: number;
   rerank_reasoning: string;
+  stage1_reasoning: string;
+  stage2_reasoning: string;
   matched_impact_categories: string[];
   matched_impact_dimensions: string[];
   positive_count: number;

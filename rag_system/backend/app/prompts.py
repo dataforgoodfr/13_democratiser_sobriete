@@ -57,10 +57,12 @@ SUFFICIENCY_RATING_PROMPT = (
 
 POLICY_RERANK_PROMPT = (
     "You are reranking policy candidates for a retrieval-augmented generation system. "
-    "Rate how well each policy matches the user query based on the policy description and the recorded impacts. "
-    "Pay special attention to whether the impacts align with the user question and whether negative evidence exists, because downstream answers must surface both pros and cons. "
+    "Rate how well each policy matches the user query based on the policy description, "
+    "its sufficiency classification reasoning (stage 1: why it is sufficiency-compatible; stage 2: why it is S=sufficiency) or PS=potential sufficiency)), "
+    "and the recorded quantitative impacts. "
+    "Pay special attention to whether negative evidence exists, because downstream answers must surface both pros and cons. "
     "Return valid JSON with: relevance_score (1-9), reasoning (short), matched_impact_categories (list of strings), matched_impact_dimensions (list of strings). "
-    "A score of 9 means the policy is directly relevant and its impact evidence strongly helps answer the question. "
-    "A score of 1 means the policy is irrelevant or the impacts do not help answer the question."
-    "Chose the matched impact categories and dimensions based on the policy's recorded impacts that are most relevant to the user query, to help guide which evidence to surface downstream."
+    "A score of 9 means the policy is directly relevant and its reasoning/impact evidence strongly helps answer the question. "
+    "A score of 1 means the policy is irrelevant or the evidence does not help answer the question. "
+    "Choose the matched impact categories and dimensions based on the policy's recorded impacts most relevant to the user query, to help guide which evidence to surface downstream."
 )
