@@ -26,10 +26,11 @@ npm run dev
 Here is the pipeline and main architectural elements:
 1. The **SvelteKit frontend** sends a query to the **FastAPI backend** via a POST request.
 2. The backend calls a **generative AI API (Scaleway)** to determine whether the query is on-topic. If yes, it rewrites it for retrieval. If not, it answers directly.
-3. The rewritten query is embedded on the server's CPU with a small model using **sentence-transformers**. It would be more cost-efficient to use an API and a smaller instance, but the embedding model we started with, **Qwen3-embedding-0.6B** isn't available on any commercial API.
-4. The server sends the query to **Qdrant** (vector db), that returns the top $k_{vector}$ matches (configurable).
-5. It then reranks the results locally using **flashrank**. Again, a more mature version might use e.g. Cohere's API.
-6. The top $k_{rerank}$ chunks are then used to build the context. If the FETCH_PUBS env var is true (default), we use the OpenAlex ID of the chunks to fetch the corresponding publications from **OpenAlex's API**. We build the context using the title, abstract, and the retrieved chunks. 
+3. The rewritten query is embedded with **Qwen3-embedding-8B** from Scaleway's Generative API for policy retrieval.
+4. The server sends the query to **Qdrant** (vector db), that returns the top $k_{vector}$ matches (configurable). Our Qdrant cluster has two interesting collections: `library-v1` (containing chunks) and `clusters-v260319` (containing policy clusters with the impact analysis from the policy analysis pipeline). It returns the $k_{vector}$ closest policy clusters.
+5. We ask a LLM to rate the returned policies on a scale of 0-9 (single-digits ensure the LLM can output a single token) in terms of relevance to the user query. The reranking LLM has access to the impact analysis from policy analysis for this task. We keep only those above a certain threshold and use the rating for reranking, keeping at most $k_{rerank}$. We also ask the reranking LLM to select a number of impact dimensions relevant to the user query.
+6. For each returned policy and each identified relevant impact dimension, we have access thanks to policy analysis to a list (potentially empty) of chunks that demonstrate each impact direction (positive, negative, neutral). For each, we select at most two chunks to include as example in the context. A lot of these chunks will be completely irrelevant to the user query, so we add a second step of vector similarity search: we embed the query, this time on the server's CPU with **Qwen3-embedding-0.6B** and query the `library-v1`, filtering the chunk IDs to be included in the aforementionned list.
+6. The retained policies and example chunks are then used to build the final context. If the FETCH_PUBS env var is true (default), we use the OpenAlex ID of the chunks to fetch the corresponding publications from **OpenAlex's API** and add their title and abstract to the context.
 7. The context is passed along with the original query to the generative API and the backend streams back the response the the frontend.
 8. The backend saves the messages and intermediary results to **Postgres**.
 
@@ -52,10 +53,3 @@ to create `requirements.txt` file from `pyproject.toml`. To avoid installing use
 ```
 --extra-index-url https://download.pytorch.org/whl/cpu 
 ```
-
-
-## TODO
-- suggestions (of questions)
-- hybrid search
-- policy analysis
-- optimize cost (use APIs for query embedding and reranking to use a smaller server instance)
