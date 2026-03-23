@@ -761,12 +761,16 @@ def compute_compensation_for_scenario(scenario_params, carbon_prices_full_df, hi
 
 def compute_creditor_shares_for_scenario(scenario_params, debtors_df):
     """
-    Compute creditor shares for countries with remaining carbon budget in 2050.
+     Compute creditor shares for countries with cumulative undershoot in 2050.
     
-    Method:
-    1. For each country, compute: Remaining_Budget_2050 = Country_carbon_budget - Latest_cumulative_CO2_emissions_Mt - Projected_emissions_to_2050
-    2. Countries with Remaining_Budget_2050 > 0 are creditors
-    3. Total debt from debtors is distributed to creditors proportionally to their Remaining_Budget_2050
+     Method:
+     1. For each country, compute cumulative emissions to 2050:
+         Cumulative_2050 = Latest_cumulative_CO2_emissions_Mt + Projected_emissions_2024_2050_Mt
+     2. Compute fair-share cumulative limit to 2050:
+         Fair_Share_Cumulative_2050 = Latest_cumulative_CO2_emissions_Mt + Country_carbon_budget
+     3. Undershoot_Emissions_2050 = max(0, Fair_Share_Cumulative_2050 - Cumulative_2050)
+     4. Countries with Undershoot_Emissions_2050 > 0 are creditors
+     5. Total debt from debtors is distributed to creditors proportionally to their undershoot emissions
     
     Args:
         scenario_params: DataFrame filtered for one specific scenario (all countries)
@@ -799,14 +803,18 @@ def compute_creditor_shares_for_scenario(scenario_params, debtors_df):
         if pd.isna(country_carbon_budget) or pd.isna(latest_cumulative):
             continue
         
-        # Compute remaining budget in 2050
+        # Compute projected emissions to 2050 (linear decline)
         remaining_budget, projected_emissions = compute_remaining_budget_2050(
             co2_per_capita_2023=co2_per_capita,
             population_2023=population,
             latest_cumulative_emissions=latest_cumulative,
             country_carbon_budget=country_carbon_budget
         )
-        
+        # Compute cumulative emissions and undershoot at 2050
+        cumulative_2050 = latest_cumulative + projected_emissions
+        fair_share_cumulative_2050 = latest_cumulative + country_carbon_budget
+        undershoot_emissions_2050 = max(0, fair_share_cumulative_2050 - cumulative_2050)
+
         creditor_data.append({
             'Country': country,
             'ISO2': iso2,
@@ -814,7 +822,11 @@ def compute_creditor_shares_for_scenario(scenario_params, debtors_df):
             'Country_Carbon_Budget_Mt': country_carbon_budget,
             'Latest_Cumulative_Emissions_Mt': latest_cumulative,
             'Projected_Emissions_2024_2050_Mt': projected_emissions,
-            'Remaining_Budget_2050_Mt': remaining_budget,
+            'Cumulative_Emissions_2050_Mt': cumulative_2050,
+            'Fair_Share_Cumulative_2050_Mt': fair_share_cumulative_2050,
+            'Undershoot_Emissions_2050_Mt': undershoot_emissions_2050,
+            # Backward-compatible naming (undershoot emissions in 2050)
+            'Remaining_Budget_2050_Mt': undershoot_emissions_2050,
             'CO2_per_capita_2023': co2_per_capita,
             'Population_2023': population,
             # Scenario info
@@ -829,16 +841,16 @@ def compute_creditor_shares_for_scenario(scenario_params, debtors_df):
     if len(creditor_df) == 0:
         return creditor_df
     
-    # Identify creditors (positive remaining budget)
-    creditor_df['Is_Creditor'] = creditor_df['Remaining_Budget_2050_Mt'] > 0
+    # Identify creditors (positive undershoot emissions)
+    creditor_df['Is_Creditor'] = creditor_df['Undershoot_Emissions_2050_Mt'] > 0
     
-    # Calculate total remaining budget for all creditors
-    total_remaining_budget = creditor_df[creditor_df['Is_Creditor']]['Remaining_Budget_2050_Mt'].sum()
+    # Calculate total undershoot for all creditors
+    total_remaining_budget = creditor_df[creditor_df['Is_Creditor']]['Undershoot_Emissions_2050_Mt'].sum()
     
-    # Distribute debt proportionally to remaining budget
+    # Distribute debt proportionally to undershoot emissions
     if total_remaining_budget > 0:
         creditor_df['Credit_Share'] = creditor_df.apply(
-            lambda x: x['Remaining_Budget_2050_Mt'] / total_remaining_budget if x['Is_Creditor'] else 0, 
+            lambda x: x['Undershoot_Emissions_2050_Mt'] / total_remaining_budget if x['Is_Creditor'] else 0, 
             axis=1
         )
         creditor_df['Credit_Received_USD'] = creditor_df['Credit_Share'] * total_debt
@@ -1059,7 +1071,7 @@ def create_creditor_debtor_map(creditor_df, debtors_df, scenario_name):
         hover_data={
             'ISO3': False,
             'Balance_Billion_USD': ':.2f',
-            'Remaining_Budget_2050_Mt': ':.1f',
+            'Undershoot_Emissions_2050_Mt': ':.1f',
             'Credit_Share': ':.2%',
             'Is_Creditor': True
         },
@@ -1067,7 +1079,7 @@ def create_creditor_debtor_map(creditor_df, debtors_df, scenario_name):
         range_color=[-max_abs_balance, max_abs_balance],  # Center at 0
         labels={
             'Balance_Billion_USD': 'Net Balance (Billion USD)',
-            'Remaining_Budget_2050_Mt': 'Remaining Budget 2050 (Mt)',
+            'Undershoot_Emissions_2050_Mt': 'Undershoot Emissions 2050 (Mt)',
             'Credit_Share': 'Share of Credit Pool',
             'Is_Creditor': 'Creditor'
         }
@@ -1163,7 +1175,7 @@ def create_creditor_debtor_bar_chart(creditor_df, debtors_df, scenario_name):
     
     fig.update_layout(
         title=dict(
-            text=f'Top 10 Debtors & Creditors<br><sub>{scenario_name} - Debt redistributed proportionally to remaining carbon budget</sub>',
+            text=f'Top 10 Debtors & Creditors<br><sub>{scenario_name} - Debt redistributed proportionally to undershoot emissions</sub>',
             font=dict(size=16),
             y=0.95
         ),
@@ -1396,7 +1408,7 @@ def main():
         print(f"   Unique countries: {combined_creditors['ISO2'].nunique()}")
         print(f"   Countries with positive remaining budget (creditors): {creditors_only['ISO2'].nunique()}")
         print(f"\n   Creditor summary (all scenarios combined):")
-        print(f"     Total remaining budget:  {creditors_only['Remaining_Budget_2050_Mt'].sum()/1e3:.2f} Gt CO2")
+        print(f"     Total undershoot emissions:  {creditors_only['Undershoot_Emissions_2050_Mt'].sum()/1e3:.2f} Gt CO2")
         print(f"     Total credit received:   ${creditors_only['Credit_Received_USD'].sum()/1e12:.2f} trillion USD")
     
     print("\n" + "=" * 70)

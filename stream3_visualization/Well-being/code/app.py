@@ -3,17 +3,19 @@ from dash import dcc, html
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
 import os
 import json
 import sys
 import numpy as np
+import io
+import base64
 
 # Add the current directory to Python path for imports
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, current_dir)
 
-from variable_mapping import get_display_name, get_acronym_from_display_name
+from variable_mapping import get_display_name, get_acronym_from_display_name, get_eu_priority_display_name, get_eu_priority_original_name, EU_PRIORITY_DISPLAY_MAPPING
 
 # Get the absolute path to the data directory - MODIFIED to use PCA unified data
 # Handle both local development and CleverCloud deployment paths
@@ -119,9 +121,11 @@ try:
 
     print(f"Found {len(COUNTRIES)} individual countries")
 
-    # Create EU priority options dynamically from the data
+    # Create EU priority options dynamically from the data with display names
     available_eu_priorities = unified_df[unified_df['Level']==2]['EU priority'].dropna().unique()
     EU_PRIORITIES = sorted(available_eu_priorities.tolist())
+    # Create a mapping of display names to original names for the dropdown
+    EU_PRIORITIES_DISPLAY = [(get_eu_priority_display_name(p), p) for p in EU_PRIORITIES]
 
     # EWBI: No secondary indicators - skip this section entirely
     # Secondary indicators are not used in the EWBI as we go directly from Raw -> EU Priorities -> EWBI
@@ -185,7 +189,7 @@ app.layout = html.Div([
                     html.Label("EU Priority", className="control-label"),
                     dcc.Dropdown(
                         id='eu-priority-dropdown',
-                        options=[{'label': '(EWBI Overall)', 'value': 'ALL'}] + [{'label': prio, 'value': prio} for prio in EU_PRIORITIES],
+                        options=[{'label': '(EWBI Overall)', 'value': 'ALL'}] + [{'label': display_name, 'value': original_name} for display_name, original_name in EU_PRIORITIES_DISPLAY],
                         value='ALL',
                         style={'marginTop': '0px', 'width': '100%'},
                         clearable=False
@@ -234,7 +238,9 @@ app.layout = html.Div([
                     'width': 700,
                     'scale': 1.5
                 }
-            })
+            }),
+            html.Button("📥 Excel", id="download-map-btn", className="download-btn"),
+            dcc.Download(id="download-map")
         ], className="grid-item"),
         
         # Grid Item 2: Time Series Chart
@@ -248,7 +254,9 @@ app.layout = html.Div([
                     'width': 600,
                     'scale': 1.5
                 }
-            })
+            }),
+            html.Button("📥 Excel", id="download-timeseries-btn", className="download-btn"),
+            dcc.Download(id="download-timeseries")
         ], className="grid-item"),
         
         # Grid Item 3: Decile Analysis Chart
@@ -262,7 +270,9 @@ app.layout = html.Div([
                     'width': 600,
                     'scale': 1.5
                 }
-            })
+            }),
+            html.Button("📥 Excel", id="download-decile-btn", className="download-btn"),
+            dcc.Download(id="download-decile")
         ], className="grid-item"),
         
         # Grid Item 4: Radar Chart / Country Comparison
@@ -276,7 +286,9 @@ app.layout = html.Div([
                     'width': 600,
                     'scale': 1.5
                 }
-            })
+            }),
+            html.Button("📥 Excel", id="download-radar-btn", className="download-btn"),
+            dcc.Download(id="download-radar")
         ], className="grid-item"),
     ], className="visualization-grid"),
 
@@ -376,7 +388,7 @@ def create_level_filters_pca(eu_priority, primary_indicator):
     elif eu_priority != 'ALL' and (primary_indicator == 'ALL' or not primary_indicator):
         # Level 2: EU Priority selected
         level_filters['current_level'] = 2
-        level_filters['level_name'] = f'EU Priority: {eu_priority}'
+        level_filters['level_name'] = f'EU Priority: {get_eu_priority_display_name(eu_priority)}'
     elif primary_indicator and primary_indicator != 'ALL':
         # Level 3: Primary/Raw data selected
         level_filters['current_level'] = 3
@@ -421,7 +433,7 @@ def create_map_chart_pca(level_filters):
             (unified_df['EU priority'] == level_filters['eu_priority']) &
             (unified_df['Country'] != 'EU-27')
         ].copy()
-        title = f'{level_filters["eu_priority"]} Score by Country ({int(latest_year)}) - PCA Weighted'
+        title = f'{get_eu_priority_display_name(level_filters["eu_priority"])} Score by Country ({int(latest_year)}) - PCA Weighted'
         
     else:  # Level 3
         # Level 3: Primary indicator values (use raw break-adjusted data aggregated to country level)
@@ -550,7 +562,7 @@ def create_time_series_chart_pca(level_filters, selected_countries):
                  (unified_df['Aggregation'] == 'Population-weighted arithmetic mean'))
             )
         ].copy()
-        title = f'{level_filters["eu_priority"]} Evolution Over Time - Population-Weighted Arithmetic Mean'
+        title = f'{get_eu_priority_display_name(level_filters["eu_priority"])} Evolution Over Time - Population-Weighted Arithmetic Mean'
         
     else:  # Level 3
         # Level 3: Primary data (use raw break-adjusted data aggregated to country/EU-27 level)
@@ -670,7 +682,7 @@ def create_decile_chart_pca(level_filters, selected_countries):
                  (unified_df['Aggregation'] == 'Population-weighted arithmetic mean'))
             )
         ].copy()
-        title = f'{level_filters["eu_priority"]} Scores by Decile ({int(latest_year)}) - Population-Weighted Arithmetic Mean'
+        title = f'{get_eu_priority_display_name(level_filters["eu_priority"])} Scores by Decile ({int(latest_year)}) - Population-Weighted Arithmetic Mean'
         x_axis_title = 'Income Decile'
         
     else:  # Level 3
@@ -895,7 +907,7 @@ def create_radar_chart_pca(level_filters, selected_countries):
                 (unified_df['EU priority'] == level_filters['eu_priority']) &
                 (unified_df['Country'] != 'EU-27')
             ].copy()
-            title = f'{level_filters["eu_priority"]} by Country ({int(latest_year)}) - PCA Weighted'
+            title = f'{get_eu_priority_display_name(level_filters["eu_priority"])} by Country ({int(latest_year)}) - PCA Weighted'
             
         else:  # Level 3
             # For primary indicators, filter by Decile == 'All deciles' and use country-level aggregation
@@ -1016,6 +1028,307 @@ def create_radar_chart_pca(level_filters, selected_countries):
     )
     
     return fig
+
+
+# ==================== DOWNLOAD CALLBACKS ====================
+
+def get_map_data(level_filters):
+    """Get the filtered data for the map chart"""
+    # Get latest year available
+    if level_filters['current_level'] == 3:
+        indicator_data = unified_df[
+            (unified_df['Level'] == 3) &
+            (unified_df['Primary and raw data'] == level_filters['primary_indicator'])
+        ]
+        latest_year = indicator_data['Year'].max() if not indicator_data.empty else unified_df['Year'].max()
+    else:
+        latest_year = unified_df['Year'].max()
+    
+    if level_filters['current_level'] == 1:
+        map_data = unified_df[
+            (unified_df['Level'] == 1) &
+            (unified_df['Year'] == latest_year) &
+            (unified_df['Decile'] == 'All Deciles') &
+            (unified_df['Country'] != 'EU-27')
+        ].copy()
+    elif level_filters['current_level'] == 2:
+        map_data = unified_df[
+            (unified_df['Level'] == 2) &
+            (unified_df['Year'] == latest_year) &
+            (unified_df['Decile'] == 'All Deciles') &
+            (unified_df['EU priority'] == level_filters['eu_priority']) &
+            (unified_df['Country'] != 'EU-27')
+        ].copy()
+    else:
+        map_data = unified_df[
+            (unified_df['Level'] == 3) &
+            (unified_df['Aggregation'] == 'Geometric mean across deciles for Level 3 (Raw Indicators)') &
+            (unified_df['Year'] == latest_year) &
+            (unified_df['Decile'] == 'All Deciles') &
+            (unified_df['Primary and raw data'] == level_filters['primary_indicator']) &
+            (unified_df['Country'] != 'EU-27')
+        ].copy()
+    
+    if not map_data.empty:
+        map_data['Country_Name'] = map_data['Country'].map(ISO2_TO_FULL_NAME).fillna(map_data['Country'])
+    return map_data
+
+
+def get_timeseries_data(level_filters, selected_countries):
+    """Get the filtered data for the time series chart"""
+    countries_to_show = ['EU-27']
+    if selected_countries:
+        countries_to_show.extend(selected_countries)
+    
+    if level_filters['current_level'] == 1:
+        ts_data = unified_df[
+            (unified_df['Level'] == 1) &
+            (unified_df['Decile'] == 'All Deciles') &
+            (unified_df['Country'].isin(countries_to_show)) &
+            (
+                (unified_df['Country'] != 'EU-27') |
+                ((unified_df['Country'] == 'EU-27') & 
+                 (unified_df['Aggregation'] == 'Population-weighted arithmetic mean'))
+            )
+        ].copy()
+    elif level_filters['current_level'] == 2:
+        ts_data = unified_df[
+            (unified_df['Level'] == 2) &
+            (unified_df['Decile'] == 'All Deciles') &
+            (unified_df['EU priority'] == level_filters['eu_priority']) &
+            (unified_df['Country'].isin(countries_to_show)) &
+            (
+                (unified_df['Country'] != 'EU-27') |
+                ((unified_df['Country'] == 'EU-27') & 
+                 (unified_df['Aggregation'] == 'Population-weighted arithmetic mean'))
+            )
+        ].copy()
+    else:
+        ts_data = unified_df[
+            (unified_df['Level'] == 3) &
+            (
+                ((unified_df['Country'] != 'EU-27') & (unified_df['Aggregation'] == 'Geometric mean across deciles for Level 3 (Raw Indicators)')) |
+                ((unified_df['Country'] == 'EU-27') & (unified_df['Aggregation'] == 'Population-weighted arithmetic mean'))
+            ) &
+            (unified_df['Decile'] == 'All Deciles') &
+            (unified_df['Primary and raw data'] == level_filters['primary_indicator']) &
+            (unified_df['Country'].isin(countries_to_show))
+        ].copy()
+    
+    if not ts_data.empty:
+        ts_data['Country_Name'] = ts_data['Country'].map(ISO2_TO_FULL_NAME).fillna(ts_data['Country'])
+    return ts_data
+
+
+def get_decile_data(level_filters, selected_countries):
+    """Get the filtered data for the decile chart"""
+    if level_filters['current_level'] == 3:
+        indicator_data = unified_df[
+            (unified_df['Level'] == 3) &
+            (unified_df['Primary and raw data'] == level_filters['primary_indicator'])
+        ]
+        latest_year = indicator_data['Year'].max() if not indicator_data.empty else unified_df['Year'].max()
+    else:
+        latest_year = unified_df['Year'].max()
+    
+    countries_to_show = ['EU-27']
+    if selected_countries:
+        countries_to_show.extend(selected_countries)
+    
+    if level_filters['current_level'] == 1:
+        decile_data = unified_df[
+            (unified_df['Level'] == 1) &
+            (unified_df['Year'] == latest_year) &
+            (unified_df['Decile'] != 'All Deciles') &
+            (unified_df['Country'].isin(countries_to_show)) &
+            (
+                (unified_df['Country'] != 'EU-27') |
+                ((unified_df['Country'] == 'EU-27') & 
+                 (unified_df['Aggregation'] == 'Population-weighted arithmetic mean'))
+            )
+        ].copy()
+    elif level_filters['current_level'] == 2:
+        decile_data = unified_df[
+            (unified_df['Level'] == 2) &
+            (unified_df['Year'] == latest_year) &
+            (unified_df['Decile'] != 'All Deciles') &
+            (unified_df['EU priority'] == level_filters['eu_priority']) &
+            (unified_df['Country'].isin(countries_to_show)) &
+            (
+                (unified_df['Country'] != 'EU-27') |
+                ((unified_df['Country'] == 'EU-27') & 
+                 (unified_df['Aggregation'] == 'Population-weighted arithmetic mean'))
+            )
+        ].copy()
+    else:
+        decile_data = unified_df[
+            (unified_df['Level'] == 3) &
+            (
+                ((unified_df['Country'] != 'EU-27') & (unified_df['Aggregation'] == 'Break-adjusted and forward-filled (raw data)')) |
+                ((unified_df['Country'] == 'EU-27') & (unified_df['Aggregation'] == 'Population-weighted arithmetic mean'))
+            ) &
+            (unified_df['Year'] == latest_year) &
+            (unified_df['Decile'] != 'All Deciles') &
+            (unified_df['Primary and raw data'] == level_filters['primary_indicator']) &
+            (unified_df['Country'].isin(countries_to_show))
+        ].copy()
+    
+    if not decile_data.empty:
+        decile_data['Country_Name'] = decile_data['Country'].map(ISO2_TO_FULL_NAME).fillna(decile_data['Country'])
+    return decile_data
+
+
+def get_radar_data(level_filters, selected_countries):
+    """Get the filtered data for the radar/comparison chart"""
+    if level_filters['current_level'] == 3:
+        indicator_data = unified_df[
+            (unified_df['Level'] == 3) &
+            (unified_df['Primary and raw data'] == level_filters['primary_indicator'])
+        ]
+        latest_year = indicator_data['Year'].max() if not indicator_data.empty else unified_df['Year'].max()
+    else:
+        latest_year = unified_df['Year'].max()
+    
+    if level_filters['current_level'] == 1:
+        countries_to_show = ['EU-27']
+        if selected_countries:
+            countries_to_show.extend(selected_countries)
+        
+        radar_data = unified_df[
+            (unified_df['Level'] == 2) &
+            (unified_df['Year'] == latest_year) &
+            (unified_df['Decile'] == 'All Deciles') &
+            (unified_df['Country'].isin(countries_to_show)) &
+            (
+                (unified_df['Country'] != 'EU-27') |
+                ((unified_df['Country'] == 'EU-27') & 
+                 (unified_df['Aggregation'] == 'Population-weighted arithmetic mean'))
+            )
+        ].copy()
+    elif level_filters['current_level'] == 2:
+        radar_data = unified_df[
+            (unified_df['Level'] == 2) &
+            (unified_df['Year'] == latest_year) &
+            (unified_df['Decile'] == 'All Deciles') &
+            (unified_df['EU priority'] == level_filters['eu_priority']) &
+            (unified_df['Country'] != 'EU-27')
+        ].copy()
+        # Add EU-27 data
+        eu_data = unified_df[
+            (unified_df['Level'] == 2) &
+            (unified_df['Year'] == latest_year) &
+            (unified_df['Decile'] == 'All Deciles') &
+            (unified_df['EU priority'] == level_filters['eu_priority']) &
+            (unified_df['Country'] == 'EU-27') &
+            (unified_df['Aggregation'] == 'Population-weighted arithmetic mean')
+        ].copy()
+        radar_data = pd.concat([radar_data, eu_data], ignore_index=True)
+    else:
+        radar_data = unified_df[
+            (unified_df['Level'] == 3) &
+            (unified_df['Aggregation'] == 'Geometric mean across deciles for Level 3 (Raw Indicators)') &
+            (unified_df['Year'] == latest_year) &
+            (unified_df['Decile'] == 'All Deciles') &
+            (unified_df['Primary and raw data'] == level_filters['primary_indicator']) &
+            (unified_df['Country'] != 'EU-27')
+        ].copy()
+        # Add EU-27 data
+        eu_data = unified_df[
+            (unified_df['Level'] == 3) &
+            (unified_df['Aggregation'] == 'Population-weighted arithmetic mean') &
+            (unified_df['Year'] == latest_year) &
+            (unified_df['Decile'] == 'All Deciles') &
+            (unified_df['Primary and raw data'] == level_filters['primary_indicator']) &
+            (unified_df['Country'] == 'EU-27')
+        ].copy()
+        radar_data = pd.concat([radar_data, eu_data], ignore_index=True)
+    
+    if not radar_data.empty:
+        radar_data['Country_Name'] = radar_data['Country'].map(ISO2_TO_FULL_NAME).fillna(radar_data['Country'])
+    return radar_data
+
+
+def create_excel_download(df, filename):
+    """Create an Excel file download from a DataFrame"""
+    if df is None or df.empty:
+        return None
+    
+    # Select relevant columns for export
+    export_columns = ['Country', 'Country_Name', 'Year', 'Value', 'Decile', 'EU priority', 'Primary and raw data', 'Level', 'Aggregation']
+    export_columns = [col for col in export_columns if col in df.columns]
+    export_df = df[export_columns].copy()
+    
+    # Create Excel file in memory
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        export_df.to_excel(writer, index=False, sheet_name='Data')
+    output.seek(0)
+    
+    return dcc.send_bytes(output.getvalue(), filename)
+
+
+@app.callback(
+    Output("download-map", "data"),
+    Input("download-map-btn", "n_clicks"),
+    [State('eu-priority-dropdown', 'value'),
+     State('primary-indicator-dropdown', 'value')],
+    prevent_initial_call=True
+)
+def download_map_data(n_clicks, eu_priority, primary_indicator):
+    if n_clicks is None:
+        return None
+    level_filters = create_level_filters_pca(eu_priority, primary_indicator)
+    df = get_map_data(level_filters)
+    return create_excel_download(df, "ewbi_map_data.xlsx")
+
+
+@app.callback(
+    Output("download-timeseries", "data"),
+    Input("download-timeseries-btn", "n_clicks"),
+    [State('eu-priority-dropdown', 'value'),
+     State('primary-indicator-dropdown', 'value'),
+     State('countries-filter', 'value')],
+    prevent_initial_call=True
+)
+def download_timeseries_data(n_clicks, eu_priority, primary_indicator, selected_countries):
+    if n_clicks is None:
+        return None
+    level_filters = create_level_filters_pca(eu_priority, primary_indicator)
+    df = get_timeseries_data(level_filters, selected_countries)
+    return create_excel_download(df, "ewbi_timeseries_data.xlsx")
+
+
+@app.callback(
+    Output("download-decile", "data"),
+    Input("download-decile-btn", "n_clicks"),
+    [State('eu-priority-dropdown', 'value'),
+     State('primary-indicator-dropdown', 'value'),
+     State('countries-filter', 'value')],
+    prevent_initial_call=True
+)
+def download_decile_data(n_clicks, eu_priority, primary_indicator, selected_countries):
+    if n_clicks is None:
+        return None
+    level_filters = create_level_filters_pca(eu_priority, primary_indicator)
+    df = get_decile_data(level_filters, selected_countries)
+    return create_excel_download(df, "ewbi_decile_data.xlsx")
+
+
+@app.callback(
+    Output("download-radar", "data"),
+    Input("download-radar-btn", "n_clicks"),
+    [State('eu-priority-dropdown', 'value'),
+     State('primary-indicator-dropdown', 'value'),
+     State('countries-filter', 'value')],
+    prevent_initial_call=True
+)
+def download_radar_data(n_clicks, eu_priority, primary_indicator, selected_countries):
+    if n_clicks is None:
+        return None
+    level_filters = create_level_filters_pca(eu_priority, primary_indicator)
+    df = get_radar_data(level_filters, selected_countries)
+    return create_excel_download(df, "ewbi_comparison_data.xlsx")
+
 
 # Local development server
 if __name__ == '__main__':

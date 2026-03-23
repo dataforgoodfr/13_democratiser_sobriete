@@ -1129,6 +1129,11 @@ def create_tenure_status_countries_map():
     
     # Get all countries with "Owner" tenure only
     df_countries = df[(df['country_name'] != 'EU27') & (df['tenure'] == 'Owner')].copy()
+    # Keep all-population definition only
+    if 'incgrp' in df_countries.columns:
+        df_countries = df_countries[df_countries['incgrp'] == 'Total'].copy()
+    if 'hhtyp' in df_countries.columns:
+        df_countries = df_countries[df_countries['hhtyp'] == 'Total'].copy()
     if df_countries.empty:
         print("  No Owner tenure data available")
         return
@@ -1146,12 +1151,13 @@ def create_tenure_status_countries_map():
             'Sweden': 'SE', 'Switzerland': 'CH'
         }
         
-        # Prepare data for mapping
+        # Prepare data for mapping/export
         df_countries['geo'] = df_countries['country_name'].map(country_to_iso)
         df_countries['year'] = df_countries['TIME_PERIOD'].astype(int)
         df_countries['value'] = pd.to_numeric(df_countries['value'], errors='coerce')
+        df_countries = df_countries.dropna(subset=['geo', 'year', 'value']).copy()
         
-        df_plot = df_countries[['geo', 'year', 'value']].dropna()
+        df_plot = df_countries[['geo', 'year', 'value']].copy()
         
         if df_plot.empty:
             print("  No valid data for mapping")
@@ -1162,11 +1168,14 @@ def create_tenure_status_countries_map():
         print(f"  Tenure status map (6c) - Using latest year: {latest_year}")
         print(f"  Available years: {sorted(df_plot['year'].unique())}")
         
-        # Define study countries (EU + EFTA)
-        study_countries = ['AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 
-                          'FR', 'DE', 'GR', 'HU', 'IE', 'IT', 'LV', 'LT', 'LU', 
-                          'MT', 'NL', 'PL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE', 
-                          'NO', 'CH', 'IS']
+        # Keep the exact plotted year dataset for Excel export alignment
+        df_plot_latest = df_plot[df_plot['year'] == latest_year].copy()
+        if df_plot_latest.empty:
+            print(f"  No valid data for latest year {latest_year}")
+            return
+
+        # Ensure one value per country code
+        df_plot_latest = df_plot_latest.drop_duplicates(subset=['geo'], keep='last').copy()
         
         # Construct path to shapefile
         shapefile_path = os.path.join(BASE_DIR, 'external_data', '0_shapefile', 
@@ -1174,7 +1183,7 @@ def create_tenure_status_countries_map():
         
         # Call the plot_europe_map function from plot_functions
         fig, ax = plot_europe_map(
-            df_plot,
+            df_plot_latest,
             year=latest_year,
             colormap='YlOrRd',
             value_title='Owner-Occupied Dwellings\n(%)',
@@ -1196,9 +1205,14 @@ def create_tenure_status_countries_map():
         plt.close()
         print("  [SAVED] 6c_tenure_status_countries_map.png")
         
-        # Export data to Excel
+        # Export data to Excel (same latest-year data used for map)
+        iso_to_country = {v: k for k, v in country_to_iso.items()}
+        df_excel_source = df_plot_latest.drop_duplicates(subset=['geo'], keep='last').copy()
+        df_excel_source['country_name'] = df_excel_source['geo'].map(iso_to_country)
+        df_excel_source = df_excel_source.dropna(subset=['country_name'])
+
         excel_path = os.path.join(OUTPUT_DIR, '6c_tenure_status_countries_map.xlsx')
-        export_tenure_status_map_to_excel(df_countries, latest_year, excel_path)
+        export_tenure_status_map_to_excel(df_excel_source, latest_year, excel_path)
         print(f"  [SAVED] 6c_tenure_status_countries_map.xlsx")
         
     except Exception as e:

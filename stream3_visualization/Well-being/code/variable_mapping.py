@@ -106,6 +106,47 @@ VARIABLE_NAME_MAPPING_FR = {
     "EC-SILC-4": "Personnes vivant seules"
 }
 
+# EU Priority name mapping - maps original names to shorter display names
+EU_PRIORITY_DISPLAY_MAPPING = {
+    "Health and Animal Welfare": "Health",
+    "Intergenerational Fairness, Youth, Culture and Sport": "Education",
+    "Social Rights and Skills, Quality Jobs and Preparedness": "Quality of Jobs"
+}
+
+# Reverse mapping for EU Priorities
+EU_PRIORITY_REVERSE_MAPPING = {v: k for k, v in EU_PRIORITY_DISPLAY_MAPPING.items()}
+
+
+def get_eu_priority_display_name(priority_name):
+    """
+    Get the display name for an EU Priority.
+    
+    Args:
+        priority_name (str): The original EU priority name
+    
+    Returns:
+        str: The display name or the original name if not found
+    """
+    if not priority_name or pd.isna(priority_name):
+        return priority_name
+    return EU_PRIORITY_DISPLAY_MAPPING.get(priority_name, priority_name)
+
+
+def get_eu_priority_original_name(display_name):
+    """
+    Get the original EU Priority name from display name.
+    
+    Args:
+        display_name (str): The display name
+    
+    Returns:
+        str: The original name or the display name if not found
+    """
+    if not display_name or pd.isna(display_name):
+        return display_name
+    return EU_PRIORITY_REVERSE_MAPPING.get(display_name, display_name)
+
+
 def get_display_name(acronym, language='en'):
     """
     Get the display name for a variable acronym.

@@ -40,6 +40,15 @@ AGGREGATE_PARTNERS = [
 # Define constants
 TARGET_YEAR = 2024  # Using 2024 as it has more complete data than 2025
 N_PARTNERS = 15
+CH_GROUP_EU_EFTA = 'EU-27 + EFTA'
+CH_GROUP_REST_WORLD = 'Rest of World'
+
+EU27_AGGREGATE_PARTNERS = [
+    'European Union - 27 countries (AT, BE, BG, CY, CZ, DE, DK, EE, ES, FI, FR, GR, HR, HU, IE, IT, LT, LU, LV, MT, NL, PL, PT, RO, SE, SI, SK)',
+    'European Union - 27 countries (from 2020)'
+]
+EFTA_AGGREGATE_PARTNERS = ['EFTA']
+WORLD_AGGREGATE_PARTNERS = ['All countries of the world']
 
 # Define EU27 and EFTA countries
 EU27_COUNTRIES = [
@@ -157,6 +166,9 @@ COUNTRY_CODES = {
     'Hong Kong': 'HK'
 }
 
+COUNTRY_CODES[CH_GROUP_EU_EFTA] = 'EU+EFTA'
+COUNTRY_CODES[CH_GROUP_REST_WORLD] = 'RoW'
+
 # Country name mapping for GDP data matching
 COUNTRY_NAME_MAPPING = {
     'Belgium (incl. Luxembourg \'LU\' -> 1998)': 'Belgium',
@@ -172,6 +184,14 @@ COUNTRY_NAME_MAPPING = {
     'T�rkiye': 'T�rkiye',
     'Türkiye': 'T�rkiye'
 }
+
+COUNTRY_NAME_NORMALIZATION = {
+    'Czechia': 'Czech Republic',
+    'T�rkiye': 'Türkiye'
+}
+
+EU27_COUNTRIES_NORMALIZED = {COUNTRY_NAME_NORMALIZATION.get(country, country) for country in EU27_COUNTRIES}
+EFTA_COUNTRIES_NORMALIZED = {COUNTRY_NAME_NORMALIZATION.get(country, country) for country in EFTA_COUNTRIES}
 
 def load_gdp_data(year=TARGET_YEAR):
     """
@@ -204,6 +224,14 @@ def get_country_code(country_name):
     Get country code for labeling.
     """
     return COUNTRY_CODES.get(country_name, country_name[:3].upper())
+
+
+def normalize_country_name(country_name):
+    """
+    Normalize country names for grouping and matching.
+    """
+    mapped_name = COUNTRY_NAME_MAPPING.get(country_name, country_name)
+    return COUNTRY_NAME_NORMALIZATION.get(mapped_name, mapped_name)
 
 
 def load_trade_data():
@@ -346,6 +374,92 @@ def get_switzerland_trade_by_product(df, year=TARGET_YEAR, top_n=N_PARTNERS):
         trade_pivot['IMPORT'] = 0
     
     return trade_pivot, top_partners
+
+
+def get_switzerland_grouped_trade_by_product(df, year=TARGET_YEAR):
+    """
+    Build Switzerland trade by product with two partner groups:
+    - EU-27 + EFTA
+    - Rest of World
+
+    Uses aggregate geo rows when they exist, otherwise falls back to summed country rows.
+    """
+    print(f"Processing Switzerland grouped trade data for {year}...")
+
+    ch_df = df[
+        (df['reporter'] == "Switzerland (incl. Liechtenstein 'LI' -> 1994)") &
+        (df['year'] == year) &
+        (df['product'] != 'TOTAL')
+    ].copy()
+
+    if ch_df.empty:
+        print("No Switzerland product-level data found for grouped output")
+        return pd.DataFrame()
+
+    ch_df['partner_normalized'] = ch_df['partner'].apply(normalize_country_name)
+
+    grouped_rows = []
+    products = sorted(ch_df['product'].dropna().unique())
+
+    for product in products:
+        for flow in ['EXPORT', 'IMPORT']:
+            subset = ch_df[(ch_df['product'] == product) & (ch_df['flow'] == flow)]
+
+            if subset.empty:
+                eu_efta_value = 0
+                rest_world_value = 0
+            else:
+                eu_agg = subset[subset['partner'].isin(EU27_AGGREGATE_PARTNERS)]['value'].sum()
+                efta_agg = subset[subset['partner'].isin(EFTA_AGGREGATE_PARTNERS)]['value'].sum()
+
+                eu_value = eu_agg if eu_agg > 0 else subset[
+                    subset['partner_normalized'].isin(EU27_COUNTRIES_NORMALIZED)
+                ]['value'].sum()
+                efta_value = efta_agg if efta_agg > 0 else subset[
+                    subset['partner_normalized'].isin(EFTA_COUNTRIES_NORMALIZED)
+                ]['value'].sum()
+
+                eu_efta_value = eu_value + efta_value
+
+                world_total = subset[subset['partner'].isin(WORLD_AGGREGATE_PARTNERS)]['value'].sum()
+                if world_total > 0:
+                    rest_world_value = max(world_total - eu_efta_value, 0)
+                else:
+                    rest_world_value = subset[
+                        (~subset['partner_normalized'].isin(EU27_COUNTRIES_NORMALIZED)) &
+                        (~subset['partner_normalized'].isin(EFTA_COUNTRIES_NORMALIZED)) &
+                        (~subset['partner'].isin(AGGREGATE_PARTNERS))
+                    ]['value'].sum()
+
+            grouped_rows.append({
+                'partner': CH_GROUP_EU_EFTA,
+                'product': product,
+                'flow': flow,
+                'value': eu_efta_value
+            })
+            grouped_rows.append({
+                'partner': CH_GROUP_REST_WORLD,
+                'product': product,
+                'flow': flow,
+                'value': rest_world_value
+            })
+
+    grouped_df = pd.DataFrame(grouped_rows)
+
+    trade_pivot = grouped_df.pivot_table(
+        index=['partner', 'product'],
+        columns='flow',
+        values='value',
+        fill_value=0
+    ).reset_index()
+
+    trade_pivot.columns.name = None
+    if 'EXPORT' not in trade_pivot.columns:
+        trade_pivot['EXPORT'] = 0
+    if 'IMPORT' not in trade_pivot.columns:
+        trade_pivot['IMPORT'] = 0
+
+    return trade_pivot
 
 def create_stacked_trade_chart(trade_data, partners_order, title, filename, reporter_name="EU27"):
     """
@@ -740,6 +854,58 @@ def export_switzerland_trade_to_excel(ch_trade, ch_gdp, year, output_dir):
     
     return switzerland_trade_by_product_2024
 
+
+def export_switzerland_grouped_trade_to_excel(ch_trade_grouped, ch_gdp, year, output_dir):
+    """
+    Export grouped Switzerland trade data (EU-27 + EFTA vs Rest of World) to Excel.
+    One row per partner group and product, with export/import in separate columns.
+    """
+    print("Formatting grouped Switzerland trade data for Excel export...")
+
+    export_denominator = ch_gdp if ch_gdp > 0 else np.nan
+
+    switzerland_trade_grouped = ch_trade_grouped.copy()
+    switzerland_trade_grouped['product_clean'] = switzerland_trade_grouped['product'].map(
+        lambda product: PRODUCT_MAPPING.get(product, product)
+    )
+    switzerland_trade_grouped['export_value'] = (
+        (switzerland_trade_grouped['EXPORT'] / export_denominator) * 100
+    ).fillna(0)
+    switzerland_trade_grouped['import_value'] = (
+        (switzerland_trade_grouped['IMPORT'] / export_denominator) * 100
+    ).fillna(0)
+    switzerland_trade_grouped['visual_number'] = np.nan
+    switzerland_trade_grouped['visual_name'] = "Switzerland Trade Grouped"
+    switzerland_trade_grouped['year'] = year
+    switzerland_trade_grouped['decile'] = np.nan
+    switzerland_trade_grouped['unit'] = '% of GDP'
+
+    switzerland_trade_grouped = switzerland_trade_grouped[[
+        'visual_number',
+        'visual_name',
+        'year',
+        'partner',
+        'product_clean',
+        'decile',
+        'export_value',
+        'import_value',
+        'unit'
+    ]].rename(columns={
+        'partner': 'filter_1',
+        'product_clean': 'filter_2'
+    })
+
+    switzerland_trade_grouped = switzerland_trade_grouped.sort_values(['filter_1', 'filter_2'])
+
+    excel_filename = f"switzerland_trade_by_product_grouped_{year}.xlsx"
+    excel_path = os.path.join(output_dir, excel_filename)
+    switzerland_trade_grouped.to_excel(excel_path, index=False)
+
+    print(f"Grouped Excel file saved: {excel_path}")
+    print(f"Total grouped rows exported: {len(switzerland_trade_grouped)}")
+
+    return switzerland_trade_grouped
+
 def main():
     """Main function to generate all visualizations for both 2024 and 2025."""
     print("Starting Eurostat Trade Visualization Script")
@@ -823,6 +989,28 @@ def main():
                     if year == 2024:
                         print("Exporting Switzerland trade data to Excel...")
                         switzerland_trade_by_product_2024 = export_switzerland_trade_to_excel(ch_trade, ch_gdp, year, OUTPUT_DIR)
+
+                        print("Creating grouped Switzerland trade outputs (EU-27 + EFTA vs Rest of World)...")
+                        ch_grouped_trade = get_switzerland_grouped_trade_by_product(df, year)
+
+                        if not ch_grouped_trade.empty:
+                            create_stacked_trade_chart_gdp_pct(
+                                ch_grouped_trade,
+                                [CH_GROUP_EU_EFTA, CH_GROUP_REST_WORLD],
+                                f"Switzerland Trade by Product Type - EU-27 + EFTA vs Rest of World (% of GDP, {year})",
+                                f"switzerland_trade_by_product_grouped_{year}.png",
+                                ch_gdp,
+                                "Switzerland"
+                            )
+
+                            switzerland_trade_by_product_grouped_2024 = export_switzerland_grouped_trade_to_excel(
+                                ch_grouped_trade,
+                                ch_gdp,
+                                year,
+                                OUTPUT_DIR
+                            )
+                        else:
+                            print("No grouped Switzerland trade data found for 2024")
                 else:
                     print(f"No GDP data found for Switzerland in {year}")
             else:

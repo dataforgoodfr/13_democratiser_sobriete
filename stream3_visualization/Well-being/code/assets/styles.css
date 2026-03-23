@@ -317,3 +317,61 @@
 ::-webkit-scrollbar-thumb:hover {
     background: #555;
 }
+
+/* Download button styling */
+.download-btn {
+    background-color: #9e9e9e;
+    color: white;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-family: Arial, sans-serif;
+    font-size: 0.7rem;
+    font-weight: 400;
+    transition: background-color 0.2s ease;
+    opacity: 0.6;
+    position: absolute;
+    bottom: 15px;
+    left: 8px;
+    z-index: 100;
+}
+
+.download-btn:hover {
+    background-color: #757575;
+    opacity: 1;
+}
+
+.download-btn:active {
+    background-color: #616161;
+}
+
+/* Grid item adjustments for download button */
+.grid-item {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    padding: 1vw;
+    overflow: hidden;
+    box-sizing: border-box;
+    position: relative;
+}
+
+.grid-item .dash-graph {
+    flex: 1;
+    width: 100% !important;
+    min-height: 0;
+}
+
+@media (max-width: 768px) {
+    .download-btn {
+        padding: 3px 6px;
+        font-size: 0.65rem;
+        top: 5px;
+        right: 5px;
+    }
+}
