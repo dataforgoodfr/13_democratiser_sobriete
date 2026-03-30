@@ -1,10 +1,14 @@
-import dspy
+import sys
 import os
 import json
 import random
 from dotenv import load_dotenv
 from datetime import datetime
+import dspy
 from dspy.teleprompt import MIPROv2
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
+
 
 # ---------------------------------------------------------------------
 # IMPORTS: TAXONOMY
@@ -76,7 +80,7 @@ regional_mapper = create_enum_mapper(Regional_group)
 
 
 golden_dataset = []
-path = "dspy_policies_and_taxonomy_extraction/model_training_data/gold_taxonomy.jsonl"
+path = "../model_training_data/gold_taxonomy.jsonl"
 
 if not os.path.exists(path):
     raise FileNotFoundError(f"Data file '{path}' not found.")
@@ -169,8 +173,8 @@ class GeographySignature(dspy.Signature):
 
 lm = dspy.LM(
     model="mistral/mistral-small-3.2-24b-instruct-2506",
-    api_key=os.getenv("SCALEWAY_API_KEY"),
-    api_base="https://api.scaleway.ai/a2dc0d31-c47f-47f1-b0b9-9877dd4eb2b5/v1"
+    api_key=os.getenv("SCW_SECRET_KEY"),
+    api_base=os.getenv("GENERATION_API_URL")
 )
 
 dspy.configure(lm=lm)

@@ -1,55 +1,64 @@
 import sys
 import os
-import json
 import random
 import re
 from datetime import datetime
 from dotenv import load_dotenv
 
+import numpy as np
 import pandas as pd
+import sklearn
 from sklearn.preprocessing import MultiLabelBinarizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.multiclass import OneVsRestClassifier
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import f1_score
+from sklearn.model_selection import KFold, GridSearchCV, cross_val_predict
+from sklearn.metrics import f1_score, fbeta_score, precision_score, recall_score, make_scorer
 import joblib
 
-from sentence_transformers import SentenceTransformer
+sklearn.set_config(enable_metadata_routing=True)  # allows passing sample_with through CV
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
+
 
 # ---------------------------------------------------------------------
 # 0. IMPORT TAXONOMY ENUMS
 # ---------------------------------------------------------------------
 from dspy_policies_and_taxonomy_extraction.taxonomy_definition.impact_taxonomy import (
-    Human_needs,
-    Natural_ressource,
+    Need,
+    Resource,
     Wellbeing,
-    Justice_consideration,
-    Planetary_boundaries,
+    Justice,
+    PlanetaryBoundary,
 )
 
 # ---------------------------------------------------------------------
 # PATH SETUP
 # ---------------------------------------------------------------------
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 load_dotenv()
 
 # ---------------------------------------------------------------------
 # ENUM NORMALIZATION
 # ---------------------------------------------------------------------
 # These sets contain snake_case strings (e.g., 'climate_change', 'freshwater_use')
-HUMAN_NEEDS_ENUM = {e.name.lower() for e in Human_needs}
-NATURAL_RESOURCE_ENUM = {e.name.lower() for e in Natural_ressource}
+Need_ENUM = {e.name.lower() for e in Need}
+NATURAL_RESOURCE_ENUM = {e.name.lower() for e in Resource}
 WELLBEING_ENUM = {e.name.lower() for e in Wellbeing}
-JUSTICE_ENUM = {e.name.lower() for e in Justice_consideration}
-PLANETARY_ENUM = {e.name.lower() for e in Planetary_boundaries}
+JUSTICE_ENUM = {e.name.lower() for e in Justice}
+PLANETARY_ENUM = {e.name.lower() for e in PlanetaryBoundary}
 
 # ---------------------------------------------------------------------
-# PATHS
+# PATHS & CONFIG
 # ---------------------------------------------------------------------
-DATA_PATH_GOLD = "dspy_policies_and_taxonomy_extraction/model_training_data/gold_taxonomy.jsonl"
-DATA_PATH_SYNTHETIC = "dspy_policies_and_taxonomy_extraction/model_training_data/synthetic_taxonomy.jsonl"
-
+DATA_PATH_GOLD = "../model_training_data/gold_impact_taxonomy_concat_with_embeddings_2026-03-11.parquet"
+DATA_PATH_SYNTH = "../model_training_data/sample_2000_impact_taxonomy_gemini3_flash.parquet"
+EMB_COL = "embedding"
 MODEL_ROOT = "saved_impact_models"
+
+# Sample weight multiplier for gold data points relative to synthetic ones.
+# 1.0 → equal weight (no effect). Higher values make the model trust gold labels more
+# during both training and CV evaluation. E.g. 5.0 → each gold example counts as 5
+# synthetic examples when fitting and when computing metrics.
+GOLD_SAMPLE_WEIGHT = 5.0
 
 # ---------------------------------------------------------------------
 # 1. NORMALIZATION HELPERS
@@ -66,7 +75,7 @@ def normalize_labels(labels, allowed_enum, allow_unknown=False):
     """
     Normalizes input labels to snake_case and validates them against the provided Enum set.
     """
-    if not labels:
+    if labels is None or len(labels) == 0:
         return ["unknown"] if allow_unknown else []
 
     if isinstance(labels, str):
@@ -99,86 +108,88 @@ def normalize_labels(labels, allowed_enum, allow_unknown=False):
     return cleaned
 
 # ---------------------------------------------------------------------
-# 2. LOAD DATASETS
+# 2. LOAD DATASET
 # ---------------------------------------------------------------------
-def load_taxonomy_jsonl(path, source_name):
+def load_taxonomy_parquet(path, source_name):
     if not os.path.exists(path):
         print(f"Warning: Data file '{path}' not found.")
         return []
 
+    df = pd.read_parquet(path)
     dataset = []
 
-    with open(path, "r", encoding="utf-8") as f:
-        for idx, line in enumerate(f, start=1):
-            line = line.strip()
-            if not line:
-                continue
+    for idx, row in df.iterrows():
+        text = normalize_text(row.get('text', row.get('question', '')))
+        if not text:
+            continue
 
-            try:
-                data = json.loads(line)
-            except json.JSONDecodeError as e:
-                print(f"[{source_name}] Skipping invalid JSON on line {idx}: {e}")
-                continue
+        embedding = row.get(EMB_COL)
+        if embedding is None:
+            print(f"Warning: row {idx} has no embedding, skipping.")
+            continue
 
-            # Apply normalization that converts "Climate Change" -> "climate_change"
-            example = {
-                "text": normalize_text(data.get("question", "")),
-                "human_needs": normalize_labels(data.get("human_needs", []), HUMAN_NEEDS_ENUM),
-                "natural_ressource": normalize_labels(data.get("natural_ressource", []), NATURAL_RESOURCE_ENUM),
-                "wellbeing": normalize_labels(data.get("wellbeing", []), WELLBEING_ENUM),
-                "justice_consideration": normalize_labels(data.get("justice_consideration", []), JUSTICE_ENUM),
-                "planetary_boundaries": normalize_labels(data.get("planetary_boundaries", []), PLANETARY_ENUM),
-                "source": source_name,
-            }
-
-            # Only add if there is text
-            if example["text"]:
-                dataset.append(example)
+        example = {
+            "text": text,
+            "embedding": embedding.astype(np.float32),
+            "Need": normalize_labels(row.get("human_needs", []), Need_ENUM),
+            "Resource": normalize_labels(row.get("natural_resources", []), NATURAL_RESOURCE_ENUM),
+            "wellbeing": normalize_labels(row.get("wellbeing", []), WELLBEING_ENUM),
+            "Justice": normalize_labels(row.get("justice_considerations", []), JUSTICE_ENUM),
+            "PlanetaryBoundary": normalize_labels(row.get("planetary_boundaries", []), PLANETARY_ENUM),
+            "source": source_name,
+        }
+        dataset.append(example)
 
     print(f"Loaded {len(dataset)} examples from {source_name}")
     return dataset
 
 
-gold_dataset = load_taxonomy_jsonl(DATA_PATH_GOLD, "gold")
-synthetic_dataset = load_taxonomy_jsonl(DATA_PATH_SYNTHETIC, "synthetic")
+gold_dataset = load_taxonomy_parquet(DATA_PATH_GOLD, "gold")
+synth_dataset = load_taxonomy_parquet(DATA_PATH_SYNTH, "synthetic")
 
-# Combine datasets (Uncomment synthetic if needed)
-golden_dataset = gold_dataset # + synthetic_dataset 
-print(f"Total combined dataset size: {len(golden_dataset)}")
-
-# Shuffle after combining
 random.seed(32)
-random.shuffle(golden_dataset)
+train_dataset = gold_dataset + synth_dataset
+random.shuffle(train_dataset)
+print(f"Train size: {len(train_dataset)}  (gold={len(gold_dataset)}, synth={len(synth_dataset)})")
+print(f"Gold sample weight: {GOLD_SAMPLE_WEIGHT}")
+
+# Per-sample weights: gold examples get GOLD_SAMPLE_WEIGHT, synthetic get 1.0.
+sample_weights = np.array(
+    [GOLD_SAMPLE_WEIGHT if ex["source"] == "gold" else 1.0 for ex in train_dataset],
+    dtype=np.float32,
+)
+
+golden_dataset = train_dataset
 
 # ---------------------------------------------------------------------
 # 3. FIELD DEFINITIONS
 # ---------------------------------------------------------------------
 impact_fields = [
-    "human_needs",
-    "natural_ressource",
+    "Need",
+    "Resource",
     "wellbeing",
-    "justice_consideration",
-    "planetary_boundaries",
+    "Justice",
+    "PlanetaryBoundary",
 ]
 
 ENUM_MAP = {
-    "human_needs": HUMAN_NEEDS_ENUM,
-    "natural_ressource": NATURAL_RESOURCE_ENUM,
+    "Need": Need_ENUM,
+    "Resource": NATURAL_RESOURCE_ENUM,
     "wellbeing": WELLBEING_ENUM,
-    "justice_consideration": JUSTICE_ENUM,
-    "planetary_boundaries": PLANETARY_ENUM,
+    "Justice": JUSTICE_ENUM,
+    "PlanetaryBoundary": PLANETARY_ENUM,
 }
 
-texts = [ex["text"] for ex in golden_dataset]
+texts = [ex["text"] for ex in train_dataset]
 
 # ---------------------------------------------------------------------
-# 4. LABEL BINARIZATION (ENUM-LOCKED)
+# 4. LABEL BINARIZATION (ENUM-LOCKED, training data only)
 # ---------------------------------------------------------------------
-labels_dict = {field: [ex[field] for ex in golden_dataset] for field in impact_fields}
+labels_dict = {field: [ex[field] for ex in train_dataset] for field in impact_fields}
 mlb_dict = {}
 Y_dict = {}
 
-print("\n--- Binarizing Labels ---")
+print("\n--- Binarizing Labels (train set) ---")
 for field, lists in labels_dict.items():
     # Force the classes to be exactly what's in the Enum
     mlb = MultiLabelBinarizer(classes=sorted(ENUM_MAP[field]))
@@ -187,10 +198,9 @@ for field, lists in labels_dict.items():
     mlb_dict[field] = mlb
     Y_dict[field] = Y
 
-    print(f"{field}: {Y.shape}")
-    # print(f"  classes: {mlb.classes_}")
+    print(f"{field}: {Y.shape[1]} classes")
     print(f"  positives per class: {Y.sum(axis=0)}")
-    
+
     # Sanity check
     if Y.sum() == 0:
         print(f"  WARNING: 0 positives found for {field}. Check normalization.")
@@ -198,70 +208,108 @@ for field, lists in labels_dict.items():
 # ---------------------------------------------------------------------
 # 5. EMBEDDINGS
 # ---------------------------------------------------------------------
-print("\nComputing Sentence-BERT embeddings...")
-sbert_model = SentenceTransformer("Qwen/Qwen3-Embedding-0.6B")
-X = sbert_model.encode(texts, show_progress_bar=True)
+print("\nLoading precomputed embeddings from parquet...")
+X = np.stack([ex["embedding"] for ex in train_dataset])
+print(f"Embedding matrix shape: {X.shape}")
 
 # ---------------------------------------------------------------------
-# 6. TRAIN / DEV SPLIT
+# 6. K-FOLD CROSS-VALIDATION & HYPERPARAMETER GRID
 # ---------------------------------------------------------------------
-if len(texts) > 5:
-    indices = list(range(len(texts)))
-    train_idx, dev_idx = train_test_split(indices, test_size=0.1, random_state=32)
+N_SPLITS = 5
+kf = KFold(n_splits=N_SPLITS, shuffle=True, random_state=32)
 
-    X_train = X[train_idx]
-    X_dev = X[dev_idx]
-    Y_train_dict = {f: Y_dict[f][train_idx] for f in Y_dict}
-    Y_dev_dict = {f: Y_dict[f][dev_idx] for f in Y_dict}
-else:
-    print("\nDataset too small for split. Training on all data.")
-    X_train, X_dev = X, X
-    Y_train_dict = Y_dict
-    Y_dev_dict = Y_dict
+param_grid = {
+    "estimator__C": [0.01, 0.1, 0.3, 1.0, 3.0, 10.0, 30.0, 100.0],
+}
+
+print(f"\nCross-validation: {N_SPLITS}-fold KFold")
+print(f"Param grid: {param_grid}")
 
 # ---------------------------------------------------------------------
-# 7. TRAIN CLASSIFIERS
+# 7. GRID SEARCH + FIT FINAL CLASSIFIERS
 # ---------------------------------------------------------------------
 classifiers = {}
-print("\nTraining Classifiers...")
+best_params_dict = {}
+best_cv_scores = {}
+
+print("\nRunning GridSearchCV for each field...")
 
 for field in impact_fields:
-    y_train = Y_train_dict[field]
-    
-    # Check if there are any labels to train on
-    if y_train.sum() == 0:
-        print(f"Skipping {field}: no positive labels in training set")
+    Y = Y_dict[field]
+    if Y.sum() == 0:
+        print(f"  Skipping {field}: no positive labels in dataset")
         continue
 
-    clf = OneVsRestClassifier(
-        LogisticRegression(max_iter=500, class_weight="balanced")
+    print(f"\n[{field}] GridSearchCV...")
+
+    base_clf = OneVsRestClassifier(
+        LogisticRegression(max_iter=500, class_weight="balanced").set_fit_request(sample_weight=True)
+    )  # Enable passing sample_weight through CV
+    # fbeta with beta=2 gives more importance to recall over precision
+    gs = GridSearchCV(
+        base_clf,
+        param_grid,
+        cv=kf,
+        scoring=make_scorer(fbeta_score, beta=2, average="micro", zero_division=0),
+        n_jobs=-1,
+        refit=True,
+        verbose=0,
     )
-    clf.fit(X_train, y_train)
-    classifiers[field] = clf
+    gs.fit(X, Y, sample_weight=sample_weights)
 
-    print(f"Trained classifier for {field}")
+    classifiers[field] = gs.best_estimator_
+    best_params_dict[field] = gs.best_params_
+    best_cv_scores[field] = round(gs.best_score_, 4)
+
+    print(f"  Best params : {gs.best_params_}")
+    print(f"  Best CV F1  : {gs.best_score_:.4f}")
 
 # ---------------------------------------------------------------------
-# 8. EVALUATION
+# 8. EVALUATION — Out-of-fold CV with sample-weighted metrics
+#    Fitting uses sample_weight so gold examples are trusted more.
+#    Reported metrics are also weighted by the same weights, so gold
+#    examples contribute more to the reported P/R/F1 scores.
 # ---------------------------------------------------------------------
-print("\nEvaluating...")
+print("\n" + "=" * 70)
+print("EVALUATION RESULTS (out-of-fold CV, sample-weighted metrics)")
+print("=" * 70)
 results = pd.DataFrame()
 f1_scores = {}
 
 for field, clf in classifiers.items():
-    y_true = Y_dev_dict[field]
-    y_pred = clf.predict(X_dev)
+    Y = Y_dict[field]
 
-    y_true_labels = mlb_dict[field].inverse_transform(y_true)
-    y_pred_labels = mlb_dict[field].inverse_transform(y_pred)
+    print(f"\n[{field}]  best params: {best_params_dict[field]}")
 
-    results[f"{field}_true"] = [list(label) for label in y_true_labels]
-    results[f"{field}_pred"] = [list(label) for label in y_pred_labels]
+    y_pred_oof = cross_val_predict(
+        clf, X, Y, cv=kf, method="predict",
+        params={"sample_weight": sample_weights}, n_jobs=-1,
+    )
+    classes = mlb_dict[field].classes_
+    support = Y.sum(axis=0)
 
-    f1 = f1_score(y_true, y_pred, average="micro")
-    f1_scores[field] = round(f1, 4)
+    # Weighted micro metrics
+    p_val  = precision_score(Y, y_pred_oof, average="micro", zero_division=0, sample_weight=sample_weights)
+    r_val  = recall_score(Y, y_pred_oof, average="micro", zero_division=0, sample_weight=sample_weights)
+    f1_val = f1_score(Y, y_pred_oof, average="micro", zero_division=0, sample_weight=sample_weights)
+    f1_scores[field] = round(f1_val, 4)
 
-    print(f"{field}: F1-micro = {f1_scores[field]}")
+    print(f"  micro (weighted CV): P={p_val:.4f}  R={r_val:.4f}  F1={f1_val:.4f}")
+
+    y_true_labels = mlb_dict[field].inverse_transform(Y)
+    y_pred_labels = mlb_dict[field].inverse_transform(y_pred_oof)
+    results[f"{field}_true"] = [list(lbl) for lbl in y_true_labels]
+    results[f"{field}_pred"] = [list(lbl) for lbl in y_pred_labels]
+
+    # Weighted per-label metrics
+    per_label_p  = precision_score(Y, y_pred_oof, average=None, zero_division=0, sample_weight=sample_weights)
+    per_label_r  = recall_score(Y, y_pred_oof, average=None, zero_division=0, sample_weight=sample_weights)
+    per_label_f1 = f1_score(Y, y_pred_oof, average=None, zero_division=0, sample_weight=sample_weights)
+
+    print(f"  {'Label':<35} {'Support':>7}  {'P':>6}  {'R':>6}  {'F1':>6}")
+    print(f"  {'-'*35}  {'-'*7}  {'-'*6}  {'-'*6}  {'-'*6}")
+    for cls, p, r, f, s in zip(classes, per_label_p, per_label_r, per_label_f1, support, strict=False):
+        print(f"  {cls:<35} {int(s):>7}  {p:>6.3f}  {r:>6.3f}  {f:>6.3f}")
 
 # ---------------------------------------------------------------------
 # 9. SAVE OUTPUTS
@@ -273,7 +321,7 @@ os.makedirs(model_dir, exist_ok=True)
 output_csv = os.path.join(model_dir, "dev_predictions.csv")
 results.to_csv(output_csv, index=False)
 
-joblib.dump(sbert_model, os.path.join(model_dir, "sentence_bert_model.pkl"))
+#joblib.dump(sbert_model, os.path.join(model_dir, "sentence_bert_model.pkl"))
 for field in classifiers:
     joblib.dump(classifiers[field], os.path.join(model_dir, f"{field}_clf.pkl"))
     joblib.dump(mlb_dict[field], os.path.join(model_dir, f"{field}_mlb.pkl"))

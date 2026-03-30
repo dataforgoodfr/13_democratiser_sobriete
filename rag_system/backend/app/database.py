@@ -87,6 +87,9 @@ class ChatTurn(SQLModel, table=True):
     retrieved_chunks: Optional[str] = None  # JSON
     retrieved_publications_count: int = 0
 
+    retrieved_cluster_count: int = 0
+    retrieved_cluster_ids: Optional[str] = None  # comma-separated
+
     # RAG Pipeline - Context Building
     context_built: Optional[str] = None
     context_length: int = 0

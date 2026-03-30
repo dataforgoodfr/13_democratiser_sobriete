@@ -1,5 +1,6 @@
 import asyncio
-from typing import Type
+import json
+from typing import Any, Type
 
 from pydantic import BaseModel, ValidationError
 
@@ -16,7 +17,8 @@ async def generate_response(
     max_tokens: int = 512,
     temperature: float = 0.15,
     top_p: float = 0.1,
-    response_format: Type[BaseModel] | None = None,
+    response_format: Type[BaseModel] | dict[str, Any] | None = None,
+    schema_name: str | None = None,
     timeout: int = 60,
 ):
     try:
@@ -30,17 +32,34 @@ async def generate_response(
         }
 
         if response_format:
-            kwargs["response_format"] = {
-                "type": "json_schema",
-                "json_schema": {
-                    "name": response_format.__name__,
-                    "schema": response_format.model_json_schema(),
-                },
-            }
+            if isinstance(response_format, dict):
+                kwargs["response_format"] = {
+                    "type": "json_schema",
+                    "json_schema": {
+                        "name": schema_name or "StructuredOutput",
+                        "schema": response_format,
+                    },
+                }
+            else:
+                kwargs["response_format"] = {
+                    "type": "json_schema",
+                    "json_schema": {
+                        "name": response_format.__name__,
+                        "schema": response_format.model_json_schema(),
+                    },
+                }
 
         response = await generation_client.chat.completions.create(**kwargs)
 
         if response_format:
+            if isinstance(response_format, dict):
+                try:
+                    return json.loads(response.choices[0].message.content)
+                except json.JSONDecodeError:
+                    logger.warning("JSON decode error in structured output, retrying...")
+                    kwargs["temperature"] = 0
+                    response = await generation_client.chat.completions.create(**kwargs)
+                    return json.loads(response.choices[0].message.content)
             try:
                 return response_format.model_validate_json(response.choices[0].message.content)
             except ValidationError:
@@ -52,7 +71,7 @@ async def generate_response(
         return response.choices[0].message.content
     except asyncio.TimeoutError:
         return "\n\n[Generation timed out]\n\n"
-    except ValidationError as e:
+    except (ValidationError, json.JSONDecodeError) as e:
         logger.error(response.choices[0].message.content)
         raise e
         

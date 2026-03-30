@@ -8,8 +8,10 @@ from fastapi.responses import StreamingResponse
 from .config import settings
 from .database import create_db_and_tables, get_or_create_session, save_feedback
 from .dependencies import get_logger
-from .models import ChatRequest, FeedbackRequest
+from .models import ChatRequest, FeedbackRequest, StructuredOutputRequest, StructuredOutputResponse
+from .policy_first_rag import policy_first_rag_pipeline
 from .rag import simple_rag_pipeline
+from .structured_rag import structured_output_pipeline
 
 
 # TODO: move ml models init/clean here
@@ -45,15 +47,21 @@ async def chat(chat_request: ChatRequest, http_request: Request):
         )
     else:
         chat_session = None
+    pipeline = policy_first_rag_pipeline if settings.rag_pipeline == "policy" else simple_rag_pipeline
     return StreamingResponse(
-        # generate_dummy_response(),
-        simple_rag_pipeline(chat_request.messages, chat_session),
+        pipeline(chat_request.messages, chat_session),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",
             "Connection": "keep-alive",
         },
     )
+
+
+@app.post("/internal/structured-output", response_model=StructuredOutputResponse)
+async def structured_output(request: StructuredOutputRequest):
+    """Generate a structured non-streaming response from a client-defined JSON schema."""
+    return await structured_output_pipeline(request)
 
 
 @app.post("/api/feedback")

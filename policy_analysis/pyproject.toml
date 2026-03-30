@@ -1,59 +1,58 @@
 [project]
 name = "policy-analysis"
 version = "0.1.0"
-description = "Agentic RAG + policy analysis pipelines"
+description = "Policy analysis pipelines"
 readme = "README.md"
 requires-python = ">=3.12"
 
 dependencies = [
+    "cloudpickle>=3.1.2",
+    "datasets>=4.5.0",
+    "datetime>=6.0",
+    "dspy>=3.0.4",
     "pandas>=2.3.3",
-    "faiss-cpu>=1.13.0",
+    "pyarrow>=22.0.0",
     "pydantic>=2.10.6",
     "python-dotenv>=1.2.1",
-    "sentence-transformers>=5.1.2",
-    "torch>=2.9.1",
     "matplotlib>=3.10.7",
     "loguru>=0.7.3",
     "openpyxl>=3.1.5",
     "hf-xet>=1.2.0",
     "openai>=2.12.0",
-]
-
-[project.optional-dependencies]
-
-dspy = [
-    "datetime>=6.0",
-    "dspy>=3.0.4",
-]
-
-agentic = [
+    "together>=1.5.30",
     "sqlalchemy>=2.0.29,<3",
     "sqlmodel>=0.0.16,<0.1",
     "psycopg2-binary>=2.8.1,<2.9.10",
     "qdrant-client>=1.15.1",
-    "optuna>=4.5.0",
-    "kaleido>=1.2.0",
-    "together>=1.5.30",
-    "scikit-learn>=1.6.1",
-    "pymupdf4llm>=0.1.8",
-    "plotly>=6.3.1",
-    "sentence-transformers>=5.1.2",
+    "langchain-text-splitters>=1.1.0",
+    "google-genai>=1.66.0",
+    "pyalex>=0.21",
 ]
 
-all = [
-    "policy-analysis[dspy,agentic]"
+
+[dependency-groups]
+dev = [
+    "ipykernel>=7.1.0",
+    "ipywidgets>=8.1.8",
+]
+
+transformers = [
+    "accelerate>=1.12.0",
+    "sentence-transformers>=5.1.2",
+    "torch>=2.9.1",
+    "transformers>=4.57.3",
 ]
 
 clustering = [
-    "datasets>=4.4.2",
-    "hdbscan>=0.8.40",
+    "hdbscan>=0.8.41",
+    "faiss-cpu>=1.13.0",
     "scikit-learn>=1.6.1",
     "umap-learn>=0.5.9.post2",
-    "bertopic>=0.17.3",
     "nltk>=3.9.2",
     "wordcloud>=1.9.4",
-    "ipykernel>=7.1.0",
+    "optuna>=4.5.0",
+    "kaleido>=1.2.0",
+    "plotly>=6.3.1",
+    "nbformat>=5.10.4",
+    "bertopic>=0.17.3"
 ]
-
-
-

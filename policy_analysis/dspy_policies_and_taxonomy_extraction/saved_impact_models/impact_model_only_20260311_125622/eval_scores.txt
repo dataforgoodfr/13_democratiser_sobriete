@@ -1,0 +1,118 @@
+Loaded 202 examples from gold
+Loaded 1999 examples from synthetic
+Train size: 2201  (gold=202, synth=1999)
+Gold sample weight: 5.0
+
+--- Binarizing Labels (train set) ---
+Need: 8 classes
+  positives per class: [ 15 126 348 521 167 209 543 303]
+Resource: 10 classes
+  positives per class: [500 310 236 190 429 168  82  68 222  69]
+wellbeing: 11 classes
+  positives per class: [ 46 221 282 796 817 156 435 363 161 229  36]
+Justice: 5 classes
+  positives per class: [ 19 407 239 225  42]
+PlanetaryBoundary: 9 classes
+  positives per class: [ 88 169 417 553 201 231 232  10   4]
+
+Loading precomputed embeddings from parquet...
+Embedding matrix shape: (2201, 1024)
+
+Cross-validation: 5-fold KFold
+Param grid: {'estimator__C': [0.01, 0.1, 0.3, 1.0, 3.0, 10.0, 30.0, 100.0]}
+
+Running GridSearchCV for each field...
+
+[Need] GridSearchCV...
+  Best params : {'estimator__C': 1.0}
+  Best CV F1  : 0.7129
+
+[Resource] GridSearchCV...
+  Best params : {'estimator__C': 1.0}
+  Best CV F1  : 0.7377
+
+[wellbeing] GridSearchCV...
+  Best params : {'estimator__C': 1.0}
+  Best CV F1  : 0.7298
+
+[Justice] GridSearchCV...
+  Best params : {'estimator__C': 0.3}
+  Best CV F1  : 0.6332
+
+[PlanetaryBoundary] GridSearchCV...
+  Best params : {'estimator__C': 0.3}
+  Best CV F1  : 0.7660
+
+======================================================================
+EVALUATION RESULTS (out-of-fold CV, sample-weighted metrics)
+======================================================================
+
+[Need]  best params: {'estimator__C': 1.0}
+  micro (weighted CV): P=0.5320  R=0.7819  F1=0.6332
+  Label                               Support       P       R      F1
+  -----------------------------------  -------  ------  ------  ------
+  clothing                                 15   0.000   0.000   0.000
+  communication_and_information           126   0.250   0.615   0.356
+  education                               348   0.478   0.839   0.609
+  healthcare                              521   0.706   0.815   0.757
+  hygiene                                 167   0.340   0.732   0.464
+  mobility                                209   0.360   0.701   0.475
+  nutrition                               543   0.757   0.827   0.790
+  shelter_and_living_conditions           303   0.585   0.779   0.668
+
+[Resource]  best params: {'estimator__C': 1.0}
+  micro (weighted CV): P=0.5687  R=0.8387  F1=0.6778
+  Label                               Support       P       R      F1
+  -----------------------------------  -------  ------  ------  ------
+  agricultural_land                       500   0.749   0.851   0.797
+  biomass                                 310   0.360   0.754   0.487
+  forests                                 236   0.674   0.882   0.764
+  fossil_fuels                            190   0.506   0.816   0.625
+  freshwater                              429   0.668   0.867   0.755
+  marine_resources                        168   0.672   0.925   0.779
+  metals_and_ores                          82   0.329   0.745   0.456
+  non_metallic_minerals                    68   0.225   0.653   0.335
+  urban_land                              222   0.684   0.851   0.758
+  wetlands                                 69   0.352   0.770   0.483
+
+[wellbeing]  best params: {'estimator__C': 1.0}
+  micro (weighted CV): P=0.5750  R=0.7755  F1=0.6604
+  Label                               Support       P       R      F1
+  -----------------------------------  -------  ------  ------  ------
+  civic_engagement                         46   0.300   0.382   0.336
+  community                               221   0.438   0.771   0.559
+  education                               282   0.478   0.837   0.609
+  environment                             796   0.800   0.809   0.804
+  health                                  817   0.819   0.813   0.816
+  housing                                 156   0.350   0.675   0.461
+  income                                  435   0.587   0.784   0.671
+  jobs                                    363   0.548   0.742   0.631
+  life_satisfaction                       161   0.334   0.773   0.467
+  safety                                  229   0.344   0.675   0.456
+  work_life_balance                        36   0.258   0.773   0.386
+
+[Justice]  best params: {'estimator__C': 0.3}
+  micro (weighted CV): P=0.4439  R=0.7562  F1=0.5594
+  Label                               Support       P       R      F1
+  -----------------------------------  -------  ------  ------  ------
+  corrective                               19   0.238   0.349   0.283
+  distributional                          407   0.649   0.807   0.719
+  procedural                              239   0.408   0.706   0.517
+  recognitional                           225   0.309   0.790   0.444
+  transitional                             42   0.132   0.537   0.212
+
+[PlanetaryBoundary]  best params: {'estimator__C': 0.3}
+  micro (weighted CV): P=0.5962  R=0.8570  F1=0.7032
+  Label                               Support       P       R      F1
+  -----------------------------------  -------  ------  ------  ------
+  atmospheric_aerosol_loading              88   0.394   0.824   0.533
+  biogeochemical_flows                    169   0.339   0.831   0.482
+  biosphere_integrity                     417   0.763   0.918   0.833
+  climate_change                          553   0.695   0.842   0.762
+  freshwater_use                          201   0.614   0.918   0.736
+  introduction_of_novel_entities          231   0.470   0.803   0.593
+  land_system_change                      232   0.576   0.832   0.681
+  ocean_acidification                      10   0.324   0.423   0.367
+  ozone_depletion                           4   0.000   0.000   0.000
+
+Models and predictions saved to saved_impact_models/impact_model_only_20260311_125622

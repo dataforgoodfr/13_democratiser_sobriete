@@ -52,6 +52,10 @@ pdfscraping = [
     "pymupdf-layout>=1.26.6",
     "opencv-python-headless>=4.12.0.88",
 ]
+eval = [
+    "setfit>=1.1.3",
+    "google-genai>=1.66.0",
+]
 
 webscraping = [
     "selenium>=4.29.0",

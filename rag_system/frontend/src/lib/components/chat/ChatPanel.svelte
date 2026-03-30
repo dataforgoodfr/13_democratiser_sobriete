@@ -11,7 +11,8 @@
 		PromptInputSubmit
 	} from '$lib/components/ai-elements/prompt-input';
 	import { MessageSquare } from 'lucide-svelte';
-	import type { ChatMessage, ChatStatus } from '$lib/types';
+	import type { ChatMessage, ChatStatus, RetrievalStep } from '$lib/types';
+	import { RETRIEVAL_STEP_LABELS } from '$lib/types';
 	import ChatMessageItem from './ChatMessageItem.svelte';
 	import { Loader } from '../ai-elements/loader';
 
@@ -19,11 +20,12 @@
 		messages: ChatMessage[];
 		status: ChatStatus;
 		selectedMessageIndex: number | null;
+		retrievalStep: RetrievalStep;
 		onSelectMessage: (index: number) => void;
 		onSubmit: (input: string) => void;
 	}
 
-	let { messages, status, selectedMessageIndex, onSelectMessage, onSubmit }: Props = $props();
+	let { messages, status, selectedMessageIndex, retrievalStep, onSelectMessage, onSubmit }: Props = $props();
 	let input = $state('');
 
 	function handleSubmit(message: { text?: string }, event: SubmitEvent) {
@@ -58,7 +60,12 @@
 							/>
 						{/each}
 						{#if status === 'submitted'}
-							<Loader size={20} class="mx-auto w-full" />
+							<div class="mx-auto flex w-full flex-col items-center gap-1">
+								<Loader size={20} />
+								{#if retrievalStep}
+									<p class="text-xs text-muted-foreground">{RETRIEVAL_STEP_LABELS[retrievalStep]}</p>
+								{/if}
+							</div>
 						{/if}
 					</div>
 				{/if}
