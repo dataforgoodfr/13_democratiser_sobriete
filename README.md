@@ -24,23 +24,19 @@ Voici un schéma d'architecture du projet :
 
 ## Library
 
-La library est constituée en trois grandes étapes :
+La library est constituée en deux grandes étapes :
 1. Pré-screening : récupération des références des articles traitant de la sobriété sur OpenAlex
 2. Extraction full-text : récupération des textes complets pour autant d'articles que possible
-3. Extraction de la taxonomie : les métadonnées des articles sont enrichis par une taxonomie extraite des articles par traitement NLP.
 
 [README Library](library/README.md)
 
 
 ## Policy analysis
-Deux étapes dévelopées dans ce sous projet: 
-- Extraction des données des abstract puis des full text ( pas testé ?) pour strucutrer les metadonnées des policies 
-    - Le full text va récuperer les données des pollitiques basé sur l'id open alex sur la base Qdrant
-- Pipeline d'analyse des secteurs des pollitiques et de leur facteurs puis clustering des pollitiques avec des test avec Knn, Kmeans et HDbscan
-    - Plusieur scripts d'optimisations ont été fait 
-
-Les fichiers sont sauvegardés en csv et il faudra intégrer les résultats pour etre disponibles pour le chat sufficiency 
-Le projet semble avoir été un repo à part ajouté au monorepo et il semble y avoir des incohérences dans les dépendences 
+- Extraction de la taxonomie : les métadonnées des articles sont enrichis par une taxonomie extraite des articles par traitement NLP.
+- Extraction des politiques : les chunks sont analysés et les politiques citées extraites par LLM
+- Clustering des politiques pour identifier les principaux types de politiques identifiés
+- Extraction des impacts des cluster de politiques dans les chunks de la library selon les dimension de la taxonomie
+- Classification en Sufficiency / Potential Sufficiency / Not Sufficiency
 
 [README Policy Analysis](policy_analysis/README.md)
 
