@@ -21,7 +21,7 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 from tqdm import tqdm
-from variable_mapping import should_filter_indicator
+from variable_mapping import should_filter_indicator, should_filter_country_indicator
 from pipeline_env import env_bool, env_float, env_int, get_output_dir
 
 # ===============================
@@ -585,6 +585,15 @@ def main():
         'Value': 'value'
     }).copy()
     
+    # ===== FILTERING: Remove country-indicator exclusions =====
+    ci_mask = df.apply(
+        lambda row: should_filter_country_indicator(row['primary_index'], row['country']),
+        axis=1,
+    )
+    ci_removed = ci_mask.sum()
+    df = df[~ci_mask].copy()
+    print(f"   Removed {ci_removed:,} country-indicator exclusions (RT-LFS-3 for BG/UK)")
+
     # Filter for raw data only - remove EU aggregates
     print("\n[FILTER] Filtering raw data for imputation...")
     print(f"Before filtering: {len(df):,} rows")

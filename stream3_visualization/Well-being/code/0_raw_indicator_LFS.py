@@ -295,11 +295,12 @@ def calculate_lfs_indicators(df: pd.DataFrame) -> pd.DataFrame:
         )
         
         # RT-LFS-3: Overtime or extra hours
+        # 99 = not applicable/not stated, 999 = missing
         extrahrs_pct = weighted_percentage(
             group,
             "EXTRAHRS",
             lambda x: (x > 0),
-            base_condition=lambda x: (x != 999)
+            base_condition=lambda x: ~x.isin([99, 999])
         )
         
         # RT-LFS-4: No freedom on working time choice
@@ -387,11 +388,12 @@ def calculate_lfs_indicators(df: pd.DataFrame) -> pd.DataFrame:
         )
         
         # RT-LFS-3: Overtime or extra hours
+        # 99 = not applicable/not stated, 999 = missing
         extrahrs_pct = weighted_percentage(
             group,
             "EXTRAHRS",
             lambda x: (x > 0),
-            base_condition=lambda x: (x != 999)
+            base_condition=lambda x: ~x.isin([99, 999])
         )
         
         # RT-LFS-4: No freedom on working time choice

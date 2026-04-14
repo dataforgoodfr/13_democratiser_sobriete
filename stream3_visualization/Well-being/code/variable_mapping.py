@@ -264,3 +264,18 @@ def should_filter_indicator(indicator):
     
     indicator_clean = str(indicator).strip()
     return indicator_clean in EXCLUDED_INDICATORS
+
+
+# Country-indicator exclusions: drop specific indicators for specific countries
+# (indicator_code, country_code) tuples
+COUNTRY_INDICATOR_EXCLUSIONS = {
+    ('RT-LFS-3', 'BG'),  # EXTRAHRS all coded 99 (not applicable) in Bulgaria
+    ('RT-LFS-3', 'UK'),  # EXTRAHRS nearly all coded 99 (not applicable) in UK
+}
+
+
+def should_filter_country_indicator(indicator, country):
+    """Check if a specific indicator-country pair should be excluded."""
+    if not indicator or not country or pd.isna(indicator) or pd.isna(country):
+        return False
+    return (str(indicator).strip(), str(country).strip()) in COUNTRY_INDICATOR_EXCLUSIONS
