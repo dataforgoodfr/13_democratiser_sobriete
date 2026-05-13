@@ -1,0 +1,195 @@
+﻿================================================================================
+ENERGY VS GDP ANALYSIS
+================================================================================
+
+Loading data...
+  GDP PPS data: 1197 rows
+  GDP EUR 2005 data: 1342 rows
+  Energy data: 1322 rows
+  Population data: 3027 rows
+  HICP data: 1187 rows
+  World Bank GDP PPP (2021 int$) data: 266 rows
+  EWBI master aggregated data: 268847 rows
+  Penn World capital stock data: 10314 rows
+  Human Development Index data: 6604 rows
+  Eurostat capital stocks (NFA) data: 2417 rows
+  World Bank Gross capital formation data: 266 rows
+
+================================================================================
+PART 1: LOG-LOG SCATTER PLOTS
+================================================================================
+
+Merged data: 117 rows
+Countries: 30
+Years available: [np.int64(1996), np.int64(2004), np.int64(2014), np.int64(2024)]
+
+Creating energy vs GDP plot...
+  Ô£ô Plot saved to: C:\Users\valentin.stuhlfauth\Desktop\Git D4G\13_democratiser_sobriete\stream3_visualization\Well-being\reports\3_eu_analysis_with_examples\outputs\graphs\energy\energy_gdp_loglog.png
+
+  Regression statistics:
+    1996: slope = 1.038, R┬▓ = 0.950
+    2004: slope = 1.021, R┬▓ = 0.963
+    2014: slope = 1.031, R┬▓ = 0.958
+    2024: slope = 0.967, R┬▓ = 0.954
+
+Creating simplified energy vs GDP plot...
+  Ô£ô Simplified plot saved to: C:\Users\valentin.stuhlfauth\Desktop\Git D4G\13_democratiser_sobriete\stream3_visualization\Well-being\reports\3_eu_analysis_with_examples\outputs\graphs\energy\energy_gdp_loglog_simple.png
+
+  Regression statistics (simplified):
+    1996: slope = 1.038, R┬▓ = 0.950
+    2004: slope = 1.021, R┬▓ = 0.963
+    2014: slope = 1.031, R┬▓ = 0.958
+    2024: slope = 0.967, R┬▓ = 0.954
+
+Ô£ô Data exported to: C:\Users\valentin.stuhlfauth\Desktop\Git D4G\13_democratiser_sobriete\stream3_visualization\Well-being\reports\3_eu_analysis_with_examples\outputs\graphs\energy\energy_gdp_data.xlsx
+
+================================================================================
+PART 1B: LOG-LOG SCATTER PLOTS (INFLATION-CORRECTED GDP)
+================================================================================
+
+  Identified aberrant HICP values (outliers) in 1996:
+    RO: HICP=3.25, GDP_real=3388135.38
+    Removed 1 outlier(s) from 1996 data
+
+Merged data (inflation-corrected): 114 rows
+Countries: 30
+Years available: [np.int64(1996), np.int64(2004), np.int64(2014), np.int64(2024)]
+
+Creating energy vs GDP plot (inflation-corrected)...
+  Ô£ô Plot saved to: C:\Users\valentin.stuhlfauth\Desktop\Git D4G\13_democratiser_sobriete\stream3_visualization\Well-being\reports\3_eu_analysis_with_examples\outputs\graphs\energy\energy_gdp_loglog_inflation_corrected.png
+
+  Regression statistics (inflation-corrected):
+    1996: slope = 0.991, R┬▓ = 0.963
+    2004: slope = 0.993, R┬▓ = 0.972
+    2014: slope = 1.032, R┬▓ = 0.958
+    2024: slope = 0.969, R┬▓ = 0.940
+
+Creating simplified energy vs GDP plot (inflation-corrected)...
+  Ô£ô Simplified plot saved to: C:\Users\valentin.stuhlfauth\Desktop\Git D4G\13_democratiser_sobriete\stream3_visualization\Well-being\reports\3_eu_analysis_with_examples\outputs\graphs\energy\energy_gdp_loglog_inflation_corrected_simple.png
+
+  Regression statistics (inflation-corrected, simplified):
+    1996: slope = 0.991, R┬▓ = 0.963
+    2004: slope = 0.993, R┬▓ = 0.972
+    2014: slope = 1.032, R┬▓ = 0.958
+    2024: slope = 0.969, R┬▓ = 0.940
+
+Ô£ô Inflation-corrected data exported to: C:\Users\valentin.stuhlfauth\Desktop\Git D4G\13_democratiser_sobriete\stream3_visualization\Well-being\reports\3_eu_analysis_with_examples\outputs\graphs\energy\energy_gdp_data_inflation_corrected.xlsx
+
+================================================================================
+PART 1C: LOG-LOG SCATTER PLOTS (WORLD BANK GDP PPP, CONSTANT 2021 INT$)
+================================================================================
+
+Merged data (World Bank PPP 2021): 117 rows
+Countries: 30
+Years available: [np.int64(1996), np.int64(2004), np.int64(2014), np.int64(2024)]
+
+Creating simplified energy vs GDP plot (World Bank PPP 2021)...
+  Ô£ô Simplified World Bank PPP plot saved to: C:\Users\valentin.stuhlfauth\Desktop\Git D4G\13_democratiser_sobriete\stream3_visualization\Well-being\reports\3_eu_analysis_with_examples\outputs\graphs\energy\energy_gdp_loglog_worldbank_ppp2021_simple.png
+
+  Regression statistics (World Bank PPP 2021, simplified):
+    1996: slope = 1.047, R┬▓ = 0.956
+    2004: slope = 1.021, R┬▓ = 0.967
+    2014: slope = 1.032, R┬▓ = 0.959
+    2024: slope = 0.968, R┬▓ = 0.954
+
+Ô£ô World Bank PPP data exported to: C:\Users\valentin.stuhlfauth\Desktop\Git D4G\13_democratiser_sobriete\stream3_visualization\Well-being\reports\3_eu_analysis_with_examples\outputs\graphs\energy\energy_gdp_data_worldbank_ppp2021.xlsx
+
+================================================================================
+PART 1D: EWBI VS ENERGY AND GDP PPP PER CAPITA
+================================================================================
+
+EWBI + energy per capita merged rows: 566
+Countries: 30
+Years available: [np.int64(2004), np.int64(2005), np.int64(2006), np.int64(2007), np.int64(2008), np.int64(2009), np.int64(2010), np.int64(2011), np.int64(2012), np.int64(2013), np.int64(2014), np.int64(2015), np.int64(2016), np.int64(2017), np.int64(2018), np.int64(2019), np.int64(2020), np.int64(2021), np.int64(2022), np.int64(2023)]
+
+Creating EWBI trajectory plot: ewbi_vs_energy_per_capita_trajectory.png...
+  Ô£ô EWBI trajectory plot saved to: C:\Users\valentin.stuhlfauth\Desktop\Git D4G\13_democratiser_sobriete\stream3_visualization\Well-being\reports\3_eu_analysis_with_examples\outputs\graphs\energy\ewbi_vs_energy_per_capita_trajectory.png
+
+Creating EWBI last-year plot: ewbi_vs_energy_per_capita_last_year.png...
+  Ô£ô EWBI last-year plot saved to: C:\Users\valentin.stuhlfauth\Desktop\Git D4G\13_democratiser_sobriete\stream3_visualization\Well-being\reports\3_eu_analysis_with_examples\outputs\graphs\energy\ewbi_vs_energy_per_capita_last_year.png
+
+EWBI + GDP PPP per capita merged rows: 584
+Countries: 31
+Years available: [np.int64(2004), np.int64(2005), np.int64(2006), np.int64(2007), np.int64(2008), np.int64(2009), np.int64(2010), np.int64(2011), np.int64(2012), np.int64(2013), np.int64(2014), np.int64(2015), np.int64(2016), np.int64(2017), np.int64(2018), np.int64(2019), np.int64(2020), np.int64(2021), np.int64(2022), np.int64(2023)]
+
+Creating EWBI trajectory plot: ewbi_vs_gdp_ppp2021_per_capita_trajectory.png...
+  Ô£ô EWBI trajectory plot saved to: C:\Users\valentin.stuhlfauth\Desktop\Git D4G\13_democratiser_sobriete\stream3_visualization\Well-being\reports\3_eu_analysis_with_examples\outputs\graphs\energy\ewbi_vs_gdp_ppp2021_per_capita_trajectory.png
+
+Creating EWBI last-year plot: ewbi_vs_gdp_ppp2021_per_capita_last_year.png...
+  Ô£ô EWBI last-year plot saved to: C:\Users\valentin.stuhlfauth\Desktop\Git D4G\13_democratiser_sobriete\stream3_visualization\Well-being\reports\3_eu_analysis_with_examples\outputs\graphs\energy\ewbi_vs_gdp_ppp2021_per_capita_last_year.png
+  Ô£ô EWBI-energy per capita data exported to: C:\Users\valentin.stuhlfauth\Desktop\Git D4G\13_democratiser_sobriete\stream3_visualization\Well-being\reports\3_eu_analysis_with_examples\outputs\graphs\energy\ewbi_energy_per_capita_data.xlsx
+  Ô£ô EWBI-GDP per capita data exported to: C:\Users\valentin.stuhlfauth\Desktop\Git D4G\13_democratiser_sobriete\stream3_visualization\Well-being\reports\3_eu_analysis_with_examples\outputs\graphs\energy\ewbi_gdp_ppp2021_per_capita_data.xlsx
+
+================================================================================
+PART 1E: EWBI VS PENN WORLD CAPITAL STOCK PER CAPITA
+================================================================================
+
+EWBI + Penn capital stock per capita merged rows: 463
+Countries: 31
+Years available: [np.int64(2004), np.int64(2005), np.int64(2006), np.int64(2007), np.int64(2008), np.int64(2009), np.int64(2010), np.int64(2011), np.int64(2012), np.int64(2013), np.int64(2014), np.int64(2015), np.int64(2016), np.int64(2017), np.int64(2018), np.int64(2019)]
+
+Creating EWBI trajectory plot: ewbi_vs_penn_capital_stock_per_capita_trajectory.png...
+  Ô£ô EWBI trajectory plot saved to: C:\Users\valentin.stuhlfauth\Desktop\Git D4G\13_democratiser_sobriete\stream3_visualization\Well-being\reports\3_eu_analysis_with_examples\outputs\graphs\energy\ewbi_vs_penn_capital_stock_per_capita_trajectory.png
+
+Creating EWBI last-year plot: ewbi_vs_penn_capital_stock_per_capita_last_year.png...
+  Ô£ô EWBI last-year plot saved to: C:\Users\valentin.stuhlfauth\Desktop\Git D4G\13_democratiser_sobriete\stream3_visualization\Well-being\reports\3_eu_analysis_with_examples\outputs\graphs\energy\ewbi_vs_penn_capital_stock_per_capita_last_year.png
+  Ô£ô EWBI-Penn capital stock data exported to: C:\Users\valentin.stuhlfauth\Desktop\Git D4G\13_democratiser_sobriete\stream3_visualization\Well-being\reports\3_eu_analysis_with_examples\outputs\graphs\energy\ewbi_penn_capital_stock_per_capita_data.xlsx
+
+================================================================================
+PART 1F: EWBI VS HUMAN DEVELOPMENT INDEX
+================================================================================
+
+EWBI + HDI merged rows: 587
+Countries: 31
+Years available: [np.int64(2004), np.int64(2005), np.int64(2006), np.int64(2007), np.int64(2008), np.int64(2009), np.int64(2010), np.int64(2011), np.int64(2012), np.int64(2013), np.int64(2014), np.int64(2015), np.int64(2016), np.int64(2017), np.int64(2018), np.int64(2019), np.int64(2020), np.int64(2021), np.int64(2022), np.int64(2023)]
+
+Creating EWBI trajectory plot: ewbi_vs_hdi_trajectory.png...
+  Ô£ô EWBI trajectory plot saved to: C:\Users\valentin.stuhlfauth\Desktop\Git D4G\13_democratiser_sobriete\stream3_visualization\Well-being\reports\3_eu_analysis_with_examples\outputs\graphs\energy\ewbi_vs_hdi_trajectory.png
+
+Creating EWBI last-year plot: ewbi_vs_hdi_last_year.png...
+  Ô£ô EWBI last-year plot saved to: C:\Users\valentin.stuhlfauth\Desktop\Git D4G\13_democratiser_sobriete\stream3_visualization\Well-being\reports\3_eu_analysis_with_examples\outputs\graphs\energy\ewbi_vs_hdi_last_year.png
+  Ô£ô EWBI-HDI data exported to: C:\Users\valentin.stuhlfauth\Desktop\Git D4G\13_democratiser_sobriete\stream3_visualization\Well-being\reports\3_eu_analysis_with_examples\outputs\graphs\energy\ewbi_hdi_data.xlsx
+
+================================================================================
+PART 1G: EWBI VS EUROSTAT CAPITAL STOCKS PER CAPITA
+================================================================================
+
+EWBI + Eurostat capital stocks per capita merged rows: 203
+Countries: 11
+Years available: [np.int64(2004), np.int64(2005), np.int64(2006), np.int64(2007), np.int64(2008), np.int64(2009), np.int64(2010), np.int64(2011), np.int64(2012), np.int64(2013), np.int64(2014), np.int64(2015), np.int64(2016), np.int64(2017), np.int64(2018), np.int64(2019), np.int64(2020), np.int64(2021), np.int64(2022), np.int64(2023)]
+
+Creating EWBI trajectory plot: ewbi_vs_eurostat_capital_stocks_per_capita_trajectory.png...
+  Ô£ô EWBI trajectory plot saved to: C:\Users\valentin.stuhlfauth\Desktop\Git D4G\13_democratiser_sobriete\stream3_visualization\Well-being\reports\3_eu_analysis_with_examples\outputs\graphs\energy\ewbi_vs_eurostat_capital_stocks_per_capita_trajectory.png
+
+Creating EWBI last-year plot: ewbi_vs_eurostat_capital_stocks_per_capita_last_year.png...
+  Ô£ô EWBI last-year plot saved to: C:\Users\valentin.stuhlfauth\Desktop\Git D4G\13_democratiser_sobriete\stream3_visualization\Well-being\reports\3_eu_analysis_with_examples\outputs\graphs\energy\ewbi_vs_eurostat_capital_stocks_per_capita_last_year.png
+  Ô£ô EWBI-Eurostat capital stocks data exported to: C:\Users\valentin.stuhlfauth\Desktop\Git D4G\13_democratiser_sobriete\stream3_visualization\Well-being\reports\3_eu_analysis_with_examples\outputs\graphs\energy\ewbi_eurostat_capital_stocks_per_capita_data.xlsx
+
+================================================================================
+PART 1H: EWBI VS WORLD BANK GROSS CAPITAL FORMATION PER CAPITA
+================================================================================
+
+EWBI + WB Gross capital formation per capita merged rows: 584
+Countries: 31
+Years available: [np.int64(2004), np.int64(2005), np.int64(2006), np.int64(2007), np.int64(2008), np.int64(2009), np.int64(2010), np.int64(2011), np.int64(2012), np.int64(2013), np.int64(2014), np.int64(2015), np.int64(2016), np.int64(2017), np.int64(2018), np.int64(2019), np.int64(2020), np.int64(2021), np.int64(2022), np.int64(2023)]
+
+Creating EWBI trajectory plot: ewbi_vs_wb_gcf_per_capita_trajectory.png...
+  Ô£ô EWBI trajectory plot saved to: C:\Users\valentin.stuhlfauth\Desktop\Git D4G\13_democratiser_sobriete\stream3_visualization\Well-being\reports\3_eu_analysis_with_examples\outputs\graphs\energy\ewbi_vs_wb_gcf_per_capita_trajectory.png
+
+Creating EWBI last-year plot: ewbi_vs_wb_gcf_per_capita_last_year.png...
+  Ô£ô EWBI last-year plot saved to: C:\Users\valentin.stuhlfauth\Desktop\Git D4G\13_democratiser_sobriete\stream3_visualization\Well-being\reports\3_eu_analysis_with_examples\outputs\graphs\energy\ewbi_vs_wb_gcf_per_capita_last_year.png
+  Ô£ô EWBI-WB GCF per capita data exported to: C:\Users\valentin.stuhlfauth\Desktop\Git D4G\13_democratiser_sobriete\stream3_visualization\Well-being\reports\3_eu_analysis_with_examples\outputs\graphs\energy\ewbi_wb_gcf_per_capita_data.xlsx
+
+================================================================================
+PART 2: VARIATION ANALYSIS (PERCENTAGE CHANGE)
+================================================================================
+
+Creating variation analysis plot...
+  2004-2014: 30 countries
+  2014-2024: 27 countries
+  Ô£ô Plot saved to: C:\Users\valentin.stuhlfauth\Desktop\Git D4G\13_democratiser_sobriete\stream3_visualization\Well-being\reports\3_eu_analysis_with_examples\outputs\graphs\energy\energy_gdp_variation.png
+  Ô£ô Data exported to: C:\Users\valentin.stuhlfauth\Desktop\Git D4G\13_democratiser_sobriete\stream3_visualization\Well-being\reports\3_eu_analysis_with_examples\outputs\graphs\energy\energy_gdp_variation_data.xlsx
+
+================================================================================
+ANALYSIS COMPLETE
+================================================================================

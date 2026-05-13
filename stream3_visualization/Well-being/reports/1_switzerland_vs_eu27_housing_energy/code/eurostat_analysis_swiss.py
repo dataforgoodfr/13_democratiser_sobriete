@@ -1029,6 +1029,67 @@ def create_real_estate_countries_total():
         export_real_estate_countries_to_excel(df_countries, latest_year, excel_path)
         print(f"  [SAVED] 2_real_estate_countries_total.xlsx")
 
+def _export_europe_choropleth_html(df_plot, latest_year, title, value_title, out_path):
+    """
+    Export a Plotly choropleth of Europe as a self-contained HTML file.
+
+    Parameters
+    ----------
+    df_plot : pd.DataFrame  -- columns: geo (ISO-2), year, value
+    latest_year : int
+    title : str             -- figure title
+    value_title : str       -- colour-bar label
+    out_path : str          -- full path for the .html file
+    """
+    if not PLOTLY_AVAILABLE:
+        print("  plotly not available, skipping HTML export")
+        return
+
+    ISO2_TO_ISO3 = {
+        'AT': 'AUT', 'BE': 'BEL', 'BG': 'BGR', 'HR': 'HRV', 'CY': 'CYP',
+        'CZ': 'CZE', 'DK': 'DNK', 'EE': 'EST', 'FI': 'FIN', 'FR': 'FRA',
+        'DE': 'DEU', 'GR': 'GRC', 'HU': 'HUN', 'IS': 'ISL', 'IE': 'IRL',
+        'IT': 'ITA', 'LV': 'LVA', 'LT': 'LTU', 'LU': 'LUX', 'MT': 'MLT',
+        'NL': 'NLD', 'NO': 'NOR', 'PL': 'POL', 'PT': 'PRT', 'RO': 'ROU',
+        'SK': 'SVK', 'SI': 'SVN', 'ES': 'ESP', 'SE': 'SWE', 'CH': 'CHE',
+        'LI': 'LIE', 'NO': 'NOR',
+    }
+
+    data = df_plot[df_plot['year'] == latest_year].copy()
+    data['iso3'] = data['geo'].map(ISO2_TO_ISO3)
+    data = data.dropna(subset=['iso3', 'value'])
+
+    fig = go.Figure(go.Choropleth(
+        locations=data['iso3'],
+        z=data['value'],
+        locationmode='ISO-3',
+        colorscale='YlOrRd',
+        colorbar=dict(title=value_title),
+        hovertemplate='<b>%{location}</b><br>' + value_title + ': %{z:.1f}<extra></extra>',
+    ))
+
+    fig.update_layout(
+        title=dict(text=title, font=dict(size=18)),
+        geo=dict(
+            scope='europe',
+            resolution=50,
+            showcoastlines=True,
+            showland=True,
+            landcolor='lightgrey',
+            showocean=True,
+            oceancolor='aliceblue',
+            showlakes=False,
+            showcountries=True,
+            countrycolor='white',
+        ),
+        margin=dict(l=0, r=0, t=60, b=0),
+        height=650,
+    )
+
+    fig.write_html(out_path, include_plotlyjs='cdn')
+    print(f"  [SAVED] {os.path.basename(out_path)}")
+
+
 def create_real_estate_countries_map():
     """Create map visualization for real estate ownership by country using plot_functions"""
     print("\n[7b] Creating real estate countries map...")
@@ -1108,7 +1169,15 @@ def create_real_estate_countries_map():
                    dpi=300, bbox_inches='tight', facecolor='white')
         plt.close()
         print("  [SAVED] 2_real_estate_countries_map.png")
-        
+
+        _export_europe_choropleth_html(
+            df_plot,
+            latest_year,
+            title=f'Real Estate Ownership Other Than Main Residence ({latest_year})',
+            value_title='Real Estate Ownership (%)',
+            out_path=os.path.join(OUTPUT_DIR, '2_real_estate_countries_map.html'),
+        )
+
     except Exception as e:
         print(f"  Error creating map: {e}")
         import traceback
@@ -1189,7 +1258,8 @@ def create_tenure_status_countries_map():
             value_title='Owner-Occupied Dwellings\n(%)',
             figsize=(14, 12),
             shapefile_path=shapefile_path,
-            k=6
+            k=6,
+            continuous=True
         )
         
         # Increase legend font size
@@ -1200,11 +1270,22 @@ def create_tenure_status_countries_map():
             legend.get_title().set_fontsize(12)
         
         # Save the figure
-        plt.savefig(os.path.join(OUTPUT_DIR, '6c_tenure_status_countries_map.png'), 
-                   dpi=300, bbox_inches='tight', facecolor='white')
+        png_path = os.path.join(OUTPUT_DIR, '6c_tenure_status_countries_map.png')
+        svg_path = os.path.join(OUTPUT_DIR, '6c_tenure_status_countries_map.svg')
+        plt.savefig(png_path, dpi=300, bbox_inches='tight', facecolor='white')
+        plt.savefig(svg_path, format='svg', bbox_inches='tight', facecolor='white')
         plt.close()
         print("  [SAVED] 6c_tenure_status_countries_map.png")
-        
+        print("  [SAVED] 6c_tenure_status_countries_map.svg")
+
+        _export_europe_choropleth_html(
+            df_plot_latest,
+            latest_year,
+            title=f'Owner-Occupied Dwellings ({latest_year})',
+            value_title='Owner-Occupied Dwellings (%)',
+            out_path=os.path.join(OUTPUT_DIR, '6c_tenure_status_countries_map.html'),
+        )
+
         # Export data to Excel (same latest-year data used for map)
         iso_to_country = {v: k for k, v in country_to_iso.items()}
         df_excel_source = df_plot_latest.drop_duplicates(subset=['geo'], keep='last').copy()

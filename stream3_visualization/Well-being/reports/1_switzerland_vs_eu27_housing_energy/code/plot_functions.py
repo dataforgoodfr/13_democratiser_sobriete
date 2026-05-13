@@ -193,7 +193,8 @@ def process_eurostat_tsv_monthly(file_path, verbose=True):
 
 
 def plot_europe_map(df, year, colormap='YlOrRd', value_title='Value',
-                    figsize=(10, 10), shapefile_path=None, k=6):
+                    figsize=(10, 10), shapefile_path=None, k=6,
+                    continuous=False):
     """
     Create a choropleth map of Europe with study countries highlighted and non-study countries with stripes.
 
@@ -212,7 +213,9 @@ def plot_europe_map(df, year, colormap='YlOrRd', value_title='Value',
     shapefile_path : str, optional
         Path to the shapefile. If None, uses default path
     k : int, default 6
-        Number of quantile bins to classify values
+        Number of quantile bins to classify values (used when continuous=False)
+    continuous : bool, default False
+        If True, use a continuous color scale instead of quantile classes
 
     Returns:
     --------
@@ -276,17 +279,39 @@ def plot_europe_map(df, year, colormap='YlOrRd', value_title='Value',
 
     # Plot study countries with data
     study_europe = europe[europe['is_study_country']].copy()
-    study_europe.plot(
-        column='value',
-        cmap=colormap,
-        linewidth=0.6,
-        ax=ax,
-        edgecolor='black',
-        scheme='quantiles',
-        k=k,
-        legend=False,
-        missing_kwds={"color": "lightgrey", "label": "Missing values"},
-    )
+    if continuous:
+        values = study_europe.loc[study_europe['value'].notna(), 'value']
+        if not values.empty:
+            norm = mcolors.Normalize(vmin=float(values.min()), vmax=float(values.max()))
+            study_europe.plot(
+                column='value',
+                cmap=colormap,
+                linewidth=0.6,
+                ax=ax,
+                edgecolor='black',
+                legend=False,
+                norm=norm,
+                missing_kwds={"color": "lightgrey", "label": "Missing values"},
+            )
+        else:
+            study_europe.plot(
+                color='lightgrey',
+                linewidth=0.6,
+                ax=ax,
+                edgecolor='black',
+            )
+    else:
+        study_europe.plot(
+            column='value',
+            cmap=colormap,
+            linewidth=0.6,
+            ax=ax,
+            edgecolor='black',
+            scheme='quantiles',
+            k=k,
+            legend=False,
+            missing_kwds={"color": "lightgrey", "label": "Missing values"},
+        )
 
     # Plot non-study countries with stripes
     non_study_europe = europe[~europe['is_study_country']].copy()
@@ -303,52 +328,87 @@ def plot_europe_map(df, year, colormap='YlOrRd', value_title='Value',
     values = study_europe.loc[study_europe['value'].notna(), 'value']
 
     if not values.empty:
-        classifier = mapclassify.Quantiles(values, k=k)
-        bins = classifier.bins
+        if continuous:
+            norm = mcolors.Normalize(vmin=float(values.min()), vmax=float(values.max()))
+            sm = cm.ScalarMappable(norm=norm, cmap=colormap)
+            sm.set_array([])
+            cbar = fig.colorbar(sm, ax=ax, fraction=0.035, pad=0.02)
+            cbar.set_label(f'{value_title} ({year})', fontsize=10)
+            cbar.ax.tick_params(labelsize=9)
 
-        cmap = cm.get_cmap(colormap, k)
-        colors = [cmap(i) for i in range(k)]
-
-        legend_elements = []
-        for i in range(k):
-            if i == 0:
-                label = f'{values.min():.1f} – {bins[i]:.1f}'
-            else:
-                label = f'{bins[i-1]:.1f} – {bins[i]:.1f}'
-
-            patch = mpatches.Rectangle((0, 0), 1, 1,
-                                       facecolor=colors[i],
+            legend_elements = []
+            if study_europe['value'].isna().any():
+                legend_elements.append((
+                    mpatches.Rectangle((0, 0), 1, 1,
+                                       facecolor='lightgrey',
                                        edgecolor='black',
-                                       linewidth=0.6)
-            legend_elements.append((patch, label))
+                                       linewidth=0.6),
+                    'Missing values'
+                ))
+            legend_elements.append((
+                mpatches.Rectangle((0, 0), 1, 1,
+                                   facecolor='white',
+                                   edgecolor='black',
+                                   hatch='///',
+                                   linewidth=0.3,
+                                   alpha=0.4),
+                'Non-study regions'
+            ))
+            ax.legend([elem[0] for elem in legend_elements],
+                      [elem[1] for elem in legend_elements],
+                      loc='lower left',
+                      fontsize=9,
+                      fancybox=False,
+                      framealpha=1.0,
+                      edgecolor='black',
+                      facecolor='white')
+        else:
+            classifier = mapclassify.Quantiles(values, k=k)
+            bins = classifier.bins
 
-        if study_europe['value'].isna().any():
-            missing_patch = mpatches.Rectangle((0, 0), 1, 1,
-                                               facecolor='lightgrey',
-                                               edgecolor='black',
-                                               linewidth=0.6)
-            legend_elements.append((missing_patch, 'Missing values'))
+            cmap = cm.get_cmap(colormap, k)
+            colors = [cmap(i) for i in range(k)]
 
-        legend_elements.append((
-            mpatches.Rectangle((0, 0), 1, 1,
-                                facecolor='white',
-                                edgecolor='black',
-                                hatch='///',
-                                linewidth=0.3,
-                                alpha=0.4),
-            'Non-study regions'
-        ))
+            legend_elements = []
+            for i in range(k):
+                if i == 0:
+                    label = f'{values.min():.1f} – {bins[i]:.1f}'
+                else:
+                    label = f'{bins[i-1]:.1f} – {bins[i]:.1f}'
 
-        ax.legend([elem[0] for elem in legend_elements],
-                  [elem[1] for elem in legend_elements],
-                  loc='upper right',
-                  title=f'{value_title} ({year})',
-                  fontsize=10,
-                  title_fontsize=10,
-                  fancybox=False,
-                  framealpha=1.0,
-                  edgecolor='black',
-                  facecolor='white')
+                patch = mpatches.Rectangle((0, 0), 1, 1,
+                                           facecolor=colors[i],
+                                           edgecolor='black',
+                                           linewidth=0.6)
+                legend_elements.append((patch, label))
+
+            if study_europe['value'].isna().any():
+                missing_patch = mpatches.Rectangle((0, 0), 1, 1,
+                                                   facecolor='lightgrey',
+                                                   edgecolor='black',
+                                                   linewidth=0.6)
+                legend_elements.append((missing_patch, 'Missing values'))
+
+            legend_elements.append((
+                mpatches.Rectangle((0, 0), 1, 1,
+                                    facecolor='white',
+                                    edgecolor='black',
+                                    hatch='///',
+                                    linewidth=0.3,
+                                    alpha=0.4),
+                'Non-study regions'
+            ))
+
+            ax.legend([elem[0] for elem in legend_elements],
+                      [elem[1] for elem in legend_elements],
+                      loc='upper right',
+                      title=f'{value_title} ({year})',
+                      fontsize=10,
+                      title_fontsize=10,
+                      fancybox=False,
+                      framealpha=1.0,
+                      edgecolor='black',
+                      facecolor='white')
 
     # Set the bounds for Central Europe
     ax.set_xlim(2200000, 6600000)

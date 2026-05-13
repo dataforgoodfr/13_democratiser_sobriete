@@ -55,9 +55,7 @@ CONSUMPTION_LABELS = {
     'KWH_LE15000': '>= 15,000 kWh',
     'GJ_LT20': '< 20 GJ',
     'GJ20-199': '20 - 199 GJ',
-    'GJ200-1999': '200 - 1,999 GJ',
-    'GJ2000-69999': '2,000 - 69,999 GJ',
-    'GJ_GE70000': '>= 70,000 GJ',
+    'GJ_GE200': '>= 200 GJ',
 }
 
 # ============================================================================
@@ -125,21 +123,60 @@ def map_nrg_cons(nrg_cons_val):
         'Consumption of GJ - all bands': 'TOT_KWH',  # Use TOT_KWH code for all bands
         'Consumption less than 20 GJ - band D1': 'GJ_LT20',
         'Consumption from 20 GJ to 199 GJ - band D2': 'GJ20-199',
-        'Consumption from 200 GJ to 1 999 GJ - band D3': 'GJ200-1999',
-        'Consumption from 2 000 GJ to 69 999 GJ - band D4': 'GJ2000-69999',
-        'Consumption 70 000 GJ or over - band D5': 'GJ_GE70000',
+        'Consumption 200 GJ or over - band D3': 'GJ_GE200',
     }
     return mapping.get(nrg_cons_val, None)
+
+
+# EWBI clusters (2 countries per cluster)
+CLUSTER_COUNTRIES = {
+    'Cluster 0': ['FR', 'ES'],
+    'Cluster 1': ['BE', 'AT'],
+    'Cluster 2': ['LT', 'HU'],
+    'Cluster 3': ['DE', 'PL'],
+}
+
+CLUSTER_COLORS = {
+    'Cluster 0': '#fb8072',  # salmon
+    'Cluster 1': '#fdb462',  # orange
+    'Cluster 2': '#8dd3c7',  # teal
+    'Cluster 3': '#80b1d3',  # blue
+}
+
+ALL_CLUSTER_COUNTRIES = [c for cs in CLUSTER_COUNTRIES.values() for c in cs]
 
 
 def map_country_name(geo_val):
     """Standardize country names."""
     mapping = {
+        'Austria': 'AT',
+        'Belgium': 'BE',
+        'Bulgaria': 'BG',
+        'Croatia': 'HR',
+        'Cyprus': 'CY',
+        'Czechia': 'CZ',
+        'Denmark': 'DK',
+        'Estonia': 'EE',
+        'Finland': 'FI',
         'France': 'FR',
-        'European Union - 27 countries (from 2020)': 'EU27_2020',
         'Germany': 'DE',
-        'Spain': 'ES',
+        'Greece': 'GR',
+        'Hungary': 'HU',
+        'Ireland': 'IE',
         'Italy': 'IT',
+        'Latvia': 'LV',
+        'Lithuania': 'LT',
+        'Luxembourg': 'LU',
+        'Malta': 'MT',
+        'Netherlands': 'NL',
+        'Poland': 'PL',
+        'Portugal': 'PT',
+        'Romania': 'RO',
+        'Slovakia': 'SK',
+        'Slovenia': 'SI',
+        'Spain': 'ES',
+        'Sweden': 'SE',
+        'European Union - 27 countries (from 2020)': 'EU27_2020',
     }
     for key, val in mapping.items():
         if key.lower() in str(geo_val).lower():
@@ -205,7 +242,7 @@ def create_decomposition_chart(df, country_code, energy_type, dirs):
     if energy_type.lower() == 'electricity':
         consumption_order = ['TOT_KWH', 'KWH_LT1000', 'KWH1000-2499', 'KWH2500-4999', 'KWH5000-14999', 'KWH_LE15000']
     else:  # gas
-        consumption_order = ['TOT_KWH', 'GJ_LT20', 'GJ20-199', 'GJ200-1999', 'GJ2000-69999', 'GJ_GE70000']
+        consumption_order = ['TOT_KWH', 'GJ_LT20', 'GJ20-199', 'GJ_GE200']
     
     pivot_data = pivot_data.reindex([c for c in consumption_order if c in pivot_data.index])
     
@@ -258,9 +295,20 @@ def create_decomposition_chart(df, country_code, energy_type, dirs):
     
     plt.tight_layout()
     
-    output_file = os.path.join(dirs['energy_dir'], f'{country_code}_{energy_type.upper()}_decomposition_{year}.png')
-    plt.savefig(output_file, dpi=300, bbox_inches='tight')
-    print(f"OK Saved: {output_file}")
+    base_name = f'{country_code}_{energy_type.upper()}_decomposition_{year}'
+    for ext in ('png', 'svg'):
+        plt.savefig(os.path.join(dirs['energy_dir'], f'{base_name}.{ext}'),
+                    dpi=300, bbox_inches='tight')
+    print(f"OK Saved: {base_name}.png / .svg")
+    
+    # Excel export
+    excel_df = pivot_data.copy()
+    excel_df.index = [CONSUMPTION_LABELS.get(c, c) for c in excel_df.index]
+    excel_df.columns = [CATEGORY_LABELS.get(c, c) for c in excel_df.columns]
+    excel_path = os.path.join(dirs['energy_dir'], f'{base_name}.xlsx')
+    excel_df.to_excel(excel_path, index_label='Consumption Band')
+    print(f"OK Saved: {base_name}.xlsx")
+    
     plt.close()
 
 
@@ -334,9 +382,21 @@ def create_timeseries_chart(df, country_code, energy_type, dirs):
     
     plt.tight_layout()
     
-    output_file = os.path.join(dirs['energy_dir'], f'{country_code}_{energy_type.upper()}_timeseries.png')
-    plt.savefig(output_file, dpi=300, bbox_inches='tight')
-    print(f"OK Saved: {output_file}")
+    base_name = f'{country_code}_{energy_type.upper()}_timeseries'
+    for ext in ('png', 'svg'):
+        plt.savefig(os.path.join(dirs['energy_dir'], f'{base_name}.{ext}'),
+                    dpi=300, bbox_inches='tight')
+    print(f"OK Saved: {base_name}.png / .svg")
+    
+    # Excel export
+    ts_pivot = df.pivot_table(index='TIME_PERIOD', columns='nrg_prc_code',
+                              values='OBS_VALUE', aggfunc='first')
+    ts_pivot.columns = [CATEGORY_LABELS.get(c, c) for c in ts_pivot.columns]
+    ts_pivot.index.name = 'Year'
+    excel_path = os.path.join(dirs['energy_dir'], f'{base_name}.xlsx')
+    ts_pivot.to_excel(excel_path)
+    print(f"OK Saved: {base_name}.xlsx")
+    
     plt.close()
 
 
@@ -380,6 +440,204 @@ def main():
             if not df_ts.empty:
                 create_timeseries_chart(df_ts, country, energy_type, dirs)
     
+    # ================================================================
+    # MULTI-COUNTRY: 8 cluster countries grid (rows=countries, cols=elec/gas)
+    # ================================================================
+    print(f"\n{'='*80}")
+    print('MULTI-COUNTRY DECOMPOSITION GRID (8 EWBI cluster countries)')
+    print(f"{'='*80}")
+
+    price_components = ['NRG_SUP', 'NETC', 'TAX_FEE_LEV_CHRG', 'VAT',
+                        'TAX_RNW', 'TAX_CAP', 'TAX_ENV', 'TAX_NUC', 'OTH']
+    elec_bands = ['KWH_LT1000', 'KWH1000-2499', 'KWH2500-4999',
+                  'KWH5000-14999', 'KWH_LE15000']
+    gas_bands = ['GJ_LT20', 'GJ20-199', 'GJ_GE200']
+
+    # Load and prepare both datasets
+    data = {}
+    for etype, bands in [('electricity', elec_bands), ('gas', gas_bands)]:
+        df = load_energy_data(dirs, etype)
+        if df.empty:
+            continue
+        df['nrg_prc_code'] = df['nrg_prc'].apply(map_nrg_prc)
+        df['nrg_cons_code'] = df['nrg_cons'].apply(map_nrg_cons)
+        df['country_code'] = df['geo'].apply(map_country_name)
+        df = df[df['country_code'].isin(ALL_CLUSTER_COUNTRIES)].copy()
+        df = df.dropna(subset=['nrg_prc_code', 'nrg_cons_code'])
+        df = df[df['nrg_cons_code'] != 'TOT_KWH']
+        df['OBS_VALUE'] = pd.to_numeric(df['OBS_VALUE'], errors='coerce')
+        last_years = df.groupby('country_code')['TIME_PERIOD'].max()
+        df = df.merge(last_years.rename('last_year'), on='country_code')
+        df = df[df['TIME_PERIOD'] == df['last_year']].drop(columns='last_year')
+        data[etype] = (df, bands)
+
+    # Build flat row list: (cluster_name, country_code)
+    rows = []
+    for cl_name, members in CLUSTER_COUNTRIES.items():
+        for cc in members:
+            rows.append((cl_name, cc))
+    n_rows = len(rows)  # 8
+
+    fig, axes = plt.subplots(n_rows, 2, figsize=(16, 3 * n_rows))
+
+    # Pre-compute shared y-axis limits per energy type (column)
+    y_limits = {}
+    for col_idx, (etype, _) in enumerate([('electricity', 'Electricity'),
+                                           ('gas', 'Gas')]):
+        if etype not in data:
+            continue
+        df_e, bands = data[etype]
+        col_max = 0
+        col_min = 0
+        for _, cc in rows:
+            cc_data = df_e[df_e['country_code'] == cc]
+            for band in bands:
+                band_data = cc_data[cc_data['nrg_cons_code'] == band]
+                if band_data.empty:
+                    continue
+                total = band_data['OBS_VALUE'].sum()
+                neg_sum = band_data.loc[band_data['OBS_VALUE'] < 0, 'OBS_VALUE'].sum()
+                col_max = max(col_max, total)
+                col_min = min(col_min, neg_sum)
+        y_limits[col_idx] = (col_min - 0.005 if col_min < 0 else 0,
+                             col_max * 1.15)
+
+    for col_idx, (etype, col_title) in enumerate([('electricity', 'Electricity'),
+                                                   ('gas', 'Gas')]):
+        if etype not in data:
+            continue
+        df_e, bands = data[etype]
+
+        for row_idx, (cl_name, cc) in enumerate(rows):
+            ax = axes[row_idx, col_idx]
+            cc_data = df_e[df_e['country_code'] == cc]
+
+            x_pos = np.arange(len(bands))
+            bar_width = 0.6
+            bottom_pos = np.zeros(len(bands))
+            bottom_neg = np.zeros(len(bands))
+            has_any = False
+
+            for comp in price_components:
+                vals = []
+                for band in bands:
+                    row = cc_data[(cc_data['nrg_cons_code'] == band) &
+                                  (cc_data['nrg_prc_code'] == comp)]
+                    vals.append(row['OBS_VALUE'].values[0] if len(row) else 0)
+                vals = np.array(vals)
+                if np.all(vals == 0):
+                    continue
+                has_any = True
+                # Stack positive on positive, negative on negative
+                pos_vals = np.where(vals >= 0, vals, 0)
+                neg_vals = np.where(vals < 0, vals, 0)
+                if np.any(pos_vals > 0):
+                    ax.bar(x_pos, pos_vals, bar_width, bottom=bottom_pos,
+                           label=CATEGORY_LABELS.get(comp, comp),
+                           color=COLORS.get(comp, '#cccccc'), alpha=0.85,
+                           edgecolor='black', linewidth=0.5)
+                    bottom_pos += pos_vals
+                if np.any(neg_vals < 0):
+                    ax.bar(x_pos, neg_vals, bar_width, bottom=bottom_neg,
+                           color=COLORS.get(comp, '#cccccc'), alpha=0.85,
+                           edgecolor='black', linewidth=0.5)
+                    bottom_neg += neg_vals
+
+            # Total labels
+            for i, total in enumerate(bottom_pos):
+                if total > 0:
+                    ax.text(i, total + 0.001, f'{total:.3f}', ha='center',
+                            va='bottom', fontsize=7, fontweight='bold')
+
+            band_labels = [CONSUMPTION_LABELS.get(b, b) for b in bands]
+            ax.set_xticks(x_pos)
+            ax.set_xticklabels(band_labels, fontsize=7, rotation=20, ha='right')
+            ax.grid(True, alpha=0.2, axis='y')
+            ax.spines['top'].set_visible(False)
+            ax.spines['right'].set_visible(False)
+            ax.axhline(0, color='grey', linewidth=0.5)
+
+            # Shared y-axis per column
+            if col_idx in y_limits:
+                ax.set_ylim(y_limits[col_idx])
+
+            # Row label (country + cluster color)
+            cl_color = CLUSTER_COLORS[cl_name]
+            ax.set_ylabel(cc, fontsize=11, fontweight='bold', color=cl_color)
+
+            if not has_any:
+                ax.text(0.5, 0.5, 'No data', ha='center', va='center',
+                        transform=ax.transAxes, fontsize=10, color='grey')
+
+            # Column title on top row only
+            if row_idx == 0:
+                ax.set_title(col_title, fontsize=13, fontweight='bold',
+                             color='#2c3e50')
+
+    # Add cluster group labels on the left margin
+    row_i = 0
+    for cl_name, members in CLUSTER_COUNTRIES.items():
+        mid_row = row_i + len(members) / 2 - 0.5
+        # Shade rows for this cluster
+        for r in range(len(members)):
+            for c in range(2):
+                axes[row_i + r, c].set_facecolor(
+                    (*plt.matplotlib.colors.to_rgb(CLUSTER_COLORS[cl_name]), 0.05))
+        row_i += len(members)
+
+    # Shared legend at the bottom
+    handles, labels = [], []
+    for comp in price_components:
+        if comp in [h.get_label() for h in handles]:
+            continue
+        handles.append(plt.Rectangle((0, 0), 1, 1,
+                       color=COLORS.get(comp, '#cccccc'), alpha=0.85))
+        labels.append(CATEGORY_LABELS.get(comp, comp))
+    fig.legend(handles, labels, loc='lower center', ncol=5, fontsize=9,
+               frameon=False, bbox_to_anchor=(0.5, -0.02))
+
+    fig.suptitle('Energy Price Decomposition by Consumption Band\n'
+                 '8 EWBI Cluster Countries (last available year)',
+                 fontsize=14, fontweight='bold', color='#2c3e50', y=1.01)
+    fig.tight_layout(rect=[0, 0.03, 1, 0.98])
+
+    fname = 'cluster8_energy_prices_grid'
+    for ext in ('png', 'svg'):
+        fig.savefig(os.path.join(dirs['energy_dir'], f'{fname}.{ext}'),
+                    dpi=200, bbox_inches='tight')
+    plt.close(fig)
+    print(f'  Saved {fname}.png / .svg')
+
+    # --- Excel export of the cluster grid data ---
+    excel_path = os.path.join(dirs['energy_dir'], 'cluster8_energy_prices_data.xlsx')
+    with pd.ExcelWriter(excel_path, engine='openpyxl') as writer:
+        for etype in ['electricity', 'gas']:
+            if etype not in data:
+                continue
+            df_e, bands = data[etype]
+            excel_rows = []
+            for cl_name, cc in rows:
+                cc_data = df_e[df_e['country_code'] == cc]
+                for band in bands:
+                    row_dict = {
+                        'Cluster': cl_name,
+                        'Country': cc,
+                        'Consumption_band': CONSUMPTION_LABELS.get(band, band),
+                        'Band_code': band,
+                    }
+                    for comp in price_components:
+                        r = cc_data[(cc_data['nrg_cons_code'] == band) &
+                                    (cc_data['nrg_prc_code'] == comp)]
+                        row_dict[CATEGORY_LABELS.get(comp, comp)] = (
+                            r['OBS_VALUE'].values[0] if len(r) else np.nan)
+                    # Add year
+                    yr = cc_data['TIME_PERIOD'].max() if len(cc_data) else np.nan
+                    row_dict['Year'] = yr
+                    excel_rows.append(row_dict)
+            sheet = pd.DataFrame(excel_rows)
+            sheet.to_excel(writer, sheet_name=etype.capitalize(), index=False)
+    print(f'  Saved Excel: {excel_path}')
+
     print("\n" + "="*80)
     print("ANALYSIS COMPLETED SUCCESSFULLY")
     print(f"Output directory: {dirs['energy_dir']}")

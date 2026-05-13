@@ -1,15 +1,20 @@
 {
   "EWBI": [
     {
-      "name": "Energy and Housing",
+      "name": "Energy",
       "components": [
         {
-          "name": "Housing Quality",
-          "weight": "2/3",
+          "name": "Energy",
+          "weight": "1/1",
           "indicators": [
             {
-              "code": "HQ-SILC-1",
-              "description": "Overcrowded dwelling",
+              "code": "HE-SILC-2",
+              "description": "Behind on utility bills",
+              "weight": 2
+            },
+            {
+              "code": "HQ-SILC-3",
+              "description": "Cannot keep dwelling cool",
               "weight": 2
             },
             {
@@ -18,8 +23,29 @@
               "weight": 2
             },
             {
-              "code": "HQ-SILC-3",
-              "description": "Cannot keep dwelling cool",
+              "code": "HQ-SILC-6",
+              "description": "Leaking roof/damp/rot",
+              "weight": 2
+            },
+            {
+              "code": "HQ-SILC-8",
+              "description": "No renovation measures",
+              "weight": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Housing",
+      "components": [
+        {
+          "name": "Housing",
+          "weight": "1/1",
+          "indicators": [
+            {
+              "code": "HQ-SILC-1",
+              "description": "Overcrowded dwelling",
               "weight": 2
             },
             {
@@ -33,29 +59,8 @@
               "weight": 2
             },
             {
-              "code": "HQ-SILC-6",
-              "description": "Leaking roof/damp/rot",
-              "weight": 2
-            },
-            {
               "code": "HQ-SILC-7",
               "description": "Pollution or crime",
-              "weight": 2
-            },
-            {
-              "code": "HQ-SILC-8",
-              "description": "No renovation measures",
-              "weight": 2
-            }
-          ]
-        },
-        {
-          "name": "Energy",
-          "weight": "1/3",
-          "indicators": [
-            {
-              "code": "HE-SILC-2",
-              "description": "Behind on utility bills",
               "weight": 2
             }
           ]

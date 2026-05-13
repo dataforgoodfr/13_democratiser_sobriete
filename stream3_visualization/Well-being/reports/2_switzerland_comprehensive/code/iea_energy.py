@@ -14,9 +14,10 @@ def load_energy_import_export_data():
     
     base_path = Path(__file__).parent.parent / "external_data"
     
-    # Define the 4 energy import files
+    # Define the 5 energy import files
     energy_files = {
         'Crude Oil': 'iea_Crude oil imports.csv',
+        'Oil Products': 'iea_Oil products imports vs. exports - Switzerland.csv',
         'Coal': 'iea_Coal imports.csv', 
         'Electricity': 'iea_Electricity imports.csv',
         'Natural Gas': 'iea_Natural gas imports.csv'
@@ -70,13 +71,14 @@ def create_net_imports_area_chart(net_imports_df, output_dir):
     # Define colors for each energy type (ensuring consistency)
     colors = {
         'Crude Oil': '#000000',      # Black
+        'Oil Products': '#808080',   # Grey
         'Coal': '#8B4513',           # Brown  
         'Electricity': '#FFD700',    # Gold/Yellow - always this color
         'Natural Gas': '#FF6347'     # Tomato
     }
     
     # Reorder columns: Electricity as base, Coal on top
-    column_order = ['Electricity', 'Natural Gas', 'Crude Oil', 'Coal']
+    column_order = ['Electricity', 'Natural Gas', 'Crude Oil', 'Oil Products', 'Coal']
     net_imports_ordered = net_imports_df.reindex(columns=column_order)
     
     # Create area chart that can handle negative values
@@ -130,10 +132,10 @@ def create_net_imports_area_chart(net_imports_df, output_dir):
 def create_individual_net_imports_charts(net_imports_df, output_dir):
     """Create individual line charts for each energy type's net imports"""
     
-    fig, axes = plt.subplots(2, 2, figsize=(15, 10))
+    fig, axes = plt.subplots(2, 3, figsize=(18, 10))
     axes = axes.flatten()
     
-    colors = ['#000000', '#8B4513', '#FFD700', '#FF6347']
+    colors = ['#000000', '#808080', '#8B4513', '#FFD700', '#FF6347']
     
     for i, (energy_type, color) in enumerate(zip(net_imports_df.columns, colors)):
         ax = axes[i]
@@ -164,6 +166,10 @@ def create_individual_net_imports_charts(net_imports_df, output_dir):
                 transform=ax.transAxes, fontsize=9, 
                 verticalalignment='top',
                 bbox=dict(boxstyle='round,pad=0.3', facecolor='white', alpha=0.8))
+    
+    # Hide unused axes (6th panel on 2x3 grid with 5 energy types)
+    for j in range(len(net_imports_df.columns), len(axes)):
+        axes[j].set_visible(False)
     
     plt.suptitle('Switzerland: Net Energy Imports by Type (Individual Charts)', 
                  fontsize=16, fontweight='bold')

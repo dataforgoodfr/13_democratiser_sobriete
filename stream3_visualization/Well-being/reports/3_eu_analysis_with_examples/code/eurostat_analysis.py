@@ -214,6 +214,205 @@ def create_real_estate_graphs():
         plt.close()
         print("  [SAVED] 2_real_estate_countries_total.png")
 
+
+def create_real_estate_cluster_quintiles():
+    """Create real estate by income quintile graph for selected countries grouped by new 4-cluster setup."""
+    print("\n[1b] Creating real estate quintiles by cluster...")
+
+    CLUSTERS = [
+        {
+            "label": "Cluster 0 - Low performer / Low EWBI",
+            "candidates": ["France", "Spain", "Greece", "Italy", "Portugal", "Finland"],
+        },
+        {
+            "label": "Cluster 1 - Low performer / High EWBI",
+            "candidates": ["Belgium", "Netherlands", "Austria", "Denmark", "Ireland"],
+        },
+        {
+            "label": "Cluster 2 - High performer / Low EWBI",
+            "candidates": ["Lithuania", "Hungary", "Romania", "Bulgaria", "Latvia", "Estonia"],
+        },
+        {
+            "label": "Cluster 3 - High performer / High EWBI",
+            "candidates": ["Germany", "Poland", "Sweden", "Czech Republic", "Slovenia", "Slovakia"],
+        },
+    ]
+    CLUSTER_COLORS = {
+        "Cluster 0 - Low performer / Low EWBI": '#fb8072',
+        "Cluster 1 - Low performer / High EWBI": '#fdb462',
+        "Cluster 2 - High performer / Low EWBI": '#8dd3c7',
+        "Cluster 3 - High performer / High EWBI": '#80b1d3',
+        "EU-27": '#6a3d9a',
+    }
+    CODE_MAP = {
+        'France': 'FR', 'Spain': 'ES', 'Belgium': 'BE', 'Netherlands': 'NL',
+        'Lithuania': 'LT', 'Hungary': 'HU', 'Germany': 'DE', 'Poland': 'PL', 'EU27': 'EU-27',
+    }
+
+    df = load_real_estate_data()
+    if df is None or df.empty:
+        print("  No data available")
+        return
+
+    latest_year = int(df['TIME_PERIOD'].max()) if 'TIME_PERIOD' in df.columns else 'Latest'
+
+    quintile_order = ['First quintile', 'Second quintile', 'Third quintile',
+                      'Fourth quintile', 'Fifth quintile']
+    short_labels = ['Q1', 'Q2', 'Q3', 'Q4', 'Q5']
+
+    # Select 2 countries per cluster from candidate lists (first valid wins)
+    selected_clusters = []
+    ordered_countries = []
+    for cluster in CLUSTERS:
+        chosen = []
+        for country in cluster['candidates']:
+            df_c = df[(df['country_name'] == country) & (df['quant_inc'].isin(quintile_order))]
+            if len(df_c) >= 5:
+                ordered_countries.append(country)
+                chosen.append(country)
+            if len(chosen) == 2:
+                break
+
+        if len(chosen) < 2:
+            print(f"  WARNING: {cluster['label']} has only {len(chosen)} countries with complete quintile data")
+
+        selected_clusters.append({
+            'label': cluster['label'],
+            'countries': chosen,
+        })
+
+    # Add EU-27 aggregate as an extra panel (no 'Total', quintiles only)
+    df_eu27 = df[(df['country_name'] == 'EU27') & (df['quant_inc'].isin(quintile_order))]
+    if len(df_eu27) >= 5:
+        ordered_countries.append('EU27')
+    else:
+        print(f"  WARNING: EU27 has insufficient quintile data ({len(df_eu27)} rows) — skipped")
+
+    if not ordered_countries:
+        print("  No countries with data")
+        return
+
+    n_countries = len(ordered_countries)
+    fig, axes = plt.subplots(1, n_countries, figsize=(3.2 * n_countries, 5.5),
+                              squeeze=False, sharey=True)
+
+    # Global y-range
+    all_vals = []
+    for country in ordered_countries:
+        df_c = df[(df['country_name'] == country) & (df['quant_inc'].isin(quintile_order))]
+        all_vals.extend(df_c['value'].tolist())
+    y_max = max(all_vals) * 1.18 if all_vals else 50
+
+    for col_idx, country in enumerate(ordered_countries):
+        ax = axes[0][col_idx]
+        # Find which cluster this country belongs to
+        cluster_label = None
+        for cluster in selected_clusters:
+            if country in cluster['countries']:
+                cluster_label = cluster['label']
+                break
+        if country == 'EU27':
+            cluster_label = 'EU-27'
+        color = CLUSTER_COLORS.get(cluster_label, '#80b1d3')
+
+        df_c = df[(df['country_name'] == country) & (df['quant_inc'].isin(quintile_order))].copy()
+        df_c['quant_inc'] = pd.Categorical(df_c['quant_inc'], categories=quintile_order, ordered=True)
+        df_c = df_c.sort_values('quant_inc')
+
+        x = np.arange(len(df_c))
+        bars = ax.bar(x, df_c['value'], color=color, edgecolor='white', linewidth=1.2, width=0.7)
+
+        # Value labels
+        for bar in bars:
+            h = bar.get_height()
+            if h > 0:
+                ax.text(bar.get_x() + bar.get_width() / 2, h,
+                        f'{h:.1f}%', ha='center', va='bottom', fontsize=7.5, fontweight='bold')
+
+        code = CODE_MAP.get(country, country)
+        ax.set_title(f'{country} ({code})', fontsize=10, fontweight='bold')
+        ax.set_xticks(x)
+        ax.set_xticklabels(short_labels[:len(df_c)], fontsize=8)
+        ax.set_ylim(0, y_max)
+        ax.grid(axis='y', alpha=0.2)
+        ax.set_facecolor('white')
+
+        if col_idx == 0:
+            ax.set_ylabel('Persons owning real estate (%)', fontsize=10, fontweight='bold')
+
+    fig.suptitle(f'Persons Owning Real Estate Other Than Main Residence ({latest_year})\nby Income Quintile — New 4 Clusters + EU-27',
+                 fontsize=13, fontweight='bold', y=1.02)
+
+    plt.tight_layout(rect=[0, 0, 1, 0.93])
+
+    # Cluster labels on top
+    col_offset = 0
+    for cluster in selected_clusters:
+        cols_in = [ordered_countries.index(c) for c in cluster['countries'] if c in ordered_countries]
+        if not cols_in:
+            continue
+        left_pos = axes[0][cols_in[0]].get_position()
+        right_pos = axes[0][cols_in[-1]].get_position()
+        center_x = (left_pos.x0 + right_pos.x1) / 2
+        fig.text(center_x, 0.96, cluster['label'], ha='center', va='bottom',
+                 fontsize=11, fontweight='bold', fontstyle='italic',
+                 bbox=dict(boxstyle='round,pad=0.3', facecolor='#f0f0f0', edgecolor='#cccccc'))
+
+    # Vertical separators between clusters
+    col_offset = 0
+    for i, cluster in enumerate(selected_clusters[:-1]):
+        n_in = sum(1 for c in cluster['countries'] if c in ordered_countries)
+        col_offset += n_in
+        if col_offset < n_countries:
+            right_pos = axes[0][col_offset - 1].get_position()
+            left_pos = axes[0][col_offset].get_position()
+            line_x = (right_pos.x1 + left_pos.x0) / 2
+            fig.add_artist(plt.Line2D([line_x, line_x], [0.02, 0.93],
+                                       transform=fig.transFigure, color='#888888',
+                                       linewidth=1.5, linestyle='--'))
+
+    # Separator before EU-27 panel (if present)
+    if 'EU27' in ordered_countries and len(ordered_countries) > 1:
+        eu_col = ordered_countries.index('EU27')
+        if eu_col > 0:
+            right_pos = axes[0][eu_col - 1].get_position()
+            left_pos = axes[0][eu_col].get_position()
+            line_x = (right_pos.x1 + left_pos.x0) / 2
+            fig.add_artist(plt.Line2D([line_x, line_x], [0.02, 0.93],
+                                       transform=fig.transFigure, color='#6a3d9a',
+                                       linewidth=2.0, linestyle='-'))
+        eu_pos = axes[0][eu_col].get_position()
+        eu_center = (eu_pos.x0 + eu_pos.x1) / 2
+        fig.text(eu_center, 0.96, 'EU-27', ha='center', va='bottom',
+                 fontsize=11, fontweight='bold', fontstyle='italic',
+                 bbox=dict(boxstyle='round,pad=0.3', facecolor='#efe6ff', edgecolor='#6a3d9a'))
+
+    out_png = os.path.join(OUTPUT_DIR, '2b_real_estate_cluster_quintiles.png')
+    out_svg = os.path.join(OUTPUT_DIR, '2b_real_estate_cluster_quintiles.svg')
+    plt.savefig(out_png, dpi=300, bbox_inches='tight', facecolor='white')
+    plt.savefig(out_svg, format='svg', bbox_inches='tight', facecolor='white')
+    plt.close()
+    print(f"  [SAVED] 2b_real_estate_cluster_quintiles.png")
+    print(f"  [SAVED] 2b_real_estate_cluster_quintiles.svg")
+
+    # Excel export: rows = countries, columns = quintiles
+    import openpyxl
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = 'Real Estate by Quintile'
+    ws.append(['Country'] + short_labels)
+    for country in ordered_countries:
+        df_c = df[(df['country_name'] == country) & (df['quant_inc'].isin(quintile_order))].copy()
+        df_c['quant_inc'] = pd.Categorical(df_c['quant_inc'], categories=quintile_order, ordered=True)
+        df_c = df_c.sort_values('quant_inc')
+        label = 'EU-27' if country == 'EU27' else country
+        row = [label] + [round(v, 2) for v in df_c['value'].tolist()]
+        ws.append(row)
+    xlsx_path = os.path.join(OUTPUT_DIR, '2b_real_estate_cluster_quintiles.xlsx')
+    wb.save(xlsx_path)
+    print(f"  [SAVED] 2b_real_estate_cluster_quintiles.xlsx")
+
+
 def create_rooms_graphs():
     """Create average rooms visualization graphs"""
     print("\n[2] Creating average rooms graphs...")
@@ -4836,6 +5035,7 @@ def main():
     
     print("\nGenerating visualizations...")
     create_real_estate_graphs()
+    create_real_estate_cluster_quintiles()
     create_rooms_graphs()
     create_energy_efficiency_graphs()
     create_berd_graphs()

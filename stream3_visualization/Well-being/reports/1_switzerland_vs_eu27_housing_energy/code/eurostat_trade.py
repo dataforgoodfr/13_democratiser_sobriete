@@ -234,6 +234,11 @@ def normalize_country_name(country_name):
     return COUNTRY_NAME_NORMALIZATION.get(mapped_name, mapped_name)
 
 
+def is_eu27_partner(partner_name):
+    """Return True if partner_name refers to an EU-27 member state."""
+    return normalize_country_name(partner_name) in EU27_COUNTRIES_NORMALIZED
+
+
 def load_trade_data():
     """Load and preprocess trade data from import and export datasets."""
     print("Loading Eurostat trade data from import and export files...")
@@ -554,6 +559,7 @@ def create_stacked_trade_chart(trade_data, partners_order, title, filename, repo
     # Save the plot
     output_path = os.path.join(OUTPUT_DIR, filename)
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
+    plt.savefig(output_path.replace('.png', '.svg'), bbox_inches='tight')
     print(f"Saved chart to: {output_path}")
     
     plt.close()  # Close instead of show
@@ -655,6 +661,7 @@ def create_stacked_trade_chart_gdp_pct(trade_data, partners_order, title, filena
     # Save the plot
     output_path = os.path.join(OUTPUT_DIR, filename)
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
+    plt.savefig(output_path.replace('.png', '.svg'), bbox_inches='tight')
     print(f"Saved chart to: {output_path}")
     
     plt.close()  # Close instead of show
@@ -778,10 +785,186 @@ def create_import_export_scatter(trade_data, title, filename):
     # Save the plot
     output_path = os.path.join(OUTPUT_DIR, filename)
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
+    plt.savefig(output_path.replace('.png', '.svg'), bbox_inches='tight')
     print(f"Saved scatter plot to: {output_path}")
     
     plt.close()  # Close instead of show
     return fig
+
+def create_eu27_extra_heatmap(df, year=TARGET_YEAR, top_n=N_PARTNERS):
+    """
+    Create a heatmap showing net imports between EU-27 reporter countries and
+    the top N most-traded extra-EU (non-EU27) partner countries.
+
+    Rows    : EU-27 reporter countries (all available individual reporters)
+    Columns : top N non-EU27 partner countries ranked by total bilateral trade volume
+    Values  : net imports = IMPORT - EXPORT (EUR billion)
+    Color   : red = high net imports (deficit), green = low / negative (surplus)
+    """
+    from matplotlib.colors import TwoSlopeNorm
+
+    print(f"Creating EU-27 extra-EU net-imports heatmap for {year}...")
+
+    # --- 1. filter for year and TOTAL product ----------------------------------
+    year_df = df[
+        (df['year'] == year) &
+        (df['product'] == 'TOTAL') &
+        (df['indicators'] == 'VALUE_EUR')
+    ].copy()
+
+    year_df['value'] = pd.to_numeric(year_df['value'], errors='coerce')
+    year_df = year_df.dropna(subset=['value'])
+
+    # Normalise names to plain country labels
+    year_df['reporter_norm'] = year_df['reporter'].apply(normalize_country_name)
+    year_df['partner_norm'] = year_df['partner'].apply(normalize_country_name)
+
+    # --- 2. keep EU-27 reporters × non-EU27 individual partners ---------------
+    extra_df = year_df[
+        year_df['reporter_norm'].isin(EU27_COUNTRIES_NORMALIZED) &
+        ~year_df['partner_norm'].isin(EU27_COUNTRIES_NORMALIZED) &
+        ~year_df['partner'].isin(AGGREGATE_PARTNERS)
+    ].copy()
+
+    if extra_df.empty:
+        print(f"No extra-EU bilateral trade data found for {year}")
+        return
+
+    # --- 3. aggregate and pivot -----------------------------------------------
+    agg = (
+        extra_df
+        .groupby(['reporter_norm', 'partner_norm', 'flow'])['value']
+        .sum()
+        .reset_index()
+    )
+
+    pivot = agg.pivot_table(
+        index=['reporter_norm', 'partner_norm'],
+        columns='flow',
+        values='value',
+        fill_value=0
+    ).reset_index()
+    pivot.columns.name = None
+    for col in ('IMPORT', 'EXPORT'):
+        if col not in pivot.columns:
+            pivot[col] = 0
+
+    pivot['net_imports'] = pivot['IMPORT'] - pivot['EXPORT']
+
+    # --- 4. select top N partner columns by total bilateral trade -------------
+    partner_totals = (
+        pivot.groupby('partner_norm')[['IMPORT', 'EXPORT']]
+        .sum()
+        .assign(total_trade=lambda x: x['IMPORT'] + x['EXPORT'])
+        .nlargest(top_n, 'total_trade')
+        .index.tolist()
+    )
+
+    heat_df = pivot[pivot['partner_norm'].isin(partner_totals)].copy()
+
+    # --- 5. build matrix (rows = reporters, columns = top partners) -----------
+    matrix = heat_df.pivot_table(
+        index='reporter_norm',
+        columns='partner_norm',
+        values='net_imports',
+        fill_value=0
+    )
+
+    # Order columns by total trade volume (highest first)
+    matrix = matrix.reindex(columns=[p for p in partner_totals if p in matrix.columns])
+    # Sort rows alphabetically
+    matrix = matrix.sort_index()
+
+    # Convert to EUR billion
+    matrix_bn = matrix / 1e9
+
+    n_rows, n_cols = matrix_bn.shape
+
+    # --- 6. export to Excel ---------------------------------------------------
+    excel_path = os.path.join(OUTPUT_DIR, f'eu27_extra_heatmap_{year}.xlsx')
+    matrix_bn.to_excel(excel_path)
+    print(f"Saved heatmap Excel to: {excel_path}")
+
+    # --- 7. plot ---------------------------------------------------------------
+    fig_w = max(14, n_cols * 1.3)
+    fig_h = max(10, n_rows * 0.6)
+    fig, ax = plt.subplots(figsize=(fig_w, fig_h))
+
+    vmax = abs(matrix_bn.values).max()
+    vmin = -vmax
+    # If all values are one-sided, widen so vcenter=0 is still inside
+    if matrix_bn.values.min() >= 0:
+        vmin = -vmax * 0.01
+    elif matrix_bn.values.max() <= 0:
+        vmax = abs(vmin) * 0.01
+
+    norm = TwoSlopeNorm(vmin=vmin, vcenter=0, vmax=vmax)
+    im = ax.imshow(matrix_bn.values, cmap='RdYlGn_r', norm=norm, aspect='auto')
+
+    ax.set_xticks(range(n_cols))
+    ax.set_xticklabels(matrix_bn.columns.tolist(), rotation=45, ha='right', fontsize=10)
+    ax.set_yticks(range(n_rows))
+    ax.set_yticklabels(matrix_bn.index.tolist(), fontsize=10)
+
+    # Annotate each cell with its value
+    for i in range(n_rows):
+        for j in range(n_cols):
+            val = matrix_bn.values[i, j]
+            brightness = abs(val) / vmax if vmax != 0 else 0
+            txt_color = 'white' if brightness > 0.65 else 'black'
+            ax.text(j, i, f'{val:.1f}', ha='center', va='center',
+                    fontsize=7, color=txt_color)
+
+    cbar = fig.colorbar(im, ax=ax, pad=0.02, fraction=0.025)
+    cbar.set_label(
+        'Net Imports (EUR billion)\n'
+        '+ = importing more  |  \u2212 = exporting more',
+        fontsize=9
+    )
+
+    ax.set_title(
+        f'EU-27 vs Extra-EU Net Imports Heatmap ({year})\n'
+        f'Rows: EU-27 Reporter | Columns: Top {top_n} Non-EU Trade Partners',
+        fontsize=13, pad=15
+    )
+    ax.set_xlabel('Trade Partner (Non-EU)', fontsize=11)
+    ax.set_ylabel('EU-27 Reporter Country', fontsize=11)
+
+    plt.tight_layout()
+
+    output_path = os.path.join(OUTPUT_DIR, f'eu27_extra_heatmap_{year}.png')
+    plt.savefig(output_path, dpi=300, bbox_inches='tight')
+    plt.savefig(output_path.replace('.png', '.svg'), bbox_inches='tight')
+    print(f"Saved heatmap to: {output_path}")
+    plt.close()
+
+
+def export_eu27_trade_to_excel(trade_data, eu27_gdp, year, png_filename, output_dir):
+    """
+    Export EU27 stacked bar chart data to Excel as % of GDP.
+    png_filename: the PNG filename used for the chart (e.g. 'eu27_extra_eu_trade_by_product_2024.png');
+                  the Excel file gets the same stem with .xlsx extension.
+    """
+    label = png_filename.replace('.png', '')
+    rows = []
+    for _, row in trade_data.iterrows():
+        clean_product = PRODUCT_MAPPING.get(row['product'], row['product'])
+        for flow, col in (('Export', 'EXPORT'), ('Import', 'IMPORT')):
+            rows.append({
+                'visual_name': f"EU27 Trade - {label}",
+                'year': year,
+                'partner': row['partner'],
+                'flow': flow,
+                'product': clean_product,
+                'value_pct_gdp': (row[col] / eu27_gdp) * 100 if eu27_gdp > 0 else 0,
+                'unit': '% of GDP'
+            })
+    excel_df = pd.DataFrame(rows).sort_values(['partner', 'flow', 'product'])
+    path = os.path.join(output_dir, png_filename.replace('.png', '.xlsx'))
+    excel_df.to_excel(path, index=False)
+    print(f"Excel saved: {path}")
+    return excel_df
+
 
 def export_switzerland_trade_to_excel(ch_trade, ch_gdp, year, output_dir):
     """
@@ -958,11 +1141,57 @@ def main():
                     eu27_gdp,
                     "EU27"
                 )
+                export_eu27_trade_to_excel(eu27_trade_filtered, eu27_gdp, year, f'eu27_trade_by_product_{year}.png', OUTPUT_DIR)
+                
+                # Classify partners into intra-EU and extra-EU
+                partner_totals['is_eu27'] = partner_totals['partner'].apply(is_eu27_partner)
+                
+                # Graph 1b: Intra-EU - top EU member state partners
+                intra_eu_partners = (
+                    partner_totals[partner_totals['is_eu27']]
+                    .nlargest(N_PARTNERS, 'total_trade')['partner'].tolist()
+                )
+                if intra_eu_partners:
+                    eu27_trade_intra = eu27_trade[eu27_trade['partner'].isin(intra_eu_partners)]
+                    create_stacked_trade_chart_gdp_pct(
+                        eu27_trade_intra,
+                        intra_eu_partners,
+                        f"EU27 Intra-EU Trade by Product Type - Top {N_PARTNERS} EU Partners (% of GDP, {year})",
+                        f"eu27_intra_eu_trade_by_product_{year}.png",
+                        eu27_gdp,
+                        "EU27"
+                    )
+                    export_eu27_trade_to_excel(eu27_trade_intra, eu27_gdp, year, f'eu27_intra_eu_trade_by_product_{year}.png', OUTPUT_DIR)
+                else:
+                    print(f"No intra-EU partners found for {year}")
+                
+                # Graph 1c: Extra-EU - top non-EU27 partners
+                extra_eu_partners = (
+                    partner_totals[~partner_totals['is_eu27']]
+                    .nlargest(N_PARTNERS, 'total_trade')['partner'].tolist()
+                )
+                if extra_eu_partners:
+                    eu27_trade_extra = eu27_trade[eu27_trade['partner'].isin(extra_eu_partners)]
+                    create_stacked_trade_chart_gdp_pct(
+                        eu27_trade_extra,
+                        extra_eu_partners,
+                        f"EU27 Extra-EU Trade by Product Type - Top {N_PARTNERS} Non-EU Partners (% of GDP, {year})",
+                        f"eu27_extra_eu_trade_by_product_{year}.png",
+                        eu27_gdp,
+                        "EU27"
+                    )
+                    export_eu27_trade_to_excel(eu27_trade_extra, eu27_gdp, year, f'eu27_extra_eu_trade_by_product_{year}.png', OUTPUT_DIR)
+                else:
+                    print(f"No extra-EU partners found for {year}")
             else:
                 print(f"No GDP data found for EU27 in {year}")
         else:
             print(f"No EU27 trade data found for {year}")
-        
+
+        # 1d. Extra-EU net-imports heatmap (EU-27 reporters × top non-EU partners)
+        print(f"\n1d. Creating EU-27 extra-EU net-imports heatmap for {year}...")
+        create_eu27_extra_heatmap(df, year, N_PARTNERS)
+
         # 2. Switzerland Trade Chart
         print(f"\n2. Creating Switzerland trade chart for {year}...")
         try:
@@ -1043,6 +1272,14 @@ def main():
                         f"Total Trade as % of GDP: Imports vs Exports ({year})",
                         f"countries_import_export_scatter_{year}.png"
                     )
+                    # Export scatter data to Excel
+                    scatter_excel = trade_with_gdp[['gdp_country', 'IMPORT_GDP_PCT', 'EXPORT_GDP_PCT']].copy()
+                    scatter_excel.columns = ['country', 'imports_pct_gdp', 'exports_pct_gdp']
+                    scatter_excel['net_exports_pct_gdp'] = scatter_excel['exports_pct_gdp'] - scatter_excel['imports_pct_gdp']
+                    scatter_excel['year'] = year
+                    scatter_excel_path = os.path.join(OUTPUT_DIR, f'countries_import_export_scatter_{year}.xlsx')
+                    scatter_excel.to_excel(scatter_excel_path, index=False)
+                    print(f"Scatter Excel saved: {scatter_excel_path}")
                 else:
                     print(f"No country matches found between trade and GDP data for {year}")
             else:

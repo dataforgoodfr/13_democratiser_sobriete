@@ -1,5 +1,5 @@
 """
-HBS Analysis - Disposable Income After Fundamental Needs
+HBS Analysis - Disposable Income After Basic Needs
 Creates scatter plots showing disposable income (after housing, transport, food, health, education)
 by income decile and urbanization level for selected countries.
 """
@@ -112,11 +112,11 @@ def assign_simple_deciles(df):
 
 def calculate_disposable_after_needs_by_decile_urbanization(df):
     """
-    Calculate disposable income after fundamental needs (housing, transport, food, health, education).
+    Calculate disposable income after basic needs (housing, transport, food, health, education).
     
     Metric: EUR_HH099 (equivalized income) - (housing + transport + other components)
     """
-    print("\n=== CALCULATING DISPOSABLE INCOME AFTER FUNDAMENTAL NEEDS ===")
+    print("\n=== CALCULATING DISPOSABLE INCOME AFTER BASIC NEEDS ===")
     
     consumption_col = 'EUR_HE00_pps'
     income_col = 'EUR_HH099'
@@ -260,7 +260,7 @@ def plot_disposable_income_scatter_all_countries(all_results, dirs):
         y_max_scale = 1000  # Default fallback
     
     fig, axes = plt.subplots(3, 1, figsize=(16, 12))
-    fig.suptitle(f'Disposable Income After Fundamental Needs by Urbanization (2020)\n'
+    fig.suptitle(f'Disposable Income After Basic Needs by Urbanization (2020)\n'
                  'Income - (Housing + Transport + Food + Health + Education)',
                  fontsize=14, fontweight='bold', y=0.995)
     
@@ -316,9 +316,125 @@ def plot_disposable_income_scatter_all_countries(all_results, dirs):
     plt.close()
 
 
+def plot_disposable_income_scatter_by_country(all_results, dirs):
+    """Create scatter plot with all countries on one graph, averaging across all urbanization levels."""
+    print(f"\n=== CREATING SCATTER PLOT (ALL DENSITIES COMBINED) ===")
+
+    if not all_results:
+        print(f"ERROR: No data for any countries")
+        return
+
+    graphs_dir = os.path.join(dirs['outputs'], 'graphs', 'HBS')
+    os.makedirs(graphs_dir, exist_ok=True)
+
+    decile_order = ['D1', 'D2', 'D3', 'D4', 'D5', 'D6', 'D7', 'D8', 'D9', 'D10']
+
+    # Find global y range from averaged data
+    all_values = []
+    for result_df in all_results.values():
+        avg = result_df.groupby('decile')['disposable_after_needs'].mean()
+        all_values.extend(avg.values)
+    y_max_scale = max(all_values) * 1.10 if all_values else 1000
+
+    fig, ax = plt.subplots(figsize=(16, 8))
+    fig.suptitle('Disposable Income After Basic Needs – All Densities Combined (2020)\n'
+                 'Income - (Housing + Transport + Food + Health + Education)',
+                 fontsize=14, fontweight='bold', y=0.995)
+
+    for country_name, result_df in all_results.items():
+        country_color = get_country_color(country_name)
+
+        # Average across urbanization levels for each decile
+        avg_data = result_df.groupby('decile')['disposable_after_needs'].mean().reset_index()
+        avg_data['decile'] = pd.Categorical(avg_data['decile'], categories=decile_order, ordered=True)
+        avg_data = avg_data.sort_values('decile')
+
+        x_pos = np.arange(len(avg_data))
+        countries_list = list(all_results.keys())
+        country_idx = countries_list.index(country_name)
+        x_offset = (country_idx - len(countries_list)/2 + 0.5) * 0.08
+
+        ax.scatter(x_pos + x_offset, avg_data['disposable_after_needs'].values,
+                   s=100, c=country_color, alpha=0.7, label=country_name)
+
+    ax.axhline(y=0, color='black', linestyle='--', linewidth=1, alpha=0.5)
+    ax.set_ylabel('Disposable Income (PPS)', fontsize=11, fontweight='bold')
+    ax.set_xticks(np.arange(len(decile_order)))
+    ax.set_xticklabels(decile_order, fontsize=10)
+    ax.set_xlabel('Income Decile', fontsize=11, fontweight='bold')
+    ax.grid(True, alpha=0.3, axis='y')
+    ax.yaxis.set_major_formatter(FuncFormatter(lambda x, p: f'{int(x/1000):.0f}k'))
+    ax.set_ylim(0, y_max_scale)
+    ax.legend(loc='upper left', fontsize=9, framealpha=0.95)
+
+    plt.tight_layout()
+
+    output = os.path.join(graphs_dir, 'HBS_disposable_income_after_needs_all_densities.png')
+    plt.savefig(output, dpi=300, bbox_inches='tight')
+    print(f"OK Saved: {output}")
+    plt.close()
+
+
+def plot_disposable_income_lines_per_country(all_results, dirs):
+    """Create line graph with all countries on one graph, averaging across all urbanization levels."""
+    print(f"\n=== CREATING LINE GRAPH (ALL DENSITIES COMBINED) ===")
+
+    if not all_results:
+        print(f"ERROR: No data for any countries")
+        return
+
+    graphs_dir = os.path.join(dirs['outputs'], 'graphs', 'HBS')
+    os.makedirs(graphs_dir, exist_ok=True)
+
+    decile_order = ['D1', 'D2', 'D3', 'D4', 'D5', 'D6', 'D7', 'D8', 'D9', 'D10']
+
+    # Find global y range from averaged data
+    all_values = []
+    for result_df in all_results.values():
+        avg = result_df.groupby('decile')['disposable_after_needs'].mean()
+        all_values.extend(avg.values)
+    y_max_scale = max(all_values) * 1.10 if all_values else 1000
+
+    fig, ax = plt.subplots(figsize=(16, 8))
+    fig.suptitle('Disposable Income After Basic Needs – All Densities Combined (2020)\n'
+                 'Income - (Housing + Transport + Food + Health + Education)',
+                 fontsize=14, fontweight='bold', y=0.995)
+
+    for country_name, result_df in all_results.items():
+        country_color = get_country_color(country_name)
+
+        # Average across urbanization levels for each decile
+        avg_data = result_df.groupby('decile')['disposable_after_needs'].mean().reset_index()
+        avg_data['decile'] = pd.Categorical(avg_data['decile'], categories=decile_order, ordered=True)
+        avg_data = avg_data.sort_values('decile')
+
+        x_pos = np.arange(len(avg_data))
+        values = avg_data['disposable_after_needs'].values
+
+        ax.plot(x_pos, values, color=country_color, linestyle='-', linewidth=2.5,
+                marker='o', markersize=6, alpha=0.85, label=country_name)
+
+    ax.axhline(y=0, color='black', linestyle='--', linewidth=1, alpha=0.5)
+    ax.set_ylabel('Disposable Income (PPS)', fontsize=11, fontweight='bold')
+    ax.set_xticks(np.arange(len(decile_order)))
+    ax.set_xticklabels(decile_order, fontsize=10)
+    ax.set_xlabel('Income Decile', fontsize=11, fontweight='bold')
+    ax.grid(True, alpha=0.3, axis='y')
+    ax.yaxis.set_major_formatter(FuncFormatter(lambda x, p: f'{int(x/1000):.0f}k'))
+    ax.set_ylim(0, y_max_scale)
+    ax.legend(loc='upper left', fontsize=9, framealpha=0.95)
+
+    plt.tight_layout()
+
+    output = os.path.join(graphs_dir, 'HBS_disposable_income_after_needs_lines_all_densities.png')
+    plt.savefig(output, dpi=300, bbox_inches='tight')
+    print(f"OK Saved: {output}")
+    plt.close()
+
+
 def main():
     print("\n" + "="*80)
-    print("HBS DISPOSABLE INCOME AFTER FUNDAMENTAL NEEDS ANALYSIS")
+    print("HBS DISPOSABLE INCOME AFTER BASIC NEEDS ANALYSIS")
     print("="*80)
     
     dirs = setup_directories()
@@ -375,6 +491,8 @@ def main():
     # Create combined plot with all countries
     if all_results:
         plot_disposable_income_scatter_all_countries(all_results, dirs)
+        plot_disposable_income_scatter_by_country(all_results, dirs)
+        plot_disposable_income_lines_per_country(all_results, dirs)
     else:
         print("ERROR: No data for any countries")
         return

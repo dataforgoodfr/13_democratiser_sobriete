@@ -362,13 +362,30 @@ def calculate_consumption_in_pps(household_df, pps_df):
             print(f"    {row['COUNTRY']} {int(row['year'])}: {row['pps_factor']:.4f} (1/pps_factor = {1/row['pps_factor']:.4f})")
         
         # Convert to PPS using vectorized operations (avoid DataFrame fragmentation)
+        # Some HBS extracts store numeric values as strings (e.g., comma decimals),
+        # so coerce both numerator and denominator to numeric before division.
         pps_converted_cols = {}
+        pps_factor_num = pd.to_numeric(household_with_pps['pps_factor'], errors='coerce')
         for col in consumption_columns:
             if col in household_with_pps.columns and 'pps_factor' in household_with_pps.columns:
                 # Convert to PPS: The Eurostat PPS factor represents purchasing power parity indices
                 # where we need to divide the nominal values to convert to PPS-adjusted values
                 # This accounts for price level differences between countries
-                pps_converted_cols[f'{col}_pps'] = household_with_pps[col] / household_with_pps['pps_factor']
+                raw_series = household_with_pps[col]
+                if raw_series.dtype == object:
+                    cleaned = (
+                        raw_series.astype(str)
+                        .str.strip()
+                        .replace({'': np.nan, ':': np.nan, 'nan': np.nan, 'None': np.nan})
+                        .str.replace(' ', '', regex=False)
+                        .str.replace(r'(?<=\d),(?=\d{3}\b)', '', regex=True)
+                        .str.replace(',', '.', regex=False)
+                    )
+                    raw_num = pd.to_numeric(cleaned, errors='coerce')
+                else:
+                    raw_num = pd.to_numeric(raw_series, errors='coerce')
+
+                pps_converted_cols[f'{col}_pps'] = raw_num / pps_factor_num
         
         # Add all converted columns at once using pd.concat (efficient)
         if pps_converted_cols:

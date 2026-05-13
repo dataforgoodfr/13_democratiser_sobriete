@@ -52,9 +52,11 @@ MULTIVARIATE_OUTPUT.mkdir(parents=True, exist_ok=True)
 # EU Priority to Indicator Mapping
 # Based on EWBI hierarchical structure
 EU_PRIORITY_MAPPING = {
-    'Energy and Housing': [
-        'HE-SILC-2', 'HQ-SILC-1', 'HQ-SILC-2', 'HQ-SILC-3', 
-        'HQ-SILC-4', 'HQ-SILC-5', 'HQ-SILC-6', 'HQ-SILC-7', 'HQ-SILC-8'
+    'Energy': [
+        'HE-SILC-2', 'HQ-SILC-3', 'HQ-SILC-2', 'HQ-SILC-6', 'HQ-SILC-8'
+    ],
+    'Housing': [
+        'HQ-SILC-1', 'HQ-SILC-4', 'HQ-SILC-5', 'HQ-SILC-7'
     ],
     'Equality': [
         'ES-SILC-1', 'ES-SILC-2', 
@@ -740,7 +742,8 @@ def perform_priority_pca(df):
     # Keep directory names short and Windows-safe.
     # Long base paths + verbose priority names can exceed Win32 MAX_PATH.
     priority_dir_alias = {
-        "Energy and Housing": "energy_housing",
+        "Energy": "energy",
+        "Housing": "housing",
         "Equality": "equality",
         "Health and Animal Welfare": "health_animal_welfare",
         "Intergenerational Fairness, Youth, Culture and Sport": "intergenerational_youth_culture_sport",
