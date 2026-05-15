@@ -204,44 +204,53 @@ def varimax_rotation(loadings, gamma=1.0, max_iter=1000, tol=1e-10):
 def apply_jrc_factor_selection(eigenvalues, explained_variance_ratio):
     """
     Apply JRC factor selection criteria:
-    1. Eigenvalues > 1.0
-    2. Individual variance > 10%
+    1. Eigenvalues > 0.7  (relaxed from Kaiser's 1.0 — more appropriate for small indicator
+                           groups of 3-5 variables where eigenvalues are mechanically smaller)
+    2. Individual variance > 10%  (the binding quality filter against noise factors)
     3. Cumulative variance >= 75% (keep selecting until at least 75% is explained)
-    
+
+    Rationale for 0.7 vs 1.0:
+    The Kaiser criterion (>1.0) was designed for large exploratory datasets. With per-priority
+    groups of 3-11 indicators, borderline factors (eigenvalue 0.89-0.999) frequently explain
+    17-33% of variance and represent real structure — the 10% variance rule filters noise.
+
     Args:
         eigenvalues: Array of eigenvalues
         explained_variance_ratio: Array of explained variance ratios
-    
+
     Returns:
         List of selected factor indices
     """
+    EIGENVALUE_THRESHOLD = 0.7
+    VARIANCE_THRESHOLD = 10.0
+
     selected_factors = []
     cumulative_variance = 0
-    
+
     for i, (eigenvalue, variance_ratio) in enumerate(zip(eigenvalues, explained_variance_ratio)):
         individual_variance_pct = variance_ratio * 100
-        
-        # JRC criteria: eigenvalue > 1 and individual variance > 10%
-        if eigenvalue > 1.0 and individual_variance_pct > 10.0:
+
+        # Relaxed eigenvalue threshold + binding 10% variance filter
+        if eigenvalue > EIGENVALUE_THRESHOLD and individual_variance_pct > VARIANCE_THRESHOLD:
             selected_factors.append(i)
             cumulative_variance += individual_variance_pct
-            
+
             # Stop when we reach at least 75% cumulative variance
             if cumulative_variance >= 75.0:
                 break
-    
+
     # Ensure at least one factor is selected if criteria are too strict
     if not selected_factors and len(eigenvalues) > 0:
-        # Fall back to first factor that meets eigenvalue > 1 criterion 
+        # Fall back to first factor that meets eigenvalue threshold
         for i, eigenvalue in enumerate(eigenvalues):
-            if eigenvalue > 1.0:
+            if eigenvalue > EIGENVALUE_THRESHOLD:
                 selected_factors.append(i)
                 break
-        
+
         # Final fallback to first component
         if not selected_factors:
             selected_factors = [0]
-    
+
     return selected_factors
 
 
@@ -843,7 +852,8 @@ def perform_priority_pca(df):
             subdir / "05_summary_statistics"
         )
         
-        # Save enhanced results
+        # Save enhanced results (including full loading matrices for Stage 4)
+        _rot_loadings = pca_results.get('rotated_loadings', pca_results['loadings'])
         results_json = {
             'priority': priority,
             'metadata': {
@@ -856,10 +866,14 @@ def perform_priority_pca(df):
             'cumulative_variance': [float(c) for c in pca_results['cumulative_variance']],
             'total_variance': float(pca_results['total_variance_explained']),
             'eigenvalues': [float(e) for e in pca_results['eigenvalues']],
+            'explained_variance_ratio': [float(v) for v in pca_results['explained_variance']],
             'jrc_criteria_applied': pca_results.get('jrc_criteria_applied', True),
             'selected_factors': pca_results.get('selected_factors', []),
             'varimax_rotation_applied': pca_results['n_components'] > 1,
-            'indicators': indicators_available
+            'indicators': indicators_available,
+            'indicator_names': indicators_available,
+            'rotated_loadings': _rot_loadings.tolist(),
+            'component_loadings': pca_results['loadings'].tolist()
         }
         
         with open(subdir / "pca_results.json", 'w', encoding='utf-8') as f:
@@ -1163,6 +1177,53 @@ def save_pca_results_for_stage4(pca_results, indicators, metadata, output_path):
         print(f"       Stage 4 will use unweighted aggregation")
 
 
+def save_priority_pca_for_stage4(priority_results, output_path):
+    """
+    Consolidate per-priority PCA results into a single JSON file for Stage 4.
+
+    Maps Stage 2 priority names to Stage 4 priority names (from ewbi_indicators.json)
+    and saves rotated loadings + variance metadata keyed by Stage 4 priority name.
+
+    Args:
+        priority_results: dict returned by perform_priority_pca()
+        output_path: Path to write priority_pca_for_weighting.json
+    """
+    # Mapping Stage 2 priority names → Stage 4 priority names
+    STAGE4_NAME_MAP = {
+        'Energy': 'Energy',
+        'Housing': 'Housing',
+        'Equality': 'Equality',
+        'Health and Animal Welfare': 'Health',
+        'Intergenerational Fairness, Youth, Culture and Sport': 'Education',
+        'Social Rights and Skills, Quality Jobs and Preparedness': 'Quality of Jobs',
+    }
+
+    output_dict = {}
+    for stage2_name, data in priority_results.items():
+        stage4_name = STAGE4_NAME_MAP.get(stage2_name, stage2_name)
+        pca = data['results']
+        indicators = data['indicators']
+        rot_loadings = pca.get('rotated_loadings', pca['loadings'])
+        output_dict[stage4_name] = {
+            'priority_stage2': stage2_name,
+            'priority_stage4': stage4_name,
+            'n_components': int(pca['n_components']),
+            'indicator_names': indicators,
+            'explained_variance_ratio': [float(v) for v in pca['explained_variance']],
+            'eigenvalues': [float(e) for e in pca['eigenvalues']],
+            'rotated_loadings': rot_loadings.tolist(),
+            'component_loadings': pca['loadings'].tolist(),
+            'varimax_rotation_applied': pca['n_components'] > 1,
+            'jrc_criteria_applied': pca.get('jrc_criteria_applied', True),
+        }
+
+    with open(output_path, 'w', encoding='utf-8') as f:
+        json.dump(output_dict, f, indent=2)
+
+    print(f"[OK] Saved per-priority PCA results for Stage 4: {output_path.name}")
+    print(f"     Priorities saved: {list(output_dict.keys())}")
+
+
 # ===============================
 # MAIN PROCESSING
 # ===============================
@@ -1192,7 +1253,11 @@ def main():
     
     # Perform priority-specific JRC-compliant PCA
     priority_results = perform_priority_pca(df)
-    
+
+    # Save per-priority PCA results for Stage 4 consumption
+    priority_stage4_path = MULTIVARIATE_OUTPUT / 'priority_pca_for_weighting.json'
+    save_priority_pca_for_stage4(priority_results, priority_stage4_path)
+
     # Create comparison summary
     create_comparison_summary(global_results, priority_results)
     

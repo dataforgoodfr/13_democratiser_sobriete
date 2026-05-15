@@ -94,7 +94,7 @@ EU_PRIORITY_DISPLAY_MAP = {
 
 METHOD5_STEP_EUR = 5000
 PERF_CUT = 0.006972  # Mean of Croatia (0.009043) and Italy (0.004900) performance scores
-EWBI_CUT = 0.7
+EWBI_CUT = 0.705  # Midpoint between HU (0.700384) and FI (0.710069); HU → Cluster 2
 
 # ---------------------------------------------------------------------------
 # Report configurations
@@ -696,41 +696,89 @@ def plot_cluster_radar(result_df, cfg, out_dir):
 
 
 # ===================================================================
-# VISUAL 4: EWBI country map (matplotlib)
+# VISUAL 4: EWBI country map — D1 / D5 / D10 side-by-side
 # ===================================================================
 def plot_country_map(result_df, cfg, out_dir):
-    """Choropleth map of EWBI last-year values."""
-    map_df = result_df.copy()
+    """Three-panel choropleth map of EWBI values for D1, D5 and D10 (shared colour scale)."""
+    from matplotlib.colors import Normalize
+    from matplotlib.cm import ScalarMappable
+    import copy as _copy
+
+    ewbi_df = pd.read_csv(data_path, low_memory=False)
+    ewbi_dec = ewbi_df[
+        (ewbi_df['Level'] == 1) &
+        (ewbi_df['Decile'] != 'All Deciles') &
+        (~ewbi_df['Country'].isin(['EU-27', 'All Countries'])) &
+        (ewbi_df['Country'].isin(result_df['Country'].tolist()))
+    ].copy()
+    ewbi_dec['Decile'] = pd.to_numeric(ewbi_dec['Decile'], errors='coerce').astype('Int64')
+    ewbi_dec['Year']   = pd.to_numeric(ewbi_dec['Year'],   errors='coerce').astype('Int64')
+    ewbi_dec['Value']  = pd.to_numeric(ewbi_dec['Value'],  errors='coerce')
+    ewbi_dec = ewbi_dec.dropna(subset=['Country', 'Decile', 'Year', 'Value'])
+
+    last_year = ewbi_dec.groupby('Country')['Year'].max().reset_index()
+    last_year.columns = ['Country', 'last_year']
+    ewbi_dec = ewbi_dec.merge(last_year, on='Country')
+    ewbi_dec = ewbi_dec[ewbi_dec['Year'] == ewbi_dec['last_year']].copy()
+
+    deciles_to_plot = [1, 5, 10]
     nuts0, bg = _load_nuts0_and_background()
-    merged_geo = nuts0.merge(map_df[['Country', 'EWBI_Last']], left_on='NUTS_ID', right_on='Country', how='left')
-    study_ids = set(map_df['Country'].tolist())
+    study_ids = set(result_df['Country'].tolist())
 
-    fig, ax = plt.subplots(figsize=(12, 10))
-    bg.plot(ax=ax, color='white', edgecolor='black', linewidth=0.3, alpha=0.35, hatch='///')
+    # Shared colour scale across the three panels
+    mask = ewbi_dec['Decile'].isin(deciles_to_plot)
+    vmin = float(ewbi_dec.loc[mask, 'Value'].min())
+    vmax = float(ewbi_dec.loc[mask, 'Value'].max())
+    cmap_name = 'RdYlGn'
+    norm = Normalize(vmin=vmin, vmax=vmax)
 
-    no_data = merged_geo[merged_geo['EWBI_Last'].isna() & merged_geo['NUTS_ID'].isin(study_ids)]
-    if not no_data.empty:
-        no_data.plot(ax=ax, color='lightgrey', edgecolor='black', linewidth=0.3)
+    fig, axes = plt.subplots(1, 3, figsize=(33, 11))
 
-    has_data = merged_geo[merged_geo['EWBI_Last'].notna()]
-    if not has_data.empty:
-        has_data.plot(column='EWBI_Last', cmap='RdYlGn', edgecolor='black', linewidth=0.4,
-                      ax=ax, legend=True, legend_kwds={'label': 'EWBI', 'shrink': 0.6})
+    for ax, dec in zip(axes, deciles_to_plot):
+        pdata = ewbi_dec[ewbi_dec['Decile'] == dec][['Country', 'Value']].copy()
+        merged_geo = nuts0.merge(pdata, left_on='NUTS_ID', right_on='Country', how='left')
 
-    ax.set_xlim(2.5e6, 6.5e6)
-    ax.set_ylim(1.3e6, 5.5e6)
-    ax.set_axis_off()
-    ax.set_title(f'EWBI Country Map {cfg["title_suffix"]}', fontsize=14, fontweight='bold')
+        bg.plot(ax=ax, color='white', edgecolor='black', linewidth=0.3, alpha=0.35, hatch='///')
+        no_data = merged_geo[merged_geo['Value'].isna() & merged_geo['NUTS_ID'].isin(study_ids)]
+        if not no_data.empty:
+            no_data.plot(ax=ax, color='lightgrey', edgecolor='black', linewidth=0.3)
+        has_data = merged_geo[merged_geo['Value'].notna()]
+        if not has_data.empty:
+            has_data.plot(column='Value', cmap=cmap_name, edgecolor='black', linewidth=0.4,
+                          ax=ax, legend=False, vmin=vmin, vmax=vmax)
+
+        ax.set_xlim(2.5e6, 6.5e6)
+        ax.set_ylim(1.3e6, 5.5e6)
+        ax.set_axis_off()
+        ax.set_title(f'D{dec}', fontsize=14, fontweight='bold', pad=8)
+
+    # Single shared colorbar — placed on far right outside the 3 panels
+    sm = ScalarMappable(cmap=cmap_name, norm=norm)
+    sm.set_array([])
+
+    fig.suptitle(
+        f'EWBI Country Map — D1 / D5 / D10  {cfg["title_suffix"]}',
+        fontsize=15, fontweight='bold', y=1.02,
+    )
     plt.tight_layout()
+    plt.subplots_adjust(right=0.87)
+    cbar_ax = fig.add_axes([0.89, 0.15, 0.015, 0.7])
+    cbar = fig.colorbar(sm, cax=cbar_ax)
+    cbar.set_label('EWBI score', fontsize=11)
 
     path = os.path.join(out_dir, f'{cfg["prefix"]}_ewbi_country_map_mpl.png')
     _save_fig(fig, path, dpi=150)
     plt.close(fig)
 
     # Excel
-    excel_df = result_df[['Country', 'Country_Name', 'EWBI_Last', 'Cluster']].copy()
-    excel_df['Cluster_Name'] = excel_df['Cluster'].map(CLUSTER_NAMES)
-    excel_df = excel_df.sort_values('Country_Name')
+    excel_df = ewbi_dec[ewbi_dec['Decile'].isin(deciles_to_plot)][
+        ['Country', 'last_year', 'Decile', 'Value']
+    ].copy()
+    excel_df['Country_Name'] = excel_df['Country'].map(COUNTRY_NAME_MAP).fillna(excel_df['Country'])
+    excel_df = excel_df.rename(columns={'Value': 'EWBI', 'last_year': 'Year'})
+    excel_df = excel_df[['Country', 'Country_Name', 'Year', 'Decile', 'EWBI']].sort_values(
+        ['Country', 'Decile']
+    )
     _save_excel(excel_df, os.path.join(out_dir, f'{cfg["prefix"]}_ewbi_country_map_mpl.xlsx'))
 
 
@@ -1019,36 +1067,41 @@ def plot_cluster_priority_grid(result_df, cfg, out_dir):
 
 
 # ===================================================================
-# VISUAL 8: One choropleth map per EU priority
+# VISUAL 8: One choropleth map per EU priority — D1 / D5 / D10
 # ===================================================================
 def plot_priority_maps(result_df, cfg, out_dir):
-    """Choropleth maps of last-year EU-priority EWBI values (one map per priority)."""
+    """Three-panel choropleth maps per EU priority (D1/D5/D10, shared colour scale)."""
+    from matplotlib.colors import Normalize
+    from matplotlib.cm import ScalarMappable
+
     ewbi_df = pd.read_csv(data_path, low_memory=False)
 
-    priorities_all = ewbi_df[
+    prio_dec = ewbi_df[
         (ewbi_df['Level'] == 2) &
-        (ewbi_df['Decile'] == 'All Deciles') &
+        (ewbi_df['Decile'] != 'All Deciles') &
         (~ewbi_df['Country'].isin(['EU-27', 'All Countries'])) &
         (ewbi_df['Country'].isin(result_df['Country'].tolist()))
     ].copy()
-    priorities_all['Year'] = pd.to_numeric(priorities_all['Year'], errors='coerce').astype('Int64')
-    priorities_all['Value'] = pd.to_numeric(priorities_all['Value'], errors='coerce')
-    priorities_all = priorities_all.dropna(subset=['Country', 'Year', 'Value', 'EU priority'])
+    prio_dec['Decile'] = pd.to_numeric(prio_dec['Decile'], errors='coerce').astype('Int64')
+    prio_dec['Year']   = pd.to_numeric(prio_dec['Year'],   errors='coerce').astype('Int64')
+    prio_dec['Value']  = pd.to_numeric(prio_dec['Value'],  errors='coerce')
+    prio_dec = prio_dec.dropna(subset=['Country', 'Decile', 'Year', 'Value', 'EU priority'])
 
-    last_year_cp = (
-        priorities_all.groupby(['Country', 'EU priority'])['Year'].max().reset_index()
-    )
-    last_year_cp.columns = ['Country', 'EU priority', 'last_year']
-    plot_data = priorities_all.merge(last_year_cp, on=['Country', 'EU priority'])
-    plot_data = plot_data[plot_data['Year'] == plot_data['last_year']].copy()
-
-    if plot_data.empty:
-        print("  WARNING: No Level-2 data for priority maps")
+    if prio_dec.empty:
+        print("  WARNING: No Level-2 decile data for priority maps")
         return
 
-    priorities = sorted(plot_data['EU priority'].unique().tolist())
+    # Keep latest year per country × priority
+    last_year_cp = prio_dec.groupby(['Country', 'EU priority'])['Year'].max().reset_index()
+    last_year_cp.columns = ['Country', 'EU priority', 'last_year']
+    prio_dec = prio_dec.merge(last_year_cp, on=['Country', 'EU priority'])
+    prio_dec = prio_dec[prio_dec['Year'] == prio_dec['last_year']].copy()
+
+    priorities = sorted(prio_dec['EU priority'].unique().tolist())
+    deciles_to_plot = [1, 5, 10]
     nuts0, bg = _load_nuts0_and_background()
     study_ids = set(result_df['Country'].tolist())
+    cmap_name = 'RdYlGn'
 
     all_excel_dfs = {}
 
@@ -1057,53 +1110,59 @@ def plot_priority_maps(result_df, cfg, out_dir):
             priority.lower()
             .replace(',', '').replace('/', '_').replace(' ', '_')
         )[:45]
-        pdata = plot_data[plot_data['EU priority'] == priority][['Country', 'Value']].copy()
+        pdata_all = prio_dec[prio_dec['EU priority'] == priority].copy()
 
-        merged_geo = nuts0.merge(
-            pdata, left_on='NUTS_ID', right_on='Country', how='left'
-        )
+        mask = pdata_all['Decile'].isin(deciles_to_plot)
+        if pdata_all.loc[mask].empty:
+            continue
+        vmin = float(pdata_all.loc[mask, 'Value'].min())
+        vmax = float(pdata_all.loc[mask, 'Value'].max())
+        norm = Normalize(vmin=vmin, vmax=vmax)
 
-        vmin = float(pdata['Value'].min())
-        vmax = float(pdata['Value'].max())
+        fig, axes = plt.subplots(1, 3, figsize=(33, 11))
 
-        fig, ax = plt.subplots(figsize=(12, 10))
-        bg.plot(ax=ax, color='white', edgecolor='black', linewidth=0.3, alpha=0.35, hatch='///')
+        for ax, dec in zip(axes, deciles_to_plot):
+            pdata = pdata_all[pdata_all['Decile'] == dec][['Country', 'Value']].copy()
+            merged_geo = nuts0.merge(pdata, left_on='NUTS_ID', right_on='Country', how='left')
 
-        no_data = merged_geo[
-            merged_geo['Value'].isna() & merged_geo['NUTS_ID'].isin(study_ids)
-        ]
-        if not no_data.empty:
-            no_data.plot(ax=ax, color='lightgrey', edgecolor='black', linewidth=0.3)
+            bg.plot(ax=ax, color='white', edgecolor='black', linewidth=0.3, alpha=0.35, hatch='///')
+            no_data = merged_geo[merged_geo['Value'].isna() & merged_geo['NUTS_ID'].isin(study_ids)]
+            if not no_data.empty:
+                no_data.plot(ax=ax, color='lightgrey', edgecolor='black', linewidth=0.3)
+            has_data = merged_geo[merged_geo['Value'].notna()]
+            if not has_data.empty:
+                has_data.plot(column='Value', cmap=cmap_name, edgecolor='black', linewidth=0.4,
+                              ax=ax, legend=False, vmin=vmin, vmax=vmax)
 
-        has_data = merged_geo[merged_geo['Value'].notna()]
-        if not has_data.empty:
-            has_data.plot(
-                column='Value', cmap='RdYlGn', edgecolor='black', linewidth=0.4,
-                ax=ax, legend=True,
-                legend_kwds={
-                    'label': f'{_priority_label(priority)} (EWBI)',
-                    'shrink': 0.6,
-                },
-                vmin=vmin, vmax=vmax,
-            )
+            ax.set_xlim(2.5e6, 6.5e6)
+            ax.set_ylim(1.3e6, 5.5e6)
+            ax.set_axis_off()
+            ax.set_title(f'D{dec}', fontsize=14, fontweight='bold', pad=8)
 
-        ax.set_xlim(2.5e6, 6.5e6)
-        ax.set_ylim(1.3e6, 5.5e6)
-        ax.set_axis_off()
-        ax.set_title(
-            f'{_priority_label(priority)} — EWBI Map\n{cfg["title_suffix"]}',
-            fontsize=13, fontweight='bold',
+        sm = ScalarMappable(cmap=cmap_name, norm=norm)
+        sm.set_array([])
+
+        fig.suptitle(
+            f'{_priority_label(priority)} — EWBI Map  D1 / D5 / D10\n{cfg["title_suffix"]}',
+            fontsize=14, fontweight='bold', y=1.02,
         )
         plt.tight_layout()
+        plt.subplots_adjust(right=0.87)
+        cbar_ax = fig.add_axes([0.89, 0.15, 0.015, 0.7])
+        cbar = fig.colorbar(sm, cax=cbar_ax)
+        cbar.set_label(f'{_priority_label(priority)} (EWBI)', fontsize=11)
 
         path = os.path.join(out_dir, f'{cfg["prefix"]}_ewbi_priority_map_{slug}.png')
         _save_fig(fig, path, dpi=150)
         plt.close(fig)
 
-        all_excel_dfs[_priority_label(priority)[:31]] = (
-            pdata.rename(columns={'Value': 'EWBI_Last'})
-                 .sort_values('Country')
-        )
+        exc = pdata_all[pdata_all['Decile'].isin(deciles_to_plot)][
+            ['Country', 'last_year', 'Decile', 'Value']
+        ].copy()
+        exc['Country_Name'] = exc['Country'].map(COUNTRY_NAME_MAP).fillna(exc['Country'])
+        exc = exc.rename(columns={'Value': 'EWBI', 'last_year': 'Year'})
+        exc = exc[['Country', 'Country_Name', 'Year', 'Decile', 'EWBI']].sort_values(['Country', 'Decile'])
+        all_excel_dfs[_priority_label(priority)[:31]] = exc
 
     _save_excel(
         all_excel_dfs,
@@ -1358,10 +1417,285 @@ def plot_priority_bar_grid(result_df, cfg, out_dir):
 
 
 # ===================================================================
+# VISUAL 10: EWBI decile heatmap (countries × D1–D10)
+# ===================================================================
+def plot_ewbi_decile_heatmap(result_df, cfg, out_dir):
+    """Heatmap — rows = countries (sorted by cluster), columns = D1–D10, values = EWBI."""
+    import copy as _copy
+
+    ewbi_df = pd.read_csv(data_path, low_memory=False)
+    ewbi_dec = ewbi_df[
+        (ewbi_df['Level'] == 1) &
+        (ewbi_df['Decile'] != 'All Deciles') &
+        (~ewbi_df['Country'].isin(['EU-27', 'All Countries'])) &
+        (ewbi_df['Country'].isin(result_df['Country'].tolist()))
+    ].copy()
+    ewbi_dec['Decile'] = pd.to_numeric(ewbi_dec['Decile'], errors='coerce').astype('Int64')
+    ewbi_dec['Year']   = pd.to_numeric(ewbi_dec['Year'],   errors='coerce').astype('Int64')
+    ewbi_dec['Value']  = pd.to_numeric(ewbi_dec['Value'],  errors='coerce')
+    ewbi_dec = ewbi_dec.dropna(subset=['Country', 'Decile', 'Year', 'Value'])
+    ewbi_dec = ewbi_dec[ewbi_dec['Decile'].between(1, 10)].copy()
+
+    if ewbi_dec.empty:
+        print("  WARNING: No per-decile EWBI data for heatmap")
+        return
+
+    last_year = ewbi_dec.groupby('Country')['Year'].max().reset_index()
+    last_year.columns = ['Country', 'last_year']
+    ewbi_dec = ewbi_dec.merge(last_year, on='Country')
+    ewbi_dec = ewbi_dec[ewbi_dec['Year'] == ewbi_dec['last_year']].copy()
+
+    wide = ewbi_dec.pivot_table(index='Country', columns='Decile', values='Value', aggfunc='mean')
+    wide = wide.reindex(columns=range(1, 11))
+
+    cluster_map_dict = dict(zip(result_df['Country'], result_df['Cluster']))
+    name_map = dict(zip(result_df['Country'], result_df['Country_Name']))
+
+    wide['_cl']   = wide.index.map(cluster_map_dict)
+    wide['_name'] = wide.index.map(lambda cc: name_map.get(cc, cc))
+    wide = wide.sort_values(['_cl', '_name']).drop(columns=['_cl', '_name'])
+
+    countries = wide.index.tolist()
+    country_names = [name_map.get(cc, cc) for cc in countries]
+    country_clusters = [cluster_map_dict.get(cc, -1) for cc in countries]
+    n_rows = len(countries)
+    mat = wide.values.astype(float)
+
+    vmin = float(np.nanmin(mat))
+    vmax = float(np.nanmax(mat))
+
+    cmap = _copy.copy(plt.cm.RdYlGn)
+    cmap.set_bad('#e0e0e0')
+
+    import matplotlib.gridspec as gridspec
+
+    fig = plt.figure(figsize=(18, max(8, n_rows * 0.42 + 3)))
+    gs = gridspec.GridSpec(1, 3, width_ratios=[2, 16, 0.5], wspace=0.03, figure=fig)
+    ax_cl = fig.add_subplot(gs[0])   # left: vertical cluster labels
+    ax    = fig.add_subplot(gs[1])   # centre: heatmap
+    ax_cb = fig.add_subplot(gs[2])   # right: colorbar
+
+    masked = np.ma.masked_invalid(mat)
+    im = ax.imshow(masked, cmap=cmap, aspect='auto', vmin=vmin, vmax=vmax)
+
+    # Cell annotations
+    for ri in range(n_rows):
+        for ci in range(10):
+            val = mat[ri, ci]
+            if not np.isnan(val):
+                nv = max(0.0, min(1.0, (val - vmin) / max(vmax - vmin, 1e-9)))
+                r_, g_, b_, _ = cmap(nv)
+                lum = 0.299 * r_ + 0.587 * g_ + 0.114 * b_
+                ax.text(ci, ri, f'{val:.3f}', ha='center', va='center',
+                        fontsize=7.5, color='white' if lum < 0.45 else 'black')
+
+    # Cluster separator lines
+    for ri in range(1, n_rows):
+        if country_clusters[ri] != country_clusters[ri - 1]:
+            ax.axhline(ri - 0.5, color='#333333', linewidth=1.8, linestyle='--')
+
+    # Axes labels
+    ax.set_xticks(range(10))
+    ax.set_xticklabels([f'D{d}' for d in range(1, 11)], fontsize=10, fontweight='bold')
+    ax.set_yticks(range(n_rows))
+    ax.set_yticklabels(country_names, fontsize=9)
+    for label, cl in zip(ax.get_yticklabels(), country_clusters):
+        label.set_color(CLUSTER_COLORS[cl] if 0 <= cl < len(CLUSTER_COLORS) else '#555555')
+        label.set_fontweight('bold')
+
+    # Cluster labels on the LEFT — vertical text, one band per cluster
+    cl_groups: dict = {}
+    for ri, cl in enumerate(country_clusters):
+        cl_groups.setdefault(cl, []).append(ri)
+
+    ax_cl.set_xlim(0, 1)
+    ax_cl.set_ylim(ax.get_ylim())   # same inverted y limits as imshow
+    ax_cl.set_axis_off()
+    for ri in range(1, n_rows):
+        if country_clusters[ri] != country_clusters[ri - 1]:
+            ax_cl.axhline(ri - 0.5, color='#333333', linewidth=1.8, linestyle='--')
+    for cl, rows in sorted(cl_groups.items()):
+        if cl < 0:
+            continue
+        mid_ri = (min(rows) + max(rows)) / 2
+        ax_cl.text(0.5, mid_ri, f'Cluster {cl} — {CLUSTER_NAMES[cl]}',
+                   ha='center', va='center',
+                   fontsize=8.5, color=CLUSTER_COLORS[cl],
+                   fontweight='bold', rotation=90)
+
+    # Colorbar on the far right
+    cbar = fig.colorbar(im, cax=ax_cb)
+    cbar.set_label('EWBI score', fontsize=10)
+
+    ax.set_title(
+        f'EWBI by Country and Income Decile  {cfg["title_suffix"]}\n'
+        'Last available year  |  rows sorted by cluster',
+        fontsize=12, fontweight='bold', pad=10,
+    )
+    plt.tight_layout()
+
+    path = os.path.join(out_dir, f'{cfg["prefix"]}_ewbi_decile_heatmap.png')
+    _save_fig(fig, path, dpi=150)
+    plt.close(fig)
+
+    # Excel
+    excel_wide = wide.copy()
+    excel_wide.columns = [f'D{int(c)}' for c in excel_wide.columns]
+    excel_wide = excel_wide.reset_index()
+    excel_wide.insert(1, 'Country_Name', excel_wide['Country'].map(name_map).fillna(excel_wide['Country']))
+    excel_wide.insert(2, 'Cluster', excel_wide['Country'].map(cluster_map_dict))
+    excel_wide.insert(3, 'Cluster_Name', excel_wide['Cluster'].map(CLUSTER_NAMES))
+    _save_excel(excel_wide, os.path.join(out_dir, f'{cfg["prefix"]}_ewbi_decile_heatmap.xlsx'))
+
+
+# ===================================================================
+# VISUAL 11: EU priority decile heatmaps (countries × D1–D10, one per priority)
+# ===================================================================
+def plot_priority_decile_heatmap(result_df, cfg, out_dir):
+    """One heatmap per EU priority — rows = countries (by cluster), columns = D1–D10."""
+    import copy as _copy
+
+    ewbi_df = pd.read_csv(data_path, low_memory=False)
+    prio_dec = ewbi_df[
+        (ewbi_df['Level'] == 2) &
+        (ewbi_df['Decile'] != 'All Deciles') &
+        (~ewbi_df['Country'].isin(['EU-27', 'All Countries'])) &
+        (ewbi_df['Country'].isin(result_df['Country'].tolist()))
+    ].copy()
+    prio_dec['Decile'] = pd.to_numeric(prio_dec['Decile'], errors='coerce').astype('Int64')
+    prio_dec['Year']   = pd.to_numeric(prio_dec['Year'],   errors='coerce').astype('Int64')
+    prio_dec['Value']  = pd.to_numeric(prio_dec['Value'],  errors='coerce')
+    prio_dec = prio_dec.dropna(subset=['Country', 'Decile', 'Year', 'Value', 'EU priority'])
+    prio_dec = prio_dec[prio_dec['Decile'].between(1, 10)].copy()
+
+    if prio_dec.empty:
+        print("  WARNING: No per-decile Level-2 data for priority heatmaps")
+        return
+
+    last_year_cp = prio_dec.groupby(['Country', 'EU priority'])['Year'].max().reset_index()
+    last_year_cp.columns = ['Country', 'EU priority', 'last_year']
+    prio_dec = prio_dec.merge(last_year_cp, on=['Country', 'EU priority'])
+    prio_dec = prio_dec[prio_dec['Year'] == prio_dec['last_year']].copy()
+
+    cluster_map_dict = dict(zip(result_df['Country'], result_df['Cluster']))
+    name_map = dict(zip(result_df['Country'], result_df['Country_Name']))
+    priorities = sorted(prio_dec['EU priority'].unique().tolist())
+    all_excel_sheets: dict = {}
+
+    for priority in priorities:
+        slug = (
+            priority.lower()
+            .replace(',', '').replace('/', '_').replace(' ', '_')
+        )[:45]
+        sub = prio_dec[prio_dec['EU priority'] == priority].copy()
+
+        wide = sub.pivot_table(index='Country', columns='Decile', values='Value', aggfunc='mean')
+        wide = wide.reindex(columns=range(1, 11))
+
+        wide['_cl']   = wide.index.map(cluster_map_dict)
+        wide['_name'] = wide.index.map(lambda cc: name_map.get(cc, cc))
+        wide = wide.sort_values(['_cl', '_name']).drop(columns=['_cl', '_name'])
+
+        countries = wide.index.tolist()
+        country_names_here    = [name_map.get(cc, cc) for cc in countries]
+        country_clusters_here = [cluster_map_dict.get(cc, -1) for cc in countries]
+        n_rows = len(countries)
+        mat = wide.values.astype(float)
+
+        vmin = float(np.nanmin(mat))
+        vmax = float(np.nanmax(mat))
+
+        cmap = _copy.copy(plt.cm.RdYlGn)
+        cmap.set_bad('#e0e0e0')
+
+        import matplotlib.gridspec as gridspec
+
+        fig = plt.figure(figsize=(18, max(8, n_rows * 0.42 + 3)))
+        gs = gridspec.GridSpec(1, 3, width_ratios=[2, 16, 0.5], wspace=0.03, figure=fig)
+        ax_cl = fig.add_subplot(gs[0])   # left: vertical cluster labels
+        ax    = fig.add_subplot(gs[1])   # centre: heatmap
+        ax_cb = fig.add_subplot(gs[2])   # right: colorbar
+
+        masked = np.ma.masked_invalid(mat)
+        im = ax.imshow(masked, cmap=cmap, aspect='auto', vmin=vmin, vmax=vmax)
+
+        for ri in range(n_rows):
+            for ci in range(10):
+                val = mat[ri, ci]
+                if not np.isnan(val):
+                    nv = max(0.0, min(1.0, (val - vmin) / max(vmax - vmin, 1e-9)))
+                    r_, g_, b_, _ = cmap(nv)
+                    lum = 0.299 * r_ + 0.587 * g_ + 0.114 * b_
+                    ax.text(ci, ri, f'{val:.3f}', ha='center', va='center',
+                            fontsize=7.5, color='white' if lum < 0.45 else 'black')
+
+        for ri in range(1, n_rows):
+            if country_clusters_here[ri] != country_clusters_here[ri - 1]:
+                ax.axhline(ri - 0.5, color='#333333', linewidth=1.8, linestyle='--')
+
+        ax.set_xticks(range(10))
+        ax.set_xticklabels([f'D{d}' for d in range(1, 11)], fontsize=10, fontweight='bold')
+        ax.set_yticks(range(n_rows))
+        ax.set_yticklabels(country_names_here, fontsize=9)
+        for label, cl in zip(ax.get_yticklabels(), country_clusters_here):
+            label.set_color(CLUSTER_COLORS[cl] if 0 <= cl < len(CLUSTER_COLORS) else '#555555')
+            label.set_fontweight('bold')
+
+        # Cluster labels on the LEFT — vertical text, one band per cluster
+        cl_groups: dict = {}
+        for ri, cl in enumerate(country_clusters_here):
+            cl_groups.setdefault(cl, []).append(ri)
+
+        ax_cl.set_xlim(0, 1)
+        ax_cl.set_ylim(ax.get_ylim())   # same inverted y limits as imshow
+        ax_cl.set_axis_off()
+        for ri in range(1, n_rows):
+            if country_clusters_here[ri] != country_clusters_here[ri - 1]:
+                ax_cl.axhline(ri - 0.5, color='#333333', linewidth=1.8, linestyle='--')
+        for cl, rows in sorted(cl_groups.items()):
+            if cl < 0:
+                continue
+            mid_ri = (min(rows) + max(rows)) / 2
+            ax_cl.text(0.5, mid_ri, f'Cluster {cl} — {CLUSTER_NAMES[cl]}',
+                       ha='center', va='center',
+                       fontsize=8.5, color=CLUSTER_COLORS[cl],
+                       fontweight='bold', rotation=90)
+
+        # Colorbar on the far right
+        cbar = fig.colorbar(im, cax=ax_cb)
+        cbar.set_label(f'{_priority_label(priority)} (EWBI)', fontsize=10)
+
+        ax.set_title(
+            f'{_priority_label(priority)}  —  EWBI by Country and Decile  {cfg["title_suffix"]}\n'
+            'Last available year  |  rows sorted by cluster',
+            fontsize=12, fontweight='bold', pad=10,
+        )
+        plt.tight_layout()
+
+        path = os.path.join(out_dir, f'{cfg["prefix"]}_ewbi_priority_decile_heatmap_{slug}.png')
+        _save_fig(fig, path, dpi=150)
+        plt.close(fig)
+
+        excel_wide = wide.copy()
+        excel_wide.columns = [f'D{int(c)}' for c in excel_wide.columns]
+        excel_wide = excel_wide.reset_index()
+        excel_wide.insert(1, 'Country_Name', excel_wide['Country'].map(name_map).fillna(excel_wide['Country']))
+        excel_wide.insert(2, 'Cluster', excel_wide['Country'].map(cluster_map_dict))
+        excel_wide.insert(3, 'Cluster_Name', excel_wide['Cluster'].map(CLUSTER_NAMES))
+        all_excel_sheets[_priority_label(priority)[:31]] = excel_wide
+
+    if all_excel_sheets:
+        _save_excel(
+            all_excel_sheets,
+            os.path.join(out_dir, f'{cfg["prefix"]}_ewbi_priority_decile_heatmaps.xlsx'),
+        )
+
+
+# ===================================================================
 # Main
 # ===================================================================
 def generate_report(features_df_all, report_key):
-    """Generate all 9 visuals for one report configuration."""
+    """Generate all 11 visuals for one report configuration."""
     cfg = REPORT_CONFIGS[report_key]
     print(f"\n{'='*60}")
     print(f"Generating report: {cfg['prefix']} {cfg['title_suffix']}")
@@ -1376,32 +1710,38 @@ def generate_report(features_df_all, report_key):
     out_dir = os.path.join(output_base, cfg['prefix'])
     os.makedirs(out_dir, exist_ok=True)
 
-    print("\n  [1/9] Cluster map...")
+    print("\n  [1/11] Cluster map...")
     plot_cluster_map(result_df, cfg, out_dir)
 
-    print("\n  [2/9] Priority radar...")
+    print("\n  [2/11] Priority radar...")
     plot_priority_radar(result_df, cfg, out_dir)
 
-    print("\n  [3/9] Cluster radar...")
+    print("\n  [3/11] Cluster radar...")
     plot_cluster_radar(result_df, cfg, out_dir)
 
-    print("\n  [4/9] Country EWBI map...")
+    print("\n  [4/11] Country EWBI map...")
     plot_country_map(result_df, cfg, out_dir)
 
-    print("\n  [5/9] Performance vs EWBI scatter...")
+    print("\n  [5/11] Performance vs EWBI scatter...")
     plot_performance_vs_ewbi(result_df, cfg, out_dir)
 
-    print("\n  [6/9] EWBI vs Income by cluster...")
+    print("\n  [6/11] EWBI vs Income by cluster...")
     plot_ewbi_vs_income_by_cluster(result_df, cfg, out_dir)
 
-    print("\n  [7/9] Cluster × Priority grid...")
+    print("\n  [7/11] Cluster × Priority grid...")
     plot_cluster_priority_grid(result_df, cfg, out_dir)
 
-    print("\n  [8/9] Priority choropleth maps (one per EU priority)...")
+    print("\n  [8/11] Priority choropleth maps (one per EU priority)...")
     plot_priority_maps(result_df, cfg, out_dir)
 
-    print("\n  [9/9] Priority bar grid (cluster > country > decile)...")
+    print("\n  [9/11] Priority bar grid (cluster > country > decile)...")
     plot_priority_bar_grid(result_df, cfg, out_dir)
+
+    print("\n  [10/11] EWBI decile heatmap (countries × D1–D10)...")
+    plot_ewbi_decile_heatmap(result_df, cfg, out_dir)
+
+    print("\n  [11/11] EU priority decile heatmaps (countries × D1–D10)...")
+    plot_priority_decile_heatmap(result_df, cfg, out_dir)
 
     print(f"\n  All outputs for {cfg['prefix']} saved to: {out_dir}")
 

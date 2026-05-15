@@ -451,6 +451,7 @@ def _plot_one_country(cc: str, cname: str, cdf: pd.DataFrame) -> None:
     fig.savefig(base + ".svg", format="svg", bbox_inches="tight", facecolor="white")
     plt.close(fig)
     print(f"  [{cc}]  → {cc}_expense.png / .svg")
+    _save_excel_df(cdf, PER_COUNTRY_DIR, f"{cc}_expense")
 
 
 def _export_per_country_excel(all_comps: dict) -> None:
@@ -469,6 +470,15 @@ def _export_per_country_excel(all_comps: dict) -> None:
             sheet_name = f"{HBS_COUNTRIES.get(cc, cc)} ({cc})"[:31]
             sheet.round(1).to_excel(writer, sheet_name=sheet_name)
     print(f"  Saved: {xlsx_path}")
+
+
+def _save_excel_df(df: pd.DataFrame, out_dir: str, fname: str) -> None:
+    """Drop internal columns and export *df* to *fname*.xlsx alongside the PNG/SVG."""
+    drop = [c for c in ("cl",) if c in df.columns]
+    df.drop(columns=drop, errors="ignore").to_excel(
+        os.path.join(out_dir, fname + ".xlsx"), index=False
+    )
+    print(f"  Excel: {fname}.xlsx")
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -751,6 +761,7 @@ def _plot_expense_heatmap(snap_df: pd.DataFrame, kind: str,
                 format="svg", bbox_inches="tight", facecolor="white")
     plt.close(fig)
     print(f"  [{kind.upper()}] Saved: {fname}.png / .svg")
+    _save_excel_df(snap_df, out_dir, fname)
 
 
 def _build_ht_decile_df(all_comps: dict) -> pd.DataFrame:
@@ -927,6 +938,7 @@ def _plot_ht_decile_heatmap(ht_df: pd.DataFrame, cluster_map: dict,
                 format="svg", bbox_inches="tight", facecolor="white")
     plt.close(fig)
     print(f"  [HT] Saved: {fname}.png / .svg")
+    _save_excel_df(ht_df, out_dir, fname)
 
 
 # Raw housing + transport column names in the HBS household file
@@ -1137,6 +1149,7 @@ def _plot_ht_overburden_heatmap(ob_df: pd.DataFrame, cluster_map: dict,
                 format="svg", bbox_inches="tight", facecolor="white")
     plt.close(fig)
     print(f"  [OB] Saved: {fname}.png / .svg")
+    _save_excel_df(ob_df, out_dir, fname)
 
 
 def _build_he_overburden_df() -> pd.DataFrame:
@@ -1323,6 +1336,7 @@ def _plot_he_overburden_heatmap(ob_df: pd.DataFrame, cluster_map: dict,
                 format="svg", bbox_inches="tight", facecolor="white")
     plt.close(fig)
     print(f"  [HE] Saved: {fname}.png / .svg")
+    _save_excel_df(ob_df, out_dir, fname)
 
 
 def _build_overburden_by_tenure_df(
@@ -1578,6 +1592,7 @@ def _plot_overburden_by_tenure_heatmap(
                 format="svg", bbox_inches="tight", facecolor="white")
     plt.close(fig)
     print(f"  [tenure] Saved: {out_fname}.png / .svg")
+    _save_excel_df(ob_df, out_dir, out_fname)
 
 
 def _plot_overburden_tenure_d1_heatmap(
@@ -1741,6 +1756,7 @@ def _plot_overburden_tenure_d1_heatmap(
                 format="svg", bbox_inches="tight", facecolor="white")
     plt.close(fig)
     print(f"  [D1D10] Saved: {fname}.png / .svg")
+    _save_excel_df(he_tenure_df, out_dir, fname)
 
 
 # Age-group labels and their classification logic (based on HBS household cols)
@@ -2025,6 +2041,7 @@ def _plot_he_overburden_tenure_age_heatmap(
                 format="svg", bbox_inches="tight", facecolor="white")
     plt.close(fig)
     print(f"  [TA] Saved: {fname}.png / .svg")
+    _save_excel_df(df_in, out_dir, fname)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -2232,6 +2249,7 @@ def _plot_component_share_heatmap(
                     format=ext if ext == "svg" else None)
         print(f"  [{col_prefix}] Saved: {os.path.basename(path)}")
     plt.close(fig)
+    _save_excel_df(share_df, out_dir, fname)
 
 
 def _plot_share_vs_ewbi_scatter(
@@ -2349,6 +2367,7 @@ def _plot_share_vs_ewbi_scatter(
         fig.savefig(path, dpi=150, bbox_inches="tight", facecolor="white")
         print(f"  [{col_prefix} scatter] saved {os.path.basename(path)}")
     plt.close(fig)
+    _save_excel_df(share_df, out_dir, fname)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -2486,6 +2505,7 @@ def _plot_ewbi_vs_overburden_scatter(
         fig.savefig(path, dpi=150, bbox_inches="tight", facecolor="white")
         print(f"  [scatter] saved {os.path.basename(path)}")
     plt.close(fig)
+    _save_excel_df(scatter_df, out_dir, fname)
 
 
 def generate_snapshot_heatmaps(all_comps: dict) -> None:

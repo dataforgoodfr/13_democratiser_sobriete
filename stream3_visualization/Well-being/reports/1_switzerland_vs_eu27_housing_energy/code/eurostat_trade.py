@@ -193,6 +193,37 @@ COUNTRY_NAME_NORMALIZATION = {
 EU27_COUNTRIES_NORMALIZED = {COUNTRY_NAME_NORMALIZATION.get(country, country) for country in EU27_COUNTRIES}
 EFTA_COUNTRIES_NORMALIZED = {COUNTRY_NAME_NORMALIZATION.get(country, country) for country in EFTA_COUNTRIES}
 
+# Mapping: normalised EU-27 country name  →  full reporter string used in the dataset
+EU27_REPORTER_NAMES = {
+    'Austria': 'Austria',
+    'Belgium': "Belgium (incl. Luxembourg 'LU' -> 1998)",
+    'Bulgaria': 'Bulgaria',
+    'Croatia': 'Croatia',
+    'Cyprus': 'Cyprus',
+    'Czech Republic': 'Czechia',
+    'Denmark': 'Denmark',
+    'Estonia': 'Estonia',
+    'Finland': 'Finland',
+    'France': "France (incl. Saint Barthélemy 'BL' -> 2012; incl. French Guiana 'GF', Guadeloupe 'GP', Martinique 'MQ', Réunion 'RE' from 1997; incl. Mayotte 'YT' from 2014)",
+    'Germany': "Germany (incl. German Democratic Republic 'DD' from 1991)",
+    'Greece': 'Greece',
+    'Hungary': 'Hungary',
+    'Ireland': 'Ireland (Eire)',
+    'Italy': "Italy (incl. San Marino 'SM' -> 1993)",
+    'Latvia': 'Latvia',
+    'Lithuania': 'Lithuania',
+    'Luxembourg': 'Luxembourg',
+    'Malta': 'Malta',
+    'Netherlands': 'Netherlands',
+    'Poland': 'Poland',
+    'Portugal': 'Portugal',
+    'Romania': 'Romania',
+    'Slovakia': 'Slovakia',
+    'Slovenia': 'Slovenia',
+    'Spain': "Spain (incl. Canary Islands 'XB' from 1997)",
+    'Sweden': 'Sweden',
+}
+
 def load_gdp_data(year=TARGET_YEAR):
     """
     Load GDP data for the specified year.
@@ -237,6 +268,206 @@ def normalize_country_name(country_name):
 def is_eu27_partner(partner_name):
     """Return True if partner_name refers to an EU-27 member state."""
     return normalize_country_name(partner_name) in EU27_COUNTRIES_NORMALIZED
+
+
+def get_country_trade_by_product(df, reporter_full_name, year=TARGET_YEAR, intra=True, top_n=N_PARTNERS):
+    """
+    Get trade data by product for a single EU-27 country as reporter.
+
+    Parameters
+    ----------
+    reporter_full_name : str
+        The exact reporter string as it appears in the dataset.
+    intra : bool
+        If True, keep only EU-27 partners (intra-EU trade).
+        If False, keep only non-EU-27 partners (extra-EU trade).
+    """
+    country_df = df[
+        (df['reporter'] == reporter_full_name) &
+        (df['year'] == year) &
+        (df['product'] != 'TOTAL') &
+        (df['indicators'] == 'VALUE_EUR')
+    ].copy()
+
+    if country_df.empty:
+        return pd.DataFrame(), []
+
+    country_df['partner_norm'] = country_df['partner'].apply(normalize_country_name)
+    reporter_norm = normalize_country_name(reporter_full_name)
+
+    if intra:
+        country_df = country_df[
+            country_df['partner_norm'].isin(EU27_COUNTRIES_NORMALIZED) &
+            (country_df['partner_norm'] != reporter_norm)
+        ].copy()
+    else:
+        country_df = country_df[
+            ~country_df['partner_norm'].isin(EU27_COUNTRIES_NORMALIZED) &
+            ~country_df['partner'].isin(AGGREGATE_PARTNERS)
+        ].copy()
+
+    if country_df.empty:
+        return pd.DataFrame(), []
+
+    # Rank top N partners by total TOTAL-level trade (reuse product-level sum as proxy)
+    partner_totals = (
+        country_df.groupby('partner')['value'].sum()
+        .nlargest(top_n)
+        .index.tolist()
+    )
+
+    product_df = country_df[country_df['partner'].isin(partner_totals)].copy()
+
+    trade_pivot = product_df.pivot_table(
+        index=['partner', 'product'],
+        columns='flow',
+        values='value',
+        fill_value=0,
+        aggfunc='sum'
+    ).reset_index()
+    trade_pivot.columns.name = None
+    for col in ('IMPORT', 'EXPORT'):
+        if col not in trade_pivot.columns:
+            trade_pivot[col] = 0
+
+    return trade_pivot, partner_totals
+
+
+def create_all_eu_country_charts(df, year, gdp_data, out_dir_extra, out_dir_intra, top_n=N_PARTNERS):
+    """
+    For every EU-27 country that exists as a reporter, produce:
+      - an extra-EU stacked chart  (saved to out_dir_extra)
+      - an intra-EU stacked chart  (saved to out_dir_intra)
+    Both as PNG, SVG and Excel.
+    """
+    os.makedirs(out_dir_extra, exist_ok=True)
+    os.makedirs(out_dir_intra, exist_ok=True)
+
+    available_reporters = set(df['reporter'].unique())
+
+    for country_norm, reporter_full in sorted(EU27_REPORTER_NAMES.items()):
+        if reporter_full not in available_reporters:
+            print(f"  Skipping {country_norm}: not found as reporter")
+            continue
+
+        country_code = get_country_code(reporter_full)
+
+        # Get country GDP
+        gdp_country_name = match_country_names(reporter_full)
+        gdp_row = gdp_data[gdp_data['country'] == gdp_country_name]
+        if gdp_row.empty:
+            print(f"  No GDP data for {country_norm}, skipping")
+            continue
+        country_gdp = gdp_row['gdp_eur'].iloc[0]
+
+        # --- Extra-EU chart ---
+        extra_data, extra_partners = get_country_trade_by_product(
+            df, reporter_full, year, intra=False, top_n=top_n
+        )
+        if not extra_data.empty:
+            png_name = f"{country_code}_extra_eu_trade_{year}.png"
+            _save_country_chart(
+                extra_data, extra_partners,
+                f"{country_norm} Extra-EU Trade by Product - Top {top_n} Non-EU Partners (% of GDP, {year})",
+                png_name, country_gdp, country_norm, out_dir_extra
+            )
+        else:
+            print(f"  No extra-EU data for {country_norm}")
+
+        # --- Intra-EU chart ---
+        intra_data, intra_partners = get_country_trade_by_product(
+            df, reporter_full, year, intra=True, top_n=top_n
+        )
+        if not intra_data.empty:
+            png_name = f"{country_code}_intra_eu_trade_{year}.png"
+            _save_country_chart(
+                intra_data, intra_partners,
+                f"{country_norm} Intra-EU Trade by Product - Top {top_n} EU Partners (% of GDP, {year})",
+                png_name, country_gdp, country_norm, out_dir_intra
+            )
+        else:
+            print(f"  No intra-EU data for {country_norm}")
+
+
+def _save_country_chart(trade_data, partners_order, title, png_filename, country_gdp, reporter_name, out_dir):
+    """
+    Shared helper: render stacked bar chart + save PNG, SVG and Excel to out_dir.
+    Mirrors the logic of create_stacked_trade_chart_gdp_pct but writes to a custom dir.
+    """
+    products = trade_data['product'].unique()
+    n_partners = len(partners_order)
+    exports_by_product = {p: [] for p in products}
+    imports_by_product = {p: [] for p in products}
+
+    for product in products:
+        for partner in partners_order:
+            row = trade_data[(trade_data['partner'] == partner) & (trade_data['product'] == product)]
+            if not row.empty:
+                exports_by_product[product].append((row['EXPORT'].iloc[0] / country_gdp) * 100)
+                imports_by_product[product].append((row['IMPORT'].iloc[0] / country_gdp) * 100)
+            else:
+                exports_by_product[product].append(0)
+                imports_by_product[product].append(0)
+
+    balance, total_exports, total_imports = [], [], []
+    for partner in partners_order:
+        pdata = trade_data[trade_data['partner'] == partner]
+        exp = (pdata['EXPORT'].sum() / country_gdp) * 100
+        imp = (pdata['IMPORT'].sum() / country_gdp) * 100
+        total_exports.append(exp)
+        total_imports.append(imp)
+        balance.append(exp - imp)
+
+    fig, ax = plt.subplots(figsize=(14, 8))
+    x = np.arange(n_partners)
+    bar_width = 0.6
+
+    bottom_exp = np.zeros(n_partners)
+    for i, product in enumerate(products):
+        values = np.array(exports_by_product[product])
+        ax.bar(x, values, bottom=bottom_exp, width=bar_width,
+               label=PRODUCT_MAPPING.get(product, product), color=COLORS[i % len(COLORS)])
+        bottom_exp += values
+
+    bottom_imp = np.zeros(n_partners)
+    for i, product in enumerate(products):
+        values = -np.array(imports_by_product[product])
+        ax.bar(x, values, bottom=bottom_imp, width=bar_width, color=COLORS[i % len(COLORS)])
+        bottom_imp += values
+
+    ax.plot(x, balance, color=BALANCE_COLOR, label='Trade Balance',
+            marker='o', linewidth=2, markersize=4)
+
+    ax.set_xticks(x)
+    ax.set_xticklabels([get_country_code(p) for p in partners_order], rotation=45, ha='right')
+    ax.axhline(0, color='black', linewidth=0.8)
+    ax.set_ylabel(f'Trade Value (% of {reporter_name} GDP)', fontsize=12)
+    ax.set_title(title, fontsize=14, pad=20)
+    ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+    plt.tight_layout()
+
+    png_path = os.path.join(out_dir, png_filename)
+    plt.savefig(png_path, dpi=300, bbox_inches='tight')
+    plt.savefig(png_path.replace('.png', '.svg'), bbox_inches='tight')
+    plt.close()
+
+    # Excel
+    rows = []
+    for _, row in trade_data.iterrows():
+        clean_product = PRODUCT_MAPPING.get(row['product'], row['product'])
+        for flow, col in (('Export', 'EXPORT'), ('Import', 'IMPORT')):
+            rows.append({
+                'reporter': reporter_name,
+                'partner': row['partner'],
+                'flow': flow,
+                'product': clean_product,
+                'value_pct_gdp': (row[col] / country_gdp) * 100,
+                'unit': '% of GDP'
+            })
+    pd.DataFrame(rows).sort_values(['partner', 'flow', 'product']).to_excel(
+        png_path.replace('.png', '.xlsx'), index=False
+    )
+    print(f"  Saved: {png_path}")
 
 
 def load_trade_data():
@@ -1290,6 +1521,23 @@ def main():
     print("\n" + "=" * 50)
     print("All visualizations completed successfully!")
     print(f"Charts saved in: {OUTPUT_DIR}")
+
+    # 4. Per-country charts for all EU-27 members
+    print(f"\n{'='*20} PER-COUNTRY EU-27 CHARTS {'='*20}")
+    for year in [2024]:
+        year_data = df[df['year'] == year]
+        if year_data.empty:
+            continue
+        gdp_data = load_gdp_data(year)
+        out_extra = os.path.join(OUTPUT_DIR, f'eu_countries_extra_eu_{year}')
+        out_intra = os.path.join(OUTPUT_DIR, f'eu_countries_intra_eu_{year}')
+        print(f"\nGenerating per-country charts for {year}...")
+        print(f"  Extra-EU → {out_extra}")
+        print(f"  Intra-EU → {out_intra}")
+        create_all_eu_country_charts(df, year, gdp_data, out_extra, out_intra, N_PARTNERS)
+
+    print("\n" + "=" * 50)
+    print("Per-country charts completed!")
 
 if __name__ == "__main__":
     main()

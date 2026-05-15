@@ -17,7 +17,7 @@ Hierarchy:
 
 JRC-Compliant Aggregation Methods:
 - Level 2 (EU Priorities): JRC PCA-weighted geometric mean of indicators
-  * Uses JRC methodology: Factor selection (eigenvalue > 1, variance > 10%, cumulative ≥ 75%)
+  * Uses JRC methodology: Factor selection (eigenvalue > 0.7, variance > 10%, cumulative ≥ 75%)
   * Applies Varimax rotation for simpler factor structure  
   * Creates intermediate composites based on highest factor loadings
   * Weights indicators within composites by squared rotated loadings (scaled to unity)
@@ -369,6 +369,13 @@ DATA_DIR = Path(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'd
 # Alternative: 'per_year' (population-weighted PCA computed separately for each year)
 PCA_SCOPE = env_str("EWBI_PCA_SCOPE", 'all_years')
 
+# Variant 1b: PCA scope mode — which PCA results to use for indicator weighting
+# Base solution: 'per_priority' (PCA computed separately for each EU priority, from priority_pca_for_weighting.json)
+# Alternative:  'global'       (PCA computed on all 38 indicators together, from pca_results_full.json)
+# Per-priority is methodologically sounder: factors are computed within thematically coherent groups,
+# avoiding the dominance of a single cross-priority factor (e.g. general deprivation) on all priorities.
+PCA_SCOPE_MODE = env_str("EWBI_PCA_SCOPE_MODE", 'per_priority')
+
 # Variant 2: EU Priorities aggregation approach
 # Base solution: 'pca' (population-weighted PCA-based aggregation)
 # Alternative: 'simple' (simple population-weighted aggregation without PCA)
@@ -399,6 +406,15 @@ SKIP_EU27 = env_bool("EWBI_SKIP_EU27", False)
 # EU-27 aggregates use population-weighted arithmetic mean (changed from geometric)
 # This provides better interpretability for policy makers and avoids geometric mean sensitivity
 # Individual country "All Deciles" aggregations continue to use geometric mean as configured above
+
+# --- EU-27 Member Countries ---
+# Official EU-27 member states (ISO 3166-1 alpha-2 codes, using Eurostat conventions)
+# EL = Greece, not GR (Eurostat convention)
+EU27_MEMBERS = [
+    'AT', 'BE', 'BG', 'CY', 'CZ', 'DE', 'DK', 'EE', 'EL', 'ES',
+    'FI', 'FR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'MT',
+    'NL', 'PL', 'PT', 'RO', 'SE', 'SI', 'SK'
+]
 
 # ===============================
 # HELPER FUNCTIONS
@@ -485,6 +501,111 @@ def load_pca_results(multivariate_dir):
     except Exception as e:
         print(f"[WARN] Could not load PCA results: {e}")
         return {}
+
+
+def load_priority_pca_results(multivariate_dir):
+    """
+    Load per-priority PCA results saved by Stage 2 (priority_pca_for_weighting.json).
+
+    Returns:
+        Dict keyed by Stage 4 priority name (e.g. 'Energy', 'Health', 'Quality of Jobs'),
+        each containing indicator_names, rotated_loadings, explained_variance_ratio, etc.
+        Returns {} if the file does not exist.
+    """
+    print("[LOAD] Loading per-priority PCA results from Stage 2...")
+    path = multivariate_dir / 'priority_pca_for_weighting.json'
+
+    if not path.exists():
+        print(f"[WARN] Per-priority PCA file not found at {path}")
+        print("       Run Stage 2 (2_multivariate_analysis.py) to generate it.")
+        print("       Falling back to global PCA weighting.")
+        return {}
+
+    try:
+        with open(path, 'r') as f:
+            data = json.load(f)
+        print(f"[OK] Loaded per-priority PCA results for: {list(data.keys())}")
+        return data
+    except Exception as e:
+        print(f"[WARN] Could not load per-priority PCA results: {e}")
+        return {}
+
+
+def get_jrc_pca_weights_per_priority(priority_pca_results, priority_name, available_indicators):
+    """
+    Extract JRC-compliant weights from a per-priority PCA entry.
+
+    Identical JRC logic to get_jrc_pca_weights_for_country_year(), but takes
+    a priority-keyed dict instead of a (country, year)-keyed one.
+    Per-priority weights are the same for all country-year-decile combinations.
+
+    Args:
+        priority_pca_results: Dict keyed by priority name (from load_priority_pca_results())
+        priority_name: EU priority name (Stage 4 convention, e.g. 'Energy')
+        available_indicators: List of indicator codes present in the data
+
+    Returns:
+        Dict mapping indicator -> weight (sums to 1), or None if unavailable.
+    """
+    if priority_name not in priority_pca_results:
+        return None
+
+    try:
+        entry = priority_pca_results[priority_name]
+        rotated_loadings = np.array(
+            entry.get('rotated_loadings') or entry.get('component_loadings', [])
+        )
+        indicator_names = entry.get('indicator_names', [])
+        evr = np.array(entry.get('explained_variance_ratio', []))
+
+        if rotated_loadings.size == 0 or not indicator_names:
+            return None
+
+        sq = rotated_loadings ** 2  # shape: (n_components, n_indicators)
+
+        composites = {}
+        for ind in available_indicators:
+            if ind not in indicator_names:
+                continue
+            col = indicator_names.index(ind)
+            best_f = int(np.argmax(sq[:, col]))
+            if best_f not in composites:
+                composites[best_f] = {'indicators': [], 'sq_loadings': [],
+                                      'variance': float(evr[best_f]) if best_f < len(evr) else 0.0}
+            composites[best_f]['indicators'].append(ind)
+            composites[best_f]['sq_loadings'].append(float(sq[best_f, col]))
+
+        if not composites:
+            return None
+
+        # Intra-composite weights (squared loading normalised to 1)
+        for cid in composites:
+            total = sum(composites[cid]['sq_loadings'])
+            n = len(composites[cid]['sq_loadings'])
+            composites[cid]['intra'] = ([s / total for s in composites[cid]['sq_loadings']]
+                                        if total > 0 else [1.0 / n] * n)
+
+        # Composite importances (variance proportion)
+        total_var = sum(c['variance'] for c in composites.values())
+        for cid in composites:
+            composites[cid]['importance'] = (composites[cid]['variance'] / total_var
+                                             if total_var > 0 else 1.0 / len(composites))
+
+        # Final weights
+        final = {}
+        for cid, comp in composites.items():
+            for ind, w in zip(comp['indicators'], comp['intra']):
+                final[ind] = w * comp['importance']
+
+        total_w = sum(final.values())
+        if total_w > 0:
+            final = {k: v / total_w for k, v in final.items()}
+
+        return final if final else None
+
+    except Exception as e:
+        print(f"[DEBUG] Per-priority JRC weighting failed for '{priority_name}': {e}")
+        return None
 
 
 def load_population_data(data_dir):
@@ -748,25 +869,28 @@ def get_pca_weights_for_country_year(pca_results, country, year, available_indic
     return get_jrc_pca_weights_for_country_year(pca_results, country, year, available_indicators)
 
 
-def compute_level2_eu_priorities_pca_weighted(level4_data, indicator_mapping, category_indicators, pca_results, population_data=None, aggregation_method=None, pca_scope=None):
+def compute_level2_eu_priorities_pca_weighted(level4_data, indicator_mapping, category_indicators, pca_results, population_data=None, aggregation_method=None, pca_scope=None, priority_pca_results=None):
     """
     Compute Level 2 (EU Priorities) via population-weighted PCA mean.
-    
+
     For each country-year-decile and EU priority:
     1. Get all Level 4 indicators for that priority
-    2. Look up PCA weights for that country-year (if available)
+    2. Look up PCA weights (per-priority if available, else global per country-year)
     3. Compute weighted mean (geometric or arithmetic based on config)
     4. Apply population weighting across countries if provided
-    
+
     Args:
         level4_data: DataFrame with Level 4 normalized indicators
         indicator_mapping: Dictionary mapping indicator codes to EU priorities
         category_indicators: Dictionary mapping EU priority to list of indicator codes
-        pca_results: Dictionary with PCA results keyed by (country, year) tuples
+        pca_results: Dictionary with global PCA results keyed by (country, year) tuples
         population_data: Optional DataFrame with population weights
         aggregation_method: 'geometric' or 'arithmetic'. Default: EU_PRIORITIES_AGGREGATION config
         pca_scope: 'all_years' or 'per_year'. Default: PCA_SCOPE config
-    
+        priority_pca_results: Optional dict keyed by priority name with per-priority PCA.
+                              When provided (and PCA_SCOPE_MODE == 'per_priority'), used
+                              instead of the global PCA for indicator weighting.
+
     Returns:
         DataFrame with Level 2 EU priority aggregations
     """
@@ -775,78 +899,100 @@ def compute_level2_eu_priorities_pca_weighted(level4_data, indicator_mapping, ca
         aggregation_method = EU_PRIORITIES_AGGREGATION
     if pca_scope is None:
         pca_scope = PCA_SCOPE
-    
+
+    use_per_priority = (
+        PCA_SCOPE_MODE == 'per_priority'
+        and priority_pca_results is not None
+        and len(priority_pca_results) > 0
+    )
+
     agg_func = aggregate_geometric_mean if aggregation_method == 'geometric' else aggregate_arithmetic_mean
     agg_name = 'geometric mean' if aggregation_method == 'geometric' else 'arithmetic mean'
-    
+    pca_mode_desc = 'per-priority' if use_per_priority else 'global'
+
     print(f"\n[COMPUTE] Computing Level 2 EU Priority aggregations (Population-Weighted PCA)...")
     print(f"   Aggregation method: {agg_name}")
+    print(f"   PCA mode: {pca_mode_desc} (EWBI_PCA_SCOPE_MODE={PCA_SCOPE_MODE})")
     print(f"   PCA scope: {pca_scope}")
-    
+
     level2_records = []
-    
+
     # For each EU priority
     for eu_priority, indicators in tqdm(category_indicators.items(), desc="EU Priorities"):
         # Get Level 4 data for this priority's indicators
         priority_data = level4_data[
             level4_data['Primary and raw data'].isin(indicators)
         ].copy()
-        
+
         if len(priority_data) == 0:
             print(f"   [SKIP] {eu_priority}: No data found")
             continue
-        
+
+        # Pre-compute per-priority weights once (same for all country-year-decile)
+        fixed_priority_weights = None
+        if use_per_priority:
+            fixed_priority_weights = get_jrc_pca_weights_per_priority(
+                priority_pca_results, eu_priority, indicators
+            )
+            if fixed_priority_weights is None:
+                print(f"   [WARN] {eu_priority}: per-priority PCA weights unavailable, "
+                      f"falling back to global PCA")
+
         # Group by country-year-decile and aggregate
         group_cols = ['Year', 'Country', 'Decile']
-        
+
         for group_key, group_df in priority_data.groupby(group_cols, as_index=False):
             year, country, decile = group_key
-            
+
             # Extract values for aggregation
             values = group_df['Value'].values
             indicator_names = group_df['Primary and raw data'].values
-            
-            # Try to get PCA weights for this country-year
-            # Note: pca_scope affects how the PCA was computed in Stage 2
-            # Here we just use whatever PCA results are available
-            pca_weights = get_pca_weights_for_country_year(
-                pca_results, country, int(year), indicators
-            )
-            
-            # Build weight array if PCA weights available
+
+            # Determine weights: per-priority (fixed) or global (per country-year)
+            if fixed_priority_weights is not None:
+                pca_weights = fixed_priority_weights
+            else:
+                pca_weights = get_pca_weights_for_country_year(
+                    pca_results, country, int(year), indicators
+                )
+
+            # Build weight array
             weights = None
             if pca_weights is not None:
-                weights = np.array([pca_weights.get(ind, 1.0/len(values)) for ind in indicator_names])
-            
+                weights = np.array([pca_weights.get(ind, 1.0 / len(values)) for ind in indicator_names])
+
             # Compute weighted mean (geometric or arithmetic)
             if weights is not None:
                 agg_value = agg_func(values, weights)
             else:
                 agg_value = agg_func(values)  # Unweighted fallback
-            
+
             if np.isnan(agg_value):
                 continue
-            
+
             # Create Level 2 record
             level2_record = {
                 'Year': year,
                 'Country': country,
                 'Decile': decile,
-                'Level': 2,  # EU Priorities
+                'Level': 2,
                 'EU priority': eu_priority,
                 'Secondary': pd.NA,
                 'Primary and raw data': eu_priority,
                 'Type': 'Aggregation',
-                'Aggregation': f'Population-weighted PCA {agg_name} of Level 4 indicators',
+                'Aggregation': f'Population-weighted {pca_mode_desc}-PCA {agg_name} of Level 4 indicators',
                 'Value': agg_value,
                 'datasource': pd.NA
             }
             level2_records.append(level2_record)
-    
+
     level2_df = pd.DataFrame(level2_records)
     print(f"[OK] Created {len(level2_df):,} Level 2 records from {len(category_indicators)} EU priorities")
-    print(f"     Using PCA-weighted aggregation ({agg_name}): {len(pca_results)} country-years with component weights available")
-    
+    if use_per_priority:
+        print(f"     Using per-priority PCA weighting ({agg_name})")
+    else:
+        print(f"     Using global PCA weighting ({agg_name}): {len(pca_results)} country-years with weights")
+
     return level2_df
 
 
@@ -1109,15 +1255,21 @@ def compute_eu27_aggregations(level_data, population_data, level_name, use_arith
     
     eu27_records = []
     
+    # Filter input data to EU-27 member states only
+    # (EU-SILC also includes non-EU countries like IS, NO, CH, UK, RS)
+    level_data = level_data[level_data['Country'].isin(EU27_MEMBERS)].copy()
+    
     # Pre-compute total EU-27 population by year for coverage calculation
+    # Use ONLY EU-27 member countries as denominator (not all countries in the file)
     if population_data is not None:
         pop_for_merge = population_data.rename(columns={
             'country': 'Country',
             'year': 'Year', 
             'population': 'Population'
         })
-        total_eu27_population_by_year = pop_for_merge.groupby('Year')['Population'].sum().to_dict()
-        print(f"[INFO] EU-27 total population calculated for {len(total_eu27_population_by_year)} years")
+        pop_eu27_only = pop_for_merge[pop_for_merge['Country'].isin(EU27_MEMBERS)]
+        total_eu27_population_by_year = pop_eu27_only.groupby('Year')['Population'].sum().to_dict()
+        print(f"[INFO] EU-27 total population calculated for {len(total_eu27_population_by_year)} years (EU-27 members only)")
     else:
         print("[ERROR] No population data available for EU-27 aggregations")
         return pd.DataFrame()
@@ -1448,7 +1600,7 @@ def main():
     if EU_PRIORITIES_APPROACH == 'pca':
         print(f"      - PCA scope: {PCA_SCOPE}")
         print(f"      - Aggregation method: {eu_priorities_agg}")
-        print(f"      - Factor selection: eigenvalue > 1, variance > 10%, cumulative ≥ 75%")
+        print(f"      - Factor selection: eigenvalue > 0.7, variance > 10%, cumulative ≥ 75%")
         print(f"      - Varimax rotation: Applied for cleaner factor structure")
         print(f"      - Weighting: Squared rotated loadings (scaled to unity) × composite importance")
     else:
@@ -1491,21 +1643,31 @@ def main():
     
     # Load optional PCA results and population data
     pca_results = load_pca_results(MULTIVARIATE_OUTPUT)
+
+    # Load per-priority PCA results when configured
+    priority_pca_results = {}
+    if EU_PRIORITIES_APPROACH == 'pca' and PCA_SCOPE_MODE == 'per_priority':
+        priority_pca_results = load_priority_pca_results(MULTIVARIATE_OUTPUT)
+        if not priority_pca_results:
+            print("[WARN] Per-priority PCA not available — falling back to global PCA.")
+            print("       Re-run Stage 2 (2_multivariate_analysis.py) to generate it.")
+
     population_data = load_population_data(DATA_DIR)
-    
+
     # NOTE: Level 3 (Primary Indicators) will be loaded from raw break-adjusted data
     # NOT from normalized Level 4 data. Normalized data is only used for aggregation.
 
-    
+
     # Compute Level 2 based on aggregation approach configuration
     if EU_PRIORITIES_APPROACH == 'pca':
         # Use PCA weighting (using normalized Level 4 data)
         level2_data = compute_level2_eu_priorities_pca_weighted(
-            level4_data, 
-            indicator_mapping, 
+            level4_data,
+            indicator_mapping,
             category_indicators,
             pca_results,
-            population_data
+            population_data,
+            priority_pca_results=priority_pca_results if priority_pca_results else None
         )
     elif EU_PRIORITIES_APPROACH == 'simple':
         # Use simple equal weighting (using normalized Level 4 data)
@@ -1606,7 +1768,7 @@ def main():
     
     print(f"\n[COMPLETE] Stage 4 complete: JRC-compliant weighting and aggregation")
     print(f"[JRC-METHODOLOGY] Applied Varimax-rotated PCA weights with factor selection criteria:")
-    print(f"   - Eigenvalue > 1, individual variance > 10%, cumulative variance ≥ 75%")
+    print(f"   - Eigenvalue > 0.7, individual variance > 10%, cumulative variance ≥ 75%")
     print(f"   - Intermediate composites based on highest factor loadings")  
     print(f"   - Squared rotated loadings for indicator weighting")
     print(f"[SAVED] Output saved: {output_path}")
