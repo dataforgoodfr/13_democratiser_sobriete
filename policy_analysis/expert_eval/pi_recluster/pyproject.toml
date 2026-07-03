@@ -19,5 +19,13 @@ dependencies = [
     "codecarbon>=2.5",          # CO2 accounting for every stage
 ]
 
+[project.optional-dependencies]
+# Install only on the GPU box: `uv sync --extra gpu`
+# vLLM pulls in torch + CUDA and won't install on CPU-only boxes.
+gpu = [
+    "vllm>=0.6.4",              # offline batch inference, guided JSON, prefix caching
+    "xgrammar>=0.1.5",           # backend for guided_decoding
+]
+
 [tool.uv]
 package = false
