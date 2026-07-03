@@ -117,7 +117,22 @@ def main() -> None:
 
     # Late import so `--help` / dry runs work on machines without CUDA
     from vllm import LLM, SamplingParams
-    from vllm.sampling_params import GuidedDecodingParams
+
+    # vLLM ≥ 0.11 renamed GuidedDecodingParams → StructuredOutputsParams and
+    # the SamplingParams field guided_decoding → structured_outputs. Prior
+    # versions kept the old names. We probe both.
+    _sampling_extra: dict = {}
+    try:
+        from vllm.sampling_params import GuidedDecodingParams  # vLLM ≤ 0.10
+        _sampling_extra["guided_decoding"] = GuidedDecodingParams(json=RESPONSE_JSON_SCHEMA)
+    except ImportError:
+        try:
+            from vllm.sampling_params import StructuredOutputsParams  # vLLM ≥ 0.11
+            _sampling_extra["structured_outputs"] = StructuredOutputsParams(json=RESPONSE_JSON_SCHEMA)
+        except ImportError:
+            print("[warn] no structured-output API found in this vLLM; "
+                  "relying on prompt + JSON validation only. "
+                  "Expect a higher failure rate on the classifier.")
 
     items = _load_jsonl(Path(args.items))
     exclude: set[str] = set()
@@ -154,7 +169,7 @@ def main() -> None:
     sampling = SamplingParams(
         temperature=0,
         max_tokens=350,
-        guided_decoding=GuidedDecodingParams(json=RESPONSE_JSON_SCHEMA),
+        **_sampling_extra,
     )
 
     out_path = Path(args.out)
