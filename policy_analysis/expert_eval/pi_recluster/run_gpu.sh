@@ -79,23 +79,50 @@ Then re-run:  USE_VLLM=1 bash run_gpu.sh
 EOF
         exit 1
     fi
-    # flashinfer, xgrammar, and vLLM's inductor path all invoke nvcc which in
-    # turn shells out to a host C++ compiler. Ubuntu ships `gcc` alone; the
-    # C++ backend `cc1plus` needs `build-essential`.
-    if ! echo 'int main(){}' | g++ -x c++ - -o /tmp/_pi_cxx_probe 2>/dev/null; then
-        rm -f /tmp/_pi_cxx_probe
+    # flashinfer, xgrammar, and vLLM's inductor path all invoke nvcc which
+    # shells out to `gcc -x c++` as the host C++ compiler. Ubuntu installs
+    # can leave gcc's C++ backend broken while g++ works fine (mismatched
+    # major versions, missing cc1plus for gcc but present for g++). Test
+    # both; if only g++ works, point nvcc at g++ via NVCC_CCBIN.
+    _probe=/tmp/_pi_cxx_probe
+    _gxx_ok=0
+    _gcc_cxx_ok=0
+    if echo 'int main(){}' | g++ -x c++ - -o "$_probe" 2>/dev/null; then _gxx_ok=1; fi
+    if echo 'int main(){}' | gcc -x c++ - -o "$_probe" 2>/dev/null; then _gcc_cxx_ok=1; fi
+    rm -f "$_probe"
+
+    if [[ "$_gxx_ok" == "0" && "$_gcc_cxx_ok" == "0" ]]; then
         cat <<EOF >&2
-ERROR: g++ / cc1plus not usable. nvcc needs a working host C++ compiler
-to build flashinfer / xgrammar / torch.compile kernels at engine start-up.
+ERROR: neither g++ nor gcc-x-c++ can compile — cc1plus is unavailable.
 
 Fix:
-    sudo apt-get install -y build-essential
+    sudo apt-get update
+    sudo apt-get install -y --reinstall build-essential g++ gcc
 
-Then re-run:  USE_VLLM=1 bash run_gpu.sh
+Then clear the flashinfer JIT cache and re-run:
+    rm -rf ~/.cache/flashinfer
+    USE_VLLM=1 bash run_gpu.sh
 EOF
         exit 1
+    elif [[ "$_gxx_ok" == "1" && "$_gcc_cxx_ok" == "0" ]]; then
+        # g++ works but gcc's C++ frontend doesn't — force nvcc to use g++.
+        export NVCC_CCBIN="$(command -v g++)"
+        echo "  → gcc-x-c++ broken; nvcc pinned to \$(g++)=$NVCC_CCBIN"
+        # Persist for future shells
+        if [[ -w "${HOME}/.bashrc" ]] && ! grep -qF "# pi_recluster: NVCC_CCBIN" "${HOME}/.bashrc" 2>/dev/null; then
+            {
+                echo ""
+                echo "# pi_recluster: NVCC_CCBIN auto-set (gcc-x-c++ was broken)"
+                echo "export NVCC_CCBIN=\"$NVCC_CCBIN\""
+            } >> "${HOME}/.bashrc"
+            echo "  → persisted NVCC_CCBIN to ~/.bashrc"
+        fi
+        # Bust the cached failed build so it retries with g++
+        if [[ -d "$HOME/.cache/flashinfer" ]]; then
+            rm -rf "$HOME/.cache/flashinfer"
+            echo "  → cleared ~/.cache/flashinfer (was built against broken gcc)"
+        fi
     fi
-    rm -f /tmp/_pi_cxx_probe
     echo "  cuda toolkit: $(nvcc --version | tail -1)"
     echo "  host cxx    : $(g++ --version | head -1)"
     echo "  CUDA_HOME   : $CUDA_HOME"
