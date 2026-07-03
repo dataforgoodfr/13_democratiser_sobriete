@@ -68,28 +68,44 @@ This will:
 
 Note: Option B currently invokes the classifier by reaching into the repo root's `policy_analysis.expert_eval.classify_v1` module. That means the whole repo has to be cloned (which it is) AND the repo root's `pyproject.toml` needs to be installed so imports resolve. From the repo root: `uv sync`. Or run the classifier stage manually as documented in `../classify_v1.py`.
 
-## Execution plan (Option C — full 1.47M classification via local vLLM on H100)
+## Execution plan (Option C — full 1.47M classification + re-clustering on a GPU host)
 
-**Recommended small-model path.** Runs Gemma 4 12B on a single H100 via vLLM. Expected cost: **$10–20** compute + $0 API. Expected time: **3–5 h**.
+**Recommended small-model path.** Runs Gemma 4 12B on a single H100 via vLLM, then Leiden clustering on the same box (GPU idle during Leiden — acceptable given the box is already rented). Expected cost: **$10–20** compute + $0 API. Expected wall clock: **3–5 h** classifier + **~10 min** Leiden.
+
+Assumes the repo lives at `/home/ubuntu/13_democratiser_sobriete` on the GPU host (typical Prime Intellect Ubuntu image). Override with `REPO_ROOT=<path>` if yours differs.
+
+Use `run_gpu.sh` — the GPU-host variant of the runner. It defaults to Option A (no classification) so `USE_VLLM=1` is the flag to trip.
+
+### On the box, first-time setup
 
 ```bash
-# 0. On the box: install uv, git-clone, cd in.
 curl -LsSf https://astral.sh/uv/install.sh | sh
 export PATH="$HOME/.local/bin:$PATH"
-git clone <this-repo-url>
-cd 13_democratiser_sobriete/policy_analysis/expert_eval/pi_recluster
+
+git clone <this-repo-url> /home/ubuntu/13_democratiser_sobriete
+cd /home/ubuntu/13_democratiser_sobriete/policy_analysis/expert_eval/pi_recluster
 uv sync --extra gpu     # installs vllm + xgrammar
+```
 
-# 1. From your LAPTOP: upload the few-shot examples
+### From your LAPTOP: upload the two files this pipeline needs (repo root)
+
+```bash
+mkdir -p runs/expert_gold        # skip if you already have these locally
 scp runs/expert_gold/few_shot_v1.jsonl \
-    root@<PI-HOST>:/root/13_democratiser_sobriete/runs/expert_gold/few_shot_v1.jsonl
+    ubuntu@<GPU-HOST>:/home/ubuntu/13_democratiser_sobriete/runs/expert_gold/few_shot_v1.jsonl
 scp runs/expert_gold/gold.parquet \
-    root@<PI-HOST>:/root/13_democratiser_sobriete/runs/expert_gold/gold.parquet
+    ubuntu@<GPU-HOST>:/home/ubuntu/13_democratiser_sobriete/runs/expert_gold/gold.parquet
+```
 
-# 2. VALIDATE FIRST on the 770 expert-gold rows (~15 min, essentially free)
+### On the box: validate first (770 gold rows, ~15 min, essentially free)
+
+```bash
+cd /home/ubuntu/13_democratiser_sobriete/policy_analysis/expert_eval/pi_recluster
+
+# Build a gold to_classify.jsonl from the parquet
 uv run python -c "
 import json, pandas as pd
-df = pd.read_parquet('../../../runs/expert_gold/gold.parquet')
+df = pd.read_parquet('/home/ubuntu/13_democratiser_sobriete/runs/expert_gold/gold.parquet')
 with open('data/gold_to_classify.jsonl', 'w') as f:
     for _, r in df.iterrows():
         f.write(json.dumps({
@@ -100,25 +116,57 @@ with open('data/gold_to_classify.jsonl', 'w') as f:
 print('wrote', len(df), 'rows')
 "
 
+# Classify the gold rows
 uv run --extra gpu python classify_vllm.py \
     --items data/gold_to_classify.jsonl \
     --out   data/gold_predictions.jsonl \
-    --few-shot ../../../runs/expert_gold/few_shot_v1.jsonl \
+    --few-shot /home/ubuntu/13_democratiser_sobriete/runs/expert_gold/few_shot_v1.jsonl \
     --model google/gemma-4-12B-it
 
+# Score against the gold — prints VERDICT: SHIP | BORDERLINE | DO NOT SCALE
 uv run python validate_gold.py \
     --classifications data/gold_predictions.jsonl \
-    --gold ../../../runs/expert_gold/gold.parquet
-
-# → look at the VERDICT line. If SHIP: continue. Otherwise stop.
-
-# 3. Full 1.47M run in the same session
-USE_VLLM=1 bash run.sh
+    --gold /home/ubuntu/13_democratiser_sobriete/runs/expert_gold/gold.parquet
 ```
 
-Override the model with `VLLM_MODEL=qwen2.5/Qwen2.5-32B-Instruct` (or similar). Model weights auto-download from HuggingFace at first launch.
+If the verdict is SHIP, continue. If BORDERLINE, try `VLLM_MODEL=Qwen/Qwen2.5-32B-Instruct` (needs TP=1 on H100 in FP8 or BF16) and re-validate. If DO NOT SCALE, stop and reconsider.
 
-**Multi-GPU boxes**: pass `--tensor-parallel-size 2` (or higher) to `classify_vllm.py` for larger models. The `run.sh` wrapper doesn't currently thread it through — either edit `run.sh` or invoke `classify_vllm.py` directly.
+### On the box: full 1.47M classification + re-clustering
+
+```bash
+cd /home/ubuntu/13_democratiser_sobriete/policy_analysis/expert_eval/pi_recluster
+USE_VLLM=1 bash run_gpu.sh
+```
+
+This runs, in order:
+1. **download** — HF pull of the 11 sector parquets + 7.15 GB embeddings file.
+2. **build_classify_input** — writes `data/to_classify_full.jsonl` (1.47M rows).
+3. **classify_vllm** — Gemma 4 12B on the local GPU, guided-JSON, prefix-cached. Writes `data/classifications_full.jsonl`.
+4. **filter_and_stratify** — filters to `sufficiency + ambiguous`, joins with embeddings.
+5. **recluster** — Leiden per `(sector, sub_code)` cell → `data/reclustered/*.parquet`.
+6. **CO2 summary** — codecarbon totals per stage.
+
+### From your LAPTOP: pull results back (from the repo root)
+
+```bash
+mkdir -p runs/full_recluster
+scp -r ubuntu@<GPU-HOST>:/home/ubuntu/13_democratiser_sobriete/policy_analysis/expert_eval/pi_recluster/data/reclustered \
+       runs/full_recluster/reclustered
+scp    ubuntu@<GPU-HOST>:/home/ubuntu/13_democratiser_sobriete/policy_analysis/expert_eval/pi_recluster/data/filtered.parquet \
+       runs/full_recluster/filtered.parquet
+scp    ubuntu@<GPU-HOST>:/home/ubuntu/13_democratiser_sobriete/policy_analysis/expert_eval/pi_recluster/data/carbon/emissions.csv \
+       runs/full_recluster/emissions.csv
+scp    ubuntu@<GPU-HOST>:/home/ubuntu/13_democratiser_sobriete/policy_analysis/expert_eval/pi_recluster/data/classifications_full.jsonl \
+       runs/full_recluster/classifications.jsonl
+```
+
+Then run the judge locally against the new clusters (few-cents API, few minutes) and refresh `explore_reclustering.ipynb` pointing at `runs/full_recluster/`.
+
+### Notes
+
+- Override the classifier model with `VLLM_MODEL=<hf-repo-id>` (e.g. `Qwen/Qwen2.5-32B-Instruct`). Weights auto-download at first launch.
+- Multi-GPU boxes: pass `--tensor-parallel-size N` to `classify_vllm.py` directly; `run_gpu.sh` doesn't thread it yet — either edit the call site or run `classify_vllm.py` yourself for step 3, then re-enter `run_gpu.sh` with `USE_VLLM=0` to continue from step 4.
+- If you have credits and prefer the DeepSeek path: `FULL_CLASSIFY=1 bash run_gpu.sh` (requires `DEEPSEEK_API_KEY`, ~$280 spend, GPU idle during API wait).
 
 ## Getting results back
 
@@ -145,7 +193,8 @@ Then locally: sample intrusion items from the new clusters, judge via the existi
 | `validate_gold.py` | score classifier output vs expert gold, print go/no-go verdict |
 | `filter_and_stratify.py` | apply classifier filter, subset embeddings |
 | `recluster.py` | stratified Leiden per `(sector, sub_code)` cell, emit per-sector parquets |
-| `run.sh` | one-command wrapper: default = Option A; `FULL_CLASSIFY=1` = B; `USE_VLLM=1` = C |
+| `run.sh` | wrapper for a CPU host — default = Option A; `FULL_CLASSIFY=1` = B; `USE_VLLM=1` = C |
+| `run_gpu.sh` | wrapper for a GPU host — same modes, `REPO_ROOT` anchored (default `/home/ubuntu/…`) |
 
 ## Cost estimate
 

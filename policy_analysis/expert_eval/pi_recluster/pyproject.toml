@@ -2,7 +2,10 @@
 name = "pi-recluster"
 version = "0.1.0"
 description = "Stratified re-clustering pipeline for the sufficiency policy library, packaged to run on a rented CPU box."
-requires-python = ">=3.10"
+# Upper-bound on Python: several deps (psycopg2-binary transitively via
+# codecarbon, plus older faiss/torch wheels) don't have 3.13/3.14 wheels
+# and fall back to source builds that need system libs.
+requires-python = ">=3.10,<3.13"
 
 dependencies = [
     "numpy>=1.26",
@@ -16,7 +19,9 @@ dependencies = [
     "tqdm>=4.66",
     "python-dotenv>=1.0",
     "openai>=1.30",             # only needed if you run the classifier from the box
-    "codecarbon>=2.5",          # CO2 accounting for every stage
+    # codecarbon 3.x pulls Postgres via fief-client for its SaaS backend, which
+    # requires libpq-dev + pg_config on the host. Pin to 2.x for a slim install.
+    "codecarbon>=2.5,<3.0",
 ]
 
 [project.optional-dependencies]
