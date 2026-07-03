@@ -29,6 +29,43 @@ VLLM_MODEL="${VLLM_MODEL:-google/gemma-4-12B-it}"
 
 mkdir -p "$DATA_ROOT/carbon"
 
+# Preflight: if we're going to use vLLM, make sure nvcc is reachable. vLLM's
+# Triton JIT needs it at engine start-up; a missing nvcc surfaces very late
+# (after model weights load) with a `Could not find nvcc` error.
+if [[ "${USE_VLLM:-0}" == "1" ]]; then
+    if [[ -z "${CUDA_HOME:-}" ]]; then
+        # Auto-detect: prefer /usr/local/cuda-XX.Y, then /usr/local/cuda, then /usr
+        for candidate in $(ls -d /usr/local/cuda-* 2>/dev/null | sort -Vr) /usr/local/cuda /usr; do
+            if [[ -x "$candidate/bin/nvcc" ]] || [[ -x "$candidate/nvcc" ]]; then
+                export CUDA_HOME="$candidate"
+                break
+            fi
+        done
+    fi
+    if [[ -n "${CUDA_HOME:-}" ]]; then
+        export PATH="$CUDA_HOME/bin:$PATH"
+        export LD_LIBRARY_PATH="$CUDA_HOME/lib64:${LD_LIBRARY_PATH:-}"
+    fi
+    if ! command -v nvcc >/dev/null 2>&1; then
+        cat <<EOF >&2
+ERROR: nvcc not found. vLLM needs the CUDA toolkit at runtime.
+
+Try one of:
+  # If /usr/local/cuda-XX.Y exists:
+  export CUDA_HOME=/usr/local/cuda-XX.Y
+  export PATH=\$CUDA_HOME/bin:\$PATH
+
+  # Or install the toolkit:
+  sudo apt-get update && sudo apt-get install -y nvidia-cuda-toolkit
+  export CUDA_HOME=/usr
+
+Then re-run:  USE_VLLM=1 bash run_gpu.sh
+EOF
+        exit 1
+    fi
+    echo "  cuda toolkit: $(nvcc --version | tail -1)   CUDA_HOME=$CUDA_HOME"
+fi
+
 echo "=== step 1: download data (clusters + embeddings) ==="
 uv run python download_data.py --dest "$DATA_ROOT/hf"
 
