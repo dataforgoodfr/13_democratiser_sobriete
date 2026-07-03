@@ -19,17 +19,15 @@ from __future__ import annotations
 
 import argparse
 import json
-import sys
 import time
 from pathlib import Path
 
 from _carbon import track
-
-
-# The prompt module lives in the repo, not in this package.
-_REPO_ROOT = Path(__file__).resolve().parents[3]
-sys.path.insert(0, str(_REPO_ROOT))
-from policy_analysis.sufficiency_classification.prompts_v1 import (  # noqa: E402
+# prompts_v1.py is a local copy — the canonical source is
+# policy_analysis/sufficiency_classification/prompts_v1.py, kept in sync
+# manually. Copied here so this package doesn't depend on the parent
+# repo layout (which may not be fully committed when cloned on a fresh box).
+from prompts_v1 import (
     CATEGORIES,
     PROMPT_VERSION,
     RESPONSE_JSON_SCHEMA,
