@@ -34,9 +34,10 @@ mkdir -p "$DATA_ROOT/carbon"
 # (after model weights load) with a `Could not find nvcc` error.
 if [[ "${USE_VLLM:-0}" == "1" ]]; then
     if [[ -z "${CUDA_HOME:-}" ]]; then
-        # Auto-detect: prefer /usr/local/cuda-XX.Y, then /usr/local/cuda, then /usr
-        for candidate in $(ls -d /usr/local/cuda-* 2>/dev/null | sort -Vr) /usr/local/cuda /usr; do
-            if [[ -x "$candidate/bin/nvcc" ]] || [[ -x "$candidate/nvcc" ]]; then
+        # Auto-detect: prefer versioned /usr/local/cuda-XX.Y (newest first),
+        # then /usr/local/cuda, then /opt/cuda, then /usr (apt install path).
+        for candidate in $(ls -d /usr/local/cuda-* 2>/dev/null | sort -Vr) /usr/local/cuda /opt/cuda /usr; do
+            if [[ -x "$candidate/bin/nvcc" ]]; then
                 export CUDA_HOME="$candidate"
                 break
             fi
@@ -45,25 +46,59 @@ if [[ "${USE_VLLM:-0}" == "1" ]]; then
     if [[ -n "${CUDA_HOME:-}" ]]; then
         export PATH="$CUDA_HOME/bin:$PATH"
         export LD_LIBRARY_PATH="$CUDA_HOME/lib64:${LD_LIBRARY_PATH:-}"
+
+        # Persist to ~/.bashrc on first detection so future shells (post-SSH
+        # reconnect, box reboot, tmux respawn) pick up nvcc automatically.
+        _bashrc="${HOME}/.bashrc"
+        _marker="# pi_recluster: CUDA toolkit auto-configured"
+        if [[ -w "$_bashrc" ]] && ! grep -qF "$_marker" "$_bashrc" 2>/dev/null; then
+            {
+                echo ""
+                echo "$_marker"
+                echo "export CUDA_HOME=\"$CUDA_HOME\""
+                echo 'export PATH="$CUDA_HOME/bin:$PATH"'
+                echo 'export LD_LIBRARY_PATH="$CUDA_HOME/lib64:${LD_LIBRARY_PATH:-}"'
+            } >> "$_bashrc"
+            echo "  → persisted CUDA env to $_bashrc (future shells will pick it up)"
+        fi
     fi
     if ! command -v nvcc >/dev/null 2>&1; then
         cat <<EOF >&2
 ERROR: nvcc not found. vLLM needs the CUDA toolkit at runtime.
 
-Try one of:
-  # If /usr/local/cuda-XX.Y exists:
-  export CUDA_HOME=/usr/local/cuda-XX.Y
-  export PATH=\$CUDA_HOME/bin:\$PATH
+Install the version matching your torch build (check with:
+    uv run python -c 'import torch; print(torch.version.cuda)'
+).
 
-  # Or install the toolkit:
-  sudo apt-get update && sudo apt-get install -y nvidia-cuda-toolkit
-  export CUDA_HOME=/usr
+Ubuntu 22.04 example (CUDA 12.4):
+    wget -q https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb
+    sudo dpkg -i cuda-keyring_1.1-1_all.deb
+    sudo apt-get update && sudo apt-get install -y cuda-toolkit-12-4
 
 Then re-run:  USE_VLLM=1 bash run_gpu.sh
 EOF
         exit 1
     fi
-    echo "  cuda toolkit: $(nvcc --version | tail -1)   CUDA_HOME=$CUDA_HOME"
+    # flashinfer, xgrammar, and vLLM's inductor path all invoke nvcc which in
+    # turn shells out to a host C++ compiler. Ubuntu ships `gcc` alone; the
+    # C++ backend `cc1plus` needs `build-essential`.
+    if ! echo 'int main(){}' | g++ -x c++ - -o /tmp/_pi_cxx_probe 2>/dev/null; then
+        rm -f /tmp/_pi_cxx_probe
+        cat <<EOF >&2
+ERROR: g++ / cc1plus not usable. nvcc needs a working host C++ compiler
+to build flashinfer / xgrammar / torch.compile kernels at engine start-up.
+
+Fix:
+    sudo apt-get install -y build-essential
+
+Then re-run:  USE_VLLM=1 bash run_gpu.sh
+EOF
+        exit 1
+    fi
+    rm -f /tmp/_pi_cxx_probe
+    echo "  cuda toolkit: $(nvcc --version | tail -1)"
+    echo "  host cxx    : $(g++ --version | head -1)"
+    echo "  CUDA_HOME   : $CUDA_HOME"
 fi
 
 echo "=== step 1: download data (clusters + embeddings) ==="
