@@ -1,0 +1,23 @@
+[project]
+name = "pi-recluster"
+version = "0.1.0"
+description = "Stratified re-clustering pipeline for the sufficiency policy library, packaged to run on a rented CPU box."
+requires-python = ">=3.10"
+
+dependencies = [
+    "numpy>=1.26",
+    "pandas>=2.0",
+    "pyarrow>=15.0",
+    "huggingface_hub>=0.24",
+    "hf_transfer>=0.1.6",       # 200+ MB/s downloads from HF
+    "faiss-cpu>=1.8",           # k-NN graph construction
+    "igraph>=0.11",             # graph backend for Leiden
+    "leidenalg>=0.10",          # Leiden community detection
+    "tqdm>=4.66",
+    "python-dotenv>=1.0",
+    "openai>=1.30",             # only needed if you run the classifier from the box
+    "codecarbon>=2.5",          # CO2 accounting for every stage
+]
+
+[tool.uv]
+package = false

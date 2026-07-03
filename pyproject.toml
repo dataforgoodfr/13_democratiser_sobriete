@@ -7,7 +7,20 @@ requires-python = ">=3.12"
 dependencies = [
     "loguru>=0.7.3",
     "numpy>=2.4.1",
+    # Clustering evaluation harness (policy_analysis/clustering/eval).
+    # Run with: uv run python -m policy_analysis.clustering.eval.run --help
+    "openai>=2.12.0",
+    "pandas>=2.2.3",
+    "pyarrow>=19.0.0",
+    "python-dotenv>=1.0.0",
+    "huggingface-hub>=0.34.0",
+    "openpyxl>=3.1.0",
 ]
+
+# Workspace project — not built/installed as a package. We use this pyproject
+# only to declare the deps that "uv run" should make available in the env.
+[tool.uv]
+package = false
 
 # We need to decide if we want use workspace or not
 # Because this file will not be used in submodules if don't set the workspace properly
