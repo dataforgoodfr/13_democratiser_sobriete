@@ -16,8 +16,10 @@ Design notes:
   policy_text) — the only tuple that uniquely identifies a policy row.
 - `sub_code` is threaded through as an Int64 (nullable): only sufficiency
   rows have it; ambiguous rows keep it null.
-- Ambiguous rows are kept because they are "clearly a policy, mechanism
-  unclear" — we still want them re-clustered so a human can review.
+- Ambiguous rows are DROPPED by default: expert feedback is that ambiguous
+  policies rarely turn out to be sufficiency, and they cluster into their own
+  low-value `__c-1__` cells (4.6% of rows, 199 clusters in the v1 run). Pass
+  `--include-ambiguous` to keep them (the old behaviour, for human review).
 """
 from __future__ import annotations
 
@@ -31,8 +33,6 @@ import pyarrow.dataset as ds
 
 from _carbon import track
 
-
-KEEP_CATEGORIES = {"sufficiency", "ambiguous"}
 
 SECTORS = [
     "BUILDING", "ENERGY", "FOOD", "INDUSTRY", "LOGISTICS",
@@ -76,15 +76,21 @@ def main() -> None:
     ap.add_argument("--clusters", required=True, help="dir with per-sector cluster parquets")
     ap.add_argument("--embeddings", required=True, help="embeddings parquet path")
     ap.add_argument("--out", required=True, help="output filtered.parquet")
+    ap.add_argument("--include-ambiguous", action="store_true",
+                    help="keep ambiguous rows (default: sufficiency only)")
     args = ap.parse_args()
+
+    keep_categories = {"sufficiency"}
+    if args.include_ambiguous:
+        keep_categories.add("ambiguous")
 
     tracker_cm = track("filter_and_stratify")
     tracker_cm.__enter__()
     classifications = _load_classifications(Path(args.classifications))
     print(f"loaded {len(classifications):,} classifications")
 
-    kept = classifications[classifications["category"].isin(KEEP_CATEGORIES)].copy()
-    print(f"  kept (sufficiency + ambiguous): {len(kept):,} "
+    kept = classifications[classifications["category"].isin(keep_categories)].copy()
+    print(f"  kept ({' + '.join(sorted(keep_categories))}): {len(kept):,} "
           f"({len(kept)/len(classifications):.1%})")
 
     # Rename to be joined with cluster metadata by (policy_uid, cluster_uid, seq)
