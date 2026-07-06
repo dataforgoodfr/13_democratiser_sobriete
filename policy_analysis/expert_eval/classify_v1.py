@@ -19,13 +19,20 @@ try:
 except ImportError:
     pass
 
-from policy_analysis.sufficiency_classification.prompts_v1 import (
-    CATEGORIES,
-    PROMPT_VERSION,
-    RESPONSE_JSON_SCHEMA,
-    build_system_prompt,
-    format_user_prompt,
+import importlib
+
+# Prompt module is selectable via PROMPTS_VERSION env (v1|v2); default v1 keeps
+# every existing invocation reproducible. The chosen module must expose the same
+# public symbols.
+_PROMPTS = importlib.import_module(
+    f"policy_analysis.sufficiency_classification.prompts_"
+    f"{os.environ.get('PROMPTS_VERSION', 'v1')}"
 )
+CATEGORIES = _PROMPTS.CATEGORIES
+PROMPT_VERSION = _PROMPTS.PROMPT_VERSION
+RESPONSE_JSON_SCHEMA = _PROMPTS.RESPONSE_JSON_SCHEMA
+build_system_prompt = _PROMPTS.build_system_prompt
+format_user_prompt = _PROMPTS.format_user_prompt
 
 DEFAULT_BASE_URL = "https://api.deepseek.com"
 DEFAULT_MODEL = "deepseek-v4-pro"

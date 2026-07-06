@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
 
 import pandas as pd
@@ -58,7 +59,7 @@ def main() -> None:
     total = len(df)
     if total == 0:
         print("no overlap between classifications and gold — check --gold path")
-        return
+        return 1
 
     df["model_bin"] = df["model_category"].map(BINARY_MAP_MODEL)
     df["expert_bin"] = df["expert_category"].map(BINARY_MAP_EXPERT)
@@ -92,13 +93,14 @@ def main() -> None:
     print()
 
     if binary_acc >= 0.72 and strict_rec >= 0.70:
-        verdict = "SHIP — proceed with full 1.47M run"
+        verdict, code = "SHIP — proceed with full 1.47M run", 0
     elif binary_acc >= 0.65:
-        verdict = "BORDERLINE — try a larger model or improve few-shot before scaling"
+        verdict, code = "BORDERLINE — try a larger model or improve few-shot before scaling", 2
     else:
-        verdict = "DO NOT SCALE — model is not fit for this task"
+        verdict, code = "DO NOT SCALE — model is not fit for this task", 3
     print(f"VERDICT: {verdict}")
+    return code
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

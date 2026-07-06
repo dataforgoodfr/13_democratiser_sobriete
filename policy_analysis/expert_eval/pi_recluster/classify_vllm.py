@@ -18,22 +18,26 @@ Example:
 from __future__ import annotations
 
 import argparse
+import importlib
 import json
+import os
 import time
 from pathlib import Path
 
 from _carbon import track
-# prompts_v1.py is a local copy — the canonical source is
-# policy_analysis/sufficiency_classification/prompts_v1.py, kept in sync
+
+# The prompts_*.py files are local copies — the canonical source is
+# policy_analysis/sufficiency_classification/prompts_*.py, kept in sync
 # manually. Copied here so this package doesn't depend on the parent
 # repo layout (which may not be fully committed when cloned on a fresh box).
-from prompts_v1 import (
-    CATEGORIES,
-    PROMPT_VERSION,
-    RESPONSE_JSON_SCHEMA,
-    build_system_prompt,
-    format_user_prompt,
-)
+# Prompt module is selectable via PROMPTS_VERSION (v1|v2|v2_1); default v2 is the
+# validated six-pillar prompt shipped for the full-corpus run.
+_PROMPTS = importlib.import_module(f"prompts_{os.environ.get('PROMPTS_VERSION', 'v2')}")
+CATEGORIES = _PROMPTS.CATEGORIES
+PROMPT_VERSION = _PROMPTS.PROMPT_VERSION
+RESPONSE_JSON_SCHEMA = _PROMPTS.RESPONSE_JSON_SCHEMA
+build_system_prompt = _PROMPTS.build_system_prompt
+format_user_prompt = _PROMPTS.format_user_prompt
 
 
 def _load_jsonl(p: Path) -> list[dict]:

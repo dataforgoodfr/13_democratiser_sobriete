@@ -24,8 +24,18 @@ CLUSTERS_DIR="${CLUSTERS_DIR:-$DATA_ROOT/hf/clusters_2026-03-18}"
 EMBEDDINGS_PATH="${EMBEDDINGS_PATH:-$DATA_ROOT/hf/embeddings_policies_Qwen3-4B_2026-03-05.parquet}"
 FILTERED="${FILTERED:-$DATA_ROOT/filtered.parquet}"
 OUT_CLUSTERS="${OUT_CLUSTERS:-$DATA_ROOT/reclustered}"
-FEW_SHOT="${FEW_SHOT:-$REPO_ROOT/runs/expert_gold/few_shot_v1.jsonl}"
+# Few-shot lives bundled in gold/ so it's present on a fresh clone; fall back to
+# the parent-repo copy if someone points REPO_ROOT at a full checkout.
+if [[ -f "gold/few_shot_v1.jsonl" ]]; then
+    FEW_SHOT="${FEW_SHOT:-gold/few_shot_v1.jsonl}"
+else
+    FEW_SHOT="${FEW_SHOT:-$REPO_ROOT/runs/expert_gold/few_shot_v1.jsonl}"
+fi
 VLLM_MODEL="${VLLM_MODEL:-google/gemma-4-12B-it}"
+# Prompt version fed to classify_vllm.py. v2 = validated six-pillar definition
+# (beats v1 on the DeepSeek gold set: F1 0.62→0.64, precision +2.9pt, strict
+# recall held at 79%). Override with PROMPTS_VERSION=v1 to reproduce the old run.
+export PROMPTS_VERSION="${PROMPTS_VERSION:-v2}"
 
 mkdir -p "$DATA_ROOT/carbon"
 
@@ -128,6 +138,39 @@ EOF
     echo "  CUDA_HOME   : $CUDA_HOME"
 fi
 
+# Optional preflight: validate the prompt on the 760-row expert-gold set through
+# the ACTUAL model (Gemma) before committing to the 1.47M run and the 7 GB
+# download. The gold validation earlier was on DeepSeek; this confirms the prompt
+# transfers to Gemma. Runs fast (only loads the model + 760 rows), prints a
+# SHIP/BORDERLINE/DO_NOT_SCALE verdict, then STOPS so you can review.
+#   PREFLIGHT_GOLD=1 USE_VLLM=1 bash run_gpu.sh
+if [[ "${PREFLIGHT_GOLD:-0}" == "1" ]]; then
+    if [[ "${USE_VLLM:-0}" != "1" ]]; then
+        echo "PREFLIGHT_GOLD needs USE_VLLM=1 (it validates the local Gemma classifier)." >&2
+        exit 1
+    fi
+    echo "=== PREFLIGHT: validate prompt '$PROMPTS_VERSION' on expert gold via $VLLM_MODEL ==="
+    rm -f "$DATA_ROOT/gold_predictions.jsonl"
+    uv run --extra gpu python classify_vllm.py \
+        --items "gold/to_classify.jsonl" \
+        --out   "$DATA_ROOT/gold_predictions.jsonl" \
+        --few-shot "$FEW_SHOT" \
+        --exclude-ids "gold/few_shot_v1_ids.txt" \
+        --model "$VLLM_MODEL"
+    echo
+    set +e
+    uv run python validate_gold.py \
+        --classifications "$DATA_ROOT/gold_predictions.jsonl" \
+        --gold "gold/gold.parquet"
+    _verdict=$?
+    set -e
+    echo
+    echo "Preflight complete (predictions in $DATA_ROOT/gold_predictions.jsonl)."
+    echo "If the verdict is SHIP, launch the full run with:"
+    echo "    USE_VLLM=1 bash run_gpu.sh"
+    exit $_verdict
+fi
+
 echo "=== step 1: download data (clusters + embeddings) ==="
 uv run python download_data.py --dest "$DATA_ROOT/hf"
 
@@ -138,7 +181,7 @@ if [[ "${USE_VLLM:-0}" == "1" || "${FULL_CLASSIFY:-0}" == "1" ]]; then
         --out "$DATA_ROOT/to_classify_full.jsonl"
 
     if [[ "${USE_VLLM:-0}" == "1" ]]; then
-        echo "=== step 2b: classify via local vLLM ($VLLM_MODEL) ==="
+        echo "=== step 2b: classify via local vLLM ($VLLM_MODEL, prompt $PROMPTS_VERSION) ==="
         uv run --extra gpu python classify_vllm.py \
             --items "$DATA_ROOT/to_classify_full.jsonl" \
             --out   "$DATA_ROOT/classifications_full.jsonl" \
