@@ -1,3 +1,6 @@
+# New pipeline cache and generated outputs (large binary files)
+new_pipeline/output/
+
 # Files not necessary for building/running the EWBI Dashboard App
 # These files are for data processing pipeline - not required for app runtime
 

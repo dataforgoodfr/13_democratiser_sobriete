@@ -159,6 +159,10 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
+# Project-specific: generated logs and cache
+output_log.txt
+*.parquet
+
 # Precommit hooks: ruff cache
 .ruff_cache
 
