@@ -26,6 +26,11 @@ REPO_ID = "sufficiencylab/sufficiency-library"
 CLUSTERS_DATE = "2026-03-18"
 EMBEDDINGS_FILE = "embeddings_policies_Qwen3-4B_2026-03-05.parquet"
 
+# Optional classifications checkpoint (on a separate personal repo).
+# Pull with --classifications; skip otherwise.
+CLASSIFICATIONS_REPO = "AmineSab/sufficiency-classifications"
+CLASSIFICATIONS_FILE = "classifications/gemma4-12B_v1_2026-07-06.parquet"
+
 SECTORS = [
     "BUILDING", "ENERGY", "FOOD", "INDUSTRY", "LOGISTICS",
     "MACROECONOMIC", "MATERIALS", "MOBILITY", "NATURE", "SOCIAL", "URBAN",
@@ -60,6 +65,19 @@ def download_embeddings(dest: Path) -> Path:
     return Path(path)
 
 
+def download_classifications(dest: Path) -> Path:
+    dest.mkdir(parents=True, exist_ok=True)
+    print(f"→ downloading classifications ({CLASSIFICATIONS_FILE}, ~72 MB) "
+          f"from {CLASSIFICATIONS_REPO}")
+    path = hf_hub_download(
+        repo_id=CLASSIFICATIONS_REPO,
+        repo_type="dataset",
+        filename=CLASSIFICATIONS_FILE,
+        local_dir=dest,
+    )
+    return Path(path)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--dest", default="data/hf", help="output root")
@@ -67,6 +85,9 @@ def main() -> None:
                     help="skip the 7.15 GB embeddings download")
     ap.add_argument("--skip-clusters", action="store_true",
                     help="skip the cluster parquet download")
+    ap.add_argument("--classifications", action="store_true",
+                    help=f"also pull the classifications parquet checkpoint "
+                         f"from {CLASSIFICATIONS_REPO} (private; needs HF_TOKEN)")
     args = ap.parse_args()
 
     # Enable hf_transfer for parallel/fast downloads
@@ -80,6 +101,9 @@ def main() -> None:
         if not args.skip_embeddings:
             embed_path = download_embeddings(dest)
             print(f"embeddings: {embed_path}")
+        if args.classifications:
+            cls_path = download_classifications(dest)
+            print(f"classifications: {cls_path}")
 
 
 if __name__ == "__main__":

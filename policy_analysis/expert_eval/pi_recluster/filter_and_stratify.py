@@ -41,7 +41,12 @@ SECTORS = [
 CLUSTERS_DATE = "2026-03-18"
 
 
-def _load_jsonl(p: Path) -> pd.DataFrame:
+def _load_classifications(p: Path) -> pd.DataFrame:
+    if p.suffix == ".parquet":
+        df = pd.read_parquet(p)
+        if "error" in df.columns:
+            df = df[df["error"].isna()]
+        return df
     rows = []
     for line in p.read_text().splitlines():
         if not line.strip():
@@ -75,7 +80,7 @@ def main() -> None:
 
     tracker_cm = track("filter_and_stratify")
     tracker_cm.__enter__()
-    classifications = _load_jsonl(Path(args.classifications))
+    classifications = _load_classifications(Path(args.classifications))
     print(f"loaded {len(classifications):,} classifications")
 
     kept = classifications[classifications["category"].isin(KEEP_CATEGORIES)].copy()

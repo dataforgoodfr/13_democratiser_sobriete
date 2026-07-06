@@ -20,8 +20,7 @@ from pathlib import Path
 
 import pandas as pd
 
-IN_DIR = Path("runs/api_100k_recluster/reclustered")
-OUT = Path("runs/api_100k_recluster")
+DEFAULT_RUN = "runs/api_100k_recluster"
 DEFAULT_N = 400
 SEED = 51
 ITEM_SIZE = 5
@@ -35,9 +34,9 @@ def _bucket(n: int) -> str:
     return "large"
 
 
-def _load_all() -> pd.DataFrame:
+def _load_all(in_dir: Path) -> pd.DataFrame:
     frames = []
-    for f in sorted(IN_DIR.glob("*_reclustered_*.parquet")):
+    for f in sorted(in_dir.glob("*_reclustered_*.parquet")):
         frames.append(pd.read_parquet(f))
     return pd.concat(frames, ignore_index=True)
 
@@ -46,10 +45,14 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("-n", type=int, default=DEFAULT_N)
     ap.add_argument("--seed", type=int, default=SEED)
+    ap.add_argument("--run", default=DEFAULT_RUN,
+                    help="run directory containing reclustered/ (default: %(default)s)")
     args = ap.parse_args()
 
+    OUT = Path(args.run)
+    IN_DIR = OUT / "reclustered"
     OUT.mkdir(parents=True, exist_ok=True)
-    df = _load_all()
+    df = _load_all(IN_DIR)
     print(f"loaded {len(df):,} rows, {df['new_cluster_uid'].nunique()} clusters")
 
     sizes = df.groupby("new_cluster_uid").size()
