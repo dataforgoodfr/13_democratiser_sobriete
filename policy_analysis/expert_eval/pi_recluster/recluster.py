@@ -24,6 +24,7 @@ from __future__ import annotations
 import argparse
 import os
 import time
+from collections import Counter
 from pathlib import Path
 
 import faiss
@@ -37,10 +38,28 @@ from _carbon import track
 MIN_LEIDEN = 30           # below this: single cluster
 MEDIUM = 300              # below this: coarse Leiden
 COARSE_RESOLUTION = 0.4
-DEFAULT_RESOLUTION = 1.0
+# Iteration 5: lowered from 1.0 → 0.5. At 1.0, RBConfiguration ejected fringe
+# nodes from dense communities to gain modularity, producing 2,095 size-1
+# clusters in the ≥300 cells (66% of all clusters were singletons). 0.5 keeps
+# communities coarser; the singleton-absorption pass below mops up the rest.
+DEFAULT_RESOLUTION = 0.5
 K_NEIGHBOURS = 20
-COS_THRESHOLD = 0.55
+COS_THRESHOLD = 0.55      # edge threshold for building the Leiden graph
 RANDOM_SEED = 42
+# Absorption uses a LOWER floor than the graph threshold on purpose. A node that
+# Leiden stranded as a singleton typically has its nearest neighbour just below
+# 0.55 (median ~0.52 in LOGISTICS c09; 90% are ≥0.45). Rehoming such a stray to
+# its nearest cluster is better than leaving it alone; only nodes with no
+# neighbour ≥ this floor stay singletons (genuinely unique policies).
+ABSORB_THRESHOLD = 0.45
+# Below this cell size use an exact inner-product index instead of HNSW: HNSW's
+# approximation drops a few true neighbours, and on the fringe that difference is
+# exactly what strands a node as a singleton. Exact is cheap at these sizes.
+EXACT_KNN_MAX = 5000
+# After Leiden, reassign any size-1 cluster to the nearest cluster medoid in the
+# same cell when cosine ≥ COS_THRESHOLD. Genuinely isolated policies (no peer
+# above threshold) stay singletons, which is correct.
+ABSORB_SINGLETONS = True
 
 
 def _normalize(embs: np.ndarray) -> np.ndarray:
@@ -49,20 +68,23 @@ def _normalize(embs: np.ndarray) -> np.ndarray:
     return (embs / n).astype("float32")
 
 
-def _knn_graph(embs: np.ndarray, k: int) -> tuple[np.ndarray, np.ndarray]:
+def _knn_graph(embs: np.ndarray, k: int, exact: bool = False) -> tuple[np.ndarray, np.ndarray]:
     """Return (indices, similarities) for the top-k+1 nearest neighbours."""
     n, d = embs.shape
-    index = faiss.IndexHNSWFlat(d, 32, faiss.METRIC_INNER_PRODUCT)
-    index.hnsw.efConstruction = 80
-    index.hnsw.efSearch = 64
+    if exact:
+        index = faiss.IndexFlatIP(d)
+    else:
+        index = faiss.IndexHNSWFlat(d, 32, faiss.METRIC_INNER_PRODUCT)
+        index.hnsw.efConstruction = 80
+        index.hnsw.efSearch = 64
     index.add(embs)
-    sims, idx = index.search(embs, k + 1)   # +1 because the top hit is self
+    sims, idx = index.search(embs, min(k + 1, n))   # +1 because the top hit is self
     return idx, sims
 
 
 def _leiden(embs: np.ndarray, resolution: float) -> np.ndarray:
     n = embs.shape[0]
-    idx, sims = _knn_graph(embs, K_NEIGHBOURS)
+    idx, sims = _knn_graph(embs, K_NEIGHBOURS, exact=(n <= EXACT_KNN_MAX))
     edges = []
     weights = []
     for i in range(n):
@@ -86,6 +108,50 @@ def _leiden(embs: np.ndarray, resolution: float) -> np.ndarray:
         seed=RANDOM_SEED,
     )
     return np.array(partition.membership, dtype=np.int64)
+
+
+def _absorb_singletons(embs: np.ndarray, labels: np.ndarray) -> np.ndarray:
+    """Merge each size-1 cluster into the cluster of its nearest neighbour.
+
+    For every singleton point we take its single nearest neighbour among ALL
+    points (any cluster); if cosine ≥ ABSORB_THRESHOLD we union the two clusters.
+    This catches both singleton→big-cluster and singleton↔singleton cases (two
+    near-duplicate policies that each became their own cluster). Genuinely
+    isolated policies — no neighbour above threshold — keep their own cluster.
+    `embs` must be L2-normalised so inner product == cosine.
+    """
+    labels = labels.copy()
+    counts = Counter(labels.tolist())
+    singletons = [c for c, n in counts.items() if n == 1]
+    if not singletons:
+        return labels
+
+    index = faiss.IndexFlatIP(embs.shape[1])
+    index.add(embs)
+    single_idx = [int(np.where(labels == c)[0][0]) for c in singletons]
+    sims, nbr = index.search(embs[single_idx], 2)   # col 0 is self
+
+    parent: dict[int, int] = {}
+
+    def find(x: int) -> int:
+        parent.setdefault(x, x)
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    def union(a: int, b: int) -> None:
+        ra, rb = find(a), find(b)
+        if ra != rb:
+            parent[rb] = ra
+
+    for k, c in enumerate(singletons):
+        if float(sims[k, 1]) >= ABSORB_THRESHOLD:
+            union(int(labels[nbr[k, 1]]), int(c))   # c joins the neighbour's cluster
+
+    if not parent:
+        return labels
+    return np.array([find(int(l)) for l in labels], dtype=labels.dtype)
 
 
 def _pick_medoids(embs: np.ndarray, labels: np.ndarray) -> np.ndarray:
@@ -117,19 +183,27 @@ def _handle_cell(cell: pd.DataFrame, cell_key: str) -> pd.DataFrame:
         else:
             strategy = f"default@{DEFAULT_RESOLUTION}"
             labels = _leiden(embs, DEFAULT_RESOLUTION)
+        n_pre = len(set(labels))
+        if ABSORB_SINGLETONS:
+            labels = _absorb_singletons(embs, labels)
 
     cell = cell.copy()
     cell["_cell_key"] = cell_key
     cell["_local_label"] = labels
     if n >= MIN_LEIDEN:
-        cell["representative"] = _pick_medoids(_normalize(np.stack(cell["embedding"].values)), labels)
+        cell["representative"] = _pick_medoids(embs, labels)
     else:
         # single-cluster fallback: mark first row as representative
         rep = np.zeros(n, dtype=bool)
         rep[0] = True
         cell["representative"] = rep
 
-    print(f"  [{cell_key}] n={n:>6,}  strategy={strategy}  new_clusters={len(set(labels))}")
+    if n >= MIN_LEIDEN:
+        absorbed = n_pre - len(set(labels))
+        print(f"  [{cell_key}] n={n:>6,}  strategy={strategy}  "
+              f"clusters={len(set(labels))} (absorbed {absorbed} singletons)")
+    else:
+        print(f"  [{cell_key}] n={n:>6,}  strategy={strategy}  clusters=1")
     return cell
 
 

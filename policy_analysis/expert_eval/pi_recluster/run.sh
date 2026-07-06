@@ -14,19 +14,48 @@ set -euo pipefail
 
 cd "$(dirname "$0")"
 
-CLASSIFICATIONS="${CLASSIFICATIONS:-data/classifications.jsonl}"
 DATA_ROOT="${DATA_ROOT:-data}"
+# Clustering-only default: the v1 Gemma checkpoint pulled from HF (below).
+CKPT_PARQUET="$DATA_ROOT/hf/classifications/gemma4-12B_v1_2026-07-06.parquet"
+CLASSIFICATIONS="${CLASSIFICATIONS:-$CKPT_PARQUET}"
 CLUSTERS_DIR="${CLUSTERS_DIR:-$DATA_ROOT/hf/clusters_2026-03-18}"
 EMBEDDINGS_PATH="${EMBEDDINGS_PATH:-$DATA_ROOT/hf/embeddings_policies_Qwen3-4B_2026-03-05.parquet}"
 FILTERED="${FILTERED:-$DATA_ROOT/filtered.parquet}"
 OUT_CLUSTERS="${OUT_CLUSTERS:-$DATA_ROOT/reclustered}"
-FEW_SHOT="${FEW_SHOT:-../../../runs/expert_gold/few_shot_v1.jsonl}"
+if [[ -f "gold/few_shot_v1.jsonl" ]]; then
+    FEW_SHOT="${FEW_SHOT:-gold/few_shot_v1.jsonl}"
+else
+    FEW_SHOT="${FEW_SHOT:-../../../runs/expert_gold/few_shot_v1.jsonl}"
+fi
 VLLM_MODEL="${VLLM_MODEL:-google/gemma-4-12B-it}"
+
+# Mode is decided by the classify flags. Print it loudly: a stray USE_VLLM=1 left
+# exported from an earlier preflight will otherwise silently load Gemma.
+if [[ "${USE_VLLM:-0}" == "1" || "${FULL_CLASSIFY:-0}" == "1" ]]; then
+    MODE="classify+cluster"
+else
+    MODE="cluster-only"
+fi
+echo "############################################################"
+echo "# MODE: $MODE"
+if [[ "$MODE" == "cluster-only" ]]; then
+    echo "#   no classification — using existing classifications:"
+    echo "#   $CLASSIFICATIONS"
+    echo "#   (unset USE_VLLM / FULL_CLASSIFY if you meant to re-classify)"
+else
+    echo "#   will load $VLLM_MODEL and classify the full 1.47M first"
+fi
+echo "############################################################"
 
 mkdir -p "$DATA_ROOT/carbon"
 
-echo "=== step 1: download data (clusters + embeddings) ==="
-uv run python download_data.py --dest "$DATA_ROOT/hf"
+echo "=== step 1: download data ==="
+if [[ "$MODE" == "cluster-only" ]]; then
+    # also pull the classifications checkpoint (private repo → needs HF_TOKEN)
+    uv run python download_data.py --dest "$DATA_ROOT/hf" --classifications
+else
+    uv run python download_data.py --dest "$DATA_ROOT/hf"
+fi
 
 if [[ "${FULL_CLASSIFY:-0}" == "1" || "${USE_VLLM:-0}" == "1" ]]; then
     echo "=== step 2a: build full 1.47M to_classify.jsonl ==="
