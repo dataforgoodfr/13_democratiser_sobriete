@@ -1692,10 +1692,88 @@ def plot_priority_decile_heatmap(result_df, cfg, out_dir):
 
 
 # ===================================================================
+# VISUAL 12: Equivalised disposable income maps — D1 / D5 / D10
+# ===================================================================
+def plot_income_map(result_df, cfg, out_dir):
+    """Three-panel choropleth map of median equiv. disp. income for D1, D5 and D10."""
+    from matplotlib.colors import Normalize
+    from matplotlib.cm import ScalarMappable
+
+    income_path = os.path.join(report_dir, 'outputs', 'data', 'median_income_by_decile.csv')
+    inc = pd.read_csv(income_path)
+    inc.columns = ['Country', 'Year', 'Decile', 'Income']
+    inc['Decile'] = pd.to_numeric(inc['Decile'], errors='coerce').astype('Int64')
+    inc['Year']   = pd.to_numeric(inc['Year'],   errors='coerce').astype('Int64')
+    inc['Income'] = pd.to_numeric(inc['Income'],  errors='coerce')
+    inc = inc.dropna(subset=['Country', 'Decile', 'Year', 'Income'])
+    inc = inc[inc['Country'].isin(result_df['Country'].tolist())].copy()
+
+    last_year = inc.groupby('Country')['Year'].max().reset_index()
+    last_year.columns = ['Country', 'last_year']
+    inc = inc.merge(last_year, on='Country')
+    inc = inc[inc['Year'] == inc['last_year']].copy()
+
+    deciles_to_plot = [1, 5, 10]
+    nuts0, bg = _load_nuts0_and_background()
+    study_ids = set(result_df['Country'].tolist())
+
+    mask = inc['Decile'].isin(deciles_to_plot)
+    vmin = float(inc.loc[mask, 'Income'].min())
+    vmax = float(inc.loc[mask, 'Income'].max())
+    cmap_name = 'YlOrRd'
+    norm = Normalize(vmin=vmin, vmax=vmax)
+
+    fig, axes = plt.subplots(1, 3, figsize=(33, 11))
+
+    for ax, dec in zip(axes, deciles_to_plot):
+        pdata = inc[inc['Decile'] == dec][['Country', 'Income']].copy()
+        merged_geo = nuts0.merge(pdata, left_on='NUTS_ID', right_on='Country', how='left')
+
+        bg.plot(ax=ax, color='white', edgecolor='black', linewidth=0.3, alpha=0.35, hatch='///')
+        no_data = merged_geo[merged_geo['Income'].isna() & merged_geo['NUTS_ID'].isin(study_ids)]
+        if not no_data.empty:
+            no_data.plot(ax=ax, color='lightgrey', edgecolor='black', linewidth=0.3)
+        has_data = merged_geo[merged_geo['Income'].notna()]
+        if not has_data.empty:
+            has_data.plot(column='Income', cmap=cmap_name, edgecolor='black', linewidth=0.4,
+                          ax=ax, legend=False, vmin=vmin, vmax=vmax)
+
+        ax.set_xlim(2.5e6, 6.5e6)
+        ax.set_ylim(1.3e6, 5.5e6)
+        ax.set_axis_off()
+        ax.set_title(f'D{dec}', fontsize=14, fontweight='bold', pad=8)
+
+    fig.suptitle(
+        f'Equivalised Disposable Income — D1 / D5 / D10  {cfg["title_suffix"]}',
+        fontsize=15, fontweight='bold', y=1.02,
+    )
+    plt.tight_layout()
+    plt.subplots_adjust(right=0.87)
+    sm = ScalarMappable(cmap=cmap_name, norm=norm)
+    sm.set_array([])
+    cbar_ax = fig.add_axes([0.89, 0.15, 0.015, 0.7])
+    cbar = fig.colorbar(sm, cax=cbar_ax)
+    cbar.set_label('Median equiv. disp. income (€)', fontsize=11)
+
+    path = os.path.join(out_dir, f'{cfg["prefix"]}_income_country_map_mpl.png')
+    _save_fig(fig, path, dpi=150)
+    plt.close(fig)
+
+    # Excel
+    excel_df = inc[inc['Decile'].isin(deciles_to_plot)][['Country', 'last_year', 'Decile', 'Income']].copy()
+    excel_df['Country_Name'] = excel_df['Country'].map(COUNTRY_NAME_MAP).fillna(excel_df['Country'])
+    excel_df = excel_df.rename(columns={'Income': 'Median_Equiv_Disp_Inc_EUR', 'last_year': 'Year'})
+    excel_df = excel_df[['Country', 'Country_Name', 'Year', 'Decile', 'Median_Equiv_Disp_Inc_EUR']].sort_values(
+        ['Country', 'Decile']
+    )
+    _save_excel(excel_df, os.path.join(out_dir, f'{cfg["prefix"]}_income_country_map_mpl.xlsx'))
+
+
+# ===================================================================
 # Main
 # ===================================================================
 def generate_report(features_df_all, report_key):
-    """Generate all 11 visuals for one report configuration."""
+    """Generate all 12 visuals for one report configuration."""
     cfg = REPORT_CONFIGS[report_key]
     print(f"\n{'='*60}")
     print(f"Generating report: {cfg['prefix']} {cfg['title_suffix']}")
@@ -1710,38 +1788,41 @@ def generate_report(features_df_all, report_key):
     out_dir = os.path.join(output_base, cfg['prefix'])
     os.makedirs(out_dir, exist_ok=True)
 
-    print("\n  [1/11] Cluster map...")
+    print("\n  [1/12] Cluster map...")
     plot_cluster_map(result_df, cfg, out_dir)
 
-    print("\n  [2/11] Priority radar...")
+    print("\n  [2/12] Priority radar...")
     plot_priority_radar(result_df, cfg, out_dir)
 
-    print("\n  [3/11] Cluster radar...")
+    print("\n  [3/12] Cluster radar...")
     plot_cluster_radar(result_df, cfg, out_dir)
 
-    print("\n  [4/11] Country EWBI map...")
+    print("\n  [4/12] Country EWBI map...")
     plot_country_map(result_df, cfg, out_dir)
 
-    print("\n  [5/11] Performance vs EWBI scatter...")
+    print("\n  [5/12] Performance vs EWBI scatter...")
     plot_performance_vs_ewbi(result_df, cfg, out_dir)
 
-    print("\n  [6/11] EWBI vs Income by cluster...")
+    print("\n  [6/12] EWBI vs Income by cluster...")
     plot_ewbi_vs_income_by_cluster(result_df, cfg, out_dir)
 
-    print("\n  [7/11] Cluster × Priority grid...")
+    print("\n  [7/12] Cluster × Priority grid...")
     plot_cluster_priority_grid(result_df, cfg, out_dir)
 
-    print("\n  [8/11] Priority choropleth maps (one per EU priority)...")
+    print("\n  [8/12] Priority choropleth maps (one per EU priority)...")
     plot_priority_maps(result_df, cfg, out_dir)
 
-    print("\n  [9/11] Priority bar grid (cluster > country > decile)...")
+    print("\n  [9/12] Priority bar grid (cluster > country > decile)...")
     plot_priority_bar_grid(result_df, cfg, out_dir)
 
-    print("\n  [10/11] EWBI decile heatmap (countries × D1–D10)...")
+    print("\n  [10/12] EWBI decile heatmap (countries × D1–D10)...")
     plot_ewbi_decile_heatmap(result_df, cfg, out_dir)
 
-    print("\n  [11/11] EU priority decile heatmaps (countries × D1–D10)...")
+    print("\n  [11/12] EU priority decile heatmaps (countries × D1–D10)...")
     plot_priority_decile_heatmap(result_df, cfg, out_dir)
+
+    print("\n  [12/12] Equivalised disposable income maps (D1 / D5 / D10)...")
+    plot_income_map(result_df, cfg, out_dir)
 
     print(f"\n  All outputs for {cfg['prefix']} saved to: {out_dir}")
 

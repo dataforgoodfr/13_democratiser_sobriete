@@ -1,10 +1,10 @@
 # Report 3: EU Analysis with Country Examples
 
-## 📊 Overview
+## Overview
 
 This report provides a comprehensive analysis of well-being across the European Union, using aggregate EU trends combined with specific country examples to illustrate policy patterns, best practices, and areas for improvement across the European well-being landscape.
 
-## 🎯 Objectives
+## Objectives
 
 1. **EU-Wide Trends**: Analysis of aggregate European well-being patterns
 2. **Country Examples**: Strategic selection of countries to illustrate specific points
@@ -12,46 +12,93 @@ This report provides a comprehensive analysis of well-being across the European 
 4. **Best Practice Identification**: Highlight leading countries in each dimension
 5. **Convergence Analysis**: Assess whether EU countries are converging in well-being
 
-## 📁 Directory Structure
+## Directory Structure
 
 ```
 3_eu_analysis_with_examples/
 ├── code/
-│   ├── eu_overview_analysis.py          # EU aggregate trends and patterns
-│   ├── country_selection_logic.py       # Logic for selecting illustrative countries
-│   ├── country_examples_analysis.py     # Deep dives into selected countries
-│   ├── best_practices_identification.py # Leading countries by dimension
-│   ├── convergence_analysis.py          # Cross-country convergence patterns
-│   ├── policy_effectiveness_study.py    # Policy impact across countries
-│   └── report_generator.py              # Comprehensive EU report generation
-├── external_data/
-│   ├── eu_policy_data/                  # EU-wide policy frameworks and directives
-│   ├── oecd_benchmarks/                 # OECD Better Life Index and related data
-│   ├── country_policy_profiles/         # Detailed policy profiles for key countries
-│   └── convergence_indicators/          # Economic and social convergence metrics
-├── outputs/
-│   ├── intermediate/                    # Processed EU and country datasets
-│   ├── tables/                          # EU summary tables and country comparisons
-│   ├── graphs/                          # EU trends and country example visualizations
-│   └── final/                           # Complete EU analysis report
-└── README.md                            # This file
+│   ├── 0_clustering.py                          # Country clustering by well-being profile
+│   ├── 0_EWBI_priorities.py                     # EWBI priority-level overview
+│   ├── 0_preprocess_hbs_cache.py                # HBS data preprocessing and caching
+│   ├── 1_expense.py                             # Household expenditure analysis
+│   ├── 1_expense_fr.py                          # France-specific expenditure analysis
+│   ├── 2_education_scatter.py                   # Education indicator scatterplots
+│   ├── 2_FINAL_energy.ipynb                     # Energy analysis notebook
+│   ├── 2_ownership.py                           # Housing ownership analysis
+│   ├── 2_ownership_eu-silc.py                   # EU-SILC ownership analysis
+│   ├── 2_ownership_heatmap_eu-silc.py           # Ownership heatmap visualization
+│   ├── 3_health_scatter.py                      # Health indicator scatterplots
+│   ├── 3_housing_quality.py                     # Housing quality analysis
+│   ├── 3_housing_size_rooms_nuts2_fr.py          # Housing size analysis (France, NUTS2)
+│   ├── 4_energy_prices.py                       # Energy price analysis
+│   ├── 5_mobility.py                            # Mobility indicator analysis
+│   ├── 6_health.py                              # Health indicator analysis
+│   ├── 7_energy_GDP.py                          # Energy-GDP relationship analysis
+│   ├── 9_energy_dependency.py                   # Energy dependency analysis
+│   ├── 9_energy_sankey.py                       # Energy flow Sankey diagrams
+│   ├── 10_supply_concentration.py               # Supply concentration analysis
+│   ├── compute_median_income_by_decile.py       # Median income by decile computation
+│   ├── ecb_analysis.py                          # ECB economic data analysis
+│   ├── eea_pm_exposure.py                       # EEA particulate matter exposure
+│   ├── energy_dependency_analysis.py            # Extended energy dependency analysis
+│   ├── eurostat_analysis.py                     # Eurostat data analysis
+│   ├── eurostat_construction_analysis_v2.py     # Construction sector analysis
+│   ├── eurostat_construction_detailed_analysis_v4.py
+│   ├── eurostat_energy.py                       # Eurostat energy statistics
+│   ├── eurostat_trade.py                        # Trade data analysis
+│   ├── eu_construction_migration_final.py       # Construction and migration analysis
+│   ├── eu_construction_migration_map.py         # Construction and migration maps
+│   ├── eu_construction_migration_regional.py    # Regional construction and migration
+│   ├── eu_silc_ownership_variation_multi_country.py
+│   ├── eu_silc_tenure_analysis.py               # EU-SILC tenure status analysis
+│   ├── eu_silc_tenure_by_age_and_decile_analysis.py
+│   ├── eu_silc_tenure_by_age_and_decile_analysis_FR.py
+│   ├── eu_silc_tenure_by_age_groups_analysis.py
+│   ├── eu_silc_tenure_by_decile_analysis.py
+│   ├── eu_silc_tenure_by_household_type_analysis.py
+│   ├── ewbi_clustering.py                       # EWBI-based country clustering
+│   ├── ewbi_clustering_methods.py               # Clustering methodology comparison
+│   ├── ewbi_visuals.py                          # EWBI visualization suite
+│   ├── ewbi_visuals_fr.py                       # EWBI visualizations (French)
+│   ├── hbs_data_loader.py                       # HBS data loading utilities
+│   ├── hbs_disposable_income_after_needs.py     # Disposable income analysis
+│   ├── hbs_energy_prices_analysis.py            # HBS energy price analysis
+│   ├── hbs_multi_year_analysis.py               # Multi-year HBS analysis
+│   ├── hbs_cluster_comparison.py                # HBS cluster comparison
+│   ├── iea_sankey.py                            # IEA energy flow diagrams
+│   ├── jrc_critical_raw_materials.py            # JRC critical raw materials analysis
+│   ├── lfs_construction_realestate_analysis.py  # LFS construction and real estate
+│   ├── mobility.py                              # Mobility analysis
+│   └── oecd_analysis.py                         # OECD benchmarking analysis
+├── external_data/                               # External datasets
+└── outputs/
+    ├── graphs/                                  # Visualizations organized by topic
+    ├── intermediate/                            # Processed intermediate datasets
+    ├── tables/                                  # Summary tables
+    └── final/                                   # Report-ready outputs
 ```
 
-## 📈 Data Sources
+## Data Sources
 
-### EWBI Data (via shared utilities)
-- **EU Aggregates**: All levels (1-5) for 'All Countries' and 'EU Countries'
-- **Individual Countries**: Complete data for all available EU countries
-- **Time Series**: Historical trends across the European space
-- **Decile Analysis**: Income inequality patterns across countries
+### EWBI Data
 
-### EU-Wide External Data
-- **EU Policy Framework**: Directives, strategies, and policy coordination
-- **OECD Benchmarks**: Better Life Index, economic indicators
-- **Eurostat Data**: Official EU statistics for validation and context
-- **Policy Evaluation Studies**: Evidence on EU policy effectiveness
+- EU aggregate trends across all 4 levels for 'All Countries' and 'EU Countries'
+- Individual country data for all available EU countries
+- Time series for historical trend analysis
+- Income decile breakdown for inequality analysis
 
-## 🔍 Analysis Framework
+### External Data Sources
+
+- **Eurostat**: Housing, energy, construction, and demographic statistics
+- **OECD**: Better Life Index and economic benchmarks
+- **IEA**: International Energy Agency energy data
+- **EEA**: European Environment Agency environmental data
+- **ECB**: European Central Bank economic data
+- **HBS**: Household Budget Survey microdata
+- **EU-SILC**: Housing tenure and ownership microdata
+- **LFS**: Labour Force Survey data
+
+## Analysis Framework
 
 ### 1. EU Aggregate Analysis
 - **Overall EU Performance**: EWBI trends for EU as a whole
@@ -94,107 +141,68 @@ Countries will be strategically selected to illustrate specific points:
 - **Policy Transfer Potential**: Identify scalable best practices
 - **Coordination Opportunities**: Areas for enhanced EU coordination
 
-## 🚀 Running the Analysis
+## Running the Analysis
 
 ### Prerequisites
+
+Ensure the EWBI pipeline has been executed:
 ```bash
-# Ensure EWBI pipeline includes EU country data
-cd ../Well-being/code
-python 3_generate_outputs.py
-
-# Install additional packages for EU analysis
-pip install scikit-learn  # For clustering and convergence analysis
-pip install scipy  # For statistical testing
+cd ../../code
+python 4_weighting_aggregation.py
 ```
 
-### Execution Workflow
+### Thematic Analysis Scripts
 
-1. **EU Overview Analysis**:
-   ```bash
-   python code/eu_overview_analysis.py
-   ```
+Scripts are organized by analytical theme. Run scripts relevant to the desired analysis area:
 
-2. **Select Illustrative Countries**:
-   ```bash
-   python code/country_selection_logic.py
-   ```
+```bash
+cd code
 
-3. **Country Examples Deep Dive**:
-   ```bash
-   python code/country_examples_analysis.py
-   ```
+# Overview and clustering
+python 0_EWBI_priorities.py
+python 0_clustering.py
 
-4. **Best Practices Identification**:
-   ```bash
-   python code/best_practices_identification.py
-   ```
+# Housing and tenure analysis
+python 3_housing_quality.py
+python eu_silc_tenure_analysis.py
+python 2_ownership.py
 
-5. **Convergence Analysis**:
-   ```bash
-   python code/convergence_analysis.py
-   ```
+# Energy analysis
+python 4_energy_prices.py
+python 9_energy_dependency.py
+python eurostat_energy.py
 
-6. **Policy Effectiveness Study**:
-   ```bash
-   python code/policy_effectiveness_study.py
-   ```
+# EWBI visualizations
+python ewbi_visuals.py
 
-7. **Generate Complete EU Report**:
-   ```bash
-   python code/report_generator.py
-   ```
-
-## 📊 Expected Outputs
-
-### EU Overview Tables
-- `eu_aggregate_trends.csv`: EU-wide trends by priority and level
-- `country_rankings.csv`: Country performance rankings across dimensions
-- `convergence_analysis.csv`: Statistical convergence testing results
-- `policy_effectiveness_summary.csv`: Assessment of major EU policies
-
-### Country Example Profiles
-- `leadership_countries.csv`: Best performers and their characteristics
-- `improvement_stories.csv`: Countries with rapid improvement
-- `challenge_cases.csv`: Countries needing attention
-- `representative_examples.csv`: Typical EU patterns
-
-### Policy Analysis
-- `best_practices_catalog.csv`: Transferable policy innovations
-- `policy_clusters.csv`: Countries grouped by policy approach
-- `coordination_opportunities.csv`: Areas for enhanced EU cooperation
-
-### Comprehensive Visualizations
-- **EU Trend Dashboards**: Multi-priority EU evolution
-- **Country Comparison Charts**: Selected country performance
-- **Convergence Plots**: Statistical convergence analysis
-- **Policy Impact Visualizations**: Before/after policy implementation
-- **Best Practice Maps**: Geographic distribution of leading practices
-
-## 🔧 Analysis Configuration
-
-### Country Selection Parameters
-```python
-COUNTRY_SELECTION_CONFIG = {
-    'leadership_countries': 3,      # Top performers per priority
-    'improvement_stories': 3,       # Fastest improvers per priority  
-    'challenge_cases': 2,           # Countries needing attention
-    'representative_examples': 2,   # Typical EU patterns
-    'min_data_availability': 0.8    # Minimum data completeness
-}
+# France-specific analysis
+python 1_expense_fr.py
+python ewbi_visuals_fr.py
 ```
 
-### Analysis Scope Controls
-```python
-ANALYSIS_CONFIG = {
-    'time_period': '2015-2022',
-    'convergence_testing': True,
-    'policy_impact_analysis': True,
-    'inequality_focus': True,
-    'best_practices_identification': True
-}
-```
+Outputs are saved in `outputs/graphs/` and `outputs/tables/`.
 
-## 💡 Key Research Questions
+## Expected Outputs
+
+### Summary Tables
+
+- EU-wide trends by priority and level
+- Country performance rankings across dimensions
+- Housing and energy comparative statistics
+
+### Visualizations
+
+- EU trend dashboards across all priorities
+- Country comparison charts
+- Housing tenure and ownership analyses
+- Energy dependency and price analyses
+- EWBI clustering and profiling charts
+
+## Analysis Configuration
+
+The analysis scope can be adjusted by modifying the relevant parameters directly within each script.
+
+## Key Research Questions
 
 1. **EU Progress**: Is the EU making progress on well-being overall?
 2. **Convergence**: Are EU countries converging or diverging in well-being?
@@ -203,82 +211,7 @@ ANALYSIS_CONFIG = {
 5. **Transfer Potential**: Which successful policies could scale across the EU?
 6. **Coordination Gaps**: Where would enhanced EU coordination help most?
 
-## 🏆 Country Example Applications
+## Dependencies
 
-### Leadership Examples
-- **Nordic Model**: Denmark/Sweden for equality and social rights
-- **German Efficiency**: Germany for economic and environmental balance
-- **Dutch Innovation**: Netherlands for policy innovation and adaptation
-
-### Improvement Stories
-- **Eastern European Progress**: Poland/Estonia for rapid convergence
-- **Southern Recovery**: Spain/Portugal for post-crisis improvement
-- **Policy Reform Success**: Countries with successful recent reforms
-
-### Challenge Cases
-- **Inequality Concerns**: Countries with growing disparities
-- **Stagnation Patterns**: Countries with limited improvement
-- **Policy Implementation Gaps**: Countries struggling with EU directive implementation
-
-## 🔗 Dependencies
-
-- **Complete EWBI Dataset**: All EU countries with sufficient data coverage
-- **EU Policy Database**: Major directives and policy frameworks
-- **OECD Reference Data**: For international benchmarking context
-- **Eurostat Validation Data**: For cross-checking and context
-
-## 📈 Innovation Features
-
-### Dynamic Country Selection
-- Automated identification of illustrative countries based on statistical criteria
-- Adaptive selection based on data availability and policy relevance
-- Balanced representation across EU regions and development levels
-
-### Convergence Testing
-- Statistical testing for sigma and beta convergence
-- Club convergence identification
-- Policy-driven convergence analysis
-
-### Policy Impact Assessment
-- Quasi-experimental designs for policy evaluation
-- Before/after analysis of major EU initiatives
-- Cross-country policy diffusion tracking
-
-## 🎯 Target Audiences
-
-- **EU Policy Makers**: Evidence for EU-wide policy development
-- **National Governments**: Benchmarking and best practice identification
-- **Academic Researchers**: Cross-country comparative analysis
-- **Civil Society**: EU-wide social progress monitoring
-- **International Organizations**: EU as model for other regions
-
-## 📋 Reporting Outputs
-
-### Executive Products
-- **EU Well-Being State of the Union**: Annual flagship report
-- **Policy Brief Series**: Targeted briefs by priority area
-- **Country Spotlight Series**: Deep dives into selected examples
-- **Best Practices Compendium**: Transferable policy innovations
-
-### Technical Products
-- **Convergence Analysis Report**: Statistical assessment
-- **Policy Effectiveness Evaluation**: Evidence-based policy assessment
-- **Cross-Country Database**: Comprehensive country comparison data
-
-## 📝 Notes
-
-- Analysis balances EU aggregate trends with illustrative country examples
-- Country selection is strategic and evidence-based, not comprehensive
-- Policy focus emphasizes transferability and EU coordination potential
-- External data provides crucial policy context for EWBI findings
-- Outputs designed for EU policy processes and academic research
-
-## 🔄 Update Cycles
-
-- **Annual**: Full EU analysis refresh with updated country examples
-- **Bi-annual**: Policy effectiveness updates following major EU initiatives
-- **Ad-hoc**: Rapid analysis for EU policy consultations and evaluations
-
----
-
-For questions about EU policy context or cross-country analysis methodologies, consult with European Commission DG EMPL or academic partners specializing in European integration studies.
+- **EWBI Pipeline**: Aggregated data in `../../output/ewbi_master_aggregated.csv`
+- **Shared Utilities**: `../shared/code/ewbi_data_loader.py` and `../shared/code/visualization_utils.py`

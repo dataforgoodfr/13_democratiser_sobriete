@@ -10,7 +10,7 @@ The dashboard visualizes how different decarbonization levers contribute to CO2 
 - **Energy Efficiency**: Technological improvements
 - **Supply Side Decarbonation**: Energy mix changes
 
-## Current File Structure (August 2024)
+## File Structure
 
 ### Core Application Files
 - `code/app.py` - **Main EU/Switzerland decomposition dashboard**
@@ -85,11 +85,11 @@ cd Decomposition
 python code/data_preprocessing.py
 ```
 
-**What this does automatically:**
-1. ✅ Processes EU and Switzerland data with new sectors
-2. ✅ Generates World Sufficiency Lab scenarios
-3. ✅ Combines all datasets into unified file
-4. ✅ Applies consistent sign conventions across all zones
+**What this does:**
+1. Processes EU and Switzerland data with new sectors
+2. Generates World Sufficiency Lab scenarios
+3. Combines all datasets into unified file
+4. Applies consistent sign conventions across all zones
 
 **Output:**
 - `Output/unified_decomposition_data.csv` - Complete dataset (300+ records)
@@ -110,39 +110,17 @@ python code/world_data_preprocessing.py
 ```
 
 **What this workflow does:**
-1. ✅ **Step 1**: Transforms raw REMIND data structure to match European format
+1. **Step 1**: Transforms raw REMIND data structure to match European format
    - Input: `Output/world_data_preprocessed.csv` (raw REMIND data)
    - Output: `Output/world_data_european_format.csv` (formatted data)
 
-2. ✅ **Step 2**: Processes formatted data for decomposition analysis
+2. **Step 2**: Processes formatted data for decomposition analysis
    - Input: `Output/world_data_european_format.csv`
    - Output: `Output/world_unified_decomposition_data.csv` and `Output/world_intermediary_decomposition_data.csv`
 
 **Required Input Files:**
 - `Output/world_data_preprocessed.csv` - Raw world data from REMIND sources
 - Source: `data/2025-08-20_REMIND Shape_Data_Compiled.xlsx`
-
-## Recent Improvements (August 2024)
-
-### ✅ Sign Convention Fix
-- **World data** now uses same sign convention as EU/Switzerland
-- **Negative percentages** = increases emissions
-- **Positive percentages** = decreases emissions
-- Consistent interpretation across all dashboards
-
-### ✅ Sector Configuration Updates
-- Added new EU sectors (Transport, Industry sub-sectors)
-- Added new Switzerland sectors (Industry - Cement, Steel industry)
-- Updated sector names to match actual data files
-
-### ✅ Code Cleanup
-- Removed obsolete scripts and intermediate files
-- Streamlined data processing workflow
-- Integrated World scenarios generation into main processor
-
-### ✅ Path Fixes
-- Fixed data directory detection for different run locations
-- Fixed output directory paths for proper file saving
 
 ## Features
 

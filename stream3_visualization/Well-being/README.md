@@ -4,13 +4,12 @@
 
 This folder contains a comprehensive dashboard for analyzing the European Well-Being Index (EWBI), a composite indicator measuring well-being across European countries. The dashboard provides multi-level analysis capabilities across 4 hierarchical levels of well-being indicators.
 
-## 🏗️ Architecture
+## Architecture
 
 ### Data Structure
 The dashboard uses a **pre-calculated aggregated data structure** to ensure fast performance and avoid real-time calculations:
 
-- `output/ewbi_master.csv`: Latest year for all levels and all deciles (including EU Average and countries)
-- `output/ewbi_master_aggregated.csv`: App-ready master file (all years/levels/deciles as needed by the dashboard)
+- `output/ewbi_master_aggregated.csv`: App-ready master file (all years, levels, and deciles as needed by the dashboard)
 - `data/ewbi_indicators.json`: Configuration file defining the hierarchical structure
 
 ### Hierarchical Levels
@@ -19,7 +18,7 @@ The dashboard uses a **pre-calculated aggregated data structure** to ensure fast
 3. **Level 3**: Secondary Indicators - 11 specific well-being dimensions
 4. **Level 4**: Primary Indicators - 34 individual survey questions and measures (EU-SILC and LFS only)
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 ```bash
@@ -35,22 +34,27 @@ python app.py
 The dashboard will be available at `http://localhost:8050`
 
 ### Data Generation
-To regenerate the aggregated data files from raw inputs:
 
-1) Preprocess primary indicator data (Level 4) from raw CSV
-   - Open `Well-being/code/preprocessing_executed.ipynb`
-   - Run all cells
-   - Output: `Well-being/output/primary_data_preprocessed.csv`
+To regenerate the aggregated data files from raw inputs, run the pipeline scripts in order:
 
-2) Generate master and time series outputs using unified aggregation logic
 ```bash
 cd Well-being/code
-python 3_generate_outputs.py
-```
-Outputs:
-- `Well-being/output/ewbi_master_aggregated.csv`
 
-## 📊 Dashboard Features
+# Step 0: Process raw indicator data from source surveys
+python 0_raw_indicator_EU-SILC.py
+python 0_raw_indicator_LFS.py
+python 0_raw_indicator_HBS.py
+python 0_raw_indicator_EHIS.py
+
+# Step 1 onward: Indicator catalog, normalization, weighting, and aggregation
+python 1_indicator_catalog.py
+python 3_normalisation_data.py
+python 4_weighting_aggregation.py
+```
+
+Output: `Well-being/output/ewbi_master_aggregated.csv`
+
+## Dashboard Features
 
 ### Interactive Controls
 - **EU Priority Dropdown**: Select specific policy areas or view all
@@ -70,30 +74,39 @@ Each level provides 4 complementary charts:
 - **Level to Level**: Arithmetic mean (for hierarchical aggregation)
 - **Country Aggregates**: EU Countries Average, All Countries Average
 
-## 📁 File Structure
+## File Structure
 
 ```
 Well-being/
 ├── code/
-│   ├── app.py                          # Main dashboard application
-│   ├── 3_generate_outputs.py           # Unified data aggregation for master + time series
-│   ├── 0_raw_indicator_EU-SILC.py      # EU-SILC data processing
-│   ├── 0_raw_indicator_LFS.py          # Labour Force Survey processing
-│   ├── 0_raw_indicator_HBS.py          # Household Budget Survey processing
-│   ├── 1_final_df.py                   # Data finalization pipeline
-│   ├── variable_mapping.py             # Variable name mapping utilities
-│   ├── assets/styles.css               # Dashboard styling
-│   ├── deployment/                     # Deployment configuration files
-│   └── preprocessing_executed.ipynb    # Preprocessing notebook for primary indicators
+│   ├── app.py                                   # Main dashboard application
+│   ├── 0_raw_indicator_EU-SILC.py               # EU-SILC data processing
+│   ├── 0_raw_indicator_EU-SILC_extended.py      # EU-SILC extended processing
+│   ├── 0_raw_indicator_EU-SILC_supplementary.py # EU-SILC supplementary processing
+│   ├── 0_raw_indicator_LFS.py                   # Labour Force Survey processing
+│   ├── 0_raw_indicator_HBS.py                   # Household Budget Survey processing
+│   ├── 0_raw_indicator_HBS_extended.py          # HBS extended processing
+│   ├── 0_raw_indicator_EHIS.py                  # European Health Interview Survey processing
+│   ├── 1_indicator_catalog.py                   # Indicator catalog and data assessment
+│   ├── 1_missing_data.py                        # Missing data analysis
+│   ├── 2_multivariate_analysis.py               # Multivariate analysis
+│   ├── 3_normalisation_data.py                  # Data normalization
+│   ├── 4_weighting_aggregation.py               # Weighting and hierarchical aggregation
+│   ├── 5_sensitivity_test*.py                   # Sensitivity testing scripts
+│   ├── 6_graphs.py                              # Visualization scripts
+│   ├── variable_mapping.py                      # Variable name mapping utilities
+│   ├── population_data_transform.py             # Population data transformation
+│   ├── assets/                                  # Dashboard assets and styling
+│   ├── deployment/                              # Deployment configuration
+│   └── new_pipeline/                            # Refactored pipeline (in development)
 ├── data/
-│   └── ewbi_indicators.json            # EWBI structure configuration
+│   └── ewbi_indicators.json                     # EWBI structure configuration
 ├── output/
-│   ├── ewbi_master_aggregated.csv      # App-ready master file (used by dashboard)
-│   └── MASTER_DATAFRAME_STRUCTURE.md   # Data structure documentation
-└── README.md                           # This file
+│   └── ewbi_master_aggregated.csv               # App-ready aggregated data file
+└── README.md                                    # This file
 ```
 
-## 🔧 Technical Details
+## Technical Details
 
 ### Data Sources
 - **EU-SILC**: European Union Statistics on Income and Living Conditions
@@ -142,7 +155,7 @@ Well-being/
 - Optimized chart rendering with Plotly
 - Responsive design for various screen sizes
 
-## 📈 Usage Examples
+## Usage Examples
 
 ### Viewing Overall Well-being
 1. Select "ALL" for EU Priority
@@ -158,11 +171,11 @@ Well-being/
 2. Compare scores across different income deciles
 3. Analyze historical trends over time
 
-## 🛠️ Customization
+## Customization
 
 ### Adding New Indicators
 1. Update `ewbi_indicators.json` with new structure
-2. Regenerate data using `3_generate_outputs.py`
+2. Regenerate data by running the pipeline scripts (Steps 0 through 4)
 3. Dashboard automatically adapts to new structure
 
 ### Modifying Visualizations
@@ -170,7 +183,7 @@ Well-being/
 - Layout modifications in `app.layout`
 - New chart types can be added to existing functions
 
-## 💻 Local Development
+## Local Development
 
 ### Running the Dashboard Locally
 The dashboard can be run locally for development and testing:
@@ -200,7 +213,7 @@ This will start:
 - Decomposition Dashboard on port 8051  
 - Well-being Dashboard on port 8050
 
-## 🔍 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 - **Port conflicts**: Change port in dashboard script if 8050 is busy
@@ -212,57 +225,35 @@ This will start:
 - Consider filtering data for specific use cases
 - Monitor memory usage with large country selections
 
-## 📚 References
+## References
 
 - **EWBI Methodology**: Based on EU JRC recommendations
 - **Data Sources**: Eurostat and national statistical offices
 - **Visualization**: Built with Dash and Plotly
 - **Data Processing**: Pandas for data manipulation and aggregation
 
-## 🚀 Deployment
+## Deployment
 
 This application is deployed on CleverCloud as a standalone service.
 
 ### Deployment Files
-The dashboard is deployed directly from the main repository with the following key files:
-- `code/app.py` - Main dashboard application
-- `code/deployment/requirements.txt` - Python dependencies
-- `data/ewbi_indicators.json` - Indicator definitions and structure
-- `output/ewbi_master_aggregated.csv` - Main data file (required at runtime)
 
-### Quick Deploy
-After making changes to the code, deploy updates to Clever Cloud using Git:
+The dashboard is deployed directly from the main repository with the following key files:
+- `code/app.py` — Main dashboard application
+- `code/deployment/` — Deployment configuration
+- `data/ewbi_indicators.json` — Indicator definitions and structure
+- `output/ewbi_master_aggregated.csv` — Main data file (required at runtime)
+
+### Deploying Changes
 
 ```bash
-# 1. Commit your changes
 git add .
 git commit -m "Description of your changes"
-
-# 2. Push to GitHub (optional but recommended)
 git push origin visualizations-combined
-
-# 3. Push to Clever Cloud for automatic deployment
-# Note: Replace 'clever-wellbeing' with your actual Clever Cloud remote name
-git push clever-wellbeing visualizations-combined:master
+git push <clever-cloud-remote> visualizations-combined:master
 ```
 
-**Note:** The Clever Cloud remote name should be verified in your local git configuration. After pushing, Clever Cloud will automatically redeploy your application with the new changes.
-
-### Recent Improvements (August 2024)
-- **Directory Cleanup**: Removed outdated files and improved organization
-- **Indicator Names**: Updated primary indicators to use user-friendly descriptions
-- **Dashboard Enhancement**: Modified interface to display descriptive names instead of codes
-- **Start Script**: Updated to use correct filename (`app.py`)
-- **Local Development**: Added local port information for easier development
-
-### Indicator Naming Convention
-Primary indicators now display in the format: `"Proposed Name (Code)"`
-- **Before**: `"AN-EHIS-1"`
-- **After**: `"Struggling to Prepare Meals (AN-EHIS-1)"`
-
-This makes the dashboard much more user-friendly and accessible to non-technical users.
-
-## 🤝 Contributing
+## Contributing
 
 When making changes:
 1. Test dashboard functionality thoroughly
@@ -270,7 +261,7 @@ When making changes:
 3. Commit changes with descriptive messages
 4. Ensure data integrity is maintained
 
-## 📞 Support
+## Support
 
 For technical issues or questions about the dashboard:
 1. Check this README first

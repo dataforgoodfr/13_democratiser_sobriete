@@ -8,15 +8,28 @@ The pipeline is executed by two main Python scripts:
 1.  `ETL_preprocessing.py`: Handles data ingestion, cleaning, aggregation, and the calculation of key metrics.
 2.  `ETL_scenarios.py`: Takes the processed data and generates the different future carbon budget scenarios.
 
-### Current File Structure
-The `Budget/code/` directory contains the essential files for the dashboard:
-- `app.py` - Main Dash dashboard application
-- `ETL_preprocessing.py` - Data preprocessing and metric calculation
-- `ETL_scenarios.py` - Scenario generation and budget calculations
-- `historical_responsibility.py` - Historical responsibility analysis
-- `requirements.txt` - Python dependencies
-- `deployment/` - Clever Cloud deployment configuration
-- `assets/` - Dashboard assets and styling
+### File Structure
+
+```
+Budget/
+├── code/
+│   ├── app.py                          # Main Dash dashboard application
+│   ├── ETL_preprocessing.py            # Data preprocessing and metric calculation
+│   ├── ETL_scenarios.py                # Scenario generation and budget calculations
+│   ├── historical_responsibility.py    # Historical responsibility analysis
+│   ├── compute_compensation.py         # Compensation computation
+│   ├── format_results.py               # Results formatting utilities
+│   ├── sensitivity_analysis.py         # Sensitivity analysis
+│   ├── uncertainty_analysis.py         # Uncertainty analysis
+│   ├── create_rcb_comparison_maps.py   # RCB comparison map generation
+│   ├── create_sensitivity_visuals.py   # Sensitivity visualization
+│   ├── requirements.txt                # Python dependencies
+│   ├── assets/                         # Dashboard assets and styling
+│   ├── deployment/                     # Clever Cloud deployment configuration
+│   └── reports/                        # Generated reports
+├── Data/                               # Raw input data files
+└── Output/                             # Generated output files
+```
 
 ---
 
@@ -147,12 +160,6 @@ git push clever-budget visualizations-combined:master
 
 **Note:** The Clever Cloud remote is configured as `clever-budget`. After pushing, Clever Cloud will automatically redeploy your application with the new changes.
 
-### Recent Cleanup (August 2024)
-The Budget code directory has been cleaned up to remove unnecessary files:
-- **Removed**: `Upload.py`, `app_standalone.py`, `get_top_20_countries_1750.py`, `sanity_check_theoretical_budgets.py`, `simple_sanity_check.py`
-- **Kept**: Essential dashboard files, ETL scripts, and deployment configuration
-- **Result**: Cleaner, more maintainable codebase focused on core functionality
-
 ---
 
 ## Data Coverage and Limitations
@@ -183,10 +190,3 @@ The Responsibility scenario can be configured using the `USE_LATEST_YEAR_FOR_RES
 *   `False`: Uses cumulative population from 1970 to 2050 (alternative approach)
 
 **Current Setting:** `USE_LATEST_YEAR_FOR_RESPONSIBILITY = True`
-
-Pour rendre l'environnement uv disponible depuis un jupyter notebook :
-
-```
-uv add --dev ipykernel
-uv run ipython kernel install --user --env VIRTUAL_ENV $(pwd)/.venv --name=project
-```

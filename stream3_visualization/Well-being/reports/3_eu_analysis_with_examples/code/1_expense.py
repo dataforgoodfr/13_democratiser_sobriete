@@ -363,14 +363,14 @@ _RAW_CACHE_DIR = os.path.join(BASE_DIR, "outputs", "data", "hbs_raw_cache")
 # All countries with HBS 2020 files on disk
 HBS_COUNTRIES = {
     "AT": "Austria",     "BE": "Belgium",     "BG": "Bulgaria",
-    "CY": "Cyprus",      "DE": "Germany",
+    "CY": "Cyprus",      "CZ": "Czechia",     "DE": "Germany",
     "DK": "Denmark",     "EE": "Estonia",     "EL": "Greece",
     "ES": "Spain",       "FI": "Finland",     "FR": "France",
-    "HR": "Croatia",                           "IE": "Ireland",
-    "LT": "Lithuania",   "LU": "Luxembourg",
+    "HR": "Croatia",     "HU": "Hungary",     "IE": "Ireland",
+    "IT": "Italy",       "LT": "Lithuania",   "LU": "Luxembourg",
     "LV": "Latvia",      "MT": "Malta",       "NL": "Netherlands",
-    "PL": "Poland",
-    "SI": "Slovenia",    "SK": "Slovakia",
+    "PL": "Poland",      "PT": "Portugal",    "RO": "Romania",
+    "SE": "Sweden",      "SI": "Slovenia",    "SK": "Slovakia",
 }  # EU-27 only — Norway excluded (non-EU)
 
 _PC_COMPONENTS = ["Housing", "Transport", "Food & Beverage",
@@ -412,6 +412,11 @@ def _load_one_country(cc: str, cname: str, pps_df,
 
 def _plot_one_country(cc: str, cname: str, cdf: pd.DataFrame) -> None:
     """Stacked bar chart for one country — PNG + SVG to PER_COUNTRY_DIR."""
+    # Sort deciles numerically (D1, D2, …, D10) — cached parquets may be alphabetical.
+    cdf = cdf.copy()
+    cdf["_sort"] = cdf["decile"].str.extract(r"(\d+)", expand=False).astype(float)
+    cdf = cdf.sort_values("_sort").drop(columns=["_sort"]).reset_index(drop=True)
+
     fig, ax = plt.subplots(figsize=(10, 6))
     x      = np.arange(len(cdf))
     bottom = np.zeros(len(cdf))
@@ -479,6 +484,33 @@ def _save_excel_df(df: pd.DataFrame, out_dir: str, fname: str) -> None:
         os.path.join(out_dir, fname + ".xlsx"), index=False
     )
     print(f"  Excel: {fname}.xlsx")
+
+
+def _prep_overburden_excel(df: pd.DataFrame, col_prefix: str) -> pd.DataFrame:
+    """
+    Return a copy of *df* ready for Excel export:
+      - drop all household-count columns (ending in '_n')
+      - give percentage columns human-readable names, e.g.
+          OB_D1_pct            -> het_overburden_share_D1
+          HE_D5_pct            -> he_overburden_share_D5
+          HT_D3_renter_pct     -> het_overburden_renter_share_D3
+          HE_D10_other_pct     -> he_overburden_other_share_D10
+    """
+    label = {"OB": "housing_energy_transport", "HT": "housing_energy_transport", "HE": "housing_energy"}.get(col_prefix, col_prefix.lower())
+    prefix_len = len(col_prefix) + 1  # length of "OB_" / "HE_" / "HT_"
+    rename: dict = {}
+    for c in df.columns:
+        if c.endswith("_pct") and c.startswith(col_prefix + "_"):
+            inner = c[prefix_len:-4]          # e.g. "D1", "D1_renter", "D10_other"
+            parts = inner.split("_", 1)       # at most one split
+            decile = parts[0]                 # "D1" … "D10"
+            tenure = parts[1] if len(parts) > 1 else ""  # "renter" / "other" / ""
+            if tenure:
+                rename[c] = f"{label}_overburden_{tenure}_share_{decile}"
+            else:
+                rename[c] = f"{label}_overburden_share_{decile}"
+    drop_n = [c for c in df.columns if c.endswith("_n")]
+    return df.drop(columns=drop_n, errors="ignore").rename(columns=rename)
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -1149,10 +1181,10 @@ def _plot_ht_overburden_heatmap(ob_df: pd.DataFrame, cluster_map: dict,
                 format="svg", bbox_inches="tight", facecolor="white")
     plt.close(fig)
     print(f"  [OB] Saved: {fname}.png / .svg")
-    _save_excel_df(ob_df, out_dir, fname)
+    _save_excel_df(_prep_overburden_excel(ob_df, "OB"), out_dir, fname)
 
 
-def _build_he_overburden_df() -> pd.DataFrame:
+def _build_he_overburden_df(year: int = 2020) -> pd.DataFrame:
     """
     For each country × decile: share of households (weighted) whose
     Housing (shelter: rent + imputed rent) + Energy expenditure exceeds
@@ -1163,7 +1195,7 @@ def _build_he_overburden_df() -> pd.DataFrame:
     he_cols = _HBS_SHELTER_COLS + [_HBS_ENERGY_COL]
     records = []
     for cc, cname in HBS_COUNTRIES.items():
-        raw_path = os.path.join(_RAW_CACHE_DIR, f"{cc}_hbs2020_raw.parquet")
+        raw_path = os.path.join(_RAW_CACHE_DIR, f"{cc}_hbs{year}_raw.parquet")
         if not os.path.exists(raw_path):
             print(f"  [{cc}]  no raw parquet — skipped for H+E overburden")
             continue
@@ -1215,7 +1247,7 @@ def _build_he_overburden_df() -> pd.DataFrame:
 
 
 def _plot_he_overburden_heatmap(ob_df: pd.DataFrame, cluster_map: dict,
-                                 out_dir: str) -> None:
+                                 out_dir: str, year: int = 2020) -> None:
     """
     Heatmap: rows = countries, columns = D1–D10.
     Cell value = % of households with Housing+Energy > 40 % of net income.
@@ -1326,17 +1358,17 @@ def _plot_he_overburden_heatmap(ob_df: pd.DataFrame, cluster_map: dict,
 
     ax.set_title(
         "Housing + Energy Overburden Rate by Decile\n"
-        "Share of households (%) with shelter + energy > 40 % of net income  —  HBS 2020",
+        f"Share of households (%) with shelter + energy > 40 % of net income  —  HBS {year}",
         fontsize=11, fontweight="bold", pad=6,
     )
-    fname = "expense_he_overburden_deciles"
+    fname = f"expense_he_overburden_deciles_{year}"
     fig.savefig(os.path.join(out_dir, fname + ".png"),
                 dpi=200, bbox_inches="tight", facecolor="white")
     fig.savefig(os.path.join(out_dir, fname + ".svg"),
                 format="svg", bbox_inches="tight", facecolor="white")
     plt.close(fig)
     print(f"  [HE] Saved: {fname}.png / .svg")
-    _save_excel_df(ob_df, out_dir, fname)
+    _save_excel_df(_prep_overburden_excel(ob_df, "HE"), out_dir, fname)
 
 
 def _build_overburden_by_tenure_df(
@@ -1592,7 +1624,7 @@ def _plot_overburden_by_tenure_heatmap(
                 format="svg", bbox_inches="tight", facecolor="white")
     plt.close(fig)
     print(f"  [tenure] Saved: {out_fname}.png / .svg")
-    _save_excel_df(ob_df, out_dir, out_fname)
+    _save_excel_df(_prep_overburden_excel(ob_df, col_prefix), out_dir, out_fname)
 
 
 def _plot_overburden_tenure_d1_heatmap(
@@ -1756,7 +1788,7 @@ def _plot_overburden_tenure_d1_heatmap(
                 format="svg", bbox_inches="tight", facecolor="white")
     plt.close(fig)
     print(f"  [D1D10] Saved: {fname}.png / .svg")
-    _save_excel_df(he_tenure_df, out_dir, fname)
+    _save_excel_df(_prep_overburden_excel(he_tenure_df, "HE"), out_dir, fname)
 
 
 # Age-group labels and their classification logic (based on HBS household cols)
@@ -2543,23 +2575,25 @@ def generate_snapshot_heatmaps(all_comps: dict) -> None:
     else:
         print("  No raw parquet files found — run 0_preprocess_hbs_cache.py first")
 
-    # Housing+Energy overburden rate at 40 %
-    print("\n--- Building Housing+Energy overburden heatmap (from raw parquet) ---")
-    he_df = _build_he_overburden_df()
-    if not he_df.empty:
-        _plot_he_overburden_heatmap(he_df, cluster_map, PER_COUNTRY_DIR)
-        # EWBI Energy & Housing vs H+E overburden scatter
-        print("\n--- Building EWBI vs H+E overburden scatter plot ---")
-        he_scatter_df = _build_ewbi_vs_overburden_df(he_df, col_prefix="HE")
-        if not he_scatter_df.empty:
-            _plot_ewbi_vs_overburden_scatter(
-                he_scatter_df, "H+E",
-                "ewbi_vs_he_overburden_scatter",
-                cluster_map, PER_COUNTRY_DIR)
+    # Housing+Energy overburden rate at 40 % — for each available HBS year
+    for _he_year in [2010, 2015, 2020]:
+        print(f"\n--- Building Housing+Energy overburden heatmap — HBS {_he_year} ---")
+        he_df = _build_he_overburden_df(year=_he_year)
+        if not he_df.empty:
+            _plot_he_overburden_heatmap(he_df, cluster_map, PER_COUNTRY_DIR, year=_he_year)
+            if _he_year == 2020:
+                # EWBI Energy & Housing vs H+E overburden scatter (2020 only)
+                print("\n--- Building EWBI vs H+E overburden scatter plot ---")
+                he_scatter_df = _build_ewbi_vs_overburden_df(he_df, col_prefix="HE")
+                if not he_scatter_df.empty:
+                    _plot_ewbi_vs_overburden_scatter(
+                        he_scatter_df, "H+E",
+                        "ewbi_vs_he_overburden_scatter",
+                        cluster_map, PER_COUNTRY_DIR)
+                else:
+                    print("  No matching EWBI data — H+E scatter skipped")
         else:
-            print("  No matching EWBI data — H+E scatter skipped")
-    else:
-        print("  No raw parquet files found — run 0_preprocess_hbs_cache.py first")
+            print(f"  No HBS {_he_year} parquet files found — skipped")
 
     # Overburden by tenure (renters vs other) — H+E and H+E+T
     print("\n--- Building overburden-by-tenure heatmaps (from raw parquet) ---")

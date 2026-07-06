@@ -220,8 +220,12 @@ def calculate_components_by_decile(df, country_code=None):
     """
     consumption_col = 'EUR_HE00_pps'
 
-    # Iterate over whatever income groups exist (D1-D10 or Q1-Q5)
-    income_groups = sorted(df['income_decile'].dropna().unique(), key=str)
+    # Iterate over whatever income groups exist (D1-D10 or Q1-Q5).
+    # Sort numerically on the embedded integer so D10 comes after D9, not after D1.
+    income_groups = sorted(
+        df['income_decile'].dropna().unique(),
+        key=lambda x: int("".join(c for c in str(x) if c.isdigit())) if any(c.isdigit() for c in str(x)) else str(x),
+    )
 
     results = []
     for decile in income_groups:

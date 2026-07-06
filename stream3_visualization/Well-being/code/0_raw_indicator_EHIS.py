@@ -48,7 +48,7 @@ def extract_year_from_ehis_data(df, wave):
     Returns:
         pd.DataFrame: Dataframe with proper REFYEAR column
     """
-    if wave == 1  # EWBI:
+    if wave == 1:  # EWBI
         # EHIS 1: Use "YEAR" if available, otherwise "IP04" (ddmmyyyy)
         if "YEAR" in df.columns:
             df["REFYEAR"] = df["YEAR"]
@@ -61,7 +61,7 @@ def extract_year_from_ehis_data(df, wave):
             print(f"Wave {wave}: No year column found (YEAR or IP04)")
             df["REFYEAR"] = np.nan
             
-    elif wave == 2  # EU Priorities:
+    elif wave == 2:  # EU Priorities
         # EHIS 2: Use "REFYEAR"
         if "REFYEAR" in df.columns:
             df["REFYEAR"] = pd.to_numeric(df["REFYEAR"], errors='coerce')
@@ -157,6 +157,7 @@ def combine_ehis_waves(dirs):
         "PE06": "PE6",    # Rename Wave 1 PE06 to PE6 (used by processing functions)
         "SK01": "SK1",    # Rename Wave 1 SK01 to SK1 (used by processing functions)
         "AL01": "AL1",    # Rename Wave 1 AL01 to AL1 (used by processing functions)
+        "DH03": "DH3",    # Rename Wave 1 DH03 to DH3 (used by processing functions)
         # Note: Wave 1 doesn't have UN1A, UN1B, UN2A, UN2B, UN2C, UN2D, SS1, AC1A columns
         # These indicators will be NaN for Wave 1 data, which is expected
     }
@@ -165,7 +166,7 @@ def combine_ehis_waves(dirs):
     for i in range(1, 4):
         print(f"\n--- Processing EHIS Wave {i} ---")
         
-        if i == 1  # EWBI:
+        if i == 1:  # EWBI
             # For wave 1, files are in 'Data EHIS' subfolder
             wave_folder = os.path.join(full_path, f"EHIS wave {i}", "Data EHIS")
             file_path = os.path.join(wave_folder, f"EHIS{i}.csv")
@@ -303,7 +304,7 @@ def calculate_ehis_indicators(df):
         "PID", "HHID", "WGT", "REFYEAR", "COUNTRY", "REGION", "DEG_URB",
         "HATLEVEL", "HHTYPE", "quintile", "HS1", "HS2", "HS3", "AC1A", "AW1", "AW2",
         "HA1A", "HA1B", "UN1A", "UN1B", "UN2A", "UN2B", "UN2C", "UN2D",
-        "PE6", "FV1", "SK1", "AL1", "SS1"
+        "PE6", "FV1", "SK1", "AL1", "SS1", "DH3", "BMI"
     ]
     
     # Filter to only include needed columns that exist
@@ -324,8 +325,8 @@ def calculate_ehis_indicators(df):
 
     # Validate quintile coverage before processing
     country_quintile_coverage = merged_df.groupby('Country')['quintile'].nunique()
-    print(f"📋 Countries with complete quintile coverage (5 quintiles): {(country_quintile_coverage == 5  # Primary Indicators).sum()}")
-    print(f"📋 Countries with partial quintile coverage: {(country_quintile_coverage < 5).sum()}")
+    print(f"Countries with complete quintile coverage (5 quintiles): {(country_quintile_coverage == 5).sum()}")
+    print(f"Countries with partial quintile coverage: {(country_quintile_coverage < 5).sum()}")
     
     # Calculate indicators for each group
     results = []
@@ -377,6 +378,16 @@ def calculate_ehis_indicators(df):
             base_condition=lambda x: (x != -1)
         )
 
+        DH3_pct = weighted_percentage(
+            group, "DH3", lambda x: x.isin([4, 5]),
+            base_condition=lambda x: (x != -1)
+        )
+
+        BMI_pct = weighted_percentage(
+            group, "BMI", lambda x: x.isin([4]),
+            base_condition=lambda x: (x != -1)
+        )
+
         results.append({
             "Year": year,
             "Country": country,
@@ -389,7 +400,9 @@ def calculate_ehis_indicators(df):
             "UN2C": UN2c_pct,
             "SK1": SK1_pct,
             "AL1": AL1_pct,
-            "AC1A": AC1A_pct
+            "AC1A": AC1A_pct,
+            "DH3": DH3_pct,
+            "BMI": BMI_pct
         })
 
     return pd.DataFrame(results)
@@ -410,7 +423,7 @@ def calculate_level5_statistics(df):
     # Define columns needed for analysis
     cols_needed = [
         "PID", "HHID", "WGT", "REFYEAR", "COUNTRY", "quintile",
-        "HA1A", "HA1B", "UN2C", "PE6", "FV1", "SK1", "AL1", "SS1", "AC1A"
+        "HA1A", "HA1B", "UN2C", "PE6", "FV1", "SK1", "AL1", "SS1", "AC1A", "DH3", "BMI"
     ]
     
     # Filter and clean data
@@ -470,6 +483,14 @@ def calculate_level5_statistics(df):
             "AB-EHIS-3": weighted_percentage(
                 group_data, "AC1A", lambda x: x.isin([1]),
                 base_condition=lambda x: (x != -1)
+            ),
+            "AE-EHIS-2": weighted_percentage(
+                group_data, "DH3", lambda x: x.isin([4, 5]),
+                base_condition=lambda x: (x != -1)
+            ),
+            "AN-EHIS-2": weighted_percentage(
+                group_data, "BMI", lambda x: x.isin([4]),
+                base_condition=lambda x: (x != -1)
             )
         }
     
@@ -488,6 +509,7 @@ def calculate_level5_statistics(df):
                         "year": year,
                         "value": percentage,  # Already a percentage (0-100)
                         "database": "EHIS",
+                        "flag": "quintile_data",
                         "level5_type": "value_5A"
                     })
     
@@ -506,6 +528,7 @@ def calculate_level5_statistics(df):
                         "year": year,
                         "value": percentage,  # Already a percentage (0-100)
                         "database": "EHIS",
+                        "flag": "quintile_data",
                         "level5_type": "value_5B"
                     })
     
@@ -524,6 +547,7 @@ def calculate_level5_statistics(df):
                     "year": year,
                     "value": percentage,  # Already a percentage (0-100)
                     "database": "EHIS",
+                    "flag": "quintile_data",
                     "level5_type": "value_5C"
                 })
     
@@ -542,6 +566,7 @@ def calculate_level5_statistics(df):
                     "year": year,
                     "value": percentage,  # Already a percentage (0-100)
                     "database": "EHIS",
+                    "flag": "quintile_data",
                     "level5_type": "value_5D"
                 })
     
@@ -576,7 +601,9 @@ def format_final_output(df):
         "UN2C": "AC-EHIS-1",
         "SK1": "AB-EHIS-1",
         "AL1": "AB-EHIS-2",
-        "AC1A": "AB-EHIS-3"
+        "AC1A": "AB-EHIS-3",
+        "DH3": "AE-EHIS-2",
+        "BMI": "AN-EHIS-2"
     }
 
     df = df.rename(columns=rename_dict)
@@ -584,7 +611,8 @@ def format_final_output(df):
     # Define the columns to melt (convert from wide to long format)
     columns_to_melt = [
         "AN-EHIS-1", "AE-EHIS-1", "EC-EHIS-1", "ED-EHIS-1",
-        "AH-EHIS-2", "AC-EHIS-1", "AB-EHIS-1", "AB-EHIS-2", "AB-EHIS-3"
+        "AH-EHIS-2", "AC-EHIS-1", "AB-EHIS-1", "AB-EHIS-2", "AB-EHIS-3",
+        "AE-EHIS-2", "AN-EHIS-2"
     ]
 
     # Melt the DataFrame to long format
@@ -597,6 +625,7 @@ def format_final_output(df):
 
     # Add database identifier
     df_melted["database"] = "EHIS"
+    df_melted["flag"] = "quintile_data"
 
     # Remove rows with NaN values
     df_melted = df_melted[df_melted["value"].notna()]
