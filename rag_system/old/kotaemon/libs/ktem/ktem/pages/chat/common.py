@@ -1,4 +1,0 @@
-DEFAULT_APPLICATION_STATE = {"regen": False}
-STATE = {
-    "app": DEFAULT_APPLICATION_STATE,
-}

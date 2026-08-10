@@ -61,6 +61,16 @@ def main() -> None:
 
     rng = random.Random(args.seed)
 
+    # cell sub-code per cluster (clusters are stratified by (sector, sub_code),
+    # so all members share it; NA for the ambiguous __c-1__ cells)
+    sub_code_by_cluster: dict[str, int | None] = {}
+    if "sub_code" in df.columns:
+        for uid, g in df.groupby("new_cluster_uid")["sub_code"]:
+            mode = g.mode()
+            sub_code_by_cluster[uid] = (
+                int(mode.iat[0]) if len(mode) and pd.notna(mode.iat[0]) else None
+            )
+
     # medoids + members
     medoid_by_cluster: dict[str, dict] = {}
     for _, r in df[df["representative"]].iterrows():
@@ -127,6 +137,7 @@ def main() -> None:
             "cluster_id": int(uid.split("__L")[-1]),
             "cluster_size": cluster_size,
             "size_bucket": _bucket(cluster_size),
+            "sub_code": sub_code_by_cluster.get(uid),
             "items": candidates,
             "gold_intruder_index": gold_idx,
         })

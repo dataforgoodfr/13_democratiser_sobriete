@@ -30,9 +30,10 @@ from _carbon import track
 # policy_analysis/sufficiency_classification/prompts_*.py, kept in sync
 # manually. Copied here so this package doesn't depend on the parent
 # repo layout (which may not be fully committed when cloned on a fresh box).
-# Prompt module is selectable via PROMPTS_VERSION (v1|v2|v2_1); default v2 is the
-# validated six-pillar prompt shipped for the full-corpus run.
-_PROMPTS = importlib.import_module(f"prompts_{os.environ.get('PROMPTS_VERSION', 'v2')}")
+# Prompt module is selectable via PROMPTS_VERSION (v1|v2|v2_1|v3); default v1 is
+# the shipped prompt — it validated best on Gemma (the six-pillar v2/v3 variants
+# hurt the smaller model; see RESEARCH_NOTES iteration 5).
+_PROMPTS = importlib.import_module(f"prompts_{os.environ.get('PROMPTS_VERSION', 'v1')}")
 CATEGORIES = _PROMPTS.CATEGORIES
 PROMPT_VERSION = _PROMPTS.PROMPT_VERSION
 RESPONSE_JSON_SCHEMA = _PROMPTS.RESPONSE_JSON_SCHEMA

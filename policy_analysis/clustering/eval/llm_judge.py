@@ -71,6 +71,10 @@ def validate_response(obj: object) -> str | None:
         if key not in obj:
             continue
         v = obj[key]
+        if "enum" in spec:
+            if v not in spec["enum"]:
+                return f"{key}={v!r} not in enum {spec['enum']}"
+            continue
         if spec["type"] == "integer":
             if not isinstance(v, int) or isinstance(v, bool):
                 return f"{key} must be integer, got {type(v).__name__}"
@@ -157,7 +161,8 @@ async def _judge_one(
     prompt_version: str,
 ) -> dict:
     statements = [c["text"] for c in item["items"]]
-    user_prompt = format_user_prompt(item["sector"], statements)
+    user_prompt = format_user_prompt(item["sector"], statements,
+                                     sub_code=item.get("sub_code"))
     messages = [
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": user_prompt},
@@ -190,6 +195,7 @@ async def _judge_one(
                 "size_bucket": item["size_bucket"],
                 "cluster_size": item["cluster_size"],
                 "gold_intruder_index": item["gold_intruder_index"],
+                "sub_code": item.get("sub_code"),
                 "prompt_version": prompt_version,
                 "model": model,
                 **parsed,

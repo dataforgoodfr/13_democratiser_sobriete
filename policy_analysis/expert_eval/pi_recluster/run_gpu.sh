@@ -32,10 +32,10 @@ else
     FEW_SHOT="${FEW_SHOT:-$REPO_ROOT/runs/expert_gold/few_shot_v1.jsonl}"
 fi
 VLLM_MODEL="${VLLM_MODEL:-google/gemma-4-12B-it}"
-# Prompt version fed to classify_vllm.py. v2 = validated six-pillar definition
-# (beats v1 on the DeepSeek gold set: F1 0.62→0.64, precision +2.9pt, strict
-# recall held at 79%). Override with PROMPTS_VERSION=v1 to reproduce the old run.
-export PROMPTS_VERSION="${PROMPTS_VERSION:-v2}"
+# Prompt version fed to classify_vllm.py. v1 shipped: it validated best on Gemma
+# (the six-pillar v2/v3 variants hurt the smaller model — see RESEARCH_NOTES
+# iteration 5). Override with PROMPTS_VERSION=v2 etc. to re-test a variant.
+export PROMPTS_VERSION="${PROMPTS_VERSION:-v1}"
 
 mkdir -p "$DATA_ROOT/carbon"
 

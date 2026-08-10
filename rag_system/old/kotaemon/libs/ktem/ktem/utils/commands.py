@@ -1,1 +1,0 @@
-WEB_SEARCH_COMMAND = "web"

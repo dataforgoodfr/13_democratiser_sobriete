@@ -1,4 +1,0 @@
-Generic single-database configuration.
-
-To enable database migration, please set `KH_ENABLE_ALEMBIC` to True in the
-setting file.
