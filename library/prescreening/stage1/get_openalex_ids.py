@@ -152,7 +152,7 @@ def get_themes() -> list[Theme]:
 def main():
     init_db()
     print('Database initialized.')
-    connector = OpenAlexConnector(email="example@wsl.org")
+    connector = OpenAlexConnector()  # email via OPENALEX_MAILTO (polite pool)
     themes = get_themes()
     print(f"Total themes to process: {len(themes)}")
     for theme in themes:
