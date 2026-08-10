@@ -35,6 +35,10 @@ class OpenAlexConnector:
             "OPENALEX_MAILTO", "example@thesufficiencylab.org"
         )
         pyalex.config.email = self.email
+        # Since Feb 2026 OpenAlex requires an API key for production use:
+        # ~100k credits/day free with a key vs ~100 without (searches cost 10).
+        if os.environ.get("OPENALEX_API_KEY"):
+            pyalex.config.api_key = os.environ["OPENALEX_API_KEY"]
         # Exponential backoff on 429/5xx instead of failing whole themes.
         pyalex.config.max_retries = int(os.environ.get("OPENALEX_MAX_RETRIES", "8"))
         pyalex.config.retry_backoff_factor = float(os.environ.get("OPENALEX_BACKOFF", "0.5"))
