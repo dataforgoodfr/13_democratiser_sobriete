@@ -6,18 +6,28 @@ This is a first stage of a two-stage process:
 Stores everything in a local SQLite database.
 """
 
+import os
 import sqlite3
 
 import pandas as pd
 from pydantic import BaseModel
 from tqdm import tqdm
 
-from library.connectors.openalex.openalex_connector import OpenAlexConnector
+from library.connectors.openalex.openalex_connector import BASE_FILTERS, OpenAlexConnector
 
 KEYWORDS_CSV_PATH = "sufficiency_keywords_regrouped_count.csv"
 DB_PATH = "openalex_ids.db"
 
 MAX_WORKS_PER_THEME = 2_500_000
+
+# Delta crawls: set OPENALEX_FROM_DATE=YYYY-MM-DD to restrict the search to
+# works published since the previous snapshot. Run in a fresh directory (the
+# SQLite db is cwd-relative) and diff against the previous ids export —
+# scaleway_update.sh crawl does both. Publication date approximates the
+# delta; works backfilled with older dates need from_created_date (premium).
+FILTERS = dict(BASE_FILTERS)
+if os.environ.get("OPENALEX_FROM_DATE"):
+    FILTERS["from_publication_date"] = os.environ["OPENALEX_FROM_DATE"]
 
 
 class Theme(BaseModel):
@@ -78,14 +88,16 @@ def fetch_ids_for_theme(connector: OpenAlexConnector, theme: Theme):
     count = 0
     buffer = []
     try:
-        total_works = connector.count_works(query)
+        total_works = connector.count_works(query, filters=FILTERS)
         print(f"  Total works found: {total_works}")
         if total_works > MAX_WORKS_PER_THEME:
             print(f'Too many articles found {total_works}, skipping.')
             conn.close()
             return
 
-        id_iterator, total_count = connector.fetch_work_ids(query, per_page=200)
+        id_iterator, total_count = connector.fetch_work_ids(
+            query, per_page=200, filters=FILTERS
+        )
         for work_id in tqdm(id_iterator, total=total_count, desc=f"Fetching IDs for {desc}"):
             try:
                 buffer.append((work_id,))

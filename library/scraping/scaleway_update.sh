@@ -40,6 +40,43 @@ need_jz() { : "${JZ:?set JZ to the ssh alias of a Jean Zay login node}"
 
 cmd=${1:-help}
 case "$cmd" in
+crawl)
+    # Delta crawl of OpenAlex into a fresh campaign dir (stage-1 SQLite dbs
+    # are cwd-relative, so a fresh dir = a fresh crawl; theme-level resume
+    # still works inside it). env:
+    #   CAMPAIGN_DIR      fresh working dir, e.g. ~/crawl_2026-08
+    #   OPENALEX_FROM_DATE=YYYY-MM-DD   delta window (publication date)
+    #   PREV_IDS          previous ids export to diff against (optional)
+    # Run inside the library venv (needs `library` importable + pyalex).
+    : "${CAMPAIGN_DIR:?set CAMPAIGN_DIR to a fresh working dir for this crawl}"
+    : "${OPENALEX_FROM_DATE:?set OPENALEX_FROM_DATE=YYYY-MM-DD}"
+    STAGE1=$(cd "$(dirname "$0")/../prescreening/stage1" && pwd)
+    mkdir -p "$CAMPAIGN_DIR"
+    cd "$CAMPAIGN_DIR"
+    cp -n "$STAGE1/sufficiency_keywords_regrouped_count.csv" . || true
+    emit stage_start stage=crawl_ids from_date="$OPENALEX_FROM_DATE"
+    python "$STAGE1/get_openalex_ids.py"
+    emit stage_end stage=crawl_ids
+    python - "${PREV_IDS:-}" <<'PYEOF'
+import sqlite3, sys
+prev = set()
+if len(sys.argv) > 1 and sys.argv[1]:
+    prev = {l.strip() for l in open(sys.argv[1]) if l.strip()}
+ids = [r[0] for r in sqlite3.connect("openalex_ids.db").execute("SELECT id FROM works")]
+delta = [i for i in ids if i not in prev]
+open("openalex_ids.txt", "w").write("\n".join(delta) + "\n")
+print(f"{len(ids):,} crawled, {len(prev):,} previous, {len(delta):,} delta ids")
+PYEOF
+    emit delta_computed ids_file=openalex_ids.txt
+    emit stage_start stage=fetch_works
+    python "$STAGE1/get_works_from_ids.py"
+    emit stage_end stage=fetch_works
+    emit stage_start stage=export_parquet
+    mkdir -p outputs
+    python "$STAGE1/save_to_parquet.py"
+    emit stage_end stage=export_parquet
+    echo "delta parquets in $CAMPAIGN_DIR/outputs — next: STAGE1_DIR=$CAMPAIGN_DIR/outputs $0 push-abstracts"
+    ;;
 push-abstracts)
     need_jz
     emit transfer_start what=abstracts dest="$JZ:$JZ_ROOT/prescreen/stage1"
