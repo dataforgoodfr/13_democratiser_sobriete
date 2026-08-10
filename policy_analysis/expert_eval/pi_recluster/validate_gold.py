@@ -23,6 +23,8 @@ from pathlib import Path
 
 import pandas as pd
 
+from _events import emit
+
 BINARY_MAP_MODEL = {
     "sufficiency": "sufficiency_related",
     "ambiguous": "sufficiency_related",
@@ -99,6 +101,13 @@ def main() -> None:
     else:
         verdict, code = "DO NOT SCALE — model is not fit for this task", 3
     print(f"VERDICT: {verdict}")
+    emit("gold_gate", verdict=verdict.split(" — ")[0], exit_code=code,
+         scored=total, failed_classifications=fails,
+         binary_acc=round(float(binary_acc), 4), precision=round(float(prec), 4),
+         recall=round(float(rec), 4), f1=round(float(f1), 4),
+         strict_recall=round(float(strict_rec), 4),
+         five_class_acc=round(float(five_class), 4),
+         sub_code_acc=round(float(sub_acc), 4))
     return code
 
 

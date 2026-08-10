@@ -34,7 +34,17 @@ S3_BASE_URL = f"{S3_HOST}/{S3_PREFIX}"
 TXT_TIMEOUT = 30  # seconds
 MD_TIMEOUT = 600  # seconds
 
-s3 = get_s3_client()
+_s3 = None
+
+
+def _get_s3():
+    # Built on first use, not at import: importing this module must not
+    # require S3 credentials (spawn workers re-import it, and offline nodes
+    # may import it with no network at all).
+    global _s3
+    if _s3 is None:
+        _s3 = get_s3_client()
+    return _s3
 
 
 def process_pdf(
@@ -66,7 +76,7 @@ def process_pdf(
         save_text(text, output_filename)
 
         s3_key = f"{s3_prefix}/{mode}/{document_id}.{mode}"
-        upload_to_s3(output_filename, s3_key, s3)
+        upload_to_s3(output_filename, s3_key, _get_s3())
 
         mark_paper_processed(document_id, s3_folder, mode)
 

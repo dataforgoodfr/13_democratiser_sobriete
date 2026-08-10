@@ -31,6 +31,16 @@ gpu = [
     "vllm>=0.6.4",              # offline batch inference, guided JSON, prefix caching
     "xgrammar>=0.1.5",           # backend for guided_decoding
 ]
+# Login-node / laptop only: ships the JSONL key events to Logfire
+# (logfire_relay.py). Compute nodes never need it — _events.py is stdlib.
+monitor = [
+    "logfire>=3.14",
+]
+# chunk_corpus.py needs only a tokenizer (already present in the JZ vllmenv
+# via vLLM; install this extra for standalone CPU boxes).
+chunk = [
+    "transformers>=4.40",
+]
 
 [tool.uv]
 package = false

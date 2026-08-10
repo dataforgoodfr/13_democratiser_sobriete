@@ -15,7 +15,8 @@ from openai import APIError, AsyncOpenAI, RateLimitError
 
 try:
     from dotenv import load_dotenv
-    load_dotenv("/Users/aminesaboni/oss/wsl/13_democratiser_sobriete/.env")
+    # repo-root .env, resolved relative to this file so it works on any box
+    load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 except ImportError:
     pass
 
