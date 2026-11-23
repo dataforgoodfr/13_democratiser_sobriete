@@ -57,16 +57,18 @@
 			>
 				{userName}
 			</div>
-			<form method="POST" action="/?/signOut" class="p-1">
-				<button
+			<!-- shared sign-out: Chat, Keycloak and the other WSL apps (see src/routes/deconnexion) -->
+			<div class="p-1">
+				<a
+					href="/deconnexion"
+					target="_top"
 					class={[
-						'w-full rounded px-3 py-1.5 text-left text-sm font-semibold hover:bg-gray-100',
+						'block w-full rounded px-3 py-1.5 text-left text-sm font-semibold hover:bg-gray-100',
 					].join(' ')}
-					type="submit"
 				>
 					Sign out
-				</button>
-			</form>
+				</a>
+			</div>
 		</div>
 	{/if}
 </div>
