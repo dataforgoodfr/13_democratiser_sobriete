@@ -2,7 +2,7 @@ import { redirect, type Handle } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 import { authenticationHandle } from './auth';
 
-const publicPaths = ['/auth', '/connexion', '/'];
+const publicPaths = ['/auth', '/connexion', '/deconnexion', '/'];
 const publicPrefixes = ['/_app', '/favicon', '/robots.txt'];
 
 const authorizationHandle: Handle = async ({ event, resolve }) => {
